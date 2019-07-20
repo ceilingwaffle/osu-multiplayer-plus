@@ -1,7 +1,7 @@
 import * as path from "path";
 import iocContainer from "./inversify.config";
 import * as entities from "./inversify.entities";
-import { Message } from "./utils/Message";
+import { Message } from "./utils/message";
 
 require("dotenv").config({
   path: path.resolve(__dirname, "../.env"),
