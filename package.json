@@ -1,0 +1,50 @@
+{
+  "name": "osu-battle-royale-bot",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "author": "CeilingWaffle",
+  "license": "MIT",
+  "scripts": {
+    "start": "rmdir /S /Q dist & tsc & ts-node src/index.ts",
+    "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
+    "entity:create": "ts-node ./node_modules/typeorm/cli.js entity:create -n",
+    "seed": "ts-node ./node_modules/typeorm-seeding/dist/cli.js seed --config ormconfig.json",
+    "delgo": "rmdir /S /Q dist & tsc & del .\\src\\database\\app_database.sqlite & npm run seed & npm start",
+    "test": "rmdir /S /Q dist & tsc & mocha --require ts-node/register test/**/*.ts",
+    "build": "rmdir /S /Q dist & tsc",
+    "cli:command": "ts-node ./cli/command.ts"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.1.7",
+    "@types/dotenv": "^6.1.1",
+    "@types/mocha": "^5.2.7",
+    "@types/node": "^8.0.29",
+    "chai": "^4.2.0",
+    "mocha": "^6.1.4",
+    "ts-node": "3.3.0",
+    "tsconfig-paths": "^3.8.0",
+    "typescript": "^3.3.3333"
+  },
+  "dependencies": {
+    "@types/fs-extra": "^7.0.0",
+    "bancho.js": "^0.9.5",
+    "class-validator": "^0.9.1",
+    "commander": "^2.20.0",
+    "discord.js": "^11.5.1",
+    "discord.js-commando": "^0.10.0",
+    "dotenv": "^8.0.0",
+    "events-intercept": "^2.0.0",
+    "fs-extra": "^8.0.1",
+    "inversify": "^5.0.1",
+    "inversify-binding-decorators": "^4.0.0",
+    "log4js": "^4.3.1",
+    "module-alias": "^2.2.0",
+    "nodesu": "^0.7.0",
+    "reflect-metadata": "^0.1.13",
+    "sqlite": "^3.0.3",
+    "ts-cleaner": "^1.0.2",
+    "typeorm": "0.2.17",
+    "typeorm-seeding": "^1.0.0-rc.2"
+  }
+}

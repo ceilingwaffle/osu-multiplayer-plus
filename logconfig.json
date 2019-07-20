@@ -1,0 +1,20 @@
+{
+  "appenders": {
+    "console": {
+      "type": "console"
+    },
+    "file": {
+      "type": "file",
+      "filename": "logs/log_file.log",
+      "maxLogSize": 20480000,
+      "backups": 10,
+      "compress": false
+    }
+  },
+  "categories": {
+    "default": {
+      "appenders": ["console", "file"],
+      "level": "info"
+    }
+  }
+}

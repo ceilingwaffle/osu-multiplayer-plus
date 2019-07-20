@@ -1,0 +1,14 @@
+{
+  "type": "sqlite",
+  "database": "app_database_testing.sqlite",
+  "synchronize": true,
+  "logging": "all",
+  "logger": "file",
+  "entities": ["src/**/**.entity{.ts,.js}"],
+  "migrations": ["src/database/migrations/**/*.ts"],
+  "seeds": ["src/database/seeds/**/*.ts"],
+  "cli": {
+    "entitiesDir": "src/domain/**",
+    "migrationsDir": "src/database/migrations"
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "gameReadSuccess": "game read success",
+  "gameReadFailed": "game read failed",
+  "gameCreateSuccess": "game create success",
+  "gameCreateFailed": "game create failed",
+  "gameUpdateSuccess": "game update success",
+  "gameUpdateFailed": "game update failed",
+
+  "lobbyReadSuccess": "lobby read success",
+  "lobbyReadFailed": "lobby read failed",
+  "lobbyCreateSuccess": "lobby create success",
+  "lobbyCreateFailed": "lobby create failed",
+  "lobbyWatchFailed": "lobby watch failed",
+  "lobbyWatchSuccess": "lobby watch success",
+  "lobbyUnwatchFailed": "lobby unwatch failed",
+  "lobbyUnwatchSuccess": "lobby unwatch success",
+
+  "osuApiFailed": "osu! API failed",
+  "osuApiSuccess": "osu! API success",
+
+  "userReadSuccess": "user read success",
+  "userReadFailed": "user read failed",
+  "userCreateSuccess": "user create success",
+  "userCreateFailed": "user create failed"
+}
