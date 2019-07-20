@@ -35,7 +35,11 @@ export class Log {
     Log.info(method.name + " success.", args);
   }
 
+  static methodFailure(method: Function, ...args: any[]) {
+    Log.warn(method.name + " handled failure.", args);
+  }
+
   static methodError(method: Function, ...args: any[]) {
-    Log.error(`${method.name}` + " failure.", args);
+    Log.error(`${method.name}` + " unhandled? error.", args);
   }
 }

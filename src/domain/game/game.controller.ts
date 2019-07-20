@@ -38,17 +38,30 @@ export class GameController {
       };
     }
 
-    // get/create the game creator from the request
     let creator: User;
     try {
+      // get/create the game creator from the request
       const creatorResult = await requester.getOrCreateUser();
       if (creatorResult.failed()) {
-        // unhandled error
         if (creatorResult.value.error) {
-          throw creatorResult.value.error;
+          // unhandled error
+          Log.methodError(
+            this.create,
+            this,
+            creatorResult.value.reason,
+            creatorResult.value.error ? creatorResult.value.error.message : null
+          );
+          return {
+            success: false,
+            message: FailureMessage.get(
+              "gameCreateFailed",
+              creatorResult.value.reason,
+              creatorResult.value.error ? creatorResult.value.error.message : null
+            )
+          };
         }
         // handled failure
-        Log.methodSuccess(this.create, this, creatorResult.value.reason);
+        Log.methodFailure(this.create, this, creatorResult.value.reason);
         return {
           success: false,
           message: creatorResult.value.reason
@@ -56,29 +69,26 @@ export class GameController {
       }
       // successfully got the game creator User
       creator = creatorResult.value;
-    } catch (error) {
-      Log.methodError(this.create, this, error);
-      return {
-        success: false,
-        message: FailureMessage.get("gameCreateFailed", error)
-      };
-    }
-
-    // create the game
-    try {
+      // create the game
       const createGameResult = await this.gameService.create(creator.id, gameData.gameDto);
       if (createGameResult.failed()) {
         return {
           success: false,
-          message: FailureMessage.get("gameCreateFailed", createGameResult.value.reason, createGameResult.value.error.message)
+          message: FailureMessage.get(
+            "gameCreateFailed",
+            createGameResult.value.reason,
+            createGameResult.value.error ? createGameResult.value.error.message : null
+          )
         };
       }
+      Log.methodSuccess(this.create, this);
       return {
         success: true,
         message: Message.get("gameCreateSuccess"),
         result: createGameResult.value
       };
     } catch (error) {
+      Log.methodError(this.create, this, error);
       return {
         success: false,
         message: FailureMessage.get("gameCreateFailed", error)

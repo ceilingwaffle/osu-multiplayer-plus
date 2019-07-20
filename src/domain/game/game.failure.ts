@@ -1,4 +1,5 @@
 import { Failure } from "../../utils/Failure";
+import { ValidationError } from "class-validator";
 
 export enum GameFailure {
   InvalidCreationArguments,
@@ -6,8 +7,12 @@ export enum GameFailure {
   CreatorUserCreationFailed
 }
 
-export const invalidCreationArgumentsFailure = (reason?: string): Failure<GameFailure.InvalidCreationArguments> => ({
+export const invalidCreationArgumentsFailure = (
+  validationErrors: ValidationError[],
+  reason?: string
+): Failure<GameFailure.InvalidCreationArguments> => ({
   type: GameFailure.InvalidCreationArguments,
+  validationErrors: validationErrors,
   reason: reason || "One or more game arguments were invalid."
 });
 

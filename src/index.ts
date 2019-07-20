@@ -2,6 +2,7 @@ import * as path from "path";
 import iocContainer from "./inversify.config";
 import * as entities from "./inversify.entities";
 import { Message } from "./utils/message";
+import { RequesterType } from "./requests/requester-type";
 
 require("dotenv").config({
   path: path.resolve(__dirname, "../.env"),
@@ -28,5 +29,10 @@ String.prototype.toSentenceCase = function(): string {
 
 Message.enableSentenceCaseOutput();
 
-let GameController = iocContainer.get(entities.GameController);
+const gameController = iocContainer.get(entities.GameController);
+const response = gameController.create({
+  gameDto: { teamLives: 2, countFailedScores: true },
+  requestDto: { type: RequesterType.DISCORD.toString(), authorId: "waffle", originChannel: "waffle's amazing channel" }
+});
+
 export {};
