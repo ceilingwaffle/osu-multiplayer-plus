@@ -28,5 +28,5 @@ String.prototype.toSentenceCase = function(): string {
 
 Message.enableSentenceCaseOutput();
 
-// let GameController = iocContainer.get(entities.GameController);
+let GameController = iocContainer.get(entities.GameController);
 export {};
