@@ -6,16 +6,21 @@ import { DiscordRequester } from "./requesters/discord.requester";
 import { WebRequester } from "./requesters/web.requester";
 
 export class RequesterFactory {
+  /**
+   * Returns an instance of a specific Requester type depending on the given DTO type.
+   *
+   * @static
+   * @param {RequestDto} requestDto
+   * @returns {Requester}
+   */
   public static initialize(requestDto: RequestDto): Requester {
-    let requester: Requester;
     if (requestDto.type === "discord") {
-      requester = new DiscordRequester(requestDto, iocContainer.get(entities.UserService));
+      return new DiscordRequester(requestDto, iocContainer.get(entities.UserService));
     } else if (requestDto.type === "web") {
-      requester = new WebRequester(requestDto, iocContainer.get(entities.UserService));
+      return new WebRequester(requestDto, iocContainer.get(entities.UserService));
     } else {
       const _exhaustiveCheck: never = requestDto;
+      return _exhaustiveCheck;
     }
-
-    return requester;
   }
 }
