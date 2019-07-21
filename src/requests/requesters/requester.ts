@@ -4,7 +4,6 @@ import { RequesterType } from "../requester-type";
 import { Either } from "../../utils/Either";
 import { Failure } from "../../utils/Failure";
 import { UserFailureTypes } from "../../domain/user/user.failure";
-import { RequestDto } from "../../domain/shared/dto/request.dto";
 
 export abstract class Requester {
   public readonly requesterInfo: RequesterInfo;

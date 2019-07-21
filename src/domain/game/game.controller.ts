@@ -6,7 +6,7 @@ import { Response } from "../../requests/Response";
 import { Game } from "./game.entity";
 import { Message, FailureMessage } from "../../utils/message";
 import { User } from "../user/user.entity";
-import { RequestDto } from "../shared/dto/request.dto";
+import { RequestDto } from "../../requests/dto/request.dto";
 import { Requester } from "../../requests/requesters/requester";
 import { Log } from "../../utils/Log";
 
@@ -23,69 +23,40 @@ export class GameController {
    * @memberof GameController
    */
   async create(gameData: { gameDto: CreateGameDto; requestDto: RequestDto }): Promise<Response<Game>> {
-    // process the request
-    let requester: Requester;
     try {
-      requester = RequesterFactory.initialize(gameData.requestDto.type);
-      if (!requester) {
-        throw new Error("Error initializing the requester factory. This should never happen.");
-      }
-    } catch (error) {
-      Log.methodError(this.create, this, error);
-      return {
-        success: false,
-        message: FailureMessage.get("gameCreateFailed", error)
-      };
-    }
+      // build the requester
+      const requester: Requester = RequesterFactory.initialize(gameData.requestDto.type);
+      if (!requester) throw new Error("Error initializing the requester factory. This should never happen.");
 
-    let creator: User;
-    try {
-      // get/create the game creator from the request
+      // get/create the game creator user from the request
       const creatorResult = await requester.getOrCreateUser();
       if (creatorResult.failed()) {
-        if (creatorResult.value.error) {
-          // unhandled error
-          Log.methodError(
-            this.create,
-            this,
-            creatorResult.value.reason,
-            creatorResult.value.error ? creatorResult.value.error.message : null
-          );
-          return {
-            success: false,
-            message: FailureMessage.get(
-              "gameCreateFailed",
-              creatorResult.value.reason,
-              creatorResult.value.error ? creatorResult.value.error.message : null
-            )
-          };
-        }
-        // handled failure
+        if (creatorResult.value.error) throw creatorResult.value.error;
         Log.methodFailure(this.create, this, creatorResult.value.reason);
         return {
           success: false,
-          message: creatorResult.value.reason
+          message: FailureMessage.get("gameCreateFailed", creatorResult.value.reason)
         };
       }
-      // successfully got the game creator User
-      creator = creatorResult.value;
+
       // create the game
-      const createGameResult = await this.gameService.create(creator.id, gameData.gameDto);
+      const createGameResult = await this.gameService.create(creatorResult.value.id, gameData.gameDto);
       if (createGameResult.failed()) {
+        if (createGameResult.value.error) throw createGameResult.value.error;
+        Log.methodFailure(this.create, this, createGameResult.value.reason);
         return {
           success: false,
-          message: FailureMessage.get(
-            "gameCreateFailed",
-            createGameResult.value.reason,
-            createGameResult.value.error ? createGameResult.value.error.message : null
-          )
+          message: FailureMessage.get("gameCreateFailed", createGameResult.value.reason)
         };
       }
+
+      // successfully created new game
+      const game: Game = createGameResult.value;
       Log.methodSuccess(this.create, this);
       return {
         success: true,
         message: Message.get("gameCreateSuccess"),
-        result: createGameResult.value
+        result: game
       };
     } catch (error) {
       Log.methodError(this.create, this, error);

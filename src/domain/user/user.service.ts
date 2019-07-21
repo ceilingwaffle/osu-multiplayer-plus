@@ -33,7 +33,7 @@ export class UserService {
         throw new Error(message);
       } else {
         // return the user of the discord user
-        Log.methodSuccess(this.getOrCreateUserForDiscordUserId);
+        Log.methodSuccess(this.getOrCreateUserForDiscordUserId, this);
         return successPromise(discordUser.user);
       }
     }
@@ -55,13 +55,7 @@ export class UserService {
       discordUser: newDiscordUser
     });
 
-    // const userErrors = await validate(newUser);
-    // if (userErrors.length > 0) {
-    //   Log.methodFailure(this.getOrCreateUserForDiscordUserId, this, "User validation failed.");
-    //   return failurePromise(invalidUserCreationArgumentsFailure());
-    // }
-
-    // save the user
+    // save the user (should cascade save the discord user)
     const savedUser = await this.userRepository.save(newUser);
 
     // return the saved user

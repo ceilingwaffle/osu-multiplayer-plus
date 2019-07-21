@@ -2,7 +2,6 @@ import { Requester } from "./requesters/requester";
 import { RequesterType } from "./requester-type";
 import iocContainer from "../inversify.config";
 import * as entities from "../inversify.entities";
-import { RequestDto } from "../domain/shared/dto/request.dto";
 
 export class RequesterFactory {
   public static initialize(requesterType: string): Requester {

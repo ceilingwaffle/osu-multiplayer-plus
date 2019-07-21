@@ -4,10 +4,9 @@ import { Game } from "./game.entity";
 import { CreateGameDto } from "./dto/create-game.dto";
 import { Either, failurePromise, successPromise } from "../../utils/Either";
 import { Failure } from "../../utils/Failure";
-import { GameFailure, creatorUserLookupError, invalidCreationArgumentsFailure } from "./game.failure";
-import { User } from "../user/user.entity";
+import { GameFailure, invalidCreationArgumentsFailure } from "./game.failure";
 import { UserService } from "../user/user.service";
-import { UserFailure, userLookupFailure, userLookupError } from "../user/user.failure";
+import { UserFailure } from "../user/user.failure";
 import { validate } from "class-validator";
 import { Log } from "../../utils/Log";
 
@@ -31,14 +30,15 @@ export class GameService {
     // get the game creator
     const userResult = await this.userService.findOne({ id: userId });
     if (userResult.failed()) {
+      if (userResult.value.error) throw userResult.value.error;
       Log.methodFailure(this.create, this, userResult.value.reason);
       return failurePromise(userResult.value);
     }
     // create the game
-    const user: User = userResult.value;
     const game = this.gameRepository.create({
       teamLives: gameData.teamLives,
-      countFailedScores: gameData.countFailedScores
+      countFailedScores: gameData.countFailedScores,
+      createdBy: userResult.value
     });
     // validate the game
     const errors = await validate(game);
