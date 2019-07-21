@@ -1,4 +1,3 @@
-require("typeorm");
 import * as path from "path";
 import iocContainer from "./inversify.config";
 import * as entities from "./inversify.entities";

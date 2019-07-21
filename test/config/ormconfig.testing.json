@@ -1,10 +1,10 @@
 {
   "type": "sqlite",
-  "database": "app_database_testing.sqlite",
+  "database": "test/database/app_database_testing.sqlite",
   "synchronize": true,
   "logging": "all",
   "logger": "file",
-  "entities": ["dist/**/*.entity.js"],
+  "entities": ["./dist/**/*.entity.js"],
   "migrations": ["src/database/migrations/**/*.ts"],
   "seeds": ["src/database/seeds/**/*.ts"],
   "cli": {

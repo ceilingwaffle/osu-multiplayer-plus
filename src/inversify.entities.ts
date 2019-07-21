@@ -9,5 +9,5 @@ export { GameRepository } from "./domain/game/game.repository";
 // export { DiscordRequester } from "./requests/requesters/discord.requester";
 
 export { UserService } from "./domain/user/user.service";
-export { UserRepository } from "./domain/user/user.repository";
-export { DiscordUserRepository } from "./domain/user/discord-user.repository";
+// export { UserRepository } from "./domain/user/user.repository";
+// export { DiscordUserRepository } from "./domain/user/discord-user.repository";

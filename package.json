@@ -6,7 +6,8 @@
   "author": "CeilingWaffle",
   "license": "MIT",
   "scripts": {
-    "start": "rmdir /S /Q dist & tsc & ts-node src/index.ts",
+    "start": "rmdir /S /Q dist & tsc & xcopy .\\src\\locales .\\dist\\locales\\ /E /C /Q /Y & node dist/index.js",
+    "start:ts": "rmdir /S /Q dist & tsc & ts-node src/index.ts",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "entity:create": "ts-node ./node_modules/typeorm/cli.js entity:create -n",
     "seed": "ts-node ./node_modules/typeorm-seeding/dist/cli.js seed --config ormconfig.json",
