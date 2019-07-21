@@ -1,16 +1,13 @@
-import { RequesterType } from "../requester-type";
 import { inject } from "inversify";
 import { UserService } from "../../domain/user/user.service";
 import { Requester } from "./requester";
+import { RequestDto } from "../dto";
 
 export class WebRequester extends Requester {
-  constructor(
-    @inject(UserService)
-    private readonly userService: UserService
-  ) {
-    super(RequesterType.WEB);
+  constructor(dto: RequestDto, @inject(UserService) private readonly userService: UserService) {
+    super(dto);
   }
   public getOrCreateUser(): Promise<any> {
-    return this.userService.getOrCreateUserForWebUserId(this.requesterInfo.authorId);
+    return this.userService.getOrCreateUserForWebUserId(this.dto.authorId);
   }
 }

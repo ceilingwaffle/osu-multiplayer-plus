@@ -3,7 +3,6 @@ import * as path from "path";
 import iocContainer from "./inversify.config";
 import * as entities from "./inversify.entities";
 import { Message } from "./utils/message";
-import { RequesterType } from "./requests/requester-type";
 import { ConnectionManager } from "./utils/connection-manager";
 
 require("dotenv").config({
@@ -40,7 +39,7 @@ Message.enableSentenceCaseOutput();
       const gameController = iocContainer.get(entities.GameController);
       const response = await gameController.create({
         gameDto: { teamLives: 2, countFailedScores: true },
-        requestDto: { type: RequesterType.DISCORD.toString(), authorId: "waffle", originChannel: "waffle's amazing channel" }
+        requestDto: { type: "discord", authorId: "waffle", originChannel: "waffle's amazing channel" }
       });
       var a = response;
     } catch (e) {

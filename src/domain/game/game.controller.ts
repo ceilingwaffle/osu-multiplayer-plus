@@ -5,7 +5,7 @@ import { RequesterFactory } from "../../requests/requester-factory";
 import { Response } from "../../requests/Response";
 import { Game } from "./game.entity";
 import { Message, FailureMessage } from "../../utils/message";
-import { RequestDto } from "../../requests/dto/request.dto";
+import { IRequestDto, RequestDto } from "../../requests/dto/request.dto";
 import { Requester } from "../../requests/requesters/requester";
 import { Log } from "../../utils/Log";
 
