@@ -1,4 +1,4 @@
-import { Entity, OneToOne, PrimaryColumn, PrimaryGeneratedColumn, Column } from "typeorm";
+import { Entity, OneToOne, PrimaryColumn, PrimaryGeneratedColumn, Column, JoinColumn } from "typeorm";
 import { User } from "./user.entity";
 
 @Entity("discordUser")
@@ -10,5 +10,6 @@ export class DiscordUser {
   discordUserId: string;
 
   @OneToOne(type => User, user => user.discordUser)
+  @JoinColumn()
   user: User;
 }

@@ -5,7 +5,6 @@ import { RequesterFactory } from "../../requests/requester-factory";
 import { Response } from "../../requests/Response";
 import { Game } from "./game.entity";
 import { Message, FailureMessage } from "../../utils/message";
-import { User } from "../user/user.entity";
 import { RequestDto } from "../../requests/dto/request.dto";
 import { Requester } from "../../requests/requesters/requester";
 import { Log } from "../../utils/Log";
@@ -25,14 +24,14 @@ export class GameController {
   async create(gameData: { gameDto: CreateGameDto; requestDto: RequestDto }): Promise<Response<Game>> {
     try {
       // build the requester
-      const requester: Requester = RequesterFactory.initialize(gameData.requestDto.type);
+      const requester: Requester = RequesterFactory.initialize(gameData.requestDto);
       if (!requester) throw new Error("Error initializing the requester factory. This should never happen.");
 
       // get/create the game creator user from the request
       const creatorResult = await requester.getOrCreateUser();
       if (creatorResult.failed()) {
         if (creatorResult.value.error) throw creatorResult.value.error;
-        Log.methodFailure(this.create, this, creatorResult.value.reason);
+        Log.methodFailure(this.create, this.constructor.name, creatorResult.value.reason);
         return {
           success: false,
           message: FailureMessage.get("gameCreateFailed", creatorResult.value.reason)
@@ -43,7 +42,7 @@ export class GameController {
       const createGameResult = await this.gameService.create(creatorResult.value.id, gameData.gameDto);
       if (createGameResult.failed()) {
         if (createGameResult.value.error) throw createGameResult.value.error;
-        Log.methodFailure(this.create, this, createGameResult.value.reason);
+        Log.methodFailure(this.create, this.constructor.name, createGameResult.value.reason);
         return {
           success: false,
           message: FailureMessage.get("gameCreateFailed", createGameResult.value.reason)
@@ -52,14 +51,14 @@ export class GameController {
 
       // successfully created new game
       const game: Game = createGameResult.value;
-      Log.methodSuccess(this.create, this);
+      Log.methodSuccess(this.create, this.constructor.name);
       return {
         success: true,
         message: Message.get("gameCreateSuccess"),
         result: game
       };
     } catch (error) {
-      Log.methodError(this.create, this, error);
+      Log.methodError(this.create, this.constructor.name, error);
       return {
         success: false,
         message: FailureMessage.get("gameCreateFailed", error)

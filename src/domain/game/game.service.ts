@@ -1,5 +1,5 @@
 import { inject } from "inversify";
-import { Repository } from "typeorm";
+import { Repository, getCustomRepository } from "typeorm";
 import { Game } from "./game.entity";
 import { CreateGameDto } from "./dto/create-game.dto";
 import { Either, failurePromise, successPromise } from "../../utils/Either";
@@ -9,12 +9,12 @@ import { UserService } from "../user/user.service";
 import { UserFailure } from "../user/user.failure";
 import { validate } from "class-validator";
 import { Log } from "../../utils/Log";
+import { GameRepository } from "./game.repository";
 
 export class GameService {
-  constructor(
-    @inject(Repository) private readonly gameRepository: Repository<Game>,
-    @inject(UserService) private readonly userService: UserService
-  ) {
+  private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
+
+  constructor(@inject(UserService) private readonly userService: UserService) {
     console.debug("Initialized Game Service.");
   }
 
@@ -31,7 +31,7 @@ export class GameService {
     const userResult = await this.userService.findOne({ id: userId });
     if (userResult.failed()) {
       if (userResult.value.error) throw userResult.value.error;
-      Log.methodFailure(this.create, this, userResult.value.reason);
+      Log.methodFailure(this.create, this.constructor.name, userResult.value.reason);
       return failurePromise(userResult.value);
     }
     // create the game
@@ -43,13 +43,13 @@ export class GameService {
     // validate the game
     const errors = await validate(game);
     if (errors.length > 0) {
-      Log.methodFailure(this.create, this, "Game validation failed.");
+      Log.methodFailure(this.create, this.constructor.name, "Game validation failed.");
       return failurePromise(invalidCreationArgumentsFailure(errors));
     }
     // save the game
     const savedGame = await this.gameRepository.save(game);
     // return the saved game
-    Log.methodSuccess(this.create, this);
+    Log.methodSuccess(this.create, this.constructor.name);
     return successPromise(savedGame);
   }
 }

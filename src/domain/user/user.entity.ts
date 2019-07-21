@@ -15,6 +15,5 @@ export class User {
     cascade: true,
     nullable: true
   })
-  @JoinColumn()
   discordUser: DiscordUser;
 }

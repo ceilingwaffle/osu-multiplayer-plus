@@ -1,8 +1,10 @@
+require("typeorm");
 import * as path from "path";
 import iocContainer from "./inversify.config";
 import * as entities from "./inversify.entities";
 import { Message } from "./utils/message";
 import { RequesterType } from "./requests/requester-type";
+import { ConnectionManager } from "./utils/connection-manager";
 
 require("dotenv").config({
   path: path.resolve(__dirname, "../.env"),
@@ -29,10 +31,22 @@ String.prototype.toSentenceCase = function(): string {
 
 Message.enableSentenceCaseOutput();
 
-const gameController = iocContainer.get(entities.GameController);
-const response = gameController.create({
-  gameDto: { teamLives: 2, countFailedScores: true },
-  requestDto: { type: RequesterType.DISCORD.toString(), authorId: "waffle", originChannel: "waffle's amazing channel" }
-});
+(() => {
+  setTimeout(async () => {
+    try {
+      // create typeorm connection
+      await ConnectionManager.getInstance();
+
+      const gameController = iocContainer.get(entities.GameController);
+      const response = await gameController.create({
+        gameDto: { teamLives: 2, countFailedScores: true },
+        requestDto: { type: RequesterType.DISCORD.toString(), authorId: "waffle", originChannel: "waffle's amazing channel" }
+      });
+      var a = response;
+    } catch (e) {
+      console.error(e);
+    }
+  }, (2 ^ 32) - 1);
+})();
 
 export {};

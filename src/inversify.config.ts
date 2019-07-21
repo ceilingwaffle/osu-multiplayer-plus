@@ -6,6 +6,7 @@ import * as entities from "./inversify.entities";
 const iocContainer = new Container();
 
 autoProvide(iocContainer, entities);
+
 iocContainer.load(buildProviderModule());
 
 export default iocContainer;
