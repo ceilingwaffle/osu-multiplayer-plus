@@ -8,6 +8,7 @@ import { GameController } from "../../src/domain/game/game.controller";
 import { DiscordRequestDto } from "../../src/requests/dto/discord-request.dto";
 import { Game } from "../../src/domain/game/game.entity";
 import { User } from "../../src/domain/user/user.entity";
+import { GameStatusType } from "../../src/domain/game/types/game-status.type";
 
 async function getEntities(): Promise<TestContextEntities[]> {
   return [{ name: "User", tableName: "users", values: [] }, { name: "Game", tableName: "games", values: [] }];
@@ -83,7 +84,7 @@ describe("When creating a game", function() {
           assert.isNotNull(savedGame);
           assert.equal(savedGame.teamLives, gameDto.teamLives);
           assert.equal(savedGame.countFailedScores, gameDto.countFailedScores);
-          assert.equal(savedGame.status.text, GameStatusValue.IDLE.toString(), "New games created should have a game status of idle.");
+          assert.equal(savedGame.status.text, GameStatusType.IDLE, "New games created should have a game status of idle.");
           assert.lengthOf(savedGame.messageTargets, 1);
           assert.isDefined(savedGame.messageTargets.find(msgTarget => msgTarget.channel === requestDto.originChannel));
           assert.isNotNull(savedGame.createdBy);
