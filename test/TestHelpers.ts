@@ -2,7 +2,7 @@ import { exec } from "child_process";
 import { BaseEntity, Connection } from "typeorm";
 import * as fs from "fs-extra";
 import assert = require("assert");
-import { ConnectionManager } from "../src/utils/ConnectionManager";
+import { ConnectionManager } from "../src/utils/connection-manager";
 
 export class TestHelpers {
   static async clearEntityTable(Entity: typeof BaseEntity, connection: Connection) {
@@ -92,10 +92,10 @@ export class TestHelpers {
       // we reverse the order due to SQL foreign key constraints
       // slice used here to get elements in reverse order without modifying original array
       for (const entity of entities.slice().reverse()) {
-        const repository = (await ConnectionManager.getInstance()).getRepository(entity.name);
-        await repository.query(`DELETE FROM ${entity.tableName};`);
+        const qr = (await ConnectionManager.getInstance()).createQueryRunner();
+        await qr.query(`DELETE FROM ${entity.tableName};`);
         // Reset IDs
-        await repository.query(`DELETE FROM sqlite_sequence WHERE name='${entity.tableName}'`);
+        await qr.query(`DELETE FROM sqlite_sequence WHERE name='${entity.tableName}'`);
       }
       console.log("Erased entities from test DB.");
     } catch (error) {

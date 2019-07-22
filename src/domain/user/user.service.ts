@@ -26,7 +26,10 @@ export class UserService {
 
   async getOrCreateUserForDiscordUserId(discordUserId: string): Promise<Either<Failure<UserFailure | DiscordUserFailure>, User>> {
     // find existing discord user
-    const discordUser = await this.discordUserRepository.findOne({ discordUserId: discordUserId }, { relations: ["user"] });
+    const discordUser = await this.discordUserRepository.findOne(
+      { discordUserId: discordUserId },
+      { relations: ["user", "user.discordUser"] }
+    );
     if (discordUser) {
       if (!discordUser.user) {
         const message = "Discord user has no User. This should never happen.";

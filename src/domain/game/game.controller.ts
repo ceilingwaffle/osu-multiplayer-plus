@@ -39,13 +39,17 @@ export class GameController {
       }
 
       // create the game
-      const createGameResult = await this.gameService.create(creatorResult.value.id, gameData.gameDto);
+      const createGameResult = await this.gameService.create(creatorResult.value.id, gameData.gameDto, gameData.requestDto);
       if (createGameResult.failed()) {
         if (createGameResult.value.error) throw createGameResult.value.error;
         Log.methodFailure(this.create, this.constructor.name, createGameResult.value.reason);
         return {
           success: false,
-          message: FailureMessage.get("gameCreateFailed", createGameResult.value.reason)
+          message: FailureMessage.get(
+            "gameCreateFailed",
+            createGameResult.value.reason,
+            createGameResult.value.validationErrors.toLocaleString()
+          )
         };
       }
 

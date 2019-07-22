@@ -1,12 +1,12 @@
 import { Entity, OneToOne, PrimaryColumn, PrimaryGeneratedColumn, Column, JoinColumn } from "typeorm";
 import { User } from "./user.entity";
 
-@Entity("discordUser")
+@Entity("discord_users")
 export class DiscordUser {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({ unique: true })
   discordUserId: string;
 
   @OneToOne(type => User, user => user.discordUser)
