@@ -52,7 +52,7 @@ describe("When creating a game", function() {
   });
 
   describe("with no values", function() {
-    it("should save a new game from a create game request containing no values", function() {
+    it("should save a new game from a create game request from Discord containing no specified values", function() {
       return new Promise(async (resolve, reject) => {
         try {
           const gameDto: CreateGameDto = {};
@@ -81,7 +81,7 @@ describe("When creating a game", function() {
   });
 
   describe("with some values", function() {
-    it("should save a new game from a create game request containing some values", function() {
+    it("should save a new game from a create game request from Discord containing some values", function() {
       return new Promise(async (resolve, reject) => {
         try {
           const gameDto: CreateGameDto = {
