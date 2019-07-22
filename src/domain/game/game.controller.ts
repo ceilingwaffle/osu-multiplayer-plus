@@ -5,7 +5,7 @@ import { RequesterFactory } from "../../requests/requester-factory";
 import { Response } from "../../requests/Response";
 import { Game } from "./game.entity";
 import { Message, FailureMessage } from "../../utils/message";
-import { RequestDto } from "../../requests/dto/request.dto";
+import { RequestDtoType } from "../../requests/dto/request.dto";
 import { Requester } from "../../requests/requesters/requester";
 import { Log } from "../../utils/Log";
 
@@ -17,11 +17,11 @@ export class GameController {
   /**
    * Creates a new game.
    *
-   * @param {{ gameDto: CreateGameDto; requestDto: RequestDto }} gameData
+   * @param {{ gameDto: CreateGameDto; requestDto: RequestDtoType }} gameData
    * @returns {Promise<Response<Game>>}
    * @memberof GameController
    */
-  async create(gameData: { gameDto: CreateGameDto; requestDto: RequestDto }): Promise<Response<Game>> {
+  async create(gameData: { gameDto: CreateGameDto; requestDto: RequestDtoType }): Promise<Response<Game>> {
     try {
       // build the requester
       const requester: Requester = RequesterFactory.initialize(gameData.requestDto);

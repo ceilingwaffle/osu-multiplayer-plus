@@ -7,7 +7,11 @@ export class GameStatus {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column()
+  @Column({
+    type: "enum",
+    enum: GameStatusType,
+    default: GameStatusType.UNKNOWN
+  })
   text: GameStatusType;
 
   @OneToMany(type => Game, game => game.status)

@@ -86,6 +86,7 @@ describe("When creating a game", function() {
           assert.equal(savedGame.countFailedScores, gameDto.countFailedScores);
           assert.equal(savedGame.status.text, GameStatusType.IDLE, "New games created should have a game status of idle.");
           assert.lengthOf(savedGame.messageTargets, 1);
+          assert.isDefined(savedGame.messageTargets.find(msgTarget => msgTarget.type === requestDto.type));
           assert.isDefined(savedGame.messageTargets.find(msgTarget => msgTarget.channel === requestDto.originChannel));
           assert.isNotNull(savedGame.createdBy);
           assert.equal(savedGame.createdBy.discordUser.discordUserId, requestDto.authorId);

@@ -1,10 +1,12 @@
 import { DiscordRequestDto } from "./discord-request.dto";
 import { WebRequestDto } from "./web-request.dto";
 
-export interface IRequestDto {
-  type: string;
+export interface RequestDto {
+  type: CommunicationClientType;
   authorId: string;
   originChannel: string;
 }
 
-export type RequestDto = DiscordRequestDto | WebRequestDto;
+export type RequestDtoType = DiscordRequestDto | WebRequestDto;
+
+export type CommunicationClientType = "discord" | "web";

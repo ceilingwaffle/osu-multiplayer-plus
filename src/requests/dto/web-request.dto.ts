@@ -1,5 +1,5 @@
-import { IRequestDto } from "./request.dto";
+import { RequestDto } from "./request.dto";
 
-export interface WebRequestDto extends IRequestDto {
+export interface WebRequestDto extends RequestDto {
   type: "web";
 }
