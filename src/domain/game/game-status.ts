@@ -1,4 +1,4 @@
-export enum GameStatusType {
+export enum GameStatus {
   SCHEDULED = "scheduled",
   IDLE = "idle",
   INPROGRESS = "inprogress",

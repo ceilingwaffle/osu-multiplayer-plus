@@ -8,7 +8,7 @@ import { GameController } from "../../src/domain/game/game.controller";
 import { DiscordRequestDto } from "../../src/requests/dto/discord-request.dto";
 import { Game } from "../../src/domain/game/game.entity";
 import { User } from "../../src/domain/user/user.entity";
-import { GameStatusType } from "../../src/domain/game/types/game-status-type";
+import { GameStatus } from "../../src/domain/game/game-status";
 import { ConnectionManager } from "../../src/utils/connection-manager";
 import { DiscordUser } from "../../src/domain/user/discord-user.entity";
 
@@ -39,7 +39,7 @@ async function getEntities(): Promise<TestContextEntities[]> {
 }
 
 describe("When creating a game", function() {
-  this.beforeAll(function() {
+  this.beforeEach(function() {
     return TestHelpers.reloadEntities(getEntities());
   });
 
@@ -65,8 +65,7 @@ describe("When creating a game", function() {
 
           return resolve();
         } catch (error) {
-          reject(error);
-          throw error;
+          return reject(error);
         }
       });
     });
@@ -94,7 +93,7 @@ describe("When creating a game", function() {
           const savedGame = gameCreateResponse.result as Game;
           assert.equal(savedGame!.teamLives, gameDto.teamLives);
           assert.equal(savedGame!.countFailedScores, gameDto.countFailedScores);
-          assert.equal(savedGame!.status, GameStatusType.IDLE, "New games created should have a game status of idle.");
+          assert.equal(savedGame!.status, GameStatus.IDLE, "New games created should have a game status of idle.");
           /* #endregion */
 
           /* #region  message target */
@@ -124,8 +123,7 @@ describe("When creating a game", function() {
 
           return resolve();
         } catch (error) {
-          reject(error);
-          throw error;
+          return reject(error);
         }
       });
     });

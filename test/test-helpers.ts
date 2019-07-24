@@ -15,9 +15,9 @@ export class TestHelpers {
           const entities = await entitiesPromise;
           await TestHelpers.cleanAll(entities);
           await TestHelpers.loadAll(entities);
-          resolve();
+          return resolve();
         } catch (error) {
-          reject(error);
+          return reject(error);
         }
       }, timeout);
     });
@@ -80,9 +80,9 @@ export class TestHelpers {
     return new Promise(function(resolve, reject) {
       exec(cmd, (err, stdout, stderr) => {
         if (err) {
-          reject(err);
+          return reject(err);
         } else {
-          resolve({ stdout, stderr });
+          return resolve({ stdout, stderr });
         }
       });
     });

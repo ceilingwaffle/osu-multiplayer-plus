@@ -1,4 +1,4 @@
-import { CreateGameDto } from "../dto";
+import { CreateGameDto } from "./dto";
 
 export const GameDefaults: CreateGameDto = {
   teamLives: 2,

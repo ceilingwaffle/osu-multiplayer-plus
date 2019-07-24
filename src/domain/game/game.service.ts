@@ -11,8 +11,8 @@ import { validate } from "class-validator";
 import { Log } from "../../utils/Log";
 import { GameRepository } from "./game.repository";
 import { RequestDto } from "../../requests/dto";
-import { GameDefaults } from "./values/game-defaults";
-import { GameStatusType } from "./types/game-status-type";
+import { GameDefaults } from "./game-defaults";
+import { GameStatus } from "./game-status";
 
 export class GameService {
   private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
@@ -48,7 +48,7 @@ export class GameService {
       teamLives: gameDto.teamLives != null ? gameDto.teamLives : GameDefaults.teamLives,
       countFailedScores: gameDto.countFailedScores != null ? gameDto.countFailedScores : GameDefaults.countFailedScores,
       createdBy: gameCreator,
-      status: GameStatusType.IDLE,
+      status: GameStatus.IDLE,
       refereedBy: [gameCreator],
       messageTargets: [
         {
