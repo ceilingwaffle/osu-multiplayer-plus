@@ -1,4 +1,3 @@
-import { inject } from "inversify";
 import { User } from "./user.entity";
 import { Either, failurePromise, successPromise } from "../../utils/Either";
 import { Failure } from "../../utils/Failure";
@@ -21,7 +20,7 @@ export class UserService {
   private readonly discordUserRepository: DiscordUserRepository = getCustomRepository(DiscordUserRepository);
 
   constructor() {
-    console.debug("Initialized User Service.");
+    Log.debug("Initialized User Service.");
   }
 
   async getOrCreateUserForDiscordUserId(discordUserId: string): Promise<Either<Failure<UserFailure | DiscordUserFailure>, User>> {

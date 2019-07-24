@@ -11,7 +11,7 @@ import { Log } from "../../utils/Log";
 
 export class GameController {
   constructor(@inject(GameService) private readonly gameService: GameService) {
-    console.debug("Initialized Game Controller.");
+    Log.debug("Initialized Game Controller.");
   }
 
   /**

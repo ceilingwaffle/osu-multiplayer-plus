@@ -1,4 +1,5 @@
 import { createConnection, Connection, getConnection } from "typeorm";
+import { Log } from "./Log";
 
 /**
  * The typeorm connection manager.
@@ -18,12 +19,12 @@ export class ConnectionManager {
    */
   static async getInstance(): Promise<Connection> {
     if (!ConnectionManager.instance) {
-      console.log("Connecting to database...");
+      Log.debug("Connecting to database...");
       ConnectionManager.instance = await ConnectionManager.createConnection();
-      console.log("Connected to database.");
+      Log.debug("Connected to database.");
     }
     while (ConnectionManager.instance === null) {
-      console.log("Retrying connection to database...");
+      Log.debug("Retrying connection to database...");
       await new Promise(resolve => setTimeout(resolve, 1000));
     }
     return getConnection();
@@ -40,7 +41,7 @@ export class ConnectionManager {
       if (!ConnectionManager.instance) {
         throw Error("Cannot close connection. Connection is not open?");
       }
-      console.log("Closing database connection...");
+      Log.debug("Closing database connection...");
       await ConnectionManager.instance.close();
       ConnectionManager.instance = null;
       ConnectionManager.isTest = false;

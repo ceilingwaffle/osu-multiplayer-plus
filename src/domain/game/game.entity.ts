@@ -17,20 +17,20 @@ export class Game {
   @Column()
   countFailedScores: boolean;
 
-  @Column("simple-json")
+  @Column("simple-json", { nullable: true })
   messageTargets: { type: CommunicationClientType; authorId: string; channel: string }[];
+
+  @Column({ default: GameStatusType.UNKNOWN })
+  status: GameStatusType;
 
   @ManyToOne(type => User, user => user.gamesCreated)
   @JoinColumn({ name: "created_by_user_id" })
   createdBy: User;
 
+  @ManyToMany(type => User, user => user.refereeOf)
+  refereedBy: User[];
+
   // @ManyToOne(type => GameStatus, gameStatus => gameStatus.games)
   // @JoinColumn({ name: "game_status_id" })
   // status: GameStatus;
-
-  @Column({ default: GameStatusType.UNKNOWN })
-  status: GameStatusType;
-
-  @ManyToMany(type => User, user => user.refereeOf)
-  refereedBy: User[];
 }
