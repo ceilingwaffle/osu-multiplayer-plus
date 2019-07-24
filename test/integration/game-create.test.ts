@@ -1,7 +1,7 @@
 import "../../src/index";
 import "mocha";
 import { assert } from "chai";
-import { TestHelpers, TestContextEntities } from "../TestHelpers";
+import { TestHelpers, TestContextEntities } from "../test-helpers";
 import iocContainer from "../../src/inversify.config";
 import { CreateGameDto } from "../../src/domain/game/dto";
 import { GameController } from "../../src/domain/game/game.controller";
@@ -28,27 +28,19 @@ async function getEntities(): Promise<TestContextEntities[]> {
     {
       name: conn.getMetadata(Game).name,
       tableName: conn.getMetadata(Game).tableName,
-      values: []
+      values: [
+        {
+          countFailedScores: true,
+          teamLives: 5
+        }
+      ]
     }
   ];
 }
 
 describe("When creating a game", function() {
   this.beforeAll(function() {
-    return new Promise((resolve, reject) => {
-      setTimeout(async () => {
-        try {
-          // Setup DB
-          await ConnectionManager.getInstance();
-          const entities = await getEntities();
-          await TestHelpers.cleanAll(entities);
-          // TODO: Assert empty tables: games, users
-          resolve();
-        } catch (error) {
-          reject(error);
-        }
-      }, 5000);
-    });
+    return TestHelpers.reloadEntities(getEntities());
   });
 
   describe("with no values", function() {
