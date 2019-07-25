@@ -117,7 +117,7 @@ export class TestHelpers {
         await qr.query(`DELETE FROM ${entity.tableName};`);
         // Reset IDs
         await qr.query(`DELETE FROM sqlite_sequence WHERE name='${entity.tableName}'`);
-        Log.debug("Erased table from test DB:", entity.tableName);
+        Log.debug("Erased table contents from test DB:", entity.tableName);
       }
     } catch (error) {
       throw new Error(`ERROR: Cleaning test DB: ${error}`);

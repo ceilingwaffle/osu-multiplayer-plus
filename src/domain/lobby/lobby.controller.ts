@@ -5,6 +5,6 @@ import { Lobby } from "./lobby.entity";
 
 export class LobbyController {
   async addLobby(request: { lobbyData: AddLobbyDto; requestDto: RequestDtoType }): Promise<Response<Lobby>> {
-    return null;
+    throw new Error("Method not implemented.");
   }
 }

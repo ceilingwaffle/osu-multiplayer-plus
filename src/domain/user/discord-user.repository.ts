@@ -1,4 +1,4 @@
-import { Repository, EntityRepository } from "typeorm";
+import { Repository, EntityRepository, getCustomRepository } from "typeorm";
 import { DiscordUser } from "./discord-user.entity";
 
 @EntityRepository(DiscordUser)

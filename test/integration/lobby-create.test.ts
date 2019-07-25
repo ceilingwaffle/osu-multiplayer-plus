@@ -14,6 +14,7 @@ import { GameController } from "../../src/domain/game/game.controller";
 import { fail } from "assert";
 import { DiscordUserRepository } from "../../src/domain/user/discord-user.repository";
 import { DiscordRequestDto } from "../../src/requests/dto";
+import { getCustomRepository } from "typeorm";
 
 async function getEntities(): Promise<TestContextEntities[]> {
   const conn = await ConnectionManager.getInstance();
@@ -115,7 +116,7 @@ describe("When adding a lobby", function() {
       return new Promise(async (resolve, reject) => {
         try {
           /* #region  Setup */
-          const discordUserRepository = await iocContainer.get(DiscordUserRepository);
+          const discordUserRepository = getCustomRepository(DiscordUserRepository);
 
           const lobbyDto: AddLobbyDto = {
             banchoMultiplayerId: "12345"
@@ -132,8 +133,9 @@ describe("When adding a lobby", function() {
           /* #endregion */
 
           /* #region  Assertions */
-          assert.isTrue(lobbyAddResponse!.success);
-          assert.isTrue(lobbyAddResponse!.result instanceof Lobby);
+          assert.isNotNull(lobbyAddResponse);
+          assert.isTrue(lobbyAddResponse.success);
+          assert.isTrue(lobbyAddResponse.result instanceof Lobby);
           const savedLobby = lobbyAddResponse.result;
           assert.isNotNull(savedLobby);
           assert.isNotNull(savedLobby.banchoMultiplayerId);
@@ -142,7 +144,8 @@ describe("When adding a lobby", function() {
             lobbyDto.banchoMultiplayerId,
             "The Bancho multiplayer ID should match the one provided in the add-lobby request."
           );
-          assert.isNotNull(game2creator!.user);
+          assert.isNotNull(game2creator);
+          assert.isNotNull(game2creator.user);
           assert.isNotNull(savedLobby.games[0], "The lobby should be attached to a game.");
           assert.lengthOf(savedLobby.games, 1, "The lobby should only be added to one game.");
           assert.equal(
@@ -160,26 +163,26 @@ describe("When adding a lobby", function() {
       });
     });
 
-    it("should save the lobby in the database", function() {
-      return new Promise(async (resolve, reject) => {
-        try {
-          return resolve();
-        } catch (error) {
-          return reject(error);
-        }
-      });
-    });
+    // it("should save the lobby in the database", function() {
+    //   return new Promise(async (resolve, reject) => {
+    //     try {
+    //       return resolve();
+    //     } catch (error) {
+    //       return reject(error);
+    //     }
+    //   });
+    // });
 
-    it("should initiate the lobby scanner", function() {
-      return new Promise(async (resolve, reject) => {
-        try {
-          // TODO: Stub osu lobby scanner
-          return resolve();
-        } catch (error) {
-          return reject(error);
-        }
-      });
-    });
+    // it("should initiate the lobby scanner", function() {
+    //   return new Promise(async (resolve, reject) => {
+    //     try {
+    //       // TODO: Stub osu lobby scanner
+    //       return resolve();
+    //     } catch (error) {
+    //       return reject(error);
+    //     }
+    //   });
+    // });
   });
 
   describe("with a specified game id", function() {
@@ -187,7 +190,7 @@ describe("When adding a lobby", function() {
       return new Promise(async (resolve, reject) => {
         try {
           /* #region  Setup */
-          const discordUserRepository = await iocContainer.get(DiscordUserRepository);
+          const discordUserRepository = getCustomRepository(DiscordUserRepository);
 
           const lobbyDto: AddLobbyDto = {
             banchoMultiplayerId: "23456",

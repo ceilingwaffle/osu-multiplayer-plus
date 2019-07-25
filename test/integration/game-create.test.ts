@@ -1,6 +1,6 @@
 import "../../src/index";
 import "mocha";
-import { assert } from "chai";
+import { assert, expect } from "chai";
 import { TestHelpers, TestContextEntities } from "../test-helpers";
 import iocContainer from "../../src/inversify.config";
 import { CreateGameDto } from "../../src/domain/game/dto";
@@ -28,12 +28,7 @@ async function getEntities(): Promise<TestContextEntities[]> {
     {
       name: conn.getMetadata(Game).name,
       tableName: conn.getMetadata(Game).tableName,
-      values: [
-        {
-          countFailedScores: true,
-          teamLives: 5
-        }
-      ]
+      values: []
     }
   ];
 }
@@ -56,12 +51,13 @@ describe("When creating a game", function() {
 
           const gameController = iocContainer.get(GameController);
           const gameCreateResponse = await gameController.create({ gameDto: gameDto, requestDto: requestDto });
-          assert.isTrue(gameCreateResponse!.success);
-          assert.isTrue(gameCreateResponse!.result instanceof Game);
-          const savedGame = gameCreateResponse!.result as Game;
+          assert.isNotNull(gameCreateResponse);
+          assert.isTrue(gameCreateResponse.success);
+          assert.isTrue(gameCreateResponse.result instanceof Game);
+          const savedGame = gameCreateResponse.result as Game;
           assert.isNotNull(savedGame);
-          assert.isNotNull(savedGame!.teamLives, "Expected some default value for game team lives.");
-          assert.isNotNull(savedGame!.countFailedScores, "Expected some default value for game count failed scores.");
+          assert.isNotNull(savedGame.teamLives, "Expected some default value for game team lives.");
+          assert.isNotNull(savedGame.countFailedScores, "Expected some default value for game count failed scores.");
 
           return resolve();
         } catch (error) {
@@ -91,34 +87,39 @@ describe("When creating a game", function() {
           assert.isTrue(gameCreateResponse!.success);
 
           const savedGame = gameCreateResponse.result as Game;
-          assert.equal(savedGame!.teamLives, gameDto.teamLives);
-          assert.equal(savedGame!.countFailedScores, gameDto.countFailedScores);
-          assert.equal(savedGame!.status, GameStatus.IDLE, "New games created should have a game status of idle.");
+          expect(savedGame).to.not.be.undefined;
+          expect(savedGame.status).to.equal(GameStatus.IDLE, "New games should have an initial game status of idle.").but.not.be.null;
+          expect(savedGame.teamLives).to.equal(gameDto.teamLives).but.not.be.null;
+          expect(savedGame.countFailedScores).to.equal(gameDto.countFailedScores).but.not.be.null;
           /* #endregion */
 
           /* #region  message target */
-          assert.lengthOf(savedGame!.messageTargets, 1);
+          assert.isNotNull(savedGame.messageTargets);
+          assert.lengthOf(savedGame.messageTargets, 1);
 
           let msgTarget: { type: any; authorId: any; channel?: string };
-          msgTarget = savedGame!.messageTargets!.find(msgTarget => msgTarget.type === requestDto.type);
-          assert.equal(msgTarget!.type, requestDto.type);
+          msgTarget = savedGame.messageTargets.find(msgTarget => msgTarget.type === requestDto.type);
+          assert.isDefined(msgTarget, "Game should have a message target contaning the expected request type (e.g. DiscordRequest).");
+          assert.isNotNull(msgTarget.type);
 
-          msgTarget = savedGame!.messageTargets!.find(msgTarget => msgTarget.authorId === requestDto.authorId);
-          assert.equal(msgTarget!.authorId, requestDto.authorId);
+          msgTarget = savedGame.messageTargets.find(msgTarget => msgTarget.authorId === requestDto.authorId);
+          assert.isDefined(msgTarget, "Game should have a message target contaning the requester's author ID.");
+          assert.isNotNull(msgTarget.authorId);
 
-          msgTarget = savedGame!.messageTargets!.find(msgTarget => msgTarget.channel === requestDto.originChannel);
-          assert.equal(msgTarget!.channel, requestDto.originChannel);
+          msgTarget = savedGame.messageTargets.find(msgTarget => msgTarget.channel === requestDto.originChannel);
+          assert.isDefined(msgTarget, "Game should have a message target contaning the channel where the request was initiated.");
+          assert.isNotNull(msgTarget.channel);
           /* #endregion */
 
           /* #region  game creator */
-          assert.isNotNull(savedGame!.createdBy);
-          assert.equal(savedGame!.createdBy!.discordUser!.discordUserId, requestDto.authorId);
-          assert.lengthOf<User[]>(savedGame!.refereedBy, 1, "There should be exactly one game referee.");
-          assert.lengthOf<User[]>(
-            savedGame!.refereedBy!.filter(user => user.discordUser.discordUserId === requestDto.authorId),
-            1,
-            "The game referee should have the same discord author id as the one in the DTO."
-          );
+          assert.isNotNull(savedGame.createdBy);
+          assert.isNotNull(savedGame.createdBy.discordUser);
+          assert.isNotNull(savedGame.createdBy.discordUser.discordUserId);
+          const gameCreatorDiscordUserId = savedGame.createdBy.discordUser.discordUserId;
+          expect(gameCreatorDiscordUserId).to.equal(requestDto.authorId);
+          expect(savedGame.refereedBy).to.have.length(1, "There should be exactly one game referee.");
+          const gameRefs = savedGame.refereedBy.filter(user => user.discordUser.discordUserId === requestDto.authorId);
+          expect(gameRefs).to.have.length(1, "The game referee should have the same discord author id as the one in the DTO.");
           /* #endregion */
 
           return resolve();
