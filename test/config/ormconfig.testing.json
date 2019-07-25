@@ -1,6 +1,6 @@
 {
   "type": "sqlite",
-  "database": "test/database/app_database_testing.sqlite",
+  "database": "test/database/test-database.sqlite",
   "synchronize": true,
   "logging": "all",
   "logger": "file",

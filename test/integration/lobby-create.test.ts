@@ -82,7 +82,9 @@ describe("When adding a lobby", function() {
             },
             requestDto: createGame1DiscordRequest
           });
-          if (!createGame1Response!.success) fail();
+          if (!createGame1Response || !createGame1Response.success) {
+            fail();
+          }
 
           // user 2 creates game 2
           const createGame2Response = await gameController.create({
@@ -92,7 +94,9 @@ describe("When adding a lobby", function() {
             },
             requestDto: createGame2DiscordRequest
           });
-          if (!createGame2Response!.success) fail();
+          if (!createGame2Response || !createGame2Response.success) {
+            fail();
+          }
 
           // user 1 creates game 3
           const createGame3Response = await gameController.create({
@@ -102,7 +106,9 @@ describe("When adding a lobby", function() {
             },
             requestDto: createGame3DiscordRequest
           });
-          if (!createGame3Response!.success) fail();
+          if (!createGame3Response || !createGame3Response.success) {
+            fail();
+          }
           /* #endregion */
 
           return resolve();

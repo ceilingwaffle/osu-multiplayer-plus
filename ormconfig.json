@@ -1,6 +1,6 @@
 {
   "type": "sqlite",
-  "database": "src/database/app_database.sqlite",
+  "database": "src/database/app-database.sqlite",
   "synchronize": false,
   "logging": false,
   "entities": ["dist/**/*.entity.js"],
