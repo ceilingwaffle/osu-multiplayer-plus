@@ -8,6 +8,7 @@ import { Message, FailureMessage } from "../../utils/message";
 import { RequestDtoType } from "../../requests/dto/request.dto";
 import { Requester } from "../../requests/requesters/requester";
 import { Log } from "../../utils/Log";
+import { RequesterFactoryInitializationError } from "../shared/errors/RequesterFactoryInitializationError";
 
 export class GameController {
   constructor(@inject(GameService) private readonly gameService: GameService) {
@@ -25,7 +26,7 @@ export class GameController {
     try {
       // build the requester
       const requester: Requester = RequesterFactory.initialize(gameData.requestDto);
-      if (!requester) throw new Error("Error initializing the requester factory. This should never happen.");
+      if (!requester) throw new RequesterFactoryInitializationError(this.constructor.name, this.create.name);
 
       // get/create the game creator user from the request
       const creatorResult = await requester.getOrCreateUser();
@@ -39,7 +40,7 @@ export class GameController {
       }
 
       // create the game
-      const createGameResult = await this.gameService.create(creatorResult.value.id, gameData.gameDto, gameData.requestDto);
+      const createGameResult = await this.gameService.createAndSaveGame(creatorResult.value.id, gameData.gameDto, gameData.requestDto);
       if (createGameResult.failed()) {
         if (createGameResult.value.error) throw createGameResult.value.error;
         Log.methodFailure(this.create, this.constructor.name, createGameResult.value.reason);

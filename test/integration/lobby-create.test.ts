@@ -130,7 +130,7 @@ describe("When adding a lobby", function() {
 
           // user 2 adds a lobby without specifying a game id
           const lobbyController = iocContainer.get(LobbyController);
-          const lobbyAddResponse = await lobbyController.addLobby({
+          const lobbyAddResponse = await lobbyController.create({
             lobbyData: lobbyDto,
             requestDto: createGame2DiscordRequest
           });
@@ -205,7 +205,7 @@ describe("When adding a lobby", function() {
 
           // user 1 adds a lobby to game 3
           const lobbyController = iocContainer.get(LobbyController);
-          const lobbyAddResponse = await lobbyController.addLobby({
+          const lobbyAddResponse = await lobbyController.create({
             lobbyData: lobbyDto,
             requestDto: createGame3DiscordRequest
           });

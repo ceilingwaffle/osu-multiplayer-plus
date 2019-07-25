@@ -1,5 +1,5 @@
 import { inject } from "inversify";
-import { Repository, getCustomRepository } from "typeorm";
+import { getCustomRepository } from "typeorm";
 import { Game } from "./game.entity";
 import { CreateGameDto } from "./dto/create-game.dto";
 import { Either, failurePromise, successPromise } from "../../utils/Either";
@@ -24,44 +24,44 @@ export class GameService {
   /**
    * Creates a new game.
    *
-   * @param {number} userId {User} ID of the game creator
-   * @param {CreateGameDto} gameDto
+   * @param {number} userId User entity ID of the game creator
+   * @param {CreateGameDto} gameData
    * @returns {Promise<Either<Failure<GameFailure>, Game>>}
    * @memberof GameService
    */
-  async create(
+  public async createAndSaveGame(
     userId: number,
-    gameDto: CreateGameDto,
-    createRequestDto: RequestDto,
+    gameData: CreateGameDto,
+    requestData: RequestDto,
     returnWithRelations: string[] = ["createdBy", "createdBy.discordUser", "refereedBy", "refereedBy.discordUser"]
   ): Promise<Either<Failure<GameFailure | UserFailure>, Game>> {
     // get the game creator
     const userResult = await this.userService.findOne({ id: userId });
     if (userResult.failed()) {
       if (userResult.value.error) throw userResult.value.error;
-      Log.methodFailure(this.create, this.constructor.name, userResult.value.reason);
+      Log.methodFailure(this.createAndSaveGame, this.constructor.name, userResult.value.reason);
       return failurePromise(userResult.value);
     }
     const gameCreator = userResult.value;
     // create the game
     const game = this.gameRepository.create({
-      teamLives: gameDto.teamLives != null ? gameDto.teamLives : GameDefaults.teamLives,
-      countFailedScores: gameDto.countFailedScores != null ? gameDto.countFailedScores : GameDefaults.countFailedScores,
+      teamLives: gameData.teamLives != null ? gameData.teamLives : GameDefaults.teamLives,
+      countFailedScores: gameData.countFailedScores != null ? gameData.countFailedScores : GameDefaults.countFailedScores,
       createdBy: gameCreator,
       status: GameStatus.IDLE,
       refereedBy: [gameCreator],
       messageTargets: [
         {
-          type: createRequestDto.type,
-          authorId: createRequestDto.authorId,
-          channel: createRequestDto.originChannel
+          type: requestData.type,
+          authorId: requestData.authorId,
+          channel: requestData.originChannel
         }
       ]
     });
     // validate the game
     const errors = await validate(game);
     if (errors.length > 0) {
-      Log.methodFailure(this.create, this.constructor.name, "Game validation failed.");
+      Log.methodFailure(this.createAndSaveGame, this.constructor.name, "Game validation failed.");
       return failurePromise(invalidCreationArgumentsFailure(errors));
     }
     // save the game
@@ -70,7 +70,20 @@ export class GameService {
       relations: returnWithRelations
     });
     // return the saved game
-    Log.methodSuccess(this.create, this.constructor.name);
+    Log.methodSuccess(this.createAndSaveGame, this.constructor.name);
     return successPromise(reloadedGame);
+  }
+
+  public async findMostRecentGameCreatedByUser(userId: number): Promise<Game> {
+    return await this.gameRepository
+      .createQueryBuilder("games")
+      .leftJoin("games.createdBy", "user")
+      .where("user.id = :userId", { userId: userId })
+      .orderBy("games.createdAt", "DESC")
+      .getOne();
+  }
+
+  public async findGameById(gameId: number): Promise<Game> {
+    return await this.gameRepository.findOne({ id: gameId });
   }
 }
