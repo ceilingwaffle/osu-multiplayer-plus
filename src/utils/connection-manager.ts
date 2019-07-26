@@ -9,7 +9,6 @@ import { Log } from "./Log";
  */
 export class ConnectionManager {
   private static instance: Connection = null;
-  private static isTest = false;
 
   /**
    * Gets the typeorm Connection instance (initializes if not yet initialized).
@@ -44,7 +43,6 @@ export class ConnectionManager {
       Log.debug("Closing database connection...");
       await ConnectionManager.instance.close();
       ConnectionManager.instance = null;
-      ConnectionManager.isTest = false;
       return true;
     } catch (error) {
       console.error("Error closing connection:", error);

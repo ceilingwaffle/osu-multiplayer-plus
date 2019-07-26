@@ -3,6 +3,7 @@ import { BaseEntity, Connection } from "typeorm";
 import * as fs from "fs-extra";
 import { ConnectionManager } from "../src/utils/connection-manager";
 import { Log } from "../src/utils/Log";
+import { Message } from "../src/utils/message";
 
 export class TestHelpers {
   static reloadEntities(entitiesPromise: Promise<TestContextEntities[]>): Promise<void> {
@@ -11,9 +12,9 @@ export class TestHelpers {
       setTimeout(async () => {
         try {
           // Setup DB
-          await ConnectionManager.getInstance();
+          await TestHelpers.dropTestDatabase();
           const entities = await entitiesPromise;
-          await TestHelpers.cleanAll(entities);
+          // await TestHelpers.cleanAll(entities);
           await TestHelpers.loadAll(entities);
           return resolve();
         } catch (error) {
@@ -44,10 +45,14 @@ export class TestHelpers {
     }
   }
 
-  static async dropTestDatabase(connection: Connection): Promise<boolean> {
+  static async dropTestDatabase(): Promise<boolean> {
     try {
-      await connection.dropDatabase();
-      Log.debug(`Successfully dropped test database.`);
+      let conn: Connection;
+      conn = await ConnectionManager.getInstance();
+      await conn.dropDatabase();
+      Log.info(`Successfully dropped database: ${conn.options.database}`);
+      await ConnectionManager.close();
+      conn = await ConnectionManager.getInstance();
       return true;
     } catch (error) {
       console.error("Error dropping test db:", error);
@@ -113,11 +118,15 @@ export class TestHelpers {
       // we reverse the order due to SQL foreign key constraints
       // slice used here to get elements in reverse order without modifying original array
       for (const entity of entities.slice().reverse()) {
-        const qr = (await ConnectionManager.getInstance()).createQueryRunner();
-        await qr.query(`DELETE FROM ${entity.tableName};`);
-        // Reset IDs
-        await qr.query(`DELETE FROM sqlite_sequence WHERE name='${entity.tableName}'`);
-        Log.debug("Erased table contents from test DB:", entity.tableName);
+        try {
+          const qr = (await ConnectionManager.getInstance()).createQueryRunner();
+          await qr.query(`DELETE FROM ${entity.tableName};`);
+          // Reset IDs
+          await qr.query(`DELETE FROM sqlite_sequence WHERE name='${entity.tableName}'`);
+          Log.debug("Erased table contents from test DB:", entity.tableName);
+        } catch (error) {
+          throw new Error(`Failed on entity ${entity.name}. Error: ${error}.`);
+        }
       }
     } catch (error) {
       throw new Error(`ERROR: Cleaning test DB: ${error}`);

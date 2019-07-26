@@ -1,12 +1,13 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, ManyToMany } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, ManyToMany, JoinTable } from "typeorm";
 import { IsInt, IsBoolean } from "class-validator";
 import { User } from "../user/user.entity";
 import { CommunicationClientType } from "../../requests/dto/request.dto";
 import { GameStatus } from "./game-status";
 import { Lobby } from "../lobby/lobby.entity";
+import { AbstractEntity } from "../shared/abstract-entity";
 
 @Entity("games")
-export class Game {
+export class Game extends AbstractEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
@@ -36,5 +37,6 @@ export class Game {
   // status: GameStatus;
 
   @ManyToMany(type => Lobby, lobby => lobby.games)
+  @JoinTable()
   lobbies: Lobby[];
 }

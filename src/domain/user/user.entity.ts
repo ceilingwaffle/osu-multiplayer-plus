@@ -2,9 +2,10 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne, JoinColumn
 import { IsInt, IsBoolean } from "class-validator";
 import { Game } from "../game/game.entity";
 import { DiscordUser } from "./discord-user.entity";
+import { AbstractEntity } from "../shared/abstract-entity";
 
 @Entity("users")
-export class User {
+export class User extends AbstractEntity {
   @PrimaryGeneratedColumn()
   id: number;
 

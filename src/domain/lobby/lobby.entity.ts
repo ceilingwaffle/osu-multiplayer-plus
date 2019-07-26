@@ -1,15 +1,18 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, ManyToOne } from "typeorm";
-import { IsInt } from "class-validator";
+import { IsNumberString } from "class-validator";
 import { Game } from "../game/game.entity";
 import { LobbyStatus } from "./lobby-status";
 import { User } from "../user/user.entity";
+import { Type } from "class-transformer";
+import { AbstractEntity } from "../shared/abstract-entity";
 
 @Entity("lobbies")
-export class Lobby {
+export class Lobby extends AbstractEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @IsInt()
+  @IsNumberString()
+  @Type(() => Number)
   @Column()
   banchoMultiplayerId: string;
 

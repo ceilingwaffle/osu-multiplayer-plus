@@ -15,6 +15,7 @@ import { fail } from "assert";
 import { DiscordUserRepository } from "../../src/domain/user/discord-user.repository";
 import { DiscordRequestDto } from "../../src/requests/dto";
 import { getCustomRepository } from "typeorm";
+import { GameRepository } from "../../src/domain/game/game.repository";
 
 async function getEntities(): Promise<TestContextEntities[]> {
   const conn = await ConnectionManager.getInstance();
@@ -64,61 +65,59 @@ const createGame3DiscordRequest: DiscordRequestDto = {
 
 describe("When adding a lobby", function() {
   this.beforeEach(function() {
-    return TestHelpers.reloadEntities(getEntities());
+    return new Promise(async (resolve, reject) => {
+      try {
+        await TestHelpers.reloadEntities(getEntities());
+
+        /* #region  Setup */
+        const gameController = iocContainer.get(GameController);
+
+        // user 1 creates game 1
+        const createGame1Response = await gameController.create({
+          gameDto: {
+            countFailedScores: true,
+            teamLives: 11
+          },
+          requestDto: createGame1DiscordRequest
+        });
+        if (!createGame1Response || !createGame1Response.success) {
+          fail();
+        }
+
+        // user 2 creates game 2
+        const createGame2Response = await gameController.create({
+          gameDto: {
+            countFailedScores: false,
+            teamLives: 22
+          },
+          requestDto: createGame2DiscordRequest
+        });
+        if (!createGame2Response || !createGame2Response.success) {
+          fail();
+        }
+
+        // user 1 creates game 3
+        const createGame3Response = await gameController.create({
+          gameDto: {
+            countFailedScores: true,
+            teamLives: 33
+          },
+          requestDto: createGame3DiscordRequest
+        });
+        if (!createGame3Response || !createGame3Response.success) {
+          fail();
+        }
+        /* #endregion */
+
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
   });
 
   describe("without a specified game id", function() {
-    this.beforeEach(function() {
-      return new Promise(async (resolve, reject) => {
-        try {
-          /* #region  Setup */
-          const gameController = iocContainer.get(GameController);
-
-          // user 1 creates game 1
-          const createGame1Response = await gameController.create({
-            gameDto: {
-              countFailedScores: true,
-              teamLives: 11
-            },
-            requestDto: createGame1DiscordRequest
-          });
-          if (!createGame1Response || !createGame1Response.success) {
-            fail();
-          }
-
-          // user 2 creates game 2
-          const createGame2Response = await gameController.create({
-            gameDto: {
-              countFailedScores: false,
-              teamLives: 22
-            },
-            requestDto: createGame2DiscordRequest
-          });
-          if (!createGame2Response || !createGame2Response.success) {
-            fail();
-          }
-
-          // user 1 creates game 3
-          const createGame3Response = await gameController.create({
-            gameDto: {
-              countFailedScores: true,
-              teamLives: 33
-            },
-            requestDto: createGame3DiscordRequest
-          });
-          if (!createGame3Response || !createGame3Response.success) {
-            fail();
-          }
-          /* #endregion */
-
-          return resolve();
-        } catch (error) {
-          return reject(error);
-        }
-      });
-    });
-
-    it("should attach the lobby to the requesting user's most recent game created", function() {
+    it("should save a new lobby on the requesting user's most recent game created", function() {
       return new Promise(async (resolve, reject) => {
         try {
           /* #region  Setup */
@@ -140,7 +139,7 @@ describe("When adding a lobby", function() {
 
           /* #region  Assertions */
           assert.isNotNull(lobbyAddResponse);
-          assert.isTrue(lobbyAddResponse.success);
+          assert.isTrue(lobbyAddResponse.success, "Lobby failed to be created.");
           assert.isTrue(lobbyAddResponse.result instanceof Lobby);
           const savedLobby = lobbyAddResponse.result;
           assert.isNotNull(savedLobby);
@@ -159,7 +158,17 @@ describe("When adding a lobby", function() {
             22,
             "The lobby should be added to game id 2 (the game most recently created by user 2)."
           );
-          assert.equal(savedLobby.addedBy, game2creator.user, "The lobby should reflect that it was added by user 2.");
+          assert.equal(savedLobby.addedBy.id, game2creator.user.id, "The lobby should reflect that it was added by user 2.");
+
+          // game with id 2 should reference the saved lobby
+          const gameRepository = getCustomRepository(GameRepository);
+          let game: Game;
+          game = await gameRepository.findOne({ id: 2 }, { relations: ["lobbies"] });
+          assert.equal(savedLobby.id, game.lobbies[0].id, "Game with ID 2 should contain a reference to the new lobby.");
+          // game with id 1 should NOT reference the saved lobby
+          game = await gameRepository.findOne({ id: 1 }, { relations: ["lobbies"] });
+          assert.isUndefined(game.lobbies[0], "Game with ID 1 should NOT contain a reference to any lobbies.");
+
           /* #endregion */
 
           return resolve();
@@ -168,16 +177,6 @@ describe("When adding a lobby", function() {
         }
       });
     });
-
-    // it("should save the lobby in the database", function() {
-    //   return new Promise(async (resolve, reject) => {
-    //     try {
-    //       return resolve();
-    //     } catch (error) {
-    //       return reject(error);
-    //     }
-    //   });
-    // });
 
     // it("should initiate the lobby scanner", function() {
     //   return new Promise(async (resolve, reject) => {
@@ -192,7 +191,7 @@ describe("When adding a lobby", function() {
   });
 
   describe("with a specified game id", function() {
-    it("should attach the lobby to the specified game", function() {
+    it("should save a new lobby associated with the specified game ID", function() {
       return new Promise(async (resolve, reject) => {
         try {
           /* #region  Setup */
@@ -214,8 +213,9 @@ describe("When adding a lobby", function() {
           /* #endregion */
 
           /* #region  Assertions */
-          assert.isTrue(lobbyAddResponse!.success);
-          assert.isTrue(lobbyAddResponse!.result instanceof Lobby);
+          assert.isNotNull(lobbyAddResponse);
+          assert.isTrue(lobbyAddResponse.success, "Lobby failed to be created.");
+          assert.isTrue(lobbyAddResponse.result instanceof Lobby);
           const savedLobby = lobbyAddResponse.result;
           assert.isNotNull(savedLobby);
           assert.isNotNull(savedLobby.banchoMultiplayerId);
@@ -228,7 +228,7 @@ describe("When adding a lobby", function() {
           assert.isNotNull(savedLobby.games[0], "The lobby should be attached to a game.");
           assert.lengthOf(savedLobby.games, 1, "The lobby should only be added to one game.");
           assert.equal(savedLobby.games[0].teamLives, 33, "The lobby should be added to game id 3 (the game id specified by user 1).");
-          assert.equal(savedLobby.addedBy, game3creator.user, "The lobby should reflect that it was added by user 3.");
+          assert.equal(savedLobby.addedBy.id, game3creator.user.id, "The lobby should reflect that it was added by user 3.");
           /* #endregion */
 
           return resolve();

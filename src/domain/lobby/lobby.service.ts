@@ -41,7 +41,7 @@ export class LobbyService {
     lobby.addedBy = createdBy;
     lobby.banchoMultiplayerId = lobbyData.banchoMultiplayerId;
     lobby.status = LobbyStatus.AWAITING_FIRST_SCAN;
-    lobby.games = games;
+    lobby.games = games || [];
 
     return lobby;
   }
