@@ -4,7 +4,8 @@ import { ValidationError } from "class-validator";
 export enum GameFailure {
   InvalidCreationArguments,
   CreatorUserLookupFailed,
-  CreatorUserCreationFailed
+  CreatorUserCreationFailed,
+  GameNotFound
 }
 
 export const invalidCreationArgumentsFailure = (
@@ -26,4 +27,9 @@ export const creatorUserCreationError = (error: Error, reason?: string): Failure
   type: GameFailure.CreatorUserCreationFailed,
   reason: reason || "Something went wrong when we tried to create a user during the game creation.",
   error: error
+});
+
+export const gameDoesNotExistFailure = (reason?: string): Failure<GameFailure.GameNotFound> => ({
+  type: GameFailure.GameNotFound,
+  reason: reason || "Game not found."
 });

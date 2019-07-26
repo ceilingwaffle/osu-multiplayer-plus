@@ -22,13 +22,13 @@ export class GameController {
    * @returns {Promise<Response<Game>>}
    * @memberof GameController
    */
-  async create(gameData: { gameDto: CreateGameDto; requestDto: RequestDtoType }): Promise<Response<Game>> {
+  public async create(gameData: { gameDto: CreateGameDto; requestDto: RequestDtoType }): Promise<Response<Game>> {
     try {
       // build the requester
       const requester: Requester = RequesterFactory.initialize(gameData.requestDto);
       if (!requester) throw new RequesterFactoryInitializationError(this.constructor.name, this.create.name);
 
-      // get/create the game creator user from the request
+      // get/create the user creating the game
       const creatorResult = await requester.getOrCreateUser();
       if (creatorResult.failed()) {
         if (creatorResult.value.error) throw creatorResult.value.error;
@@ -39,7 +39,7 @@ export class GameController {
         };
       }
 
-      // create the game
+      // create and save the game
       const createGameResult = await this.gameService.createAndSaveGame(creatorResult.value.id, gameData.gameDto, gameData.requestDto);
       if (createGameResult.failed()) {
         if (createGameResult.value.error) throw createGameResult.value.error;
@@ -54,7 +54,7 @@ export class GameController {
         };
       }
 
-      // successfully created new game
+      // return new game creation success response
       const game: Game = createGameResult.value;
       Log.methodSuccess(this.create, this.constructor.name);
       return {

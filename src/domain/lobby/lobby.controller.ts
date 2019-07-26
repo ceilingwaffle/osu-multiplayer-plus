@@ -8,23 +8,15 @@ import { Log } from "../../utils/Log";
 import { Requester } from "../../requests/requesters/requester";
 import { RequesterFactory } from "../../requests/requester-factory";
 import { RequesterFactoryInitializationError } from "../shared/errors/RequesterFactoryInitializationError";
-import { validate } from "class-validator";
 import { User } from "../user/user.entity";
-import { FailureMessage } from "../../utils/message";
-import { GameService } from "../game/game.service";
-import { Game } from "../game/game.entity";
+import { FailureMessage, Message } from "../../utils/message";
 
 export class LobbyController {
-  constructor(
-    @inject(LobbyService) private readonly lobbyService: LobbyService,
-    @inject(GameService) private readonly gameService: GameService
-  ) {
-    Log.debug("Initialized Lobby Service.");
+  constructor(@inject(LobbyService) private readonly lobbyService: LobbyService) {
+    Log.debug("Initialized Lobby Controller.");
   }
 
-  async create(request: { lobbyData: AddLobbyDto; requestDto: RequestDtoType }): Promise<Response<Lobby>> {
-    // throw new Error("Method not implemented.");
-
+  public async create(request: { lobbyData: AddLobbyDto; requestDto: RequestDtoType }): Promise<Response<Lobby>> {
     try {
       // build the requester
       const requester: Requester = RequesterFactory.initialize(request.requestDto);
@@ -42,35 +34,31 @@ export class LobbyController {
       }
       const lobbyCreator: User = creatorResult.value;
 
-      // get the game for the lobby
-      const lobbyGame: Game = request.lobbyData.gameId
-        ? await this.gameService.findGameById(request.lobbyData.gameId)
-        : await this.gameService.findMostRecentGameCreatedByUser(lobbyCreator.id);
-
-      if (!lobbyGame) {
-        const failureReason = `Game ID ${request.lobbyData.gameId} does not exist.`;
-        Log.methodFailure(this.create, this.constructor.name, failureReason);
+      // create and save the lobby
+      const savedLobbyResult = await this.lobbyService.createAndSaveLobby(request.lobbyData, lobbyCreator.id, request.lobbyData.gameId);
+      if (savedLobbyResult.failed()) {
+        if (savedLobbyResult.value.error) throw savedLobbyResult.value.error;
+        Log.methodFailure(this.create, this.constructor.name, savedLobbyResult.value.reason);
         return {
           success: false,
-          message: FailureMessage.get("lobbyCreateFailed", failureReason)
+          message: FailureMessage.get("lobbyCreateFailed", savedLobbyResult.value.reason)
         };
       }
 
-      // create the lobby
-      const lobby: Lobby = this.lobbyService.create(request.lobbyData, lobbyCreator, [lobbyGame]);
-      const errors = await validate(lobby);
-      if (errors.length > 0) {
-        // TODO: Handle validation in a more DRY way across controllers
-        const failureReason = "Lobby properties validation failed. " + errors.toLocaleString();
-        Log.methodFailure(this.create, this.constructor.name, failureReason);
-        return {
-          success: false,
-          message: FailureMessage.get("lobbyCreateFailed", failureReason)
-        };
-      }
-
-      // save lobby
-      const savedLobby: Lobby = this.lobbyService.save(lobby);
-    } catch (error) {}
+      // return lobby creation success response
+      const savedLobby: Lobby = savedLobbyResult.value;
+      Log.methodSuccess(this.create, this.constructor.name);
+      return {
+        success: true,
+        message: Message.get("lobbyCreateSuccess"),
+        result: savedLobby
+      };
+    } catch (error) {
+      Log.methodError(this.create, this.constructor.name, error);
+      return {
+        success: false,
+        message: FailureMessage.get("lobbyCreateFailed", error)
+      };
+    }
   }
 }
