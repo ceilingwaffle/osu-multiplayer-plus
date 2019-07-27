@@ -16,6 +16,7 @@ import { DiscordUserRepository } from "../../src/domain/user/discord-user.reposi
 import { DiscordRequestDto } from "../../src/requests/dto";
 import { getCustomRepository } from "typeorm";
 import { GameRepository } from "../../src/domain/game/game.repository";
+import { CreateGameDto } from "../../src/domain/game/dto/create-game.dto";
 
 async function getEntities(): Promise<TestContextEntities[]> {
   const conn = await ConnectionManager.getInstance();
@@ -45,18 +46,30 @@ async function getEntities(): Promise<TestContextEntities[]> {
 }
 
 // user 1 creates game 1
+const game1: CreateGameDto = {
+  countFailedScores: true,
+  teamLives: 11
+};
 const createGame1DiscordRequest: DiscordRequestDto = {
   type: "discord",
   authorId: "tester1",
   originChannel: "tester1's amazing channel"
 };
 // user 2 creates game 2
+const game2: CreateGameDto = {
+  countFailedScores: false,
+  teamLives: 22
+};
 const createGame2DiscordRequest: DiscordRequestDto = {
   type: "discord",
   authorId: "tester2",
   originChannel: "tester2's amazing channel"
 };
 // user 1 creates game 3
+const game3: CreateGameDto = {
+  countFailedScores: true,
+  teamLives: 33
+};
 const createGame3DiscordRequest: DiscordRequestDto = {
   type: "discord",
   authorId: "tester1",
@@ -74,10 +87,7 @@ describe("When adding a lobby", function() {
 
         // user 1 creates game 1
         const createGame1Response = await gameController.create({
-          gameDto: {
-            countFailedScores: true,
-            teamLives: 11
-          },
+          gameDto: game1,
           requestDto: createGame1DiscordRequest
         });
         if (!createGame1Response || !createGame1Response.success) {
@@ -86,10 +96,7 @@ describe("When adding a lobby", function() {
 
         // user 2 creates game 2
         const createGame2Response = await gameController.create({
-          gameDto: {
-            countFailedScores: false,
-            teamLives: 22
-          },
+          gameDto: game2,
           requestDto: createGame2DiscordRequest
         });
         if (!createGame2Response || !createGame2Response.success) {
@@ -98,10 +105,7 @@ describe("When adding a lobby", function() {
 
         // user 1 creates game 3
         const createGame3Response = await gameController.create({
-          gameDto: {
-            countFailedScores: true,
-            teamLives: 33
-          },
+          gameDto: game3,
           requestDto: createGame3DiscordRequest
         });
         if (!createGame3Response || !createGame3Response.success) {
@@ -155,7 +159,7 @@ describe("When adding a lobby", function() {
           assert.lengthOf(savedLobby.games, 1, "The lobby should only be added to one game.");
           assert.equal(
             savedLobby.games[0].teamLives,
-            22,
+            game2.teamLives,
             "The lobby should be added to game id 2 (the game most recently created by user 2)."
           );
           assert.equal(savedLobby.addedBy.id, game2creator.user.id, "The lobby should reflect that it was added by user 2.");
@@ -168,7 +172,6 @@ describe("When adding a lobby", function() {
           // game with id 1 should NOT reference the saved lobby
           game = await gameRepository.findOne({ id: 1 }, { relations: ["lobbies"] });
           assert.isUndefined(game.lobbies[0], "Game with ID 1 should NOT contain a reference to any lobbies.");
-
           /* #endregion */
 
           return resolve();
@@ -227,7 +230,11 @@ describe("When adding a lobby", function() {
           assert.isNotNull(game3creator!.user);
           assert.isNotNull(savedLobby.games[0], "The lobby should be attached to a game.");
           assert.lengthOf(savedLobby.games, 1, "The lobby should only be added to one game.");
-          assert.equal(savedLobby.games[0].teamLives, 33, "The lobby should be added to game id 3 (the game id specified by user 1).");
+          assert.equal(
+            savedLobby.games[0].teamLives,
+            game3.teamLives,
+            "The lobby should be added to game id 3 (the game id specified by user 1)."
+          );
           assert.equal(savedLobby.addedBy.id, game3creator.user.id, "The lobby should reflect that it was added by user 3.");
           /* #endregion */
 
