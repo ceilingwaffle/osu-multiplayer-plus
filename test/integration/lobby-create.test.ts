@@ -120,131 +120,127 @@ describe("When adding a lobby", function() {
     });
   });
 
-  describe("without a specified game id", function() {
-    it("should save a new lobby on the requesting user's most recent game created", function() {
-      return new Promise(async (resolve, reject) => {
-        try {
-          /* #region  Setup */
-          const discordUserRepository = getCustomRepository(DiscordUserRepository);
-
-          const lobbyDto: AddLobbyDto = {
-            banchoMultiplayerId: "12345"
-          };
-
-          // user 2 adds a lobby without specifying a game id
-          const lobbyController = iocContainer.get(LobbyController);
-          const lobbyAddResponse = await lobbyController.create({
-            lobbyData: lobbyDto,
-            requestDto: createGame2DiscordRequest
-          });
-
-          const game2creator = await discordUserRepository.findByDiscordUserId(createGame2DiscordRequest.authorId);
-          /* #endregion */
-
-          /* #region  Assertions */
-          assert.isNotNull(lobbyAddResponse);
-          assert.isTrue(lobbyAddResponse.success, "Lobby failed to be created.");
-          assert.isTrue(lobbyAddResponse.result instanceof Lobby);
-          const savedLobby = lobbyAddResponse.result;
-          assert.isNotNull(savedLobby);
-          assert.isNotNull(savedLobby.banchoMultiplayerId);
-          assert.equal(
-            savedLobby.banchoMultiplayerId,
-            lobbyDto.banchoMultiplayerId,
-            "The Bancho multiplayer ID should match the one provided in the add-lobby request."
-          );
-          assert.isNotNull(game2creator);
-          assert.isNotNull(game2creator.user);
-          assert.isNotNull(savedLobby.games[0], "The lobby should be attached to a game.");
-          assert.lengthOf(savedLobby.games, 1, "The lobby should only be added to one game.");
-          assert.equal(
-            savedLobby.games[0].teamLives,
-            game2.teamLives,
-            "The lobby should be added to game id 2 (the game most recently created by user 2)."
-          );
-          assert.equal(savedLobby.addedBy.id, game2creator.user.id, "The lobby should reflect that it was added by user 2.");
-
-          // game with id 2 should reference the saved lobby
-          const gameRepository = getCustomRepository(GameRepository);
-          let game: Game;
-          game = await gameRepository.findOne({ id: 2 }, { relations: ["lobbies"] });
-          assert.equal(savedLobby.id, game.lobbies[0].id, "Game with ID 2 should contain a reference to the new lobby.");
-          // game with id 1 should NOT reference the saved lobby
-          game = await gameRepository.findOne({ id: 1 }, { relations: ["lobbies"] });
-          assert.isUndefined(game.lobbies[0], "Game with ID 1 should NOT contain a reference to any lobbies.");
-          /* #endregion */
-
-          return resolve();
-        } catch (error) {
-          return reject(error);
-        }
-      });
-    });
-
-    // it("should initiate the lobby scanner", function() {
-    //   return new Promise(async (resolve, reject) => {
-    //     try {
-    //       // TODO: Stub osu lobby scanner
-    //       return resolve();
-    //     } catch (error) {
-    //       return reject(error);
-    //     }
-    //   });
-    // });
-  });
-
-  describe("with a specified game id", function() {
-    it("should save a new lobby associated with the specified game ID", function() {
-      return new Promise(async (resolve, reject) => {
-        try {
-          /* #region  Setup */
-          const discordUserRepository = getCustomRepository(DiscordUserRepository);
-
-          const lobbyDto: AddLobbyDto = {
-            banchoMultiplayerId: "23456",
-            gameId: 3
-          };
-
-          // user 1 adds a lobby to game 3
-          const lobbyController = iocContainer.get(LobbyController);
-          const lobbyAddResponse = await lobbyController.create({
-            lobbyData: lobbyDto,
-            requestDto: createGame3DiscordRequest
-          });
-
-          const game3creator = await discordUserRepository.findByDiscordUserId(createGame3DiscordRequest.authorId);
-          /* #endregion */
-
-          /* #region  Assertions */
-          assert.isNotNull(lobbyAddResponse);
-          assert.isTrue(lobbyAddResponse.success, "Lobby failed to be created.");
-          assert.isTrue(lobbyAddResponse.result instanceof Lobby);
-          const savedLobby = lobbyAddResponse.result;
-          assert.isNotNull(savedLobby);
-          assert.isNotNull(savedLobby.banchoMultiplayerId);
-          assert.equal(
-            savedLobby.banchoMultiplayerId,
-            lobbyDto.banchoMultiplayerId,
-            "The Bancho multiplayer ID should match the one provided in the add-lobby request."
-          );
-          assert.isNotNull(game3creator!.user);
-          assert.isNotNull(savedLobby.games[0], "The lobby should be attached to a game.");
-          assert.lengthOf(savedLobby.games, 1, "The lobby should only be added to one game.");
-          assert.equal(
-            savedLobby.games[0].teamLives,
-            game3.teamLives,
-            "The lobby should be added to game id 3 (the game id specified by user 1)."
-          );
-          assert.equal(savedLobby.addedBy.id, game3creator.user.id, "The lobby should reflect that it was added by user 3.");
-          /* #endregion */
-
-          return resolve();
-        } catch (error) {
-          return reject(error);
-        }
-      });
-    });
-  });
-
   this.afterAll(function() {});
+
+  it("should save the lobby on the requesting user's most recent game created", function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        /* #region  Setup */
+        const discordUserRepository = getCustomRepository(DiscordUserRepository);
+
+        const lobbyDto: AddLobbyDto = {
+          banchoMultiplayerId: "12345"
+        };
+
+        // user 2 adds a lobby without specifying a game id
+        const lobbyController = iocContainer.get(LobbyController);
+        const lobbyAddResponse = await lobbyController.create({
+          lobbyData: lobbyDto,
+          requestDto: createGame2DiscordRequest
+        });
+
+        const game2creator = await discordUserRepository.findByDiscordUserId(createGame2DiscordRequest.authorId);
+        /* #endregion */
+
+        /* #region  Assertions */
+        assert.isNotNull(lobbyAddResponse);
+        assert.isTrue(lobbyAddResponse.success, "Lobby failed to be created.");
+        assert.isTrue(lobbyAddResponse.result instanceof Lobby);
+        const savedLobby = lobbyAddResponse.result;
+        assert.isNotNull(savedLobby);
+        assert.isNotNull(savedLobby.banchoMultiplayerId);
+        assert.equal(
+          savedLobby.banchoMultiplayerId,
+          lobbyDto.banchoMultiplayerId,
+          "The Bancho multiplayer ID should match the one provided in the add-lobby request."
+        );
+        assert.isNotNull(game2creator);
+        assert.isNotNull(game2creator.user);
+        assert.isNotNull(savedLobby.games[0], "The lobby should be attached to a game.");
+        assert.lengthOf(savedLobby.games, 1, "The lobby should only be added to one game.");
+        assert.equal(
+          savedLobby.games[0].teamLives,
+          game2.teamLives,
+          "The lobby should be added to game id 2 (the game most recently created by user 2)."
+        );
+        assert.equal(savedLobby.addedBy.id, game2creator.user.id, "The lobby should reflect that it was added by user 2.");
+
+        // game with id 2 should reference the saved lobby
+        const gameRepository = getCustomRepository(GameRepository);
+        let game: Game;
+        game = await gameRepository.findOne({ id: 2 }, { relations: ["lobbies"] });
+        assert.equal(savedLobby.id, game.lobbies[0].id, "Game with ID 2 should contain a reference to the new lobby.");
+        // game with id 1 should NOT reference the saved lobby
+        game = await gameRepository.findOne({ id: 1 }, { relations: ["lobbies"] });
+        assert.isUndefined(game.lobbies[0], "Game with ID 1 should NOT contain a reference to any lobbies.");
+        /* #endregion */
+
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
+
+  it("should save a new lobby on a game targetted by its game ID", function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        /* #region  Setup */
+        const discordUserRepository = getCustomRepository(DiscordUserRepository);
+
+        const lobbyDto: AddLobbyDto = {
+          banchoMultiplayerId: "23456",
+          gameId: 3
+        };
+
+        // user 1 adds a lobby to game 3
+        const lobbyController = iocContainer.get(LobbyController);
+        const lobbyAddResponse = await lobbyController.create({
+          lobbyData: lobbyDto,
+          requestDto: createGame3DiscordRequest
+        });
+
+        const game3creator = await discordUserRepository.findByDiscordUserId(createGame3DiscordRequest.authorId);
+        /* #endregion */
+
+        /* #region  Assertions */
+        assert.isNotNull(lobbyAddResponse);
+        assert.isTrue(lobbyAddResponse.success, "Lobby failed to be created.");
+        assert.isTrue(lobbyAddResponse.result instanceof Lobby);
+        const savedLobby = lobbyAddResponse.result;
+        assert.isNotNull(savedLobby);
+        assert.isNotNull(savedLobby.banchoMultiplayerId);
+        assert.equal(
+          savedLobby.banchoMultiplayerId,
+          lobbyDto.banchoMultiplayerId,
+          "The Bancho multiplayer ID should match the one provided in the add-lobby request."
+        );
+        assert.isNotNull(game3creator!.user);
+        assert.isNotNull(savedLobby.games[0], "The lobby should be attached to a game.");
+        assert.lengthOf(savedLobby.games, 1, "The lobby should only be added to one game.");
+        assert.equal(
+          savedLobby.games[0].teamLives,
+          game3.teamLives,
+          "The lobby should be added to game id 3 (the game id specified by user 1)."
+        );
+        assert.equal(savedLobby.addedBy.id, game3creator.user.id, "The lobby should reflect that it was added by user 3.");
+        /* #endregion */
+
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
+
+  it("should initiate the lobby scanner", function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // TODO: Stub osu lobby scanner
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
 });
