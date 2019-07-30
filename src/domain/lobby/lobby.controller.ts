@@ -16,6 +16,12 @@ export class LobbyController {
     Log.debug("Initialized Lobby Controller.");
   }
 
+  /**
+   * Creates a new lobby and starts the scanner for multiplayer match results.
+   *
+   * @param {{ lobbyData: AddLobbyDto; requestDto: RequestDtoType }} request
+   * @returns {Promise<Response<Lobby>>}
+   */
   public async create(request: { lobbyData: AddLobbyDto; requestDto: RequestDtoType }): Promise<Response<Lobby>> {
     try {
       // build the requester
@@ -25,11 +31,16 @@ export class LobbyController {
       // get/create the user adding the lobby
       const creatorResult = await requester.getOrCreateUser();
       if (creatorResult.failed()) {
-        if (creatorResult.value.error) throw creatorResult.value.error;
-        Log.methodFailure(this.create, this.constructor.name, creatorResult.value.reason);
+        const failure = creatorResult.value;
+        if (failure.error) throw failure.error;
+        Log.methodFailure(this.create, this.constructor.name, failure.reason);
         return {
           success: false,
-          message: FailureMessage.get("lobbyCreateFailed", creatorResult.value.reason)
+          message: FailureMessage.get("lobbyCreateFailed"),
+          errors: {
+            messages: [failure.reason],
+            validation: failure.validationErrors
+          }
         };
       }
       const lobbyCreator: User = creatorResult.value;
@@ -37,11 +48,16 @@ export class LobbyController {
       // create and save the lobby
       const savedLobbyResult = await this.lobbyService.createAndSaveLobby(request.lobbyData, lobbyCreator.id, request.lobbyData.gameId);
       if (savedLobbyResult.failed()) {
-        if (savedLobbyResult.value.error) throw savedLobbyResult.value.error;
-        Log.methodFailure(this.create, this.constructor.name, savedLobbyResult.value.reason);
+        const failure = savedLobbyResult.value;
+        if (failure.error) throw failure.error;
+        Log.methodFailure(this.create, this.constructor.name, failure.reason);
         return {
           success: false,
-          message: FailureMessage.get("lobbyCreateFailed", savedLobbyResult.value.reason)
+          message: FailureMessage.get("lobbyCreateFailed"),
+          errors: {
+            messages: [failure.reason],
+            validation: failure.validationErrors
+          }
         };
       }
 
@@ -57,7 +73,10 @@ export class LobbyController {
       Log.methodError(this.create, this.constructor.name, error);
       return {
         success: false,
-        message: FailureMessage.get("lobbyCreateFailed", error)
+        message: FailureMessage.get("lobbyCreateFailed"),
+        errors: {
+          messages: [error]
+        }
       };
     }
   }

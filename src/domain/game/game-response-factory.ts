@@ -12,9 +12,10 @@ export class GameResponseFactory {
       return { discordUserId: this.game.createdBy.discordUser.discordUserId };
     } else if (this.requester.dto.type === "web") {
       throw new Error("Web user not implemented.");
-      return { discordUserId: this.game.createdBy.webUser.webUuid };
+      // return { discordUserId: this.game.createdBy.webUser.webUuid };
     } else {
       const _exhaustiveCheck: never = this.requester.dto.type;
+      return _exhaustiveCheck;
     }
   }
 
@@ -25,11 +26,12 @@ export class GameResponseFactory {
       });
     } else if (this.requester.dto.type === "web") {
       throw new Error("Web user not implemented.");
-      return this.game.refereedBy.map<UserReportProperties>(user => {
-        return { webUuid: user.webUser.webUuid };
-      });
+      // return this.game.refereedBy.map<UserReportProperties>(user => {
+      //   return { webUuid: user.webUser.webUuid };
+      // });
     } else {
       const _exhaustiveCheck: never = this.requester.dto.type;
+      return _exhaustiveCheck;
     }
   }
 

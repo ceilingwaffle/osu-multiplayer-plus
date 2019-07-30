@@ -21,8 +21,7 @@ export class GameController {
    * Creates a new game.
    *
    * @param {{ gameDto: CreateGameDto; requestDto: RequestDtoType }} gameData
-   * @returns {Promise<Response<ReportType>>}
-   * @memberof GameController
+   * @returns {Promise<Response<CreateGameReport>>}
    */
   public async create(gameData: { gameDto: CreateGameDto; requestDto: RequestDtoType }): Promise<Response<CreateGameReport>> {
     try {
@@ -37,7 +36,11 @@ export class GameController {
         Log.methodFailure(this.create, this.constructor.name, creatorResult.value.reason);
         return {
           success: false,
-          message: FailureMessage.get("gameCreateFailed", creatorResult.value.reason)
+          message: FailureMessage.get("gameCreateFailed"),
+          errors: {
+            messages: [creatorResult.value.reason],
+            validation: creatorResult.value.validationErrors
+          }
         };
       }
 
@@ -48,11 +51,11 @@ export class GameController {
         Log.methodFailure(this.create, this.constructor.name, createGameResult.value.reason);
         return {
           success: false,
-          message: FailureMessage.get(
-            "gameCreateFailed",
-            createGameResult.value.reason,
-            createGameResult.value.validationErrors.toLocaleString()
-          )
+          message: FailureMessage.get("gameCreateFailed"),
+          errors: {
+            messages: [createGameResult.value.reason],
+            validation: createGameResult.value.validationErrors
+          }
         };
       }
 
@@ -78,7 +81,10 @@ export class GameController {
       Log.methodError(this.create, this.constructor.name, error);
       return {
         success: false,
-        message: FailureMessage.get("gameCreateFailed", error)
+        message: FailureMessage.get("gameCreateFailed"),
+        errors: {
+          messages: [error]
+        }
       };
     }
   }
