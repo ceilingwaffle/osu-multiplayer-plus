@@ -86,7 +86,8 @@ describe("When creating a game", function() {
         /* #region  game properties */
         const gameController = iocContainer.get(GameController);
         const gameCreateResponse = await gameController.create({ gameDto: gameDto, requestDto: requestDto });
-        assert.isTrue(gameCreateResponse!.success);
+        assert.isDefined(gameCreateResponse);
+        assert.isTrue(gameCreateResponse.success);
 
         const gameReport = gameCreateResponse.result as CreateGameReport;
         expect(gameReport).to.not.be.undefined;
@@ -125,6 +126,34 @@ describe("When creating a game", function() {
         );
         expect(gameRefs).to.have.length(1, "The game referee should have the same discord author id as the one in the DTO.");
         /* #endregion */
+
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
+
+  it("should not save a game with validation errors", function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const gameDto: CreateGameDto = {
+          teamLives: 1.5 // should be a whole number
+        };
+        const requestDto: DiscordRequestDto = {
+          type: "discord",
+          authorId: "tester",
+          originChannel: "tester's amazing channel"
+        };
+
+        const gameController = iocContainer.get(GameController);
+        const gameCreateResponse = await gameController.create({ gameDto: gameDto, requestDto: requestDto });
+
+        assert.isFalse(gameCreateResponse.success, "The response should indicate that the create game request did not succeed.");
+        assert.isDefined(gameCreateResponse.errors);
+        assert.isNotNull(gameCreateResponse.errors);
+
+        expect(gameCreateResponse.errors.validation).to.be.not.empty;
 
         return resolve();
       } catch (error) {
