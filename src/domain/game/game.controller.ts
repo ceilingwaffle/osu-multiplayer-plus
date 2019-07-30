@@ -9,6 +9,8 @@ import { RequestDtoType } from "../../requests/dto/request.dto";
 import { Requester } from "../../requests/requesters/requester";
 import { Log } from "../../utils/Log";
 import { RequesterFactoryInitializationError } from "../shared/errors/RequesterFactoryInitializationError";
+import { CreateGameReport } from "./reports/create-game.report";
+import { GameResponseFactory } from "./game-response-factory";
 
 export class GameController {
   constructor(@inject(GameService) private readonly gameService: GameService) {
@@ -19,10 +21,10 @@ export class GameController {
    * Creates a new game.
    *
    * @param {{ gameDto: CreateGameDto; requestDto: RequestDtoType }} gameData
-   * @returns {Promise<Response<Game>>}
+   * @returns {Promise<Response<ReportType>>}
    * @memberof GameController
    */
-  public async create(gameData: { gameDto: CreateGameDto; requestDto: RequestDtoType }): Promise<Response<Game>> {
+  public async create(gameData: { gameDto: CreateGameDto; requestDto: RequestDtoType }): Promise<Response<CreateGameReport>> {
     try {
       // build the requester
       const requester: Requester = RequesterFactory.initialize(gameData.requestDto);
@@ -60,7 +62,17 @@ export class GameController {
       return {
         success: true,
         message: Message.get("gameCreateSuccess"),
-        result: game
+        result: ((): CreateGameReport => {
+          const gameResponseFactory = new GameResponseFactory(requester, game, gameData.requestDto);
+          return {
+            teamLives: game.teamLives,
+            countFailedScores: game.countFailedScores,
+            status: game.status,
+            createdBy: gameResponseFactory.getCreator(),
+            refereedBy: gameResponseFactory.getReferees(),
+            messageTargets: gameResponseFactory.getMessageTargets()
+          };
+        })()
       };
     } catch (error) {
       Log.methodError(this.create, this.constructor.name, error);

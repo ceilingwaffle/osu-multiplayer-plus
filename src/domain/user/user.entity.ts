@@ -3,6 +3,7 @@ import { IsInt, IsBoolean } from "class-validator";
 import { Game } from "../game/game.entity";
 import { DiscordUser } from "./discord-user.entity";
 import { AbstractEntity } from "../shared/abstract-entity";
+import { WebUser } from "./web-user.entity";
 
 @Entity("users")
 export class User extends AbstractEntity {
@@ -17,6 +18,12 @@ export class User extends AbstractEntity {
     nullable: true
   })
   discordUser: DiscordUser;
+
+  @OneToOne(type => WebUser, webUser => webUser.user, {
+    cascade: ["insert", "update", "remove"],
+    nullable: true
+  })
+  webUser: WebUser;
 
   @ManyToMany(type => Game, user => user.refereedBy, {
     cascade: [],

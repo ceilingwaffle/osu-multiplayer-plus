@@ -11,6 +11,8 @@ import { User } from "../../src/domain/user/user.entity";
 import { GameStatus } from "../../src/domain/game/game-status";
 import { ConnectionManager } from "../../src/utils/connection-manager";
 import { DiscordUser } from "../../src/domain/user/discord-user.entity";
+import { CreateGameReport } from "../../src/domain/game/reports/create-game.report";
+import { DiscordUserReportProperties } from "../../src/domain/shared/reports/discord-user-report-properties";
 
 async function getEntities(): Promise<TestContextEntities[]> {
   const conn = await ConnectionManager.getInstance();
@@ -56,8 +58,7 @@ describe("When creating a game", function() {
         const gameCreateResponse = await gameController.create({ gameDto: gameDto, requestDto: requestDto });
         assert.isNotNull(gameCreateResponse);
         assert.isTrue(gameCreateResponse.success);
-        assert.isTrue(gameCreateResponse.result instanceof Game);
-        const savedGame = gameCreateResponse.result as Game;
+        const savedGame = gameCreateResponse.result as CreateGameReport;
         assert.isNotNull(savedGame);
         assert.isNotNull(savedGame.teamLives, "Expected some default value for game team lives.");
         assert.isNotNull(savedGame.countFailedScores, "Expected some default value for game count failed scores.");
@@ -87,39 +88,41 @@ describe("When creating a game", function() {
         const gameCreateResponse = await gameController.create({ gameDto: gameDto, requestDto: requestDto });
         assert.isTrue(gameCreateResponse!.success);
 
-        const savedGame = gameCreateResponse.result as Game;
-        expect(savedGame).to.not.be.undefined;
-        expect(savedGame.status).to.equal(GameStatus.IDLE, "New games should have an initial game status of idle.").but.not.be.null;
-        expect(savedGame.teamLives).to.equal(gameDto.teamLives).but.not.be.null;
-        expect(savedGame.countFailedScores).to.equal(gameDto.countFailedScores).but.not.be.null;
+        const gameReport = gameCreateResponse.result as CreateGameReport;
+        expect(gameReport).to.not.be.undefined;
+        expect(gameReport.status).to.equal(GameStatus.IDLE, "New games should have an initial game status of idle.").but.not.be.null;
+        expect(gameReport.teamLives).to.equal(gameDto.teamLives).but.not.be.null;
+        expect(gameReport.countFailedScores).to.equal(gameDto.countFailedScores).but.not.be.null;
         /* #endregion */
 
         /* #region  message target */
-        assert.isNotNull(savedGame.messageTargets);
-        assert.lengthOf(savedGame.messageTargets, 1);
+        assert.isNotNull(gameReport.messageTargets);
+        assert.lengthOf(gameReport.messageTargets, 1);
 
         let msgTarget: { type: any; authorId: any; channel?: string };
-        msgTarget = savedGame.messageTargets.find(msgTarget => msgTarget.type === requestDto.type);
+        msgTarget = gameReport.messageTargets.find(msgTarget => msgTarget.type === requestDto.type);
         assert.isDefined(msgTarget, "Game should have a message target contaning the expected request type (e.g. DiscordRequest).");
         assert.isNotNull(msgTarget.type);
 
-        msgTarget = savedGame.messageTargets.find(msgTarget => msgTarget.authorId === requestDto.authorId);
+        msgTarget = gameReport.messageTargets.find(msgTarget => msgTarget.authorId === requestDto.authorId);
         assert.isDefined(msgTarget, "Game should have a message target contaning the requester's author ID.");
         assert.isNotNull(msgTarget.authorId);
 
-        msgTarget = savedGame.messageTargets.find(msgTarget => msgTarget.channel === requestDto.originChannel);
+        msgTarget = gameReport.messageTargets.find(msgTarget => msgTarget.channel === requestDto.originChannel);
         assert.isDefined(msgTarget, "Game should have a message target contaning the channel where the request was initiated.");
         assert.isNotNull(msgTarget.channel);
         /* #endregion */
 
         /* #region  game creator */
-        assert.isNotNull(savedGame.createdBy);
-        assert.isNotNull(savedGame.createdBy.discordUser);
-        assert.isNotNull(savedGame.createdBy.discordUser.discordUserId);
-        const gameCreatorDiscordUserId = savedGame.createdBy.discordUser.discordUserId;
+        const gameCreator = gameReport.createdBy as DiscordUserReportProperties;
+        assert.isNotNull(gameCreator);
+        assert.isNotNull(gameCreator.discordUserId);
+        const gameCreatorDiscordUserId = gameCreator.discordUserId;
         expect(gameCreatorDiscordUserId).to.equal(requestDto.authorId);
-        expect(savedGame.refereedBy).to.have.length(1, "There should be exactly one game referee.");
-        const gameRefs = savedGame.refereedBy.filter(user => user.discordUser.discordUserId === requestDto.authorId);
+        expect(gameReport.refereedBy).to.have.length(1, "There should be exactly one game referee.");
+        const gameRefs = (gameReport.refereedBy as DiscordUserReportProperties[]).filter(
+          user => user.discordUserId === requestDto.authorId
+        );
         expect(gameRefs).to.have.length(1, "The game referee should have the same discord author id as the one in the DTO.");
         /* #endregion */
 

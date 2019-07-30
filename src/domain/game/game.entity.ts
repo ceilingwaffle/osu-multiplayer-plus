@@ -1,10 +1,10 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, ManyToMany, JoinTable } from "typeorm";
 import { IsInt, IsBoolean } from "class-validator";
 import { User } from "../user/user.entity";
-import { CommunicationClientType } from "../../requests/dto/request.dto";
 import { GameStatus } from "./game-status";
 import { Lobby } from "../lobby/lobby.entity";
 import { AbstractEntity } from "../shared/abstract-entity";
+import { GameMessageTarget } from "./game-message-target";
 
 @Entity("games")
 export class Game extends AbstractEntity {
@@ -20,7 +20,7 @@ export class Game extends AbstractEntity {
   countFailedScores: boolean;
 
   @Column("simple-json", { nullable: true })
-  messageTargets: { type: CommunicationClientType; authorId: string; channel: string }[];
+  messageTargets: GameMessageTarget[];
 
   @Column({ default: GameStatus.UNKNOWN })
   status: GameStatus;

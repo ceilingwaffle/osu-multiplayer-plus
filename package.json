@@ -11,8 +11,8 @@
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "entity:create": "ts-node ./node_modules/typeorm/cli.js entity:create -n",
     "seed": "ts-node ./node_modules/typeorm-seeding/dist/cli.js seed --config ormconfig.json",
-    "delgo": "rmdir /S /Q dist & tsc & del .\\src\\database\\app_database.sqlite & npm run seed & npm start",
-    "test": "rmdir /S /Q dist & tsc & mocha --require ts-node/register test/**/*.ts",
+    "delgo": "rmdir /S /Q dist & tsc & del .\\src\\database\\app-database.sqlite & npm run seed & npm start",
+    "test": "rmdir /S /Q dist & tsc & xcopy .\\src\\locales .\\dist\\locales\\ /E /C /Q /Y & mocha --require ts-node/register test/**/*.ts --timeout 30000",
     "build": "rmdir /S /Q dist & tsc",
     "cli:command": "ts-node ./cli/command.ts"
   },
@@ -42,9 +42,11 @@
     "inversify-binding-decorators": "^4.0.0",
     "log4js": "^4.3.1",
     "module-alias": "^2.2.0",
+    "mustache": "^3.0.1",
     "nodesu": "^0.7.0",
     "reflect-metadata": "^0.1.13",
     "sqlite": "^3.0.3",
+    "sqlite3": "^4.0.9",
     "ts-cleaner": "^1.0.2",
     "typeorm": "0.2.17",
     "typeorm-seeding": "^1.0.0-rc.2"
