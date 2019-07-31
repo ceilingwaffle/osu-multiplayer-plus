@@ -1,9 +1,9 @@
 import { Command, CommandoClient, CommandMessage } from "discord.js-commando";
 import { inject } from "inversify";
-import { GameController } from "../game.controller";
+import { GameController } from "../../game.controller";
 import { Message } from "discord.js";
-import { ErrorResponseMessageBuilder } from "../../shared/commands/builders/error-response-message-builder";
-import { CreateGameResponseBuilder } from "./builders/create-game-response-builder";
+import { ErrorDiscordMessageBuilder } from "../../../shared/discord/message-builders/error.discord-message-builder";
+import { CreateGameDiscordMessageBuilder } from "../message-builders/create-game.discord-message-builder";
 
 export class CreateGameCommand extends Command {
   constructor(commando: CommandoClient, @inject(GameController) protected readonly gameController: GameController) {
@@ -32,7 +32,7 @@ export class CreateGameCommand extends Command {
   }
 
   public async run(
-    commandoMessage: CommandMessage,
+    message: CommandMessage,
     args: {
       lives: number;
       countFailedScores: boolean;
@@ -45,21 +45,17 @@ export class CreateGameCommand extends Command {
       },
       requestDto: {
         type: "discord",
-        authorId: commandoMessage.author.id,
-        originChannel: commandoMessage.channel.id
+        authorId: message.author.id,
+        originChannel: message.channel.id
       }
     });
 
     if (!createGameResponse || !createGameResponse.success) {
-      const errorReply = new ErrorResponseMessageBuilder(commandoMessage, createGameResponse);
-      errorReply.getDiscordMessage();
-      // TODO
+      const toBeSent = new ErrorDiscordMessageBuilder().from(createGameResponse).buildDiscordMessage(message);
+      return message.embed(toBeSent);
     }
 
-    const builder = new CreateGameResponseBuilder(commandoMessage, createGameResponse);
-    const reply = builder.getDiscordMessage();
-    // TODO
-
-    return commandoMessage.say("Hi there.");
+    const toBeSent = new CreateGameDiscordMessageBuilder().from(createGameResponse).buildDiscordMessage(message);
+    return message.embed(toBeSent);
   }
 }
