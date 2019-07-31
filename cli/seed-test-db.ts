@@ -1,6 +1,6 @@
-import { TestHelpers } from "../test/TestHelpers";
+import { TestHelpers } from "../test/test-helpers";
 
-console.log("Executing ./cli/seed_test_db.ts");
+console.log(`Executing ${__dirname}/${__filename}...`);
 
 (async function() {
   await TestHelpers.seedTestDatabase();
