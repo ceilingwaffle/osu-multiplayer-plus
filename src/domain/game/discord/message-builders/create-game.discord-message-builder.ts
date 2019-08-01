@@ -16,12 +16,14 @@ export class CreateGameDiscordMessageBuilder extends AbstractDiscordMessageBuild
     const message = super.buildDiscordMessage(commandMessage);
 
     const creator = this.responseResult.createdBy as DiscordUserReportProperties;
+    const refs = this.responseResult.refereedBy as DiscordUserReportProperties[];
 
     message.addField(
       "Game Properties",
       `Starting Lives: ${this.responseResult.teamLives}
       Count Failed Scores: ${this.responseResult.countFailedScores}
       Game Status: ${this.responseResult.status}
+      Referees: ${refs.map(ref => `<@${ref.discordUserId}>`).join(", ")}
       Created by: <@${creator.discordUserId}>`
     );
 
