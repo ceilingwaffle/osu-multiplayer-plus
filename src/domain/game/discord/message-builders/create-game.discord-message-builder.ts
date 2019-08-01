@@ -24,7 +24,7 @@ export class CreateGameDiscordMessageBuilder extends AbstractDiscordMessageBuild
       Count Failed Scores: ${this.responseResult.countFailedScores}
       Game Status: ${this.responseResult.status}
       Referees: ${refs.map(ref => `<@${ref.discordUserId}>`).join(", ")}
-      Created by: <@${creator.discordUserId}>`
+      Created by: <@${creator.discordUserId}> ${this.responseResult.createdAgo}`
     );
 
     return message;

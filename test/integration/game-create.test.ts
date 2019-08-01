@@ -58,10 +58,11 @@ describe("When creating a game", function() {
         const gameCreateResponse = await gameController.create({ gameDto: gameDto, requestDto: requestDto });
         assert.isNotNull(gameCreateResponse);
         assert.isTrue(gameCreateResponse.success);
-        const savedGame = gameCreateResponse.result as CreateGameReport;
-        assert.isNotNull(savedGame);
-        assert.isNotNull(savedGame.teamLives, "Expected some default value for game team lives.");
-        assert.isNotNull(savedGame.countFailedScores, "Expected some default value for game count failed scores.");
+        const gamReport = gameCreateResponse.result as CreateGameReport;
+        assert.isNotNull(gamReport);
+        assert.isNotNull(gamReport.teamLives, "Expected some default value for game team lives.");
+        assert.isNotNull(gamReport.countFailedScores, "Expected some default value for game count failed scores.");
+        assert.isNotEmpty(gamReport.createdAgo);
 
         return resolve();
       } catch (error) {
@@ -95,6 +96,7 @@ describe("When creating a game", function() {
           .not.be.null;
         expect(gameReport.teamLives).to.equal(gameDto.teamLives).but.not.be.null;
         expect(gameReport.countFailedScores).to.equal(gameDto.countFailedScores).but.not.be.null;
+        assert.isNotEmpty(gameReport.createdAgo);
         /* #endregion */
 
         /* #region  message target */

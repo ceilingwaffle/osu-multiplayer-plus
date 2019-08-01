@@ -73,6 +73,7 @@ export class GameController {
             countFailedScores: game.countFailedScores,
             status: GameStatus.getTextFromKey(game.status),
             createdBy: gameResponseFactory.getCreator(),
+            createdAgo: gameResponseFactory.getCreatedAgoText(),
             refereedBy: gameResponseFactory.getReferees(),
             messageTargets: gameResponseFactory.getMessageTargets()
           };

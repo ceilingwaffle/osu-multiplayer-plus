@@ -6,6 +6,7 @@ export interface CreateGameReport {
   countFailedScores: boolean;
   status: string;
   createdBy: UserReportProperties;
+  createdAgo: string;
   refereedBy: UserReportProperties[];
   messageTargets: GameMessageTarget[];
 }

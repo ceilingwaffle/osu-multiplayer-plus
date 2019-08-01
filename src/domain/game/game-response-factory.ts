@@ -3,6 +3,7 @@ import { Requester } from "../../requests/requesters/requester";
 import { Game } from "./game.entity";
 import { GameMessageTarget } from "./game-message-target";
 import { RequestDto } from "../../requests/dto";
+import * as moment from "moment";
 
 export class GameResponseFactory {
   constructor(protected readonly requester: Requester, protected readonly game: Game, protected readonly requestData: RequestDto) {}
@@ -37,5 +38,9 @@ export class GameResponseFactory {
 
   getMessageTargets(): GameMessageTarget[] {
     return [{ type: this.requestData.type, authorId: this.requestData.authorId, channel: this.requestData.originChannel }];
+  }
+
+  getCreatedAgoText(): string {
+    return moment.unix(this.game.createdAt).fromNow();
   }
 }
