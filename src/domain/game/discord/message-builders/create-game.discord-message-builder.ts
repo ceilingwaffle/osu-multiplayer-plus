@@ -3,6 +3,7 @@ import { CommandMessage } from "discord.js-commando";
 import { AbstractDiscordMessageBuilder } from "../../../../discord/message-builders/abstract.discord-message-builder";
 import { Response } from "../../../../requests/Response";
 import { CreateGameReport } from "../../reports/create-game.report";
+import { DiscordUserReportProperties } from "../../../shared/reports/discord-user-report-properties";
 
 export class CreateGameDiscordMessageBuilder extends AbstractDiscordMessageBuilder<CreateGameReport> {
   public from(response: Response<CreateGameReport>): this {
@@ -14,14 +15,14 @@ export class CreateGameDiscordMessageBuilder extends AbstractDiscordMessageBuild
   public buildDiscordMessage(commandMessage: CommandMessage): RichEmbed {
     const message = super.buildDiscordMessage(commandMessage);
 
+    const creator = this.responseResult.createdBy as DiscordUserReportProperties;
+
     message.addField(
       "Game Properties",
-      `
-      Starting Lives: ${this.responseResult.teamLives}\n
-      Count Failed Scores: ${this.responseResult.countFailedScores}\n
-      Game Status: ${this.responseResult.status}\n
-      Created by: ${this.responseResult.createdBy}\n
-    `
+      `Starting Lives: ${this.responseResult.teamLives}
+      Count Failed Scores: ${this.responseResult.countFailedScores}
+      Game Status: ${this.responseResult.status}
+      Created by: <@${creator.discordUserId}>`
     );
 
     return message;
