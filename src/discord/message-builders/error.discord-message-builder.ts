@@ -1,5 +1,5 @@
 import { AbstractDiscordMessageBuilder } from "./abstract.discord-message-builder";
-import { CommandMessage } from "discord.js-commando";
+import { CommandMessage, CommandoClient, Command } from "discord.js-commando";
 import { Response } from "../../requests/Response";
 import { RichEmbed } from "discord.js";
 import { ValidationError } from "class-validator";
@@ -27,10 +27,10 @@ export class ErrorDiscordMessageBuilder extends AbstractDiscordMessageBuilder<an
    */
   protected otherErrors: string[];
 
-  public from(response: Response<any>): this {
+  public from(response: Response<any>, command: Command): this {
+    super.from(response, command);
     this.validateErrorResponse(response);
 
-    this.title = response.message;
     this.validationErrors = response.errors ? response.errors.validation : undefined;
     this.otherErrors = response.errors ? response.errors.messages : undefined;
 

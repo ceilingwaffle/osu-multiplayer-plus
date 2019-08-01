@@ -1,5 +1,5 @@
 import { Response } from "../../requests/Response";
-import { CommandMessage } from "discord.js-commando";
+import { CommandMessage, CommandoClient, Command } from "discord.js-commando";
 import { RichEmbed } from "discord.js";
 
 /**
@@ -45,6 +45,8 @@ export abstract class AbstractDiscordMessageBuilder<ResponseResultType> {
    */
   protected title: string = "😕";
 
+  protected command: Command;
+
   /**
    * The Response object of a certain data type.
    *
@@ -75,9 +77,10 @@ export abstract class AbstractDiscordMessageBuilder<ResponseResultType> {
    * @param {Response<ResponseResultType>} response
    * @returns {this}
    */
-  public from(response: Response<ResponseResultType>): this {
+  public from(response: Response<ResponseResultType>, command: Command): this {
     this.validateResponse(response);
 
+    this.command = command;
     this.response = response;
     this.responseResult = response.result;
     this.title = response.message;

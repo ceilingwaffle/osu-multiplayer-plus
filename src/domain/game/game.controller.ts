@@ -69,6 +69,7 @@ export class GameController {
         result: ((): CreateGameReport => {
           const gameResponseFactory = new GameResponseFactory(requester, game, gameData.requestDto);
           return {
+            gameId: game.id,
             teamLives: game.teamLives,
             countFailedScores: game.countFailedScores,
             status: GameStatus.getTextFromKey(game.status),
