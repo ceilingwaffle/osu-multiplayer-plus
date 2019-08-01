@@ -22,8 +22,8 @@ export class Game extends AbstractEntity {
   @Column("simple-json", { nullable: true })
   messageTargets: GameMessageTarget[];
 
-  @Column({ default: GameStatus.UNKNOWN })
-  status: GameStatus;
+  @Column({ default: GameStatus.UNKNOWN.getKey() })
+  status: string;
 
   @ManyToOne(type => User, user => user.gamesCreated)
   @JoinColumn({ name: "created_by_user_id" })

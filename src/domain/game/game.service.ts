@@ -49,7 +49,7 @@ export class GameService {
         teamLives: gameData.teamLives != null ? gameData.teamLives : GameDefaults.teamLives,
         countFailedScores: gameData.countFailedScores != null ? gameData.countFailedScores : GameDefaults.countFailedScores,
         createdBy: gameCreator,
-        status: GameStatus.IDLE,
+        status: GameStatus.IDLE_NEWGAME.getKey(),
         refereedBy: [gameCreator],
         messageTargets: [
           {

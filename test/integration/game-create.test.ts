@@ -91,7 +91,8 @@ describe("When creating a game", function() {
 
         const gameReport = gameCreateResponse.result as CreateGameReport;
         expect(gameReport).to.not.be.undefined;
-        expect(gameReport.status).to.equal(GameStatus.IDLE, "New games should have an initial game status of idle.").but.not.be.null;
+        expect(gameReport.status).to.equal(GameStatus.IDLE_NEWGAME.getText(), "New games should have an initial game status of idle.").but
+          .not.be.null;
         expect(gameReport.teamLives).to.equal(gameDto.teamLives).but.not.be.null;
         expect(gameReport.countFailedScores).to.equal(gameDto.countFailedScores).but.not.be.null;
         /* #endregion */

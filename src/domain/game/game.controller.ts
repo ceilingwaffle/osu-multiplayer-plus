@@ -11,6 +11,7 @@ import { Log } from "../../utils/Log";
 import { RequesterFactoryInitializationError } from "../shared/errors/RequesterFactoryInitializationError";
 import { CreateGameReport } from "./reports/create-game.report";
 import { GameResponseFactory } from "./game-response-factory";
+import { GameStatus } from "./game-status";
 
 export class GameController {
   constructor(@inject(GameService) private readonly gameService: GameService) {
@@ -70,7 +71,7 @@ export class GameController {
           return {
             teamLives: game.teamLives,
             countFailedScores: game.countFailedScores,
-            status: game.status,
+            status: GameStatus.getTextFromKey(game.status),
             createdBy: gameResponseFactory.getCreator(),
             refereedBy: gameResponseFactory.getReferees(),
             messageTargets: gameResponseFactory.getMessageTargets()
