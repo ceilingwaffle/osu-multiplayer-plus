@@ -1,12 +1,16 @@
+import iocContainer from "../../../../inversify.config";
 import { Command, CommandoClient, CommandMessage } from "discord.js-commando";
-import { inject } from "inversify";
 import { GameController } from "../../game.controller";
 import { Message } from "discord.js";
-import { ErrorDiscordMessageBuilder } from "../../../shared/discord/message-builders/error.discord-message-builder";
+import { ErrorDiscordMessageBuilder } from "../../../../discord/message-builders/error.discord-message-builder";
 import { CreateGameDiscordMessageBuilder } from "../message-builders/create-game.discord-message-builder";
+import * as entities from "../../../../inversify.entities";
 
 export class CreateGameCommand extends Command {
-  constructor(commando: CommandoClient, @inject(GameController) protected readonly gameController: GameController) {
+  // @inject(GameController) protected readonly gameController: GameController
+  protected readonly gameController: GameController = iocContainer.get(entities.GameController);
+
+  constructor(commando: CommandoClient) {
     super(commando, {
       name: "creategame",
       group: "osu",
@@ -20,12 +24,14 @@ export class CreateGameCommand extends Command {
         {
           key: "lives",
           prompt: "How many lives should each team start with?",
-          type: "number"
+          type: "integer",
+          default: 2
         },
         {
           key: "countFailedScores",
           prompt: "Should failed scores be counted in the team score calculations?",
-          type: "boolean"
+          type: "boolean",
+          default: true
         }
       ]
     });

@@ -8,9 +8,9 @@ temp/
 .env
 **/*.sqlite
 **/*.sqlite-journal
-/notes.txt
 .DS_Store
 /logs
 **/*.log
 notes/
-TODO
+/TODO
+/NOTES

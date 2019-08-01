@@ -1,15 +1,15 @@
 import { AbstractDiscordMessageBuilder } from "./abstract.discord-message-builder";
 import { CommandMessage } from "discord.js-commando";
-import { Response } from "../../../../requests/Response";
+import { Response } from "../../requests/Response";
 import { RichEmbed } from "discord.js";
 import { ValidationError } from "class-validator";
 
 export class ErrorDiscordMessageBuilder extends AbstractDiscordMessageBuilder<any> {
-  protected readonly cardColor: number = 16711680; // red // TODO: Use library to get decimal value from RGB?
+  protected readonly color: number = 0xff0000; // red
 
-  protected readonly iconImageUrl: string = "https://some_img_url/todo_error_iconImageUrl.png";
+  protected readonly authorIcon: string = "https://some_img_url/todo_error_iconImageUrl.png";
 
-  protected readonly thumbnailImageUrl: string = "https://some_img_url/todo_error_thumbnailImageUrl.png";
+  protected readonly thumbnail: string = "https://some_img_url/todo_error_thumbnailImageUrl.png";
 
   /**
    * Validation errors on the response object.
@@ -28,7 +28,7 @@ export class ErrorDiscordMessageBuilder extends AbstractDiscordMessageBuilder<an
   protected otherErrors: string[];
 
   public from(response: Response<any>): this {
-    this.validateFailedResponse(response);
+    this.validateErrorResponse(response);
 
     this.title = response.message;
     this.validationErrors = response.errors ? response.errors.validation : undefined;
@@ -38,11 +38,21 @@ export class ErrorDiscordMessageBuilder extends AbstractDiscordMessageBuilder<an
   }
 
   public buildDiscordMessage(commandMessage: CommandMessage): RichEmbed {
-    super.buildDiscordMessage(commandMessage);
+    const message = super.buildDiscordMessage(commandMessage);
 
-    // TODO: use this.response to get validation/errors and build the message
+    if (this.response.errors.validation) {
+      message.addField(
+        "Validation Errors",
+        this.response.errors.validation
+          .map(vError => `${vError.property}: "${vError.value}" is bad because: ${vError.constraints}`)
+          .join("\n")
+      );
+    }
+    if (this.response.errors.messages) {
+      message.addField("Errors", this.response.errors.messages.join("\n"));
+    }
 
-    throw new Error("Method not implemented.");
+    return message;
   }
 
   /**

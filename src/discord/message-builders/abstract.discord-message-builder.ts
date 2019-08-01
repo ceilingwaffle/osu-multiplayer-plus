@@ -1,4 +1,4 @@
-import { Response } from "../../../../requests/Response";
+import { Response } from "../../requests/Response";
 import { CommandMessage } from "discord.js-commando";
 import { RichEmbed } from "discord.js";
 
@@ -19,7 +19,15 @@ export abstract class AbstractDiscordMessageBuilder<ResponseResultType> {
    * @type {number}
    * @memberof ResponseMessageBuilder
    */
-  protected readonly cardColor: number = 65280; // green
+  protected readonly color: number = 0x00ff00; // green
+
+  /**
+   * The smaller Discord Message card icon image (top left).
+   *
+   * @protected
+   * @type {string}
+   */
+  protected readonly authorIcon: string = "https://i.imgur.com/lm8s41J.png";
 
   /**
    * The bigger Discord Message card image (top right).
@@ -27,15 +35,7 @@ export abstract class AbstractDiscordMessageBuilder<ResponseResultType> {
    * @protected
    * @type {string}
    */
-  protected readonly iconImageUrl: string = "https://some_img_url/todo_success_iconImageUrl.png";
-
-  /**
-   * The smaller Discord Message card icon (top left).
-   *
-   * @protected
-   * @type {string}
-   */
-  protected readonly thumbnailImageUrl: string = "https://some_img_url/todo_success_thumbnailImageUrl.png";
+  protected readonly thumbnail: string = "http://i.imgur.com/p2qNFag.png";
 
   /**
    * The title to be displayed at the top of the Discord message.
@@ -67,7 +67,7 @@ export abstract class AbstractDiscordMessageBuilder<ResponseResultType> {
    * @private
    * @type {boolean}
    */
-  private isInitialized: boolean = false;
+  private isReadyForBuilding: boolean = false;
 
   /**
    * Does all the initializing and setup required before we can build the Discord message.
@@ -82,7 +82,7 @@ export abstract class AbstractDiscordMessageBuilder<ResponseResultType> {
     this.responseResult = response.result;
     this.title = response.message;
 
-    this.isInitialized = true;
+    this.isReadyForBuilding = true;
 
     return this;
   }
@@ -94,10 +94,13 @@ export abstract class AbstractDiscordMessageBuilder<ResponseResultType> {
    * @returns {RichEmbed}
    */
   public buildDiscordMessage(commandMessage: CommandMessage): RichEmbed {
-    if (!this.isInitialized) {
+    if (!this.isReadyForBuilding) {
       throw new Error(`Must call ${this.from.name}() before ${this.buildDiscordMessage.name}().`);
     }
-    return null;
+    const message = new RichEmbed();
+    message.setColor(this.color);
+    message.setAuthor(this.title, this.authorIcon);
+    return message;
   }
 
   protected validateResponse(response: Response<ResponseResultType>) {
@@ -109,7 +112,7 @@ export abstract class AbstractDiscordMessageBuilder<ResponseResultType> {
     if (response.success === false) throw new Error(`Response should have succeeded.`);
   }
 
-  protected validateFailedResponse(response: Response<ResponseResultType>) {
+  protected validateErrorResponse(response: Response<ResponseResultType>) {
     this.validateResponse(response);
     if (response.success === true) throw new Error(`Response should have failed.`);
   }
