@@ -13,6 +13,7 @@ import { ConnectionManager } from "../../src/utils/connection-manager";
 import { DiscordUser } from "../../src/domain/user/discord-user.entity";
 import { CreateGameReport } from "../../src/domain/game/reports/create-game.report";
 import { DiscordUserReportProperties } from "../../src/domain/shared/reports/discord-user-report-properties";
+import { GameDefaults } from "../../src/domain/game/game-defaults";
 
 async function getEntities(): Promise<TestContextEntities[]> {
   const conn = await ConnectionManager.getInstance();
@@ -58,11 +59,13 @@ describe("When creating a game", function() {
         const gameCreateResponse = await gameController.create({ gameDto: gameDto, requestDto: requestDto });
         assert.isNotNull(gameCreateResponse);
         assert.isTrue(gameCreateResponse.success);
-        const gamReport = gameCreateResponse.result as CreateGameReport;
-        assert.isNotNull(gamReport);
-        assert.isNotNull(gamReport.teamLives, "Expected some default value for game team lives.");
-        assert.isNotNull(gamReport.countFailedScores, "Expected some default value for game count failed scores.");
-        assert.isNotEmpty(gamReport.createdAgo);
+        const gameReport = gameCreateResponse.result as CreateGameReport;
+        assert.isNotNull(gameReport);
+        assert.isNotNull(gameReport.teamLives, "Expected some default value for game team lives.");
+        assert.strictEqual(gameReport.teamLives, GameDefaults.teamLives);
+        assert.isNotNull(gameReport.countFailedScores, "Expected some default value for game count failed scores.");
+        assert.strictEqual(gameReport.countFailedScores, GameDefaults.countFailedScores);
+        assert.isNotEmpty(gameReport.createdAgo);
 
         return resolve();
       } catch (error) {
