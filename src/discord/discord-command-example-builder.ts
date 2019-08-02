@@ -1,16 +1,16 @@
-import { DiscordCommandArgumentExample } from "./discord-command-argument-example";
+import { DiscordCommandExample } from "./discord-command-example";
 import { Command } from "discord.js-commando";
 
 export class DiscordCommandExampleBuilder {
-  protected static readonly examples: DiscordCommandArgumentExample[] = [];
+  protected static readonly examples: DiscordCommandExample[] = [];
 
-  static addExample(example: DiscordCommandArgumentExample): void {
+  static addExample(example: DiscordCommandExample): void {
     DiscordCommandExampleBuilder.examples[`${typeof example.command}:${example.argument}`] = example;
   }
 
   static getExampleFor(command: Command, arg: string, data: Object): string {
     // TODO: Unit test this method, asserting the string replacement
-    const example: DiscordCommandArgumentExample = DiscordCommandExampleBuilder.examples[`${typeof command}:${arg}`];
+    const example: DiscordCommandExample = DiscordCommandExampleBuilder.examples[`${typeof command}:${arg}`];
     if (!example) {
       throw new Error(`No command examples have been added for command ${command.name}`);
     }
