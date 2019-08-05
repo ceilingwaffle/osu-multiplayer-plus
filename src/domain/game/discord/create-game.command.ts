@@ -1,10 +1,10 @@
-import iocContainer from "../../../../inversify.config";
+import iocContainer from "../../../inversify.config";
 import { Command, CommandoClient, CommandMessage } from "discord.js-commando";
-import { GameController } from "../../game.controller";
+import { GameController } from "../game.controller";
 import { Message, RichEmbed } from "discord.js";
-import { ErrorDiscordMessageBuilder } from "../../../../discord/message-builders/error.discord-message-builder";
-import { CreateGameDiscordMessageBuilder } from "../message-builders/create-game.discord-message-builder";
-import * as entities from "../../../../inversify.entities";
+import { ErrorDiscordMessageBuilder } from "../../../discord/message-builders/error.discord-message-builder";
+import { CreateGameDiscordMessageBuilder } from "./create-game.discord-message-builder";
+import * as entities from "../../../inversify.entities";
 
 export class CreateGameCommand extends Command {
   // @inject(GameController) protected readonly gameController: GameController

@@ -1,5 +1,5 @@
 import { CommandoClient, SQLiteProvider } from "discord.js-commando";
-import { CreateGameCommand } from "../domain/game/discord/commands/create-game.command";
+import { CreateGameCommand } from "../domain/game/discord/create-game.command";
 import { ConnectionManager } from "../utils/connection-manager";
 import { Helpers } from "../utils/helpers";
 import { Database } from "sqlite";

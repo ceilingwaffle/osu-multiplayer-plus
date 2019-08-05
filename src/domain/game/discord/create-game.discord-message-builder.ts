@@ -1,11 +1,10 @@
 import { RichEmbed } from "discord.js";
 import { CommandMessage, Command } from "discord.js-commando";
-import { AbstractDiscordMessageBuilder } from "../../../../discord/message-builders/abstract.discord-message-builder";
-import { Response } from "../../../../requests/Response";
-import { CreateGameReport } from "../../reports/create-game.report";
-import { DiscordUserReportProperties } from "../../../shared/reports/discord-user-report-properties";
-import { DiscordCommandExampleBuilder } from "../../../../discord/discord-command-example-builder";
-import { CreateGameCommand } from "../commands/create-game.command";
+import { AbstractDiscordMessageBuilder } from "../../../discord/message-builders/abstract.discord-message-builder";
+import { Response } from "../../../requests/Response";
+import { CreateGameReport } from "../reports/create-game.report";
+import { DiscordUserReportProperties } from "../../shared/reports/discord-user-report-properties";
+import { DiscordCommandExampleBuilder } from "../../../discord/discord-command-example-builder";
 
 export class CreateGameDiscordMessageBuilder extends AbstractDiscordMessageBuilder<CreateGameReport> {
   public from(response: Response<CreateGameReport>, command: Command): this {
