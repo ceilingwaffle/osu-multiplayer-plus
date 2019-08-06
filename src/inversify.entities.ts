@@ -15,3 +15,5 @@ export { DiscordUserRepository } from "./domain/user/discord-user.repository";
 export { LobbyController } from "./domain/lobby/lobby.controller";
 export { LobbyService } from "./domain/lobby/lobby.service";
 export { LobbyRepository } from "./domain/lobby/lobby.repository";
+
+export { NodesuApiFetcher } from "./osu/nodesu-api-fetcher";
