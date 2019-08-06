@@ -3,10 +3,17 @@ import iocContainer from "../inversify.config";
 import { NodesuApiFetcher } from "./nodesu-api-fetcher";
 import { Log } from "../utils/Log";
 import { Multi } from "./types/multi";
+import { SetIntervalAsyncTimer } from "set-interval-async";
 const { setIntervalAsync, clearIntervalAsync } = require("set-interval-async/dynamic");
 
+/**
+ * pass the interface around classes.   e.g. BeatmapController.getMapTitle() calls IBeatmap.getMapTitle()
+
+LobbyScanner can just use nodesu objects, but it should always return custom objects containing whatever we need - add props to these custom objects whenever the need arises
+ */
+
 interface Watching {
-  timer: NodeJS.Timer;
+  timer: SetIntervalAsyncTimer;
   forGameIds: number[];
   banchoMultiplayerId: string;
 }
@@ -83,7 +90,7 @@ export class OsuLobbyWatcher {
     Log.debug(`Removed game id ${gameId} from watcher for MP ID ${banchoMultiplayerId}.`);
   }
 
-  private createWatcherTimer({ banchoMultiplayerId }: { banchoMultiplayerId: string }): NodeJS.Timer {
+  private createWatcherTimer({ banchoMultiplayerId }: { banchoMultiplayerId: string }): SetIntervalAsyncTimer {
     Log.debug(`Creating watcher timer for MP ID ${banchoMultiplayerId}...`);
     return setIntervalAsync(async () => {
       try {
@@ -111,7 +118,7 @@ export class OsuLobbyWatcher {
     gameId,
     banchoMultiplayerId
   }: {
-    timer: NodeJS.Timer;
+    timer: SetIntervalAsyncTimer;
     gameId?: number;
     banchoMultiplayerId: string;
   }): void {
