@@ -1,10 +1,12 @@
-import { OsuApiFetcher } from "./interfaces/osu-api-fetcher";
+import { OsuApiFetcher, IOsuApiFetcher } from "./interfaces/osu-api-fetcher";
 import iocContainer from "../inversify.config";
+import * as entities from "../inversify.entities";
 import { NodesuApiFetcher } from "./nodesu-api-fetcher";
 import { Log } from "../utils/Log";
-import { Multi } from "./types/multi";
-import { SetIntervalAsyncTimer } from "set-interval-async";
+import { Multi } from "./types/old/multi";
+import { OsuMultiplayerService } from "./osu-multiplayer-service";
 const { setIntervalAsync, clearIntervalAsync } = require("set-interval-async/dynamic");
+import Bottleneck from "bottleneck";
 
 /**
  * pass the interface around classes.   e.g. BeatmapController.getMapTitle() calls IBeatmap.getMapTitle()
@@ -13,18 +15,19 @@ LobbyScanner can just use nodesu objects, but it should always return custom obj
  */
 
 interface Watching {
-  timer: SetIntervalAsyncTimer;
+  timer: NodeJS.Timer;
   forGameIds: number[];
   banchoMultiplayerId: string;
 }
 
 export class OsuLobbyWatcher {
   protected static config = {
-    lobbyScanInterval: 5000
+    lobbyScanInterval: 1000
   };
+  protected api: IOsuApiFetcher = OsuApiFetcher.getInstance();
+  protected multiplayerService: OsuMultiplayerService = iocContainer.get(entities.OsuMultiplayerService);
   protected watchers: { [banchoMpId: string]: Watching } = {};
-  protected osuApi: OsuApiFetcher = iocContainer.get(NodesuApiFetcher);
-  protected latestResults: Multi;
+  protected latestMultiResults: Multi;
 
   public async watch({
     banchoMultiplayerId,
@@ -36,7 +39,6 @@ export class OsuLobbyWatcher {
     startAtMapNumber: number;
   }): Promise<void> {
     // await this.osuApi.isValidBanchoMultiplayerId(banchoMpId); // shouldnt be resposibile for validation?
-
     try {
       if (!this.isWatching(banchoMultiplayerId)) {
         const timer = this.createWatcherTimer({ banchoMultiplayerId });
@@ -45,9 +47,9 @@ export class OsuLobbyWatcher {
         this.addGameIdToExistingWatcher({ gameId, banchoMultiplayerId });
       }
 
-      Log.methodSuccess(this.watch, this.constructor.name, `No longer watching MP ID ${banchoMultiplayerId}.`);
+      return Log.methodSuccess(this.watch, this.constructor.name);
     } catch (error) {
-      Log.methodError(this.watch, this.constructor.name, `Error when trying to start watcher for MP ID ${banchoMultiplayerId}.`, error);
+      Log.methodError(this.watch, this.constructor.name, `Error when trying to start watcher for MP ${banchoMultiplayerId}.`, error);
       throw error;
     }
   }
@@ -57,17 +59,13 @@ export class OsuLobbyWatcher {
       if (!gameId) {
         // since no game ID was specified, we are saying we want the watcher removed for the Bancho multiplayer, not just one specific game
         await this.disposeWatcher(banchoMultiplayerId);
-        return Log.methodSuccess(this.unwatch, this.constructor.name, `No longer watching MP ID ${banchoMultiplayerId}.`);
+        return Log.methodSuccess(this.unwatch, this.constructor.name, `No longer watching MP ${banchoMultiplayerId}.`);
       }
       // watcher no longer needed for a specific game ID; keep the watcher in case other games still need it
       this.removeGameIdFromWatcher({ banchoMultiplayerId, gameId });
-      return Log.methodSuccess(
-        this.unwatch,
-        this.constructor.name,
-        `Removed game ID ${gameId} from watcher of MP ID ${banchoMultiplayerId}.`
-      );
+      return Log.methodSuccess(this.unwatch, this.constructor.name, `Removed game ID ${gameId} from watcher of MP ${banchoMultiplayerId}.`);
     } catch (error) {
-      Log.methodError(this.unwatch, this.constructor.name, `Error when trying to unwatch MP ID ${banchoMultiplayerId}.`, error);
+      Log.methodError(this.unwatch, this.constructor.name, `Error when trying to unwatch MP ${banchoMultiplayerId}.`, error);
       throw error;
     }
   }
@@ -75,42 +73,43 @@ export class OsuLobbyWatcher {
   private addGameIdToExistingWatcher({ banchoMultiplayerId, gameId }: { banchoMultiplayerId: string; gameId: number }): void {
     const watcher = this.findWatcher(banchoMultiplayerId);
     if (!watcher) {
-      throw new Error(`Cannot add game id to watcher because a watcher does not exist for MP ID ${banchoMultiplayerId}.`);
+      throw new Error(`Cannot add game id to watcher because a watcher does not exist for MP ${banchoMultiplayerId}.`);
     }
     watcher.forGameIds.push(gameId);
-    Log.debug(`Added game id ${gameId} to existing watcher for MP ID ${banchoMultiplayerId}.`);
+    Log.debug(`Added game id ${gameId} to existing watcher for MP ${banchoMultiplayerId}.`);
   }
 
   private removeGameIdFromWatcher({ banchoMultiplayerId, gameId }: { banchoMultiplayerId: string; gameId: number }): void {
     const watcher = this.findWatcher(banchoMultiplayerId);
     if (!watcher) {
-      throw new Error(`Cannot remove game id from watcher because a watcher does not exist for MP ID ${banchoMultiplayerId}.`);
+      throw new Error(`Cannot remove game id from watcher because a watcher does not exist for MP ${banchoMultiplayerId}.`);
     }
     watcher.forGameIds = watcher.forGameIds.filter(watcherGameId => watcherGameId !== gameId);
-    Log.debug(`Removed game id ${gameId} from watcher for MP ID ${banchoMultiplayerId}.`);
+    Log.debug(`Removed game id ${gameId} from watcher for MP ${banchoMultiplayerId}.`);
   }
 
-  private createWatcherTimer({ banchoMultiplayerId }: { banchoMultiplayerId: string }): SetIntervalAsyncTimer {
-    Log.debug(`Creating watcher timer for MP ID ${banchoMultiplayerId}...`);
-    return setIntervalAsync(async () => {
-      try {
-        // TODO: finish implementing this method
-        const multiResults = await this.osuApi.fetchMultiplayerResults(banchoMultiplayerId);
+  private createWatcherTimer({ banchoMultiplayerId }: { banchoMultiplayerId: string }): NodeJS.Timer {
+    Log.debug(`Creating watcher timer for MP ${banchoMultiplayerId}...`);
+    return setInterval(async () => await this.fetchMultiplayerResults(banchoMultiplayerId), OsuLobbyWatcher.config.lobbyScanInterval);
+  }
 
-        if (multiResults.isOlderThan(this.latestResults)) {
-          return Log.info(`No new results yet for MP ID ${banchoMultiplayerId}. Skipping report creation.`);
-        }
-
-        this.setLatestResults(multiResults);
-
-        const report = this.multiplayerService.processMultiplayerResults(multiResults).buildReport();
-
-        Log.debug(`Successfully scanned multiplayer results for MP ID ${banchoMultiplayerId}.`);
-      } catch (error) {
-        Log.error(`Error during mp results scan for MP ID ${banchoMultiplayerId}.`, error);
-        throw error;
+  private async fetchMultiplayerResults(banchoMultiplayerId: string) {
+    try {
+      Log.debug(`Fetching match results for MP ${banchoMultiplayerId}...`);
+      const multiResults = await this.api.fetchMultiplayerResults(banchoMultiplayerId);
+      if (multiResults.isOlderThan(this.latestMultiResults)) {
+        return Log.info(`No new results yet for MP ${banchoMultiplayerId}. Skipping report creation.`);
       }
-    }, OsuLobbyWatcher.config.lobbyScanInterval);
+
+      this.setLatestResults(multiResults);
+      this.emit(multiResults);
+      Log.debug(`Successfully scanned multiplayer results for MP ${banchoMultiplayerId}.`);
+
+      // const report = this.multiplayerService.processMultiplayerResults(multiResults).buildReport();
+    } catch (error) {
+      Log.error(`Error during mp results scan for MP ${banchoMultiplayerId}.`, error);
+      throw error;
+    }
   }
 
   private addNewWatcher({
@@ -118,17 +117,17 @@ export class OsuLobbyWatcher {
     gameId,
     banchoMultiplayerId
   }: {
-    timer: SetIntervalAsyncTimer;
+    timer: NodeJS.Timer;
     gameId?: number;
     banchoMultiplayerId: string;
   }): void {
     if (this.findWatcher(banchoMultiplayerId)) {
       throw new Error(
-        `Watcher already exists for MP ID ${banchoMultiplayerId}. Did you mean to use ${this.addGameIdToExistingWatcher.name}(<gameId>)?`
+        `Watcher already exists for MP ${banchoMultiplayerId}. Did you mean to use ${this.addGameIdToExistingWatcher.name}(<gameId>)?`
       );
     }
     this.watchers[banchoMultiplayerId] = { timer: timer, forGameIds: [gameId], banchoMultiplayerId: banchoMultiplayerId };
-    return Log.debug(`Added new watcher for MP ID ${banchoMultiplayerId}.`);
+    return Log.debug(`Added new watcher for MP ${banchoMultiplayerId}.`);
 
     // // update existing
     // if (!watcher.forGameIds) {
@@ -138,18 +137,18 @@ export class OsuLobbyWatcher {
     //   watcher.forGameIds.push(gameId);
     // }
     // watcher.timer = timer;
-    // Log.debug(`Updated existing watcher for MP ID ${banchoMultiplayerId}.`);
+    // Log.debug(`Updated existing watcher for MP ${banchoMultiplayerId}.`);
   }
 
   private async disposeWatcher(banchoMultiplayerId: string): Promise<void> {
-    Log.debug(`Disposing watcher for MP ID ${banchoMultiplayerId}...`);
+    Log.debug(`Disposing watcher for MP ${banchoMultiplayerId}...`);
     await clearIntervalAsync(this.watchers[banchoMultiplayerId].timer);
     this.watchers[banchoMultiplayerId] = undefined;
-    Log.debug(`Disposed watcher for MP ID ${banchoMultiplayerId}.`);
+    Log.debug(`Disposed watcher for MP ${banchoMultiplayerId}.`);
   }
 
   private setLatestResults(multiResults: Multi): void {
-    this.latestResults = multiResults;
+    this.latestMultiResults = multiResults;
   }
 
   private findWatcher(banchoMultiplayerId: string): Watching {

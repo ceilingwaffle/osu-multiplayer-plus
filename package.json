@@ -30,6 +30,7 @@
   "dependencies": {
     "@types/fs-extra": "^7.0.0",
     "bancho.js": "^0.9.5",
+    "bottleneck": "^2.19.5",
     "class-transformer": "^0.2.3",
     "class-validator": "^0.9.1",
     "commander": "^2.20.0",
@@ -46,7 +47,6 @@
     "mustache": "^3.0.1",
     "nodesu": "^0.7.1",
     "reflect-metadata": "^0.1.13",
-    "set-interval-async": "1.0.26",
     "sqlite": "^3.0.3",
     "sqlite3": "^4.0.9",
     "ts-cleaner": "^1.0.2",

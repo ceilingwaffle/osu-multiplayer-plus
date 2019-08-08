@@ -1,4 +1,4 @@
-import { Multi } from "./types/multi";
+import { Multi } from "./types/old/multi";
 import { isNullOrUndefined } from "util";
 
 export class OsuMultiplayerService {
