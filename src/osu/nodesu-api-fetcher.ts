@@ -18,15 +18,17 @@ export class NodesuApiFetcher extends OsuApiFetcher {
       return false;
     }
 
-    Log.debug("Validating Bancho MP ID...", banchoMultiplayerId);
+    Log.debug("Validating Bancho MP...", banchoMultiplayerId);
   }
 
   async fetchMultiplayerResults(banchoMultiplayerId: string): Promise<Multiplayer> {
-    Log.debug("Fetching match results for Bancho MP ID...", banchoMultiplayerId);
+    Log.debug("Fetching match results for Bancho MP...", banchoMultiplayerId);
     const result = await this.limiter.schedule(() => this.api.multi.getMatch(Number(banchoMultiplayerId)));
 
     if (result instanceof Nodesu.Multi) {
       return NodesuApiTransformer.transformMultiplayer(result);
+    } else {
+      return null;
     }
   }
 }

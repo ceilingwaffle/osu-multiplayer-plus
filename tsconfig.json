@@ -5,7 +5,8 @@
     "target": "es6",
     "module": "commonjs",
     "lib": ["es6"],
-    "types": ["reflect-metadata", "node"],
+    "types": ["reflect-metadata", "node", "set-interval-async"],
+    "typeRoots": ["./typings", "./node_modules/@types"],
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "sourceMap": true,
@@ -15,5 +16,5 @@
     "noImplicitAny": false
   },
   "include": ["src/**/*"],
-  "exclude": ["node_modules", "test/**/*.*"]
+  "exclude": ["node_modules", "test/**/*.*", "typings"]
 }

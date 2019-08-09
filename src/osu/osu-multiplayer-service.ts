@@ -1,20 +1,21 @@
-import { Multi } from "./types/old/multi";
 import { isNullOrUndefined } from "util";
+import { Multiplayer } from "./types/multiplayer";
 
 export class OsuMultiplayerService {
   constructor(protected readonly processedResults?) {}
 
-  processMultiplayerResults(results: Multi): OsuMultiplayerService {
+  processMultiplayerResults(results: Multiplayer): OsuMultiplayerService {
     const processedResults = null; // TODO
     return new OsuMultiplayerService(processedResults);
   }
 
-  buildReport(): TeamScoresReport {
+  // TODO: change to returns TeamScoresReport
+  buildReport(): any {
     if (!this.hasProcessedResults()) {
       throw new Error("Must process results before building report.");
     }
 
-    return this.scoringService.buildReport(this.processedResults);
+    // return this.scoringService.buildReport(this.processedResults);
   }
 
   private hasProcessedResults(): boolean {
