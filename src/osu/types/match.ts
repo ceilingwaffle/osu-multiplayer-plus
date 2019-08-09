@@ -1,5 +1,6 @@
 import { TeamMode } from "./team-mode";
 import { PlayerScore } from "./player-score";
+import { MatchEvent } from "./match-event";
 
 export type Match = {
   mapNumber: number;
@@ -10,4 +11,5 @@ export type Match = {
   teamMode: TeamMode;
   scores: PlayerScore[];
   ignored?: boolean;
+  event: MatchEvent;
 };

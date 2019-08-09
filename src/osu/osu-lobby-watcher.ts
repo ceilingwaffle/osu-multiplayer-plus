@@ -1,10 +1,10 @@
-import { OsuApiFetcher, IOsuApiFetcher } from "./interfaces/osu-api-fetcher";
-import iocContainer from "../inversify.config";
-import * as entities from "../inversify.entities";
+import { IOsuApiFetcher } from "./interfaces/osu-api-fetcher";
 import { Log } from "../utils/Log";
 import { OsuMultiplayerService } from "./osu-multiplayer-service";
 import { Multiplayer } from "./types/multiplayer";
 import { SetIntervalAsyncTimer, dynamic, clearIntervalAsync } from "set-interval-async";
+import { NodesuApiFetcher } from "./nodesu-api-fetcher";
+import { isNumber } from "util";
 
 /**
  * pass the interface around classes.   e.g. BeatmapController.getMapTitle() calls IBeatmap.getMapTitle()
@@ -22,8 +22,8 @@ export class OsuLobbyWatcher {
   protected static config = {
     lobbyScanInterval: 1000
   };
-  protected api: IOsuApiFetcher = OsuApiFetcher.getInstance();
-  protected multiplayerService: OsuMultiplayerService = iocContainer.get(entities.OsuMultiplayerService);
+  protected api: IOsuApiFetcher = new NodesuApiFetcher();
+  protected multiplayerService: OsuMultiplayerService = new OsuMultiplayerService();
   protected watchers: { [banchoMpId: string]: Watching } = {};
   protected latestMultiResults: Multiplayer;
 
@@ -34,7 +34,7 @@ export class OsuLobbyWatcher {
   }: {
     banchoMultiplayerId: string;
     gameId: number;
-    startAtMapNumber: number;
+    startAtMapNumber?: number;
   }): Promise<void> {
     // await this.osuApi.isValidBanchoMultiplayerId(banchoMpId); // shouldnt be resposibile for validation?
     try {
@@ -101,16 +101,15 @@ export class OsuLobbyWatcher {
 
   private async refreshAndEmitMultiplayerResults(banchoMultiplayerId: string): Promise<void> {
     try {
-      Log.debug(`Fetching match results for MP ${banchoMultiplayerId}...`);
       const multiResults = await this.api.fetchMultiplayerResults(banchoMultiplayerId);
       if (!this.isNewerMultiplayerResults(multiResults)) {
         return Log.info(`No new results yet for MP ${banchoMultiplayerId}.`);
       }
 
       Log.debug(`Fetched new multiplayer results for MP ${banchoMultiplayerId}.`);
+      Log.warn("TODO: EMIT MULTIPLAYER MATCHES", multiResults.matches.slice(-1)[0].event.toString());
       this.setLatestResults(multiResults);
       // this.emit(multiResults);
-      Log.warn("TODO: EMIT MULTIPLAYER MATCHES", multiResults);
 
       // const report = this.multiplayerService.processMultiplayerResults(multiResults).buildReport();
     } catch (error) {
@@ -120,6 +119,11 @@ export class OsuLobbyWatcher {
   }
 
   private isNewerMultiplayerResults(comparison: Multiplayer) {
+    if (!this.latestMultiResults || !this.latestMultiResults.matches || this.latestMultiResults.matches.length === 0) {
+      Log.debug(`${this.isNewerMultiplayerResults.name}: true (newer because latest not yet set.)`);
+      return true;
+    }
+
     if (comparison.multiplayerId !== this.latestMultiResults.multiplayerId) {
       const error = `The multiplayer ID should never change for an instance of ${
         this.constructor.name
@@ -128,23 +132,31 @@ export class OsuLobbyWatcher {
       throw new Error(error);
     }
 
-    if (!this.latestMultiResults || !this.latestMultiResults.matches || this.latestMultiResults.matches.length === 0) {
-      Log.debug(`${this.isNewerMultiplayerResults.name}: true (newer because latest not yet set.)`);
-      return true;
-    }
-
     if (comparison.matches.length > this.latestMultiResults.matches.length) {
       Log.debug(`${this.isNewerMultiplayerResults.name}: true (newer because more matches.)`);
       return true;
     }
-
-    if (comparison.matches.slice(-1)[0].startTime.getTime() !== this.latestMultiResults.matches.slice(-1)[0].startTime.getTime()) {
-      Log.debug(`${this.isNewerMultiplayerResults.name}: true (newer because end time of last match differs.)`);
+    if (comparison.matches.slice(-1)[0].mapNumber !== this.latestMultiResults.matches.slice(-1)[0].mapNumber) {
+      Log.debug(`${this.isNewerMultiplayerResults.name}: true (newer because map number (sequential) of last match differs.)`);
       return true;
     }
 
-    if (comparison.matches.slice(-1)[0].endTime.getTime() !== this.latestMultiResults.matches.slice(-1)[0].endTime.getTime()) {
+    const compareStartTime = comparison.matches.slice(-1)[0].startTime.getTime();
+    const latestStartTime = this.latestMultiResults.matches.slice(-1)[0].startTime.getTime();
+    const compareEndTime = comparison.matches.slice(-1)[0].endTime.getTime();
+    const latestEndTime = this.latestMultiResults.matches.slice(-1)[0].endTime.getTime();
+
+    if (compareStartTime !== latestStartTime) {
       Log.debug(`${this.isNewerMultiplayerResults.name}: true (newer because start time of last match differs.)`);
+      return true;
+    }
+
+    if (!isNaN(compareEndTime) && compareEndTime !== latestEndTime) {
+      Log.debug(
+        `${this.isNewerMultiplayerResults.name}: true (newer because end time of last match differs.)`,
+        compareEndTime,
+        latestEndTime
+      );
       return true;
     }
 

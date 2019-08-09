@@ -4,6 +4,7 @@ import { Multiplayer } from "./types/multiplayer";
 import { Match } from "./types/match";
 import { PlayerScore } from "./types/player-score";
 import { TeamMode } from "./types/team-mode";
+import { MatchEvent } from "./types/match-event";
 
 export class NodesuApiTransformer {
   /**
@@ -52,7 +53,8 @@ export class NodesuApiTransformer {
         startTime: apiMatch.startTime,
         endTime: apiMatch.endTime,
         teamMode: NodesuApiTransformer.convertNodesuTeamType(apiMatch.teamType),
-        scores: scores
+        scores: scores,
+        event: NodesuApiTransformer.determineMatchEvent(apiMatch.endTime)
       };
 
       converted.matches.push(matchResult);
@@ -60,6 +62,10 @@ export class NodesuApiTransformer {
     }
 
     return converted;
+  }
+
+  static determineMatchEvent(endTime: Date): MatchEvent {
+    return isNaN(endTime.getTime()) ? MatchEvent.MATCH_START : MatchEvent.MATCH_END;
   }
 
   /**

@@ -24,11 +24,12 @@ String.prototype.toSentenceCase = function(): string {
   return sentence;
 };
 
-import * as entities from "./inversify.entities";
 import iocContainer from "./inversify.config";
+import * as entities from "./inversify.entities";
 import { Message } from "./utils/message";
 import { ConnectionManager } from "./utils/connection-manager";
 import { DiscordBot } from "./discord/discord-bot";
+import { OsuLobbyWatcher } from "./osu/osu-lobby-watcher";
 
 Message.enableSentenceCaseOutput();
 
@@ -37,17 +38,24 @@ if (process.env.NODE_ENV !== "test")
     setTimeout(async () => {
       try {
         // create typeorm connection
-        // await ConnectionManager.getInstance();
+        await ConnectionManager.getInstance();
 
-        // const gameController = iocContainer.get(entities.GameController);
-        // const response = await gameController.create({
-        //   gameDto: { teamLives: 2, countFailedScores: true },
-        //   requestDto: { type: "discord", authorId: "waffle", originChannel: "waffle's amazing channel" }
-        // });
-        // var a = response;
+        const gameController = iocContainer.get(entities.GameController);
+        const response = await gameController.create({
+          gameDto: { teamLives: 2, countFailedScores: true },
+          requestDto: { type: "discord", authorId: "waffle", originChannel: "waffle's amazing channel" }
+        });
+        var game = response;
 
-        const discordBot = new DiscordBot();
-        await discordBot.start(process.env.DISCORD_BOT_TOKEN);
+        if (game.success) {
+          const gameId = game.result.gameId;
+
+          const watcher = new OsuLobbyWatcher();
+          watcher.watch({ banchoMultiplayerId: "53933822", gameId: gameId });
+        }
+
+        // const discordBot = new DiscordBot();
+        // await discordBot.start(process.env.DISCORD_BOT_TOKEN);
       } catch (e) {
         console.error(e);
       }

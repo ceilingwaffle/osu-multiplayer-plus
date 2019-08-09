@@ -9,19 +9,10 @@ export interface IOsuApiFetcher {
 }
 
 export abstract class OsuApiFetcher implements IOsuApiFetcher {
-  private static instance: IOsuApiFetcher;
-
   protected readonly limiter: Bottleneck = new Bottleneck({
     maxConcurrent: 1,
     minTime: 333
   });
-
-  static getInstance(): IOsuApiFetcher {
-    if (!OsuApiFetcher.instance) {
-      OsuApiFetcher.instance = new NodesuApiFetcher();
-    }
-    return OsuApiFetcher.instance;
-  }
 
   abstract fetchMultiplayerResults(banchoMultiplayerId: string): Promise<Multiplayer>;
 
