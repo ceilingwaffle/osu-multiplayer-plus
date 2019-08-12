@@ -4,7 +4,6 @@ import { OsuMultiplayerService } from "./osu-multiplayer-service";
 import { Multiplayer } from "./types/multiplayer";
 import { SetIntervalAsyncTimer, dynamic, clearIntervalAsync } from "set-interval-async";
 import { NodesuApiFetcher } from "./nodesu-api-fetcher";
-import { isNumber } from "util";
 
 /**
  * pass the interface around classes.   e.g. BeatmapController.getMapTitle() calls IBeatmap.getMapTitle()
