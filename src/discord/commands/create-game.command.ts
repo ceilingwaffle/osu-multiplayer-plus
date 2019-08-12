@@ -1,10 +1,10 @@
-import iocContainer from "../../../inversify.config";
+import iocContainer from "../../inversify.config";
 import { Command, CommandoClient, CommandMessage } from "discord.js-commando";
-import { GameController } from "../game.controller";
+import { GameController } from "../../domain/game/game.controller";
 import { Message, RichEmbed } from "discord.js";
-import { ErrorDiscordMessageBuilder } from "../../../discord/message-builders/error.discord-message-builder";
-import { CreateGameDiscordMessageBuilder } from "./create-game.discord-message-builder";
-import * as entities from "../../../inversify.entities";
+import { ErrorDiscordMessageBuilder } from "../message-builders/error.discord-message-builder";
+import { CreateGameDiscordMessageBuilder } from "../message-builders/create-game.discord-message-builder";
+import * as entities from "../../inversify.entities";
 
 export class CreateGameCommand extends Command {
   // @inject(GameController) protected readonly gameController: GameController
@@ -18,7 +18,7 @@ export class CreateGameCommand extends Command {
       description:
         "Creates a new osu! Battle Royale game. You can then add multiplayer lobbies to the game from which scores will be calculated.",
       aliases: [],
-      examples: ["!obr creategame 2 true"], // new DiscordCommandExampleBuilder(this).getAll()
+      examples: ["!obr creategame"], // new DiscordCommandExampleBuilder(this).getAll()
       guildOnly: true, // accept commands from channels only, e.g. ignore DM commands
       argsPromptLimit: 0,
       args: [

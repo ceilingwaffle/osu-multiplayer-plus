@@ -5,6 +5,8 @@
   "gameCreateFailed": "game create failed",
   "gameUpdateSuccess": "game update success",
   "gameUpdateFailed": "game update failed",
+  "gameEndSuccess": "game end success",
+  "gameEndFailed": "game end failed",
 
   "lobbyReadSuccess": "lobby read success",
   "lobbyReadFailed": "lobby read failed",

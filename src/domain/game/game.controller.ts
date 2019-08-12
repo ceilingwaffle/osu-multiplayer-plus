@@ -12,6 +12,8 @@ import { RequesterFactoryInitializationError } from "../shared/errors/RequesterF
 import { CreateGameReport } from "./reports/create-game.report";
 import { GameResponseFactory } from "./game-response-factory";
 import { GameStatus } from "./game-status";
+import { EndGameDto } from "./dto/end-game.dto";
+import { EndGameReport } from "./reports/end-game.report";
 
 export class GameController {
   constructor(@inject(GameService) private readonly gameService: GameService) {
@@ -90,5 +92,70 @@ export class GameController {
         }
       };
     }
+  }
+
+  public async endGame(gameData: { gameDto: EndGameDto; requestDto: RequestDtoType }): Promise<Response<EndGameReport>> {
+    try {
+    } catch (error) {
+      Log.methodError(this.endGame, this.constructor.name, error);
+      return {
+        success: false,
+        message: FailureMessage.get("gameEndFailed"),
+        errors: {
+          messages: [error]
+        }
+      };
+    }
+    // build the requester
+    const requester: Requester = RequesterFactory.initialize(gameData.requestDto);
+    if (!requester) throw new RequesterFactoryInitializationError(this.constructor.name, this.endGame.name);
+
+    // get/create the user ending the game
+    const creatorResult = await requester.getOrCreateUser();
+    if (creatorResult.failed()) {
+      if (creatorResult.value.error) throw creatorResult.value.error;
+      Log.methodFailure(this.endGame, this.constructor.name, creatorResult.value.reason);
+      return {
+        success: false,
+        message: FailureMessage.get("gameEndFailed"),
+        errors: {
+          messages: [creatorResult.value.reason],
+          validation: creatorResult.value.validationErrors
+        }
+      };
+    }
+
+    // try to end the game
+    const endGameResult = await this.gameService.endGame({
+      gameDto: gameData.gameDto,
+      endedByUser: creatorResult.value
+    });
+    if (endGameResult.failed()) {
+      if (endGameResult.value.error) throw endGameResult.value.error;
+      Log.methodFailure(this.endGame, this.constructor.name, endGameResult.value.reason);
+      return {
+        success: false,
+        message: FailureMessage.get("gameEndFailed"),
+        errors: {
+          messages: [endGameResult.value.reason],
+          validation: endGameResult.value.validationErrors
+        }
+      };
+    }
+
+    const game: Game = endGameResult.value;
+    Log.methodSuccess(this.endGame, this.constructor.name);
+    return {
+      success: true,
+      message: Message.get("gameEndSuccess"),
+      result: ((): EndGameReport => {
+        const gameResponseFactory = new GameResponseFactory(requester, game, gameData.requestDto);
+        return {
+          gameId: game.id,
+          endedBy: gameResponseFactory.getEndedBy(),
+          endedAgo: gameResponseFactory.getEndedAgoText()
+        };
+      })()
+    };
   }
 }

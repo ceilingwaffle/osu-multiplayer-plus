@@ -1,5 +1,5 @@
 import { CommandoClient, SQLiteProvider } from "discord.js-commando";
-import { CreateGameCommand } from "../domain/game/discord/create-game.command";
+import { CreateGameCommand } from "./commands/create-game.command";
 import { ConnectionManager } from "../utils/connection-manager";
 import { Helpers } from "../utils/helpers";
 import { Database } from "sqlite";
@@ -8,6 +8,7 @@ import { GameService } from "../domain/game/game.service";
 import { UserService } from "../domain/user/user.service";
 import * as entities from "../inversify.entities";
 import iocContainer from "../inversify.config";
+import { EndGameCommand } from "./commands/end-game.command";
 const sqlite = require("sqlite");
 
 export class DiscordBot {
@@ -51,7 +52,8 @@ export class DiscordBot {
         .registerDefaultGroups()
         .registerDefaultCommands()
         .registerGroups([["osu", "osu! Battle Royale Commands"]])
-        .registerCommand(new CreateGameCommand(this.commando));
+        .registerCommand(new CreateGameCommand(this.commando))
+        .registerCommand(new EndGameCommand(this.commando));
 
       await sqlite.open(Helpers.getCommandoDatabasePath()).then((db: Database) => {
         this.commando.setProvider(new SQLiteProvider(db));

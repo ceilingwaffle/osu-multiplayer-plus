@@ -13,6 +13,11 @@ import { GameRepository } from "./game.repository";
 import { RequestDto } from "../../requests/dto";
 import { GameDefaults } from "./game-defaults";
 import { GameStatus } from "./game-status";
+import { EndGameDto } from "./dto/end-game.dto";
+import { OsuLobbyWatcher } from "../../osu/osu-lobby-watcher";
+import { LobbyStatus } from "../lobby/lobby-status";
+import { User } from "../user/user.entity";
+import { Helpers } from "../../utils/helpers";
 
 export class GameService {
   private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
@@ -79,14 +84,57 @@ export class GameService {
     }
   }
 
+  public async endGame({
+    gameDto,
+    endedByUser
+  }: {
+    gameDto: EndGameDto;
+    endedByUser: User;
+  }): Promise<Either<Failure<GameFailure | UserFailure>, Game>> {
+    try {
+      const gameId = gameDto.gameId;
+      const game = await this.gameRepository.findGameWithLobbiesHavingLobbyStatus(gameId, LobbyStatus.getNotClosed());
+      if (!game) {
+        const failureMessage = `A game does not exist matching game ID ${gameId}.`;
+        Log.methodFailure(this.endGame, this.constructor.name, failureMessage);
+        return failurePromise(gameDoesNotExistFailure(failureMessage));
+      }
+      if (!GameStatus.isEndable(game.status)) {
+        const failureMessage = `Game with ID ${gameId} cannot be ended due to having a game status of ${game.status}.`;
+        Log.methodFailure(this.endGame, this.constructor.name, failureMessage);
+        return failurePromise(gameDoesNotExistFailure(failureMessage));
+      }
+
+      const unwatchedBanchoMultiplayerIds = await Promise.all(
+        game.lobbies
+          // for all bancho multiplayer ids belongings to this game
+          .map(lobby => lobby.banchoMultiplayerId)
+          // call unwatch on all lobbies for this game on the lobby scanner.
+          .map(mpid => OsuLobbyWatcher.getInstance().unwatch({ gameId: gameId, banchoMultiplayerId: mpid }))
+      );
+      Log.debug("Unwatched MP IDs: ", unwatchedBanchoMultiplayerIds);
+
+      // update game status in database
+      await this.gameRepository.update(gameId, {
+        status: GameStatus.MANUALLY_ENDED.getKey(),
+        endedAt: Helpers.getNow(),
+        endedBy: endedByUser
+      });
+      Log.debug(`Updated game wtih ended-data.`);
+
+      // return the updated game
+      const reloadedGame = await this.gameRepository.findOneOrFail({ id: gameId });
+      Log.methodSuccess(this.endGame, this.constructor.name);
+      return successPromise(reloadedGame);
+    } catch (error) {
+      Log.methodError(this.endGame, this.constructor.name, error);
+      throw error;
+    }
+  }
+
   public async findMostRecentGameCreatedByUser(userId: number): Promise<Either<Failure<GameFailure>, Game>> {
     try {
-      const game = await this.gameRepository
-        .createQueryBuilder("games")
-        .leftJoin("games.createdBy", "user")
-        .where("user.id = :userId", { userId: userId })
-        .orderBy("games.createdAt", "DESC")
-        .getOne();
+      const game = await this.gameRepository.getMostRecentGameCreatedByUser(userId);
       if (!game) {
         return failurePromise(gameDoesNotExistFailure(`No games have been created by user ID ${userId}.`));
       }

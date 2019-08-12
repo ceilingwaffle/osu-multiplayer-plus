@@ -4,6 +4,12 @@ import { Requester } from "./requesters/requester";
 import * as entities from "../inversify.entities";
 import { DiscordRequester } from "./requesters/discord.requester";
 import { WebRequester } from "./requesters/web.requester";
+import { Log } from "../utils/Log";
+import { Either } from "../utils/Either";
+import { Failure } from "../utils/Failure";
+import { UserFailureTypes } from "../domain/user/user.failure";
+import { User } from "../domain/user/user.entity";
+import { Response } from "./Response";
 
 export class RequesterFactory {
   /**

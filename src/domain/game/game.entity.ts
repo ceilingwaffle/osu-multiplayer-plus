@@ -29,6 +29,13 @@ export class Game extends AbstractEntity {
   @JoinColumn({ name: "created_by_user_id" })
   createdBy: User;
 
+  @Column({ nullable: true })
+  @JoinColumn({ name: "ended_by_user_id" })
+  endedBy: User;
+
+  @Column({ name: "ended_at", nullable: true })
+  endedAt: number;
+
   @ManyToMany(type => User, user => user.refereeOf)
   refereedBy: User[];
 

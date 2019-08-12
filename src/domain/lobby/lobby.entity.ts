@@ -19,10 +19,10 @@ export class Lobby extends AbstractEntity {
   /**
    * Status of the lobby. Should be in-sync with the Bancho lobby status.
    *
-   * @type {LobbyStatus}
+   * @type {string}
    */
-  @Column({ default: LobbyStatus.UNKNOWN })
-  status: LobbyStatus;
+  @Column({ default: LobbyStatus.UNKNOWN.getKey() })
+  status: string;
 
   @ManyToMany(type => Game, game => game.lobbies)
   games: Game[];

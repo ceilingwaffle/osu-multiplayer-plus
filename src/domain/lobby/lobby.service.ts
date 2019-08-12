@@ -40,7 +40,7 @@ export class LobbyService {
 
     lobby.addedBy = createdBy;
     lobby.banchoMultiplayerId = lobbyData.banchoMultiplayerId;
-    lobby.status = LobbyStatus.AWAITING_FIRST_SCAN;
+    lobby.status = LobbyStatus.AWAITING_FIRST_SCAN.getKey();
     lobby.games = games || [];
 
     return lobby;
