@@ -22,13 +22,7 @@ export class GameRepository extends Repository<Game> {
     return this.createQueryBuilder("game")
       .leftJoinAndSelect("game.lobbies", "lobby")
       .where("game.id = :gameId", { gameId: gameId })
-      .andWhere(
-        new Brackets(qb => {
-          for (const status in lobbyStatuses) {
-            qb.orWhere("lobby.status = :status", { status: status });
-          }
-        })
-      )
+      .andWhere(new Brackets(qb => lobbyStatuses.forEach(status => qb.orWhere("lobby.status = :status", { status: status }))))
       .getOne();
   }
 

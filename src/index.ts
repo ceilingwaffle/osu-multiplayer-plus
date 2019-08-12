@@ -55,7 +55,7 @@ if (process.env.NODE_ENV !== "test")
         // }
 
         const discordBot = new DiscordBot();
-        await discordBot.start(process.env.DISCORD_BOT_TOKEN);
+        discordBot.start(process.env.DISCORD_BOT_TOKEN);
       } catch (e) {
         console.error(e);
       }

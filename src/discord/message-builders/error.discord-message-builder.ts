@@ -7,9 +7,9 @@ import { ValidationError } from "class-validator";
 export class ErrorDiscordMessageBuilder extends AbstractDiscordMessageBuilder<any> {
   protected readonly color: number = 0xff0000; // red
 
-  protected readonly authorIcon: string = "https://some_img_url/todo_error_iconImageUrl.png";
+  protected readonly authorIcon: string = "https://placekitten.com/50/50";
 
-  protected readonly thumbnail: string = "https://some_img_url/todo_error_thumbnailImageUrl.png";
+  protected readonly thumbnail: string = "https://placekitten.com/50/50";
 
   /**
    * Validation errors on the response object.

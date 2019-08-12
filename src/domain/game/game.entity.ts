@@ -29,7 +29,7 @@ export class Game extends AbstractEntity {
   @JoinColumn({ name: "created_by_user_id" })
   createdBy: User;
 
-  @Column({ nullable: true })
+  @ManyToOne(type => User)
   @JoinColumn({ name: "ended_by_user_id" })
   endedBy: User;
 

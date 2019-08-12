@@ -18,17 +18,11 @@ export class EndGameDiscordMessageBuilder extends AbstractDiscordMessageBuilder<
     const message = super.buildDiscordMessage(commandMessage);
 
     const ender = this.responseResult.endedBy as DiscordUserReportProperties;
-    const a = this.responseResult.endedAt;
 
     message.addField(
       "Game Properties",
       `Game ID: ${this.responseResult.gameId}
-      Starting Lives: ${this.responseResult.teamLives} (change using: \`\`${livesCommandExample}\`\`)
-      Count Failed Scores: ${this.responseResult.countFailedScores} (change using: \`\`${countFailedCommandExample}\`\`)
-      Game Status: ${this.responseResult.status}
-      Referees: ${refs.map(ref => `<@${ref.discordUserId}>`).join(", ")}
-      Ended by: <@${ender.discordUserId}> ${this.responseResult.createdAgo}
-      Ended at: <@${creator.discordUserId}> ${this.responseResult.createdAgo}`
+      Ended by: <@${ender.discordUserId}> ${this.responseResult.endedAgo}`
     );
 
     return message;

@@ -1,10 +1,3 @@
-// export enum LobbyStatus {
-//   AWAITING_FIRST_SCAN = "awaiting_first_scan",
-//   ACTIVE = "active",
-//   CLOSED = "closed",
-//   UNKNOWN = "unknown"
-// }
-
 import { GenericType } from "../../utils/generic-type";
 
 export class LobbyStatus extends GenericType {
