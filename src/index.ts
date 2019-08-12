@@ -30,6 +30,7 @@ import { Message } from "./utils/message";
 import { ConnectionManager } from "./utils/connection-manager";
 import { DiscordBot } from "./discord/discord-bot";
 import { OsuLobbyWatcher } from "./osu/osu-lobby-watcher";
+import { Log } from "./utils/Log";
 
 Message.enableSentenceCaseOutput();
 
@@ -57,7 +58,7 @@ if (process.env.NODE_ENV !== "test")
         const discordBot = new DiscordBot();
         discordBot.start(process.env.DISCORD_BOT_TOKEN);
       } catch (e) {
-        console.error(e);
+        Log.error(e);
       }
     }, (2 ^ 32) - 1);
   })();

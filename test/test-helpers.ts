@@ -40,7 +40,7 @@ export class TestHelpers {
       Log.debug(`Successfully deleted test database "${dbName}".`);
       return true;
     } catch (error) {
-      console.error("Failed to delete test database.", error);
+      Log.error("Failed to delete test database.", error);
       throw error;
     }
   }
@@ -55,7 +55,7 @@ export class TestHelpers {
       conn = await ConnectionManager.getInstance();
       return true;
     } catch (error) {
-      console.error("Error dropping test db:", error);
+      Log.error("Error dropping test db:", error);
       throw error;
     } finally {
       // await ConnectionManager.close();

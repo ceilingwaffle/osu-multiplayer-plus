@@ -9,6 +9,7 @@ import { UserService } from "../domain/user/user.service";
 import * as entities from "../inversify.entities";
 import iocContainer from "../inversify.config";
 import { EndGameCommand } from "./commands/end-game.command";
+import { Log } from "../utils/Log";
 const sqlite = require("sqlite");
 
 export class DiscordBot {
@@ -18,9 +19,9 @@ export class DiscordBot {
     // this.registerListeners();
     try {
       const connection = await ConnectionManager.getInstance();
-      console.log(`Connected to database "${connection.options.database}".`);
+      Log.debug(`Connected to database "${connection.options.database}".`);
     } catch (error) {
-      console.error("Error connecting to database.", error);
+      Log.error("Error connecting to database.", error);
       throw error;
     }
 
@@ -37,7 +38,7 @@ export class DiscordBot {
     //   });
 
     try {
-      console.log("Initializing Discord Commando...");
+      Log.debug("Initializing Discord Commando...");
 
       this.commando = new CommandoClient({
         owner: process.env.DISCORD_BOT_USER_ID,
@@ -61,23 +62,23 @@ export class DiscordBot {
 
       try {
         await this.commando.login(token);
-        console.log("Discord login succeded.");
+        Log.debug("Discord login succeded.");
       } catch (error) {
-        console.error("Discord bot token failed to login.", error);
+        Log.error("Discord bot token failed to login.", error);
       }
 
       this.commando.on("ready", () => {
-        console.log("The discord bot is ready.");
+        Log.debug("The discord bot is ready.");
       });
     } catch (error) {
-      console.error("Error starting the Discord bot.", error);
+      Log.error("Error starting the Discord bot.", error);
       throw error;
     }
   }
 
   // private registerListeners(): void {
   //   this.gameManager.multiplayerService.on("obrMatchFinished", (matchResult: MatchResultInfo) => {
-  //     console.log("TODO: Send discord message with new match result info...", matchResult);
+  //     Log.debug("TODO: Send discord message with new match result info...", matchResult);
   //   });
   // }
 }
