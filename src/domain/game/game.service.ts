@@ -93,26 +93,28 @@ export class GameService {
   }): Promise<Either<Failure<GameFailure | UserFailure>, Game>> {
     try {
       const gameId = gameDto.gameId;
-      const game = await this.gameRepository.findGameWithLobbiesHavingLobbyStatus(gameId, LobbyStatus.getNotClosed());
+      const game = await this.gameRepository.findGameAndIncludeLobbiesWithStatus(gameId, LobbyStatus.getNotClosed());
       if (!game) {
         const failureMessage = `A game does not exist matching game ID ${gameId}.`;
         Log.methodFailure(this.endGame, this.constructor.name, failureMessage);
         return failurePromise(gameDoesNotExistFailure(failureMessage));
       }
-      if (!GameStatus.isEndable(game.status)) {
+      if (!GameStatus.isEndableStatus(game.status)) {
         const failureMessage = `Game with ID ${gameId} cannot be ended due to having a game status of ${game.status}.`;
         Log.methodFailure(this.endGame, this.constructor.name, failureMessage);
         return failurePromise(gameDoesNotExistFailure(failureMessage));
       }
 
-      const unwatchedBanchoMultiplayerIds = await Promise.all(
-        game.lobbies
-          // for all bancho multiplayer ids belongings to this game
-          .map(lobby => lobby.banchoMultiplayerId)
-          // call unwatch on all lobbies for this game on the lobby scanner.
-          .map(mpid => OsuLobbyWatcher.getInstance().unwatch({ gameId: gameId, banchoMultiplayerId: mpid }))
-      );
-      Log.debug("Unwatched MP IDs: ", unwatchedBanchoMultiplayerIds);
+      if (game.lobbies) {
+        const unwatchedBanchoMultiplayerIds = await Promise.all(
+          game.lobbies
+            // for all bancho multiplayer ids belongings to this game
+            .map(lobby => lobby.banchoMultiplayerId)
+            // call unwatch on all lobbies for this game on the lobby scanner.
+            .map(mpid => OsuLobbyWatcher.getInstance().unwatch({ gameId: gameId, banchoMultiplayerId: mpid }))
+        );
+        Log.debug("Unwatched MP IDs: ", unwatchedBanchoMultiplayerIds);
+      }
 
       // update game status in database
       await this.gameRepository.update(gameId, {
@@ -123,7 +125,7 @@ export class GameService {
       Log.debug(`Updated game wtih ended-data.`);
 
       // return the updated game
-      const reloadedGame = await this.gameRepository.findOneOrFail({ id: gameId });
+      const reloadedGame = await this.gameRepository.findGame(gameId);
       Log.methodSuccess(this.endGame, this.constructor.name);
       return successPromise(reloadedGame);
     } catch (error) {

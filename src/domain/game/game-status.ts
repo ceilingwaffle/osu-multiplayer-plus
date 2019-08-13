@@ -8,7 +8,15 @@ export class GameStatus extends GenericType {
   static readonly MANUALLY_ENDED = new GameStatus("manually_ended", "Manually Ended");
   static readonly UNKNOWN = new GameStatus("unknown", "Unknown");
 
-  static isEndable(statusKey: string) {
+  /**
+   * Returns true if the given status corresponds to a game status that can be considered
+   * as "endable" (e.g. an active game can be ended, but a completed game cannot).
+   *
+   * @static
+   * @param {string} statusKey
+   * @returns {boolean}
+   */
+  static isEndableStatus(statusKey: string): boolean {
     switch (statusKey) {
       case GameStatus.COMPLETED.getKey():
         return false;
