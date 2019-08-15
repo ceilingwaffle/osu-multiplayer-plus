@@ -93,7 +93,7 @@ export class GameService {
   }): Promise<Either<Failure<GameFailure | UserFailure>, Game>> {
     try {
       const gameId = gameDto.gameId;
-      const game = await this.gameRepository.findGameAndIncludeLobbiesWithStatus(gameId, LobbyStatus.getNotClosed());
+      const game = await this.gameRepository.findGameIncludingLobbiesWithStatus(gameId, LobbyStatus.getNotClosed());
       if (!game) {
         const failureMessage = `A game does not exist matching game ID ${gameId}.`;
         Log.methodFailure(this.endGame, this.constructor.name, failureMessage);

@@ -1,7 +1,6 @@
 import { Repository, EntityRepository, Brackets, UpdateResult, SelectQueryBuilder } from "typeorm";
 import { Game } from "./game.entity";
 import { Lobby } from "../lobby/lobby.entity";
-import { User } from "../user/user.entity";
 
 @EntityRepository(Game)
 export class GameRepository extends Repository<Game> {
@@ -14,13 +13,13 @@ export class GameRepository extends Repository<Game> {
   }
 
   /**
-   * Finds a game matching the given game id, and includes any lobbies of that game matching the given lobby statuses.
+   * Finds a game matching the given game id, and includes any lobby of that game having one of the given lobby statuses.
    *
    * @param {number} gameId
    * @param {string[]} lobbyStatuses
    * @returns {Promise<Game>}
    */
-  findGameAndIncludeLobbiesWithStatus(gameId: number, lobbyStatuses: string[]): Promise<Game> {
+  findGameIncludingLobbiesWithStatus(gameId: number, lobbyStatuses: string[]): Promise<Game> {
     return this.getFindGameQb(gameId)
       .leftJoinAndSelect(subquery => {
         return subquery
