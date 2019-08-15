@@ -18,6 +18,7 @@ export class LobbyController {
 
   /**
    * Creates a new lobby and starts the scanner for multiplayer match results.
+   * If game ID is unspecified, the lobby is added to the most recent game created by the user.
    *
    * @param {{ lobbyData: AddLobbyDto; requestDto: RequestDtoType }} request
    * @returns {Promise<Response<Lobby>>}

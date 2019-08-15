@@ -28,7 +28,7 @@ export class OsuLobbyWatcher {
   protected static config = {
     lobbyScanInterval: 1000
   };
-  protected api: IOsuApiFetcher = new NodesuApiFetcher();
+  protected api: IOsuApiFetcher = NodesuApiFetcher.getInstance();
   protected multiplayerService: OsuMultiplayerService = new OsuMultiplayerService();
   protected watchers: { [banchoMpId: string]: Watching } = {};
   protected latestMultiResults: Multiplayer;

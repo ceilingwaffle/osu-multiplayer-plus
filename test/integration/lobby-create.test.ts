@@ -129,7 +129,7 @@ describe("When adding a lobby", function() {
         const discordUserRepository = getCustomRepository(DiscordUserRepository);
 
         const lobbyDto: AddLobbyDto = {
-          banchoMultiplayerId: "12345"
+          banchoMultiplayerId: "54078930" // replace this with a valid mp id if it expires
         };
 
         // user 2 adds a lobby without specifying a game id
@@ -189,7 +189,7 @@ describe("When adding a lobby", function() {
         const discordUserRepository = getCustomRepository(DiscordUserRepository);
 
         const lobbyDto: AddLobbyDto = {
-          banchoMultiplayerId: "23456",
+          banchoMultiplayerId: "54078930", // replace this with a valid mp id if it expires
           gameId: 3
         };
 

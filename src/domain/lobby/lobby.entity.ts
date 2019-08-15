@@ -5,6 +5,7 @@ import { LobbyStatus } from "./lobby-status";
 import { User } from "../user/user.entity";
 import { Type } from "class-transformer";
 import { AbstractEntity } from "../shared/abstract-entity";
+import { IsValidBanchoMultiplayerId } from "../../osu/validators/bancho-multiplayer-id.validator";
 
 @Entity("lobbies")
 export class Lobby extends AbstractEntity {
@@ -13,6 +14,7 @@ export class Lobby extends AbstractEntity {
 
   @IsNumberString()
   @Type(() => Number)
+  @IsValidBanchoMultiplayerId()
   @Column()
   banchoMultiplayerId: string;
 

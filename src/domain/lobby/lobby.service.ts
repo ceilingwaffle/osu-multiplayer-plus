@@ -106,6 +106,9 @@ export class LobbyService {
 
       // save lobby
       const savedLobby: Lobby = await this.lobbyRepository.save(lobby);
+
+      // start the lobby watcher
+
       return successPromise(savedLobby);
     } catch (error) {
       Log.methodError(this.createAndSaveLobby, this.constructor.name, error);

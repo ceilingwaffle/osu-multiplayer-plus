@@ -1,24 +1,66 @@
 import Nodesu = require("nodesu");
-import { OsuApiFetcher } from "./interfaces/osu-api-fetcher";
+import { IOsuApiFetcher } from "./interfaces/osu-api-fetcher";
 import { Log } from "../utils/Log";
 import { Multiplayer } from "./types/multiplayer";
 import { NodesuApiTransformer } from "./nodesu-api-transformer";
+import Bottleneck from "bottleneck";
+import { IsValidBanchoMultiplayerId } from "./validators/bancho-multiplayer-id.validator";
 
-export class NodesuApiFetcher extends OsuApiFetcher {
+/**
+ * Singleton
+ *
+ * @export
+ * @class NodesuApiFetcher
+ * @implements {IOsuApiFetcher}
+ */
+export class NodesuApiFetcher implements IOsuApiFetcher {
+  private static instance: IOsuApiFetcher;
   protected readonly api: Nodesu.Client = new Nodesu.Client(process.env.OSU_API_KEY, { parseData: true });
+  protected readonly limiter: Bottleneck = new Bottleneck({
+    maxConcurrent: 1,
+    minTime: 333
+  });
 
-  constructor() {
-    super();
+  private constructor() {}
+
+  public static getInstance(): IOsuApiFetcher {
+    if (!NodesuApiFetcher.instance) {
+      NodesuApiFetcher.instance = new NodesuApiFetcher();
+    }
+    return NodesuApiFetcher.instance;
   }
 
   async isValidBanchoMultiplayerId(banchoMultiplayerId: string): Promise<boolean> {
-    throw new Error("Method not implemented.");
-
-    if (isNaN(Number(banchoMultiplayerId))) {
+    Log.debug(`Validating Bancho MP ${banchoMultiplayerId}...`);
+    const mpid = Number(banchoMultiplayerId);
+    if (isNaN(mpid)) {
+      Log.debug(`Validation failed for Bancho MP: ${IsValidBanchoMultiplayerId} is NaN.`);
       return false;
     }
 
-    Log.debug("Validating Bancho MP...", banchoMultiplayerId);
+    const mp = await this.api.multi.getMatch(mpid);
+
+    // Assume that if the response did not resolve into a Multi object, then it was not a valid ID.
+    // This will only work if { parseData: true } is set in the Nodesu client options.
+    if (!(mp instanceof Nodesu.Multi)) {
+      Log.debug(`Validation failed for Bancho MPID ${IsValidBanchoMultiplayerId}: mp not instanceof Nodesu.Multi.`);
+      return false;
+    }
+
+    if (!mp.match) {
+      Log.debug(`Validation failed for Bancho MPID ${IsValidBanchoMultiplayerId}: mp.match was undefined.`);
+      return false;
+    }
+
+    if (mp.match.matchId !== mpid) {
+      Log.debug(
+        `Validation failed for Bancho MPID ${IsValidBanchoMultiplayerId}: mp.match.matchId was not equal to mpid (this could mean the lobby was once valid, but has expired.).`
+      );
+      return false;
+    }
+
+    Log.methodSuccess(this.isValidBanchoMultiplayerId, this.constructor.name);
+    return true;
   }
 
   async fetchMultiplayerResults(banchoMultiplayerId: string): Promise<Multiplayer> {
