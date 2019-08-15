@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, ManyToOne } from "typeorm";
-import { IsNumberString } from "class-validator";
+import { IsNumberString, IsPositive, IsInt, IsNotEmpty } from "class-validator";
 import { Game } from "../game/game.entity";
 import { LobbyStatus } from "./lobby-status";
 import { User } from "../user/user.entity";
@@ -17,6 +17,11 @@ export class Lobby extends AbstractEntity {
   @IsValidBanchoMultiplayerId()
   @Column()
   banchoMultiplayerId: string;
+
+  @IsPositive()
+  @IsInt()
+  @Column({ default: 1 })
+  startingMapNumber: number;
 
   /**
    * Status of the lobby. Should be in-sync with the Bancho lobby status.

@@ -69,16 +69,16 @@ export class GameController {
         success: true,
         message: Message.get("gameCreateSuccess"),
         result: ((): CreateGameReport => {
-          const gameResponseFactory = new GameResponseFactory(requester, game, gameData.requestDto);
+          const responseFactory = new GameResponseFactory(requester, game, gameData.requestDto);
           return {
             gameId: game.id,
             teamLives: game.teamLives,
             countFailedScores: game.countFailedScores,
             status: GameStatus.getTextFromKey(game.status),
-            createdBy: gameResponseFactory.getCreator(),
-            createdAgo: gameResponseFactory.getCreatedAgoText(),
-            refereedBy: gameResponseFactory.getReferees(),
-            messageTargets: gameResponseFactory.getMessageTargets()
+            createdBy: responseFactory.getCreator(),
+            createdAgo: responseFactory.getCreatedAgoText(),
+            refereedBy: responseFactory.getReferees(),
+            messageTargets: responseFactory.getMessageTargets()
           };
         })()
       };

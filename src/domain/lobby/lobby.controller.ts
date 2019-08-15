@@ -10,6 +10,10 @@ import { RequesterFactory } from "../../requests/requester-factory";
 import { RequesterFactoryInitializationError } from "../shared/errors/RequesterFactoryInitializationError";
 import { User } from "../user/user.entity";
 import { FailureMessage, Message } from "../../utils/message";
+import { AddLobbyReport } from "./reports/add-lobby.report";
+import { Helpers } from "../../utils/helpers";
+import { LobbyResponseFactory } from "./lobby-response-factory";
+import { LobbyStatus } from "./lobby-status";
 
 export class LobbyController {
   constructor(@inject(LobbyService) private readonly lobbyService: LobbyService) {
@@ -20,13 +24,13 @@ export class LobbyController {
    * Creates a new lobby and starts the scanner for multiplayer match results.
    * If game ID is unspecified, the lobby is added to the most recent game created by the user.
    *
-   * @param {{ lobbyData: AddLobbyDto; requestDto: RequestDtoType }} request
-   * @returns {Promise<Response<Lobby>>}
+   * @param {{ lobbyData: AddLobbyDto; requestDto: RequestDtoType }} lobbyData
+   * @returns {Promise<Response<AddLobbyReport>>}
    */
-  public async create(request: { lobbyData: AddLobbyDto; requestDto: RequestDtoType }): Promise<Response<Lobby>> {
+  public async create(lobbyData: { lobbyDto: AddLobbyDto; requestDto: RequestDtoType }): Promise<Response<AddLobbyReport>> {
     try {
       // build the requester
-      const requester: Requester = RequesterFactory.initialize(request.requestDto);
+      const requester: Requester = RequesterFactory.initialize(lobbyData.requestDto);
       if (!requester) throw new RequesterFactoryInitializationError(this.constructor.name, this.create.name);
 
       // get/create the user adding the lobby
@@ -47,7 +51,7 @@ export class LobbyController {
       const lobbyCreator: User = creatorResult.value;
 
       // create and save the lobby
-      const savedLobbyResult = await this.lobbyService.createAndSaveLobby(request.lobbyData, lobbyCreator.id, request.lobbyData.gameId);
+      const savedLobbyResult = await this.lobbyService.createAndSaveLobby(lobbyData.lobbyDto, lobbyCreator.id, lobbyData.lobbyDto.gameId);
       if (savedLobbyResult.failed()) {
         const failure = savedLobbyResult.value;
         if (failure.error) throw failure.error;
@@ -68,7 +72,17 @@ export class LobbyController {
       return {
         success: true,
         message: Message.get("lobbyCreateSuccess"),
-        result: savedLobby
+        result: ((): AddLobbyReport => {
+          const responseFactory = new LobbyResponseFactory(requester, savedLobby, lobbyData.requestDto);
+          return {
+            addedAgo: responseFactory.getAddedAgoText(),
+            addedBy: responseFactory.getAddedBy(),
+            gameId: lobbyData.lobbyDto.gameId,
+            multiplayerId: savedLobby.banchoMultiplayerId,
+            startAtMapNumber: savedLobby.startingMapNumber,
+            status: LobbyStatus.getTextFromKey(savedLobby.status)
+          };
+        })()
       };
     } catch (error) {
       Log.methodError(this.create, this.constructor.name, error);

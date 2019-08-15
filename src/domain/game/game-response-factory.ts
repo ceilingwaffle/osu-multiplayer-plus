@@ -1,24 +1,19 @@
 import { UserReportProperties } from "../shared/reports/user-report-properties.type";
-import { Requester } from "../../requests/requesters/requester";
 import { Game } from "./game.entity";
 import { GameMessageTarget } from "./game-message-target";
-import { RequestDto } from "../../requests/dto";
-import * as moment from "moment";
-import { User } from "../user/user.entity";
+import { AbstractResponseFactory } from "../shared/abstract-response-factory";
 
-export class GameResponseFactory {
-  constructor(protected readonly requester: Requester, protected readonly game: Game, protected readonly requestData: RequestDto) {}
-
+export class GameResponseFactory extends AbstractResponseFactory<Game> {
   getCreator(): UserReportProperties {
-    return this.getUserReportPropertiesForUser(this.game.createdBy);
+    return this.getUserReportPropertiesForUser(this.entity.createdBy);
   }
 
   getEndedBy(): UserReportProperties {
-    return this.getUserReportPropertiesForUser(this.game.endedBy);
+    return this.getUserReportPropertiesForUser(this.entity.endedBy);
   }
 
   getReferees(): UserReportProperties[] {
-    return this.game.refereedBy.map(user => this.getUserReportPropertiesForUser(user));
+    return this.entity.refereedBy.map(user => this.getUserReportPropertiesForUser(user));
   }
 
   getMessageTargets(): GameMessageTarget[] {
@@ -26,26 +21,10 @@ export class GameResponseFactory {
   }
 
   getCreatedAgoText(): string {
-    return this.getTimeAgoTextForTime(this.game.createdAt);
+    return this.getTimeAgoTextForTime(this.entity.createdAt);
   }
 
   getEndedAgoText(): string {
-    return this.getTimeAgoTextForTime(this.game.endedAt);
-  }
-
-  private getUserReportPropertiesForUser(user: User): UserReportProperties {
-    if (this.requester.dto.type === "discord") {
-      return { discordUserId: user.discordUser.discordUserId };
-    } else if (this.requester.dto.type === "web") {
-      throw new Error("Web user not implemented.");
-      // return { discordUserId: this.game.createdBy.webUser.webUuid };
-    } else {
-      const _exhaustiveCheck: never = this.requester.dto.type;
-      return _exhaustiveCheck;
-    }
-  }
-
-  private getTimeAgoTextForTime(time: number): string {
-    return moment.unix(time).fromNow();
+    return this.getTimeAgoTextForTime(this.entity.endedAt);
   }
 }

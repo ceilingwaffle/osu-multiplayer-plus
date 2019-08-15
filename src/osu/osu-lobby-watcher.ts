@@ -151,6 +151,7 @@ export class OsuLobbyWatcher {
 
   private async refreshAndEmitMultiplayerResults(banchoMultiplayerId: string): Promise<void> {
     try {
+      // TODO: Use lobby.startingMapNumber to skip some results
       const multiResults = await this.api.fetchMultiplayerResults(banchoMultiplayerId);
       if (!this.isNewerMultiplayerResults(multiResults)) {
         return Log.info(`No new results yet for MP ${banchoMultiplayerId}.`);

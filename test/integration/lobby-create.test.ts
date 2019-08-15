@@ -18,6 +18,9 @@ import { getCustomRepository } from "typeorm";
 import { GameRepository } from "../../src/domain/game/game.repository";
 import { CreateGameDto } from "../../src/domain/game/dto/create-game.dto";
 import { InstalledClock, LolexWithContext } from "lolex";
+import { LobbyRepository } from "../../src/domain/lobby/lobby.repository";
+import { DiscordUserReportProperties } from "../../src/domain/shared/reports/discord-user-report-properties";
+import { AddLobbyReport } from "../../src/domain/lobby/reports/add-lobby.report";
 var lolex: LolexWithContext = require("lolex");
 
 async function getEntities(): Promise<TestContextEntities[]> {
@@ -155,6 +158,7 @@ describe("When adding a lobby", function() {
       try {
         /* #region  Setup */
         const discordUserRepository = getCustomRepository(DiscordUserRepository);
+        const lobbyRepository = getCustomRepository(LobbyRepository);
 
         const lobbyDto: AddLobbyDto = {
           banchoMultiplayerId: "54078930" // replace this with a valid mp id if it expires
@@ -165,28 +169,33 @@ describe("When adding a lobby", function() {
         // user 2 adds a lobby without specifying a game id
         const lobbyController = iocContainer.get(LobbyController);
         const lobbyAddResponse = await lobbyController.create({
-          lobbyData: lobbyDto,
+          lobbyDto: lobbyDto,
           requestDto: createGame2DiscordRequest
         });
         clock.uninstall();
 
         const game2creator = await discordUserRepository.findByDiscordUserId(createGame2DiscordRequest.authorId);
+        const savedLobby = await lobbyRepository.findOne(
+          { banchoMultiplayerId: lobbyDto.banchoMultiplayerId },
+          { relations: ["games", "games.lobbies", "addedBy", "addedBy.discordUser"] }
+        );
         /* #endregion */
 
         /* #region  Assertions */
         assert.isNotNull(lobbyAddResponse);
         assert.isTrue(lobbyAddResponse.success, "Lobby failed to be created.");
-        assert.isTrue(lobbyAddResponse.result instanceof Lobby);
-        const savedLobby = lobbyAddResponse.result;
-        assert.isNotNull(savedLobby);
-        assert.isNotNull(savedLobby.banchoMultiplayerId);
+        assert.isDefined(lobbyAddResponse.result as AddLobbyReport);
+        const lobbyReport = lobbyAddResponse.result;
+        assert.isNotNull(lobbyReport);
+        assert.isNotNull(lobbyReport.multiplayerId);
         assert.equal(
-          savedLobby.banchoMultiplayerId,
+          lobbyReport.multiplayerId,
           lobbyDto.banchoMultiplayerId,
           "The Bancho multiplayer ID should match the one provided in the add-lobby request."
         );
         assert.isNotNull(game2creator);
         assert.isNotNull(game2creator.user);
+        assert.isDefined(savedLobby);
         assert.isNotNull(savedLobby.games[0], "The lobby should be attached to a game.");
         assert.lengthOf(savedLobby.games, 1, "The lobby should only be added to one game.");
         assert.equal(
@@ -195,6 +204,12 @@ describe("When adding a lobby", function() {
           "The lobby should be added to game id 2 (the game most recently created by user 2)."
         );
         assert.equal(savedLobby.addedBy.id, game2creator.user.id, "The lobby should reflect that it was added by user 2.");
+        const addedByDiscordUser = lobbyReport.addedBy as DiscordUserReportProperties;
+        assert.equal(
+          addedByDiscordUser.discordUserId,
+          game2creator.discordUserId,
+          "The lobby should reflect that it was added by the same Discord user ID as user 2."
+        );
 
         // game with id 2 should reference the saved lobby
         const gameRepository = getCustomRepository(GameRepository);
@@ -218,6 +233,7 @@ describe("When adding a lobby", function() {
       try {
         /* #region  Setup */
         const discordUserRepository = getCustomRepository(DiscordUserRepository);
+        const lobbyRepository = getCustomRepository(LobbyRepository);
 
         const lobbyDto: AddLobbyDto = {
           banchoMultiplayerId: "54078930", // replace this with a valid mp id if it expires
@@ -229,27 +245,32 @@ describe("When adding a lobby", function() {
         // user 1 adds a lobby to game 3
         const lobbyController = iocContainer.get(LobbyController);
         const lobbyAddResponse = await lobbyController.create({
-          lobbyData: lobbyDto,
+          lobbyDto: lobbyDto,
           requestDto: createGame3DiscordRequest
         });
         clock.uninstall();
 
         const game3creator = await discordUserRepository.findByDiscordUserId(createGame3DiscordRequest.authorId);
+        const savedLobby = await lobbyRepository.findOne(
+          { banchoMultiplayerId: lobbyDto.banchoMultiplayerId },
+          { relations: ["games", "games.lobbies", "addedBy", "addedBy.discordUser"] }
+        );
         /* #endregion */
 
         /* #region  Assertions */
         assert.isNotNull(lobbyAddResponse);
         assert.isTrue(lobbyAddResponse.success, "Lobby failed to be created.");
-        assert.isTrue(lobbyAddResponse.result instanceof Lobby);
-        const savedLobby = lobbyAddResponse.result;
-        assert.isNotNull(savedLobby);
-        assert.isNotNull(savedLobby.banchoMultiplayerId);
+        assert.isDefined(lobbyAddResponse.result as AddLobbyReport);
+        const lobbyReport = lobbyAddResponse.result;
+        assert.isNotNull(lobbyReport);
+        assert.isNotNull(lobbyReport.multiplayerId);
         assert.equal(
-          savedLobby.banchoMultiplayerId,
+          lobbyReport.multiplayerId,
           lobbyDto.banchoMultiplayerId,
           "The Bancho multiplayer ID should match the one provided in the add-lobby request."
         );
         assert.isNotNull(game3creator!.user);
+        assert.isDefined(savedLobby);
         assert.isNotNull(savedLobby.games[0], "The lobby should be attached to a game.");
         assert.lengthOf(savedLobby.games, 1, "The lobby should only be added to one game.");
         assert.equal(
@@ -258,6 +279,12 @@ describe("When adding a lobby", function() {
           "The lobby should be added to game id 3 (the game id specified by user 1)."
         );
         assert.equal(savedLobby.addedBy.id, game3creator.user.id, "The lobby should reflect that it was added by user 3.");
+        const addedByDiscordUser = lobbyReport.addedBy as DiscordUserReportProperties;
+        assert.equal(
+          addedByDiscordUser.discordUserId,
+          game3creator.discordUserId,
+          "The lobby should reflect that it was added by the same Discord user ID as user 3."
+        );
         /* #endregion */
 
         return resolve();

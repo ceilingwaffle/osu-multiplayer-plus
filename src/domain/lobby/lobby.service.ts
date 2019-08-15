@@ -44,6 +44,7 @@ export class LobbyService {
     lobby.banchoMultiplayerId = lobbyData.banchoMultiplayerId;
     lobby.status = LobbyStatus.AWAITING_FIRST_SCAN.getKey();
     lobby.games = games || [];
+    lobby.startingMapNumber = lobbyData.startAtMap > 1 ? lobbyData.startAtMap : 1;
 
     return lobby;
   }
@@ -109,10 +110,16 @@ export class LobbyService {
       // save lobby
       const savedLobby: Lobby = await this.lobbyRepository.save(lobby);
 
+      // reload the lobby
+      const reloadedLobby: Lobby = await this.lobbyRepository.findOne(
+        { id: savedLobby.id },
+        { relations: ["games", "addedBy", "addedBy.discordUser", "addedBy.webUser"] }
+      );
+
       // start the lobby watcher
       this.lobbyWatcher.watch({ banchoMultiplayerId: lobbyData.banchoMultiplayerId, gameId: lobbyData.gameId });
 
-      return successPromise(savedLobby);
+      return successPromise(reloadedLobby);
     } catch (error) {
       Log.methodError(this.createAndSaveLobby, this.constructor.name, error);
       throw error;

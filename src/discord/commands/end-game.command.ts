@@ -18,7 +18,7 @@ export class EndGameCommand extends Command {
       description:
         "Manually ends an osu! Battle Royale game. Games are normally ended automatically, but you can use this command to end one early.",
       aliases: [],
-      examples: ["!obr endgame 1"],
+      examples: ["!obr endgame 5"],
       guildOnly: true, // accept commands from channels only, e.g. ignore DM commands
       argsPromptLimit: 0,
       args: [
