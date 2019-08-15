@@ -16,15 +16,17 @@ import { Log } from "../../utils/Log";
 import { failurePromise, successPromise } from "../../utils/either";
 import { UserService } from "../user/user.service";
 import { validate } from "class-validator";
+import { OsuLobbyWatcher } from "../../osu/osu-lobby-watcher";
 
 export class LobbyService {
   private readonly lobbyRepository: LobbyRepository = getCustomRepository(LobbyRepository);
+  private readonly lobbyWatcher: OsuLobbyWatcher = OsuLobbyWatcher.getInstance();
 
   constructor(
     @inject(GameService) private readonly gameService: GameService,
     @inject(UserService) private readonly userService: UserService
   ) {
-    Log.debug("Initialized Lobby Service.");
+    Log.info("Initialized Lobby Service.");
   }
 
   /**
@@ -108,6 +110,7 @@ export class LobbyService {
       const savedLobby: Lobby = await this.lobbyRepository.save(lobby);
 
       // start the lobby watcher
+      this.lobbyWatcher.watch({ banchoMultiplayerId: lobbyData.banchoMultiplayerId, gameId: lobbyData.gameId });
 
       return successPromise(savedLobby);
     } catch (error) {
@@ -115,16 +118,4 @@ export class LobbyService {
       throw error;
     }
   }
-
-  //   public async startLobbyScanner(lobbyData: AddLobbyDto, requestData: RequestDto): Promise<Either<Failure<LobbyFailure>, Lobby>> {
-  //     throw new Error("Method not implemented.");
-
-  //     // validate bancho multiplayer exists
-
-  //     // validate bancho multiplayer is not closed/inactive
-
-  //     // save lobby in DB
-
-  //     // start lobby scanner
-  //   }
 }

@@ -12,7 +12,7 @@
     "entity:create": "ts-node ./node_modules/typeorm/cli.js entity:create -n",
     "seed": "ts-node ./node_modules/typeorm-seeding/dist/cli.js seed --config ormconfig.json",
     "delgo": "rmdir /S /Q dist & tsc & del .\\src\\database\\app-database.sqlite & npm run seed & npm start",
-    "test": "rmdir /S /Q dist & tsc & xcopy .\\src\\locales .\\dist\\locales\\ /E /C /Q /Y & mocha --require ts-node/register --require test/config/mocha.env.js test/**/*.test.ts --timeout 30000",
+    "test": "rmdir /S /Q dist & tsc & xcopy .\\src\\locales .\\dist\\locales\\ /E /C /Q /Y & mocha --require ts-node/register --require test/config/mocha.env.js test/**/*.test.ts --timeout 60000",
     "build": "rmdir /S /Q dist & tsc",
     "cli:command": "ts-node ./cli/command.ts"
   },
@@ -22,6 +22,7 @@
     "@types/mocha": "^5.2.7",
     "@types/node": "^8.0.29",
     "chai": "^4.2.0",
+    "lolex": "^4.2.0",
     "mocha": "^6.1.4",
     "ts-node": "3.3.0",
     "tsconfig-paths": "^3.8.0",
@@ -29,6 +30,7 @@
   },
   "dependencies": {
     "@types/fs-extra": "^7.0.0",
+    "@types/lolex": "^3.1.1",
     "bancho.js": "^0.9.5",
     "bottleneck": "^2.19.5",
     "class-transformer": "^0.2.3",

@@ -17,7 +17,7 @@ import { EndGameReport } from "./reports/end-game.report";
 
 export class GameController {
   constructor(@inject(GameService) private readonly gameService: GameService) {
-    Log.debug("Initialized Game Controller.");
+    Log.info("Initialized Game Controller.");
   }
 
   /**

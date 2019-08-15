@@ -44,7 +44,21 @@ export class OsuLobbyWatcher {
     return OsuLobbyWatcher.instance;
   }
 
-  public async watch({
+  /**
+   * Starts a match-results watcher for a Bancho multiplayer.
+   *
+   * @param {{
+   *     banchoMultiplayerId: string;
+   *     gameId: number;
+   *     startAtMapNumber?: number;
+   *   }} {
+   *     banchoMultiplayerId,
+   *     gameId,
+   *     startAtMapNumber = 1
+   *   }
+   * @returns {Promise<boolean>} true if the watcher was started successfully.
+   */
+  public watch({
     banchoMultiplayerId,
     gameId,
     startAtMapNumber = 1
@@ -52,7 +66,7 @@ export class OsuLobbyWatcher {
     banchoMultiplayerId: string;
     gameId: number;
     startAtMapNumber?: number;
-  }): Promise<void> {
+  }): void {
     // await this.osuApi.isValidBanchoMultiplayerId(banchoMpId); // shouldnt be resposibile for validation?
     try {
       if (!this.isWatchingBanchoMultiplayer(banchoMultiplayerId)) {
@@ -62,7 +76,8 @@ export class OsuLobbyWatcher {
         this.addGameIdToExistingWatcher({ gameId, banchoMultiplayerId });
       }
 
-      return Log.methodSuccess(this.watch, this.constructor.name);
+      Log.methodSuccess(this.watch, this.constructor.name);
+      return;
     } catch (error) {
       Log.methodError(this.watch, this.constructor.name, `Error when trying to start watcher for MP ${banchoMultiplayerId}.`, error);
       throw error;
@@ -70,33 +85,33 @@ export class OsuLobbyWatcher {
   }
 
   /**
-   *
+   * Stops a watcher for a Bancho multiplayer.
    *
    * @param {{ banchoMultiplayerId: string; gameId?: number }} { banchoMultiplayerId, gameId }
-   * @returns {Promise<string>} The Bancho multiplayer ID no longer being watched.
    */
-  public async unwatch({ banchoMultiplayerId, gameId }: { banchoMultiplayerId: string; gameId?: number }): Promise<string> {
+  public async unwatch({ banchoMultiplayerId, gameId }: { banchoMultiplayerId: string; gameId?: number }): Promise<void> {
     try {
       if (!this.isWatchingBanchoMultiplayer(banchoMultiplayerId)) {
-        Log.methodFailure(this.unwatch, this.constructor.name, `Not currently watching MP ${banchoMultiplayerId}. Nothing to do.`);
-        return;
+        return Log.methodFailure(this.unwatch, this.constructor.name, `Not currently watching MP ${banchoMultiplayerId}. Nothing to do.`);
       }
 
       if (!this.isWatchingForGame(gameId)) {
-        Log.methodFailure(this.unwatch, this.constructor.name, `Not currently watching game ID ${gameId}. Nothing to do.`);
-        return;
+        return Log.methodFailure(this.unwatch, this.constructor.name, `Not currently watching game ID ${gameId}. Nothing to do.`);
       }
 
       if (!gameId) {
         // since no game ID was specified, we are saying we want the watcher removed for the Bancho multiplayer for one or many games
         await this.disposeWatcher(banchoMultiplayerId);
-        Log.methodSuccess(this.unwatch, this.constructor.name, `Unwatched MP ${banchoMultiplayerId}.`);
+        return Log.methodSuccess(this.unwatch, this.constructor.name, `Unwatched MP ${banchoMultiplayerId}.`);
       } else {
         // watcher no longer needed for a specific game ID; keep the watcher in case other games still need it
         this.removeGameIdFromWatcher({ banchoMultiplayerId, gameId });
-        Log.methodSuccess(this.unwatch, this.constructor.name, `Removed game ID ${gameId} from watcher of MP ${banchoMultiplayerId}.`);
+        return Log.methodSuccess(
+          this.unwatch,
+          this.constructor.name,
+          `Removed game ID ${gameId} from watcher of MP ${banchoMultiplayerId}.`
+        );
       }
-      return banchoMultiplayerId;
     } catch (error) {
       Log.methodError(this.unwatch, this.constructor.name, `Error when trying to unwatch MP ${banchoMultiplayerId}.`, error);
       throw error;

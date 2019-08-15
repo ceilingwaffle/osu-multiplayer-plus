@@ -23,7 +23,7 @@ export class GameService {
   private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
 
   constructor(@inject(UserService) private readonly userService: UserService) {
-    Log.debug("Initialized Game Service.");
+    Log.info("Initialized Game Service.");
   }
 
   /**

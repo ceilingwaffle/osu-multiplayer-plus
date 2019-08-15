@@ -13,7 +13,7 @@ import { FailureMessage, Message } from "../../utils/message";
 
 export class LobbyController {
   constructor(@inject(LobbyService) private readonly lobbyService: LobbyService) {
-    Log.debug("Initialized Lobby Controller.");
+    Log.info("Initialized Lobby Controller.");
   }
 
   /**

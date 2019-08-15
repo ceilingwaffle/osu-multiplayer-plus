@@ -20,7 +20,7 @@ export class UserService {
   private readonly discordUserRepository: DiscordUserRepository = getCustomRepository(DiscordUserRepository);
 
   constructor() {
-    Log.debug("Initialized User Service.");
+    Log.info("Initialized User Service.");
   }
 
   async getOrCreateUserForDiscordUserId(discordUserId: string): Promise<Either<Failure<UserFailure | DiscordUserFailure>, User>> {
