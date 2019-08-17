@@ -146,6 +146,8 @@ describe("When adding a lobby", function() {
       try {
         // console.log("Uninstalling lolex timer...");
         // clock.uninstall();
+
+        await TestHelpers.dropTestDatabase();
         return resolve();
       } catch (error) {
         return reject(error);
@@ -153,7 +155,7 @@ describe("When adding a lobby", function() {
     });
   });
 
-  it("should save the lobby on the requesting user's most recent game created", function() {
+  it("should save a new lobby on the requesting user's most recent game created", function() {
     return new Promise(async (resolve, reject) => {
       try {
         /* #region  Setup */
@@ -280,7 +282,7 @@ describe("When adding a lobby", function() {
           game3.teamLives,
           "The lobby should be added to game id 3 (the game most recently created by user 2)."
         );
-        assert.equal(savedLobby.games[0].id, 3, "The lobby should be added to game id 2 (the game most recently created by user 2).");
+        assert.equal(savedLobby.games[0].id, 3, "The lobby should be added to game id 3 (the game targeted in the DTO).");
         assert.equal(savedLobby.games.length, 1, "The lobby should only include a reference to a single game.");
         assert.equal(savedLobby.addedBy.id, game3creator.user.id, "The lobby should reflect that it was added by user 3.");
         const addedByDiscordUser = lobbyReport.addedBy as DiscordUserReportProperties;
@@ -298,14 +300,104 @@ describe("When adding a lobby", function() {
     });
   });
 
-  it("should initiate the lobby scanner", function() {
+  // it("should initiate the lobby scanner", function() {
+  //   return new Promise(async (resolve, reject) => {
+  //     try {
+  //       // TODO: Stub osu lobby scanner
+  //       return resolve();
+  //     } catch (error) {
+  //       return reject(error);
+  //     }
+  //   });
+  // });
+
+  // it("should fail to save a lobby when targetting a game ID of a game that does not exist", function() {
+  //   return new Promise((resolve, reject) => {
+  //     try {
+  //       // TODO
+  //       return resolve();
+  //     } catch (error) {
+  //       return reject(error);
+  //     }
+  //   });
+  // });
+  it("should fail to save a lobby when the Bancho-multiplayer-id is already associated with a lobby on the target game", function() {
     return new Promise(async (resolve, reject) => {
       try {
-        // TODO: Stub osu lobby scanner
+        /* #region  Setup */
+        const lobbyDto1: AddLobbyDto = {
+          banchoMultiplayerId: "54078930", // replace this with a valid mp id if it expires
+          gameId: 3
+        };
+        const lobbyDto2: AddLobbyDto = {
+          banchoMultiplayerId: "54078930", // replace this with a valid mp id if it expires
+          gameId: 3
+        };
+
+        // fake out the watcher timer so we don't actually start fetching match results for the lobby
+        const clock: InstalledClock = lolex.install();
+        // user 1 adds a lobby to game 3 (should succeed)
+        const lobbyController = iocContainer.get(LobbyController);
+        const lobbyAddResponse1 = await lobbyController.create({
+          lobbyDto: lobbyDto1,
+          requestDto: createGame3DiscordRequest
+        });
+        // user 1 *attempts* to add the same lobby to game 3 (should fail)
+        const lobbyAddResponse2 = await lobbyController.create({
+          lobbyDto: lobbyDto2,
+          requestDto: createGame3DiscordRequest
+        });
+        clock.uninstall();
+
+        const lobbyRepository = getCustomRepository(LobbyRepository);
+        const savedLobby = await lobbyRepository.findOne(
+          { banchoMultiplayerId: lobbyDto1.banchoMultiplayerId },
+          { relations: ["games", "games.lobbies", "addedBy", "addedBy.discordUser"] }
+        );
+        /* #endregion */
+
+        /* #region  Assertions */
+        // Ensure the lobby response reflects a failed attempt to save the lobby.
+        assert.isNotNull(lobbyAddResponse1);
+        assert.isTrue(lobbyAddResponse1.success, "The first lobby-create request failed but should have succeeded.");
+        assert.isNotNull(lobbyAddResponse2);
+        assert.isFalse(lobbyAddResponse2.success, "The second lobby-create request succeeded but should have failed.");
+        assert.isDefined(lobbyAddResponse2.message);
+        assert.isDefined(lobbyAddResponse2.errors);
+        assert.isDefined(lobbyAddResponse2.errors.messages);
+        assert.isTrue(lobbyAddResponse2.errors.messages.length > 0);
+
+        // Ensure the lobby exists in the database from the first request.
+        // This ensures that the response isn't a failure due to it not saving anything during the first attempt aswell.
+        assert.isDefined(savedLobby);
+        assert.isNotNull(savedLobby.games[0], "The lobby should be attached to a game.");
+        assert.equal(savedLobby.games[0].id, 3, "The lobby should be associated with game id 3 (the game targeted in the DTO).");
+
+        /* #endregion */
         return resolve();
       } catch (error) {
         return reject(error);
       }
     });
   });
+  // it("should fail to save a lobby when the requesting user has not yet created a game and when no game ID was provided", function() {
+  //   return new Promise((resolve, reject) => {
+  //     try {
+  //       // TODO
+  //       return resolve();
+  //     } catch (error) {
+  //       return reject(error);
+  //     }
+  //   });
+  // });
+  // it("should associate an existing lobby with another game when watching a Bancho-multiplayer-ID targetting another game", function() {
+  //   return new Promise((resolve, reject) => {
+  //     try {
+  //       // TODO
+  //       return resolve();
+  //     } catch (error) {
+  //       return reject(error);
+  //     }
+  //   });
+  // });
 });

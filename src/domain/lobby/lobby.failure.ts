@@ -4,7 +4,8 @@ import { ValidationError } from "class-validator";
 export enum LobbyFailure {
   LobbyCreationError,
   LobbyCreationFailure,
-  InvalidCreationArguments
+  InvalidCreationArguments,
+  BanchoMultiplayerIdAlreadyAssociatedWithGameFailure
 }
 
 export type LobbyFailureTypes = LobbyFailure;
@@ -27,4 +28,16 @@ export const invalidLobbyCreationArgumentsFailure = (
   type: LobbyFailure.InvalidCreationArguments,
   validationErrors: validationErrors,
   reason: reason || "One or more lobby arguments were invalid."
+});
+
+export const banchoMultiplayerIdAlreadyAssociatedWithGameFailure = (
+  banchoMultiplayerId: string,
+  gameId: number,
+  additionalErrorMessageText?: string
+): Failure<LobbyFailure.BanchoMultiplayerIdAlreadyAssociatedWithGameFailure> => ({
+  type: LobbyFailure.BanchoMultiplayerIdAlreadyAssociatedWithGameFailure,
+  reason: [
+    `The multiplayer ID of ${banchoMultiplayerId} has already been associated with game ID ${gameId}.`,
+    additionalErrorMessageText
+  ].join(" ")
 });

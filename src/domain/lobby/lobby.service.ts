@@ -1,6 +1,6 @@
 import { LobbyRepository } from "./lobby.repository";
 import { getCustomRepository } from "typeorm";
-import { Either } from "../../utils/Either";
+import { Either, success } from "../../utils/Either";
 import { Failure } from "../../utils/Failure";
 import { AddLobbyDto } from "./dto/add-lobby.dto";
 import { Lobby } from "./lobby.entity";
@@ -9,7 +9,7 @@ import { User } from "../user/user.entity";
 import { Game } from "../game/game.entity";
 import { GameFailure } from "../game/game.failure";
 import { UserFailure } from "../user/user.failure";
-import { LobbyFailure, invalidLobbyCreationArgumentsFailure } from "./lobby.failure";
+import { LobbyFailure, invalidLobbyCreationArgumentsFailure, banchoMultiplayerIdAlreadyAssociatedWithGameFailure } from "./lobby.failure";
 import { GameService } from "../game/game.service";
 import { inject } from "inversify";
 import { Log } from "../../utils/Log";
@@ -17,9 +17,11 @@ import { failurePromise, successPromise } from "../../utils/either";
 import { UserService } from "../user/user.service";
 import { validate } from "class-validator";
 import { OsuLobbyWatcher } from "../../osu/osu-lobby-watcher";
+import { GameRepository } from "../game/game.repository";
 
 export class LobbyService {
   private readonly lobbyRepository: LobbyRepository = getCustomRepository(LobbyRepository);
+  private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
   private readonly lobbyWatcher: OsuLobbyWatcher = OsuLobbyWatcher.getInstance();
 
   constructor(
@@ -60,15 +62,15 @@ export class LobbyService {
   }
 
   /**
-   * Creates and saves a lobby. If no [gameId] provided, saves the lobby
+   * Creates and saves a lobby. If no gameId provided on the DTO, saves the lobby
    * on the game most recently created by the user with user ID [userId].
    *
    * @param {AddLobbyDto} lobbyData
-   * @param {number} userId Lobby creator user ID
-   * @param {number} [gameId]
-   * @returns {(Promise<Either<Failure<GameFailure | UserFailure | LobbyFailure>, Lobby>>)}
+   * @param {number} userId
+   * @returns {(Promise<Either<Failure<LobbyFailure | GameFailure | UserFailure>, Lobby>>)}
+   * @memberof LobbyService
    */
-  public async createAndSaveLobby(
+  public async processAddLobbyRequest(
     lobbyData: AddLobbyDto,
     userId: number
   ): Promise<Either<Failure<LobbyFailure | GameFailure | UserFailure>, Lobby>> {
@@ -78,40 +80,116 @@ export class LobbyService {
       const lobbyValidationErrors = await validate(lobby);
       if (lobbyValidationErrors.length > 0) {
         Log.methodFailure(
-          this.create,
+          this.processAddLobbyRequest,
           this.constructor.name,
           "Lobby properties validation failed: " + lobbyValidationErrors.toLocaleString()
         );
         return failurePromise(invalidLobbyCreationArgumentsFailure(lobbyValidationErrors));
       }
 
+      let foundGameResult: Either<Failure<GameFailure>, Game>;
       // Game ID will be provided as "-1" if none was given by the user at the boundary.
-      let lobbyGameResult: Either<Failure<GameFailure>, Game>;
       if (!lobbyData.gameId || lobbyData.gameId < 0) {
         // If a game ID was not provided, get the most recent game created by the user ID (lobby creator).
-        lobbyGameResult = await this.gameService.findMostRecentGameCreatedByUser(userId);
+        foundGameResult = await this.gameService.findMostRecentGameCreatedByUser(userId);
       } else {
-        lobbyGameResult = await this.gameService.findGameById(lobbyData.gameId);
+        // Get the game targetted by the game ID provided in the request.
+        foundGameResult = await this.gameService.findGameById(lobbyData.gameId);
       }
 
-      if (lobbyGameResult.failed()) {
-        Log.methodFailure(this.create, this.constructor.name, lobbyGameResult.value.reason, lobbyGameResult.value.error);
-        return failurePromise(lobbyGameResult.value);
+      if (foundGameResult.failed()) {
+        // no game exists created by the user, or no game exists for the provided game ID
+        Log.methodFailure(this.processAddLobbyRequest, this.constructor.name, foundGameResult.value.reason, foundGameResult.value.error);
+        return failurePromise(foundGameResult.value);
+      }
+
+      const alreadyUsingBanchoMpId = await this.isGameUsingBanchoMultiplayerId(lobbyData.banchoMultiplayerId, foundGameResult.value.id);
+      if (alreadyUsingBanchoMpId) {
+        const failure = banchoMultiplayerIdAlreadyAssociatedWithGameFailure(lobbyData.banchoMultiplayerId, foundGameResult.value.id);
+        Log.methodFailure(this.processAddLobbyRequest, this.constructor.name, failure.reason);
+        return failurePromise(failure);
       }
 
       // get the lobby creator
       const lobbyCreatorResult: Either<Failure<UserFailure>, User> = await this.userService.findOne({ id: userId });
       if (lobbyCreatorResult.failed()) {
-        Log.methodFailure(this.create, this.constructor.name, lobbyCreatorResult.value.reason, lobbyCreatorResult.value.error);
+        Log.methodFailure(
+          this.processAddLobbyRequest,
+          this.constructor.name,
+          lobbyCreatorResult.value.reason,
+          lobbyCreatorResult.value.error
+        );
         return failurePromise(lobbyCreatorResult.value);
       }
 
+      const builtLobbyResult = await this.saveRelationsOnLobby(lobby, foundGameResult.value, lobbyCreatorResult.value);
+      if (builtLobbyResult.failed()) {
+        Log.methodFailure(this.processAddLobbyRequest, this.constructor.name, builtLobbyResult.value.reason, builtLobbyResult.value.error);
+        return failurePromise(builtLobbyResult.value);
+      }
+
+      const builtLobby = builtLobbyResult.value;
+
+      const lobbyGame = this.getSingleGameOfLobby(builtLobbyResult.value);
+      if (!lobbyGame) {
+        throw new Error("The lobby was saved without being associated with a game. This should never happen.");
+      }
+
+      // start the lobby watcher
+      // TODO: Wrap this in a failure check - e.g what if the osu api is down? Should have some max time limit to try to start the watcher, and return a failure if it fails to start within that time.
+      this.lobbyWatcher.watch({ banchoMultiplayerId: lobbyData.banchoMultiplayerId, gameId: lobbyGame.id });
+
+      // We only want the game we just retrieved, not any other games that may have been previously added this lobby.
+      // This ensures that the game data we're returning is definitely of the game we expect it to be.
+      builtLobby.games = [foundGameResult.value];
+
+      return successPromise(builtLobby);
+    } catch (error) {
+      Log.methodError(this.processAddLobbyRequest, this.constructor.name, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Returns true if a game-lobby already exists for the given Bancho-multiplayer-id.
+   *
+   * @private
+   * @param {string} banchoMultiplayerId
+   * @param {number} gameId
+   * @returns
+   * @memberof LobbyService
+   */
+  private async isGameUsingBanchoMultiplayerId(banchoMultiplayerId: string, gameId: number) {
+    try {
+      const mpids = await this.getBanchoMultiplayerIdsForGame(gameId);
+      const answer = mpids.includes(banchoMultiplayerId);
+      Log.methodSuccess(this.isGameUsingBanchoMultiplayerId, this.constructor.name);
+      return answer;
+    } catch (error) {
+      Log.methodError(this.isGameUsingBanchoMultiplayerId, this.constructor.name, error);
+      throw error;
+    }
+  }
+  /**
+   * Saves a game and a user on a lobby.
+   *
+   * @param {AddLobbyDto} lobbyData
+   * @param {number} userId Lobby creator user ID
+   * @param {number} [gameId]
+   * @returns {(Promise<Either<Failure<GameFailure | UserFailure | LobbyFailure>, Lobby>>)}
+   */
+  public async saveRelationsOnLobby(
+    lobby: Lobby,
+    game: Game,
+    creator: User
+  ): Promise<Either<Failure<LobbyFailure | GameFailure | UserFailure>, Lobby>> {
+    try {
       // add game and lobby creator to lobby
-      lobby.games.push(lobbyGameResult.value);
-      lobby.addedBy = lobbyCreatorResult.value;
+      lobby.games.push(game);
+      lobby.addedBy = creator;
 
       // save lobby
-      const savedLobby: Lobby = await this.lobbyRepository.save(lobby);
+      const savedLobby: Lobby = await this.save(lobby);
 
       // reload the lobby
       const reloadedLobby: Lobby = await this.lobbyRepository.findOne(
@@ -119,17 +197,22 @@ export class LobbyService {
         { relations: ["games", "addedBy", "addedBy.discordUser", "addedBy.webUser"] }
       );
 
-      // start the lobby watcher
-      this.lobbyWatcher.watch({ banchoMultiplayerId: lobbyData.banchoMultiplayerId, gameId: lobbyData.gameId });
-
-      // We only want the game we just retrieved, not any other games that may have been previously added this lobby.
-      // This ensures that the game data we're returning is definitely of the game we expect it to be.
-      reloadedLobby.games = [lobbyGameResult.value];
-
       return successPromise(reloadedLobby);
     } catch (error) {
-      Log.methodError(this.createAndSaveLobby, this.constructor.name, error);
+      Log.methodError(this.saveRelationsOnLobby, this.constructor.name, error);
       throw error;
     }
+  }
+
+  private getSingleGameOfLobby(lobby: Lobby): Game {
+    return lobby.games.length ? lobby.games.slice(-1)[0] : null;
+  }
+
+  private async getBanchoMultiplayerIdsForGame(gameId: number): Promise<string[]> {
+    const game = await this.gameRepository.findGameWithLobbies(gameId);
+    if (!game.lobbies || !game.lobbies.length) {
+      return [];
+    }
+    return game.lobbies.map(lobby => lobby.banchoMultiplayerId);
   }
 }

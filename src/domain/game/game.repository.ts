@@ -33,6 +33,14 @@ export class GameRepository extends Repository<Game> {
     return this.getFindGameQb(gameId).getOne();
   }
 
+  findGameWithLobbies(gameId: number): Promise<Game> {
+    return this.createQueryBuilder("game")
+      .select()
+      .leftJoinAndSelect("game.lobbies", "lobbies")
+      .where("game.id = :gameId", { gameId: gameId })
+      .getOne();
+  }
+
   private getFindGameQb(gameId: number): SelectQueryBuilder<Game> {
     return this.createQueryBuilder("game")
       .select()

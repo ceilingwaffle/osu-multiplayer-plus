@@ -147,9 +147,9 @@ export class GameService {
     }
   }
 
-  public async findGameById(gameId: number): Promise<Either<Failure<GameFailure>, Game>> {
+  public async findGameById(gameId: number, relations?: string[]): Promise<Either<Failure<GameFailure>, Game>> {
     try {
-      const game = await this.gameRepository.findOne({ id: gameId });
+      const game = await this.gameRepository.findOne({ id: gameId }, { relations: relations });
       if (!game) {
         return failurePromise(gameDoesNotExistFailure(`A game does not exist with game ID ${gameId}.`));
       }

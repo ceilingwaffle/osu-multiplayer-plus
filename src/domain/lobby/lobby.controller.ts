@@ -22,7 +22,11 @@ export class LobbyController {
 
   /**
    * Creates a new lobby and starts the scanner for multiplayer match results.
+   *
    * If game ID is unspecified, the lobby is added to the most recent game created by the user.
+   *
+   * If a lobby already exists with the specified Bancho multiplayer ID,
+   * try to associate the existing lobby with the given game ID
    *
    * @param {{ lobbyData: AddLobbyDto; requestDto: RequestDtoType }} lobbyData
    * @returns {Promise<Response<AddLobbyReport>>}
@@ -51,7 +55,7 @@ export class LobbyController {
       const lobbyCreator: User = creatorResult.value;
 
       // create and save the lobby
-      const savedLobbyResult = await this.lobbyService.createAndSaveLobby(lobbyData.lobbyDto, lobbyCreator.id);
+      const savedLobbyResult = await this.lobbyService.processAddLobbyRequest(lobbyData.lobbyDto, lobbyCreator.id);
       if (savedLobbyResult.failed()) {
         const failure = savedLobbyResult.value;
         if (failure.error) throw failure.error;
