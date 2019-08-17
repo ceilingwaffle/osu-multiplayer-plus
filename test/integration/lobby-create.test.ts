@@ -321,6 +321,7 @@ describe("When adding a lobby", function() {
   //     }
   //   });
   // });
+
   it("should fail to save a lobby when the Bancho-multiplayer-id is already associated with a lobby on the target game", function() {
     return new Promise(async (resolve, reject) => {
       try {
@@ -359,9 +360,9 @@ describe("When adding a lobby", function() {
         /* #region  Assertions */
         // Ensure the lobby response reflects a failed attempt to save the lobby.
         assert.isNotNull(lobbyAddResponse1);
-        assert.isTrue(lobbyAddResponse1.success, "The first lobby-create request failed but should have succeeded.");
+        assert.isTrue(lobbyAddResponse1.success, "The first lobby-add request failed but should have succeeded.");
         assert.isNotNull(lobbyAddResponse2);
-        assert.isFalse(lobbyAddResponse2.success, "The second lobby-create request succeeded but should have failed.");
+        assert.isFalse(lobbyAddResponse2.success, "The second lobby-add request succeeded but should have failed.");
         assert.isDefined(lobbyAddResponse2.message);
         assert.isDefined(lobbyAddResponse2.errors);
         assert.isDefined(lobbyAddResponse2.errors.messages);
@@ -380,7 +381,7 @@ describe("When adding a lobby", function() {
       }
     });
   });
-  // it("should fail to save a lobby when the requesting user has not yet created a game and when no game ID was provided", function() {
+  // it("should fail to save a Lobby when the requesting user has not yet created a game and when no game ID was provided", function() {
   //   return new Promise((resolve, reject) => {
   //     try {
   //       // TODO
@@ -390,14 +391,58 @@ describe("When adding a lobby", function() {
   //     }
   //   });
   // });
-  // it("should associate an existing lobby with another game when watching a Bancho-multiplayer-ID targetting another game", function() {
-  //   return new Promise((resolve, reject) => {
-  //     try {
-  //       // TODO
-  //       return resolve();
-  //     } catch (error) {
-  //       return reject(error);
-  //     }
-  //   });
-  // });
+  it("it should create a new relationship between the target game id and a Lobby, where the provided Bancho-multiplayer-id already belongs to another Lobby", function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        /* #region  Setup */
+        const lobbyDto1: AddLobbyDto = {
+          banchoMultiplayerId: "54078930", // replace this with a valid mp id if it expires
+          gameId: 1
+        };
+        const lobbyDto2: AddLobbyDto = {
+          banchoMultiplayerId: "54078930", // replace this with a valid mp id if it expires
+          gameId: 2
+        };
+
+        // fake out the watcher timer so we don't actually start fetching match results for the lobby
+        const clock: InstalledClock = lolex.install();
+        // user 1 adds a lobby to game 1 (should succeed)
+        const lobbyController = iocContainer.get(LobbyController);
+        const lobbyAddResponse1 = await lobbyController.create({
+          lobbyDto: lobbyDto1,
+          requestDto: createGame3DiscordRequest
+        });
+        // user 1 adds the same lobby to game 2 (should succeed)
+        const lobbyAddResponse2 = await lobbyController.create({
+          lobbyDto: lobbyDto2,
+          requestDto: createGame3DiscordRequest
+        });
+        clock.uninstall();
+
+        const lobbyRepository = getCustomRepository(LobbyRepository);
+        const savedLobby = await lobbyRepository.findOne(
+          { banchoMultiplayerId: lobbyDto1.banchoMultiplayerId },
+          { relations: ["games", "games.lobbies", "addedBy", "addedBy.discordUser"] }
+        );
+        /* #endregion */
+
+        /* #region  Assertions */
+        // Ensure the lobby response reflects a failed attempt to save the lobby.
+        assert.isNotNull(lobbyAddResponse1);
+        assert.isTrue(lobbyAddResponse1.success, "The first lobby-add request failed but should have succeeded.");
+        assert.isNotNull(lobbyAddResponse2);
+        assert.isTrue(lobbyAddResponse2.success, "The second lobby-add request failed but should have succeeded.");
+
+        assert.isDefined(savedLobby);
+        assert.isDefined(savedLobby.games, "The lobby should contains a games property.");
+        assert.equal(savedLobby.games.length, 2, "The lobby should be associated with 2 games.");
+        assert.equal(savedLobby.games[0].id, 1, "The lobby should be associated with game id 1 (the game targeted in the DTO).");
+        assert.equal(savedLobby.games[1].id, 2, "The lobby should be associated with game id 2 (the game targeted in the DTO).");
+
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
 });
