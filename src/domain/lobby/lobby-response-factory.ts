@@ -10,4 +10,10 @@ export class LobbyResponseFactory extends AbstractResponseFactory<Lobby> {
   getAddedAgoText(): string {
     return this.getTimeAgoTextForTime(this.entity.createdAt);
   }
+
+  getGameId(): number {
+    // Use the game ID of the most recent game (the last game in the lobby-games array).
+    // The Lobby service should have only returned a single game, but use the last game just in case.
+    return this.entity.games.slice(-1)[0].id;
+  }
 }

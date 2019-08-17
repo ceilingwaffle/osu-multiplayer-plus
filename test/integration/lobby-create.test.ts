@@ -203,6 +203,8 @@ describe("When adding a lobby", function() {
           game2.teamLives,
           "The lobby should be added to game id 2 (the game most recently created by user 2)."
         );
+        assert.equal(savedLobby.games[0].id, 2, "The lobby should be added to game id 2 (the game most recently created by user 2).");
+        assert.equal(savedLobby.games.length, 1, "The lobby should only include a reference to a single game.");
         assert.equal(savedLobby.addedBy.id, game2creator.user.id, "The lobby should reflect that it was added by user 2.");
         const addedByDiscordUser = lobbyReport.addedBy as DiscordUserReportProperties;
         assert.equal(
@@ -276,8 +278,10 @@ describe("When adding a lobby", function() {
         assert.equal(
           savedLobby.games[0].teamLives,
           game3.teamLives,
-          "The lobby should be added to game id 3 (the game id specified by user 1)."
+          "The lobby should be added to game id 3 (the game most recently created by user 2)."
         );
+        assert.equal(savedLobby.games[0].id, 3, "The lobby should be added to game id 2 (the game most recently created by user 2).");
+        assert.equal(savedLobby.games.length, 1, "The lobby should only include a reference to a single game.");
         assert.equal(savedLobby.addedBy.id, game3creator.user.id, "The lobby should reflect that it was added by user 3.");
         const addedByDiscordUser = lobbyReport.addedBy as DiscordUserReportProperties;
         assert.equal(

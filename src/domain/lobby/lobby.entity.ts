@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, ManyToOne } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, ManyToOne, Unique } from "typeorm";
 import { IsNumberString, IsPositive, IsInt, IsNotEmpty } from "class-validator";
 import { Game } from "../game/game.entity";
 import { LobbyStatus } from "./lobby-status";

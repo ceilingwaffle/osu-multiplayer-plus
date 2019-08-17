@@ -70,8 +70,7 @@ export class LobbyService {
    */
   public async createAndSaveLobby(
     lobbyData: AddLobbyDto,
-    userId: number,
-    gameId?: number
+    userId: number
   ): Promise<Either<Failure<LobbyFailure | GameFailure | UserFailure>, Lobby>> {
     try {
       // create lobby without entity-relationships so we can validate the props
@@ -86,10 +85,14 @@ export class LobbyService {
         return failurePromise(invalidLobbyCreationArgumentsFailure(lobbyValidationErrors));
       }
 
-      // if a game ID was not provided, get the most recent game created by the user ID (lobby creator)
-      const lobbyGameResult: Either<Failure<GameFailure>, Game> = gameId
-        ? await this.gameService.findGameById(gameId)
-        : await this.gameService.findMostRecentGameCreatedByUser(userId);
+      // Game ID will be provided as "-1" if none was given by the user at the boundary.
+      let lobbyGameResult: Either<Failure<GameFailure>, Game>;
+      if (!lobbyData.gameId || lobbyData.gameId < 0) {
+        // If a game ID was not provided, get the most recent game created by the user ID (lobby creator).
+        lobbyGameResult = await this.gameService.findMostRecentGameCreatedByUser(userId);
+      } else {
+        lobbyGameResult = await this.gameService.findGameById(lobbyData.gameId);
+      }
 
       if (lobbyGameResult.failed()) {
         Log.methodFailure(this.create, this.constructor.name, lobbyGameResult.value.reason, lobbyGameResult.value.error);
@@ -118,6 +121,10 @@ export class LobbyService {
 
       // start the lobby watcher
       this.lobbyWatcher.watch({ banchoMultiplayerId: lobbyData.banchoMultiplayerId, gameId: lobbyData.gameId });
+
+      // We only want the game we just retrieved, not any other games that may have been previously added this lobby.
+      // This ensures that the game data we're returning is definitely of the game we expect it to be.
+      reloadedLobby.games = [lobbyGameResult.value];
 
       return successPromise(reloadedLobby);
     } catch (error) {

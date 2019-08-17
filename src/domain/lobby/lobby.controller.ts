@@ -51,7 +51,7 @@ export class LobbyController {
       const lobbyCreator: User = creatorResult.value;
 
       // create and save the lobby
-      const savedLobbyResult = await this.lobbyService.createAndSaveLobby(lobbyData.lobbyDto, lobbyCreator.id, lobbyData.lobbyDto.gameId);
+      const savedLobbyResult = await this.lobbyService.createAndSaveLobby(lobbyData.lobbyDto, lobbyCreator.id);
       if (savedLobbyResult.failed()) {
         const failure = savedLobbyResult.value;
         if (failure.error) throw failure.error;
@@ -77,7 +77,7 @@ export class LobbyController {
           return {
             addedAgo: responseFactory.getAddedAgoText(),
             addedBy: responseFactory.getAddedBy(),
-            gameId: lobbyData.lobbyDto.gameId,
+            gameId: responseFactory.getGameId(),
             multiplayerId: savedLobby.banchoMultiplayerId,
             startAtMapNumber: savedLobby.startingMapNumber,
             status: LobbyStatus.getTextFromKey(savedLobby.status)
