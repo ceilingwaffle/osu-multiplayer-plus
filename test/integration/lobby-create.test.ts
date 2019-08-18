@@ -311,16 +311,40 @@ describe("When adding a lobby", function() {
   //   });
   // });
 
-  // it("should fail to save a lobby when targetting a game ID of a game that does not exist", function() {
-  //   return new Promise((resolve, reject) => {
-  //     try {
-  //       // TODO
-  //       return resolve();
-  //     } catch (error) {
-  //       return reject(error);
-  //     }
-  //   });
-  // });
+  it("should fail to save a lobby when targetting a game ID of a game that doesn't exist", function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        /* #region  Setup */
+        const lobbyDto: AddLobbyDto = {
+          banchoMultiplayerId: "54078930", // replace this with a valid mp id if it expires
+          gameId: 999 // game ID should not exist
+        };
+
+        // fake out the watcher timer so we don't actually start fetching match results for the lobby
+        const clock: InstalledClock = lolex.install();
+        // user 1 adds a lobby to an non-existent game ID
+        const lobbyController = iocContainer.get(LobbyController);
+        const lobbyAddResponse = await lobbyController.create({
+          lobbyDto: lobbyDto,
+          requestDto: createGame1DiscordRequest
+        });
+        clock.uninstall();
+        /* #endregion */
+
+        /* #region  Assertions */
+        assert.isNotNull(lobbyAddResponse);
+        assert.isFalse(lobbyAddResponse.success, "Lobby was created but should have failed.");
+        assert.isDefined(lobbyAddResponse.errors);
+        assert.isDefined(lobbyAddResponse.errors.messages);
+        assert.isTrue(lobbyAddResponse.errors.messages.length > 0, "Lobby-add-response should contain some error messages.");
+        /* #endregion */
+
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
 
   it("should fail to save a lobby when the Bancho-multiplayer-id is already associated with a lobby on the target game", function() {
     return new Promise(async (resolve, reject) => {
