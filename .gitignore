@@ -5,11 +5,12 @@ build/
 dist/
 tmp/
 temp/
+logs/
+notes/
+coverage/
+.nyc_output/
 .env
+.DS_Store
 **/*.sqlite
 **/*.sqlite-journal
-.DS_Store
-/logs
 **/*.log
-notes/
-/NOTES

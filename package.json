@@ -24,9 +24,10 @@
     "chai": "^4.2.0",
     "lolex": "^4.2.0",
     "mocha": "^6.1.4",
-    "ts-node": "3.3.0",
+    "nyc": "^14.1.1",
+    "ts-node": "^3.3.0",
     "tsconfig-paths": "^3.8.0",
-    "typescript": "^3.3.3333"
+    "typescript": "^3.5.3"
   },
   "dependencies": {
     "@types/fs-extra": "^7.0.0",

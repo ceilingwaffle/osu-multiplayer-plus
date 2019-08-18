@@ -2,7 +2,8 @@
 TODO: 
     ✔ Currently, the lobby service is trying to add a new Lobby with the same banchoMultiplayerId rather than create a new Lobby-Game relationship. To fix this, add some code in the lobby service to check for the existing banchoMultiplayerId Lobby, and push the target-Game onto the lobby.games array. @started(19-08-18 17:00) @done(19-08-18 17:31) @lasted(31m15s)
     ✔ Make bancho multiplayer ID unique to lobby. No two lobbies should exist with the same mp ID. @done(19-08-18 19:49)
-    ☐ Finish writing commented-out tests in lobby-create.test.ts @started(19-08-18 20:12)
+    ✔ Finish writing commented-out tests in lobby-create.test.ts @started(19-08-18 20:12) @done(19-08-18 21:25) @lasted(1h13m39s)
+    ✔ Run tests individually @done(19-08-18 22:41)
     ☐ osu-lobby-watcher.ts -> refreshAndEmitMultiplayerResults(): Use lobby.startingMapNumber to skip some results
     ☐ When using command !obr addlobby 54078930 6, on a game which already has that lobby added, return some error message. Add a class-validator decorator?
     ☐ Add a manual remove-lobby command. Include description like "this will not close the actual lobby; it will only tell the bot to stop scanning the lobby for future results."
