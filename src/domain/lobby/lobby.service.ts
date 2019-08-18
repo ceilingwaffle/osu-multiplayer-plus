@@ -122,7 +122,7 @@ export class LobbyService {
         return failurePromise(lobbyCreatorResult.value);
       }
 
-      const builtLobbyResult = await this.saveRelationsOnLobby(lobby, foundGameResult.value, lobbyCreatorResult.value);
+      const builtLobbyResult = await this.saveLobbyWithRelations(lobby, foundGameResult.value, lobbyCreatorResult.value);
       if (builtLobbyResult.failed()) {
         Log.methodFailure(this.processAddLobbyRequest, this.constructor.name, builtLobbyResult.value.reason, builtLobbyResult.value.error);
         return failurePromise(builtLobbyResult.value);
@@ -156,10 +156,9 @@ export class LobbyService {
    * @private
    * @param {string} banchoMultiplayerId
    * @param {number} gameId
-   * @returns
-   * @memberof LobbyService
+   * @returns {Promise<Boolean>}
    */
-  private async isGameUsingBanchoMultiplayerId(banchoMultiplayerId: string, gameId: number) {
+  private async isGameUsingBanchoMultiplayerId(banchoMultiplayerId: string, gameId: number): Promise<Boolean> {
     try {
       const mpids = await this.getBanchoMultiplayerIdsForGame(gameId);
       const answer = mpids.includes(banchoMultiplayerId);
@@ -170,28 +169,39 @@ export class LobbyService {
       throw error;
     }
   }
+
   /**
-   * Saves a game and a user on a lobby.
+   * Saves a game and a user on a lobby. Updates and returns an existing Lobby
+   * if one exists for the Bancho-MP-ID prop on the provided unsaved-Lobby.
    *
-   * @param {AddLobbyDto} lobbyData
-   * @param {number} userId Lobby creator user ID
-   * @param {number} [gameId]
-   * @returns {(Promise<Either<Failure<GameFailure | UserFailure | LobbyFailure>, Lobby>>)}
+   * @param {Lobby} unsavedNewLobby
+   * @param {Game} game
+   * @param {User} creator
+   * @returns {(Promise<Either<Failure<LobbyFailure | GameFailure | UserFailure>, Lobby>>)}
    */
-  public async saveRelationsOnLobby(
-    lobby: Lobby,
+  public async saveLobbyWithRelations(
+    unsavedNewLobby: Lobby,
     game: Game,
     creator: User
   ): Promise<Either<Failure<LobbyFailure | GameFailure | UserFailure>, Lobby>> {
     try {
-      // add game and lobby creator to lobby
-      lobby.games.push(game);
-      lobby.addedBy = creator;
+      // If a Lobby already exists with this MP ID, use that Lobby instead. This is to ensure the MP ID is always unique for all lobbies.
+      // This means the "addedBy" is always set to the original lobby-adder, not necessarily the user performing this add-lobby-request.
+      // This could have some weird side-effects e.g. if two users from two Discord servers add the same lobby to different games, the
+      // Discord-message-reply will show for one user that the Lobby was added by the other user from the other server.
+      let lobbyToSave: Lobby;
+      const existingLobby = await Lobby.findOne({ banchoMultiplayerId: unsavedNewLobby.banchoMultiplayerId }, { relations: ["games"] });
+      if (!existingLobby) {
+        lobbyToSave = unsavedNewLobby;
+        lobbyToSave.games = [game];
+        lobbyToSave.addedBy = creator;
+      } else {
+        lobbyToSave = existingLobby;
+        lobbyToSave.games.push(game);
+      }
 
-      // save lobby
-      const savedLobby: Lobby = await this.save(lobby);
-
-      // reload the lobby
+      // save and reload lobby
+      const savedLobby: Lobby = await this.save(lobbyToSave);
       const reloadedLobby: Lobby = await this.lobbyRepository.findOne(
         { id: savedLobby.id },
         { relations: ["games", "addedBy", "addedBy.discordUser", "addedBy.webUser"] }
@@ -199,7 +209,7 @@ export class LobbyService {
 
       return successPromise(reloadedLobby);
     } catch (error) {
-      Log.methodError(this.saveRelationsOnLobby, this.constructor.name, error);
+      Log.methodError(this.saveLobbyWithRelations, this.constructor.name, error);
       throw error;
     }
   }

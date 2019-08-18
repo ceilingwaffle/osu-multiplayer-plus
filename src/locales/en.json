@@ -10,8 +10,8 @@
 
   "lobbyReadSuccess": "lobby read success",
   "lobbyReadFailed": "lobby read failed",
-  "lobbyCreateSuccess": "lobby create success",
-  "lobbyCreateFailed": "lobby create failed",
+  "lobbyCreateSuccess": "lobby add success",
+  "lobbyCreateFailed": "lobby add failed",
   "lobbyWatchFailed": "lobby watch failed",
   "lobbyWatchSuccess": "lobby watch success",
   "lobbyUnwatchFailed": "lobby unwatch failed",

@@ -1,6 +1,6 @@
 // using TODO+ extension for vscode
 TODO: 
-    ☐ Currently, the lobby service is trying to add a new Lobby with the same banchoMultiplayerId rather than create a new Lobby-Game relationship. To fix this, add some code in the lobby service to check for the existing banchoMultiplayerId Lobby, and push the target-Game onto the lobby.games array.
+    ✔ Currently, the lobby service is trying to add a new Lobby with the same banchoMultiplayerId rather than create a new Lobby-Game relationship. To fix this, add some code in the lobby service to check for the existing banchoMultiplayerId Lobby, and push the target-Game onto the lobby.games array. @started(19-08-18 17:00) @done(19-08-18 17:31) @lasted(31m15s)
     ☐ Make bancho multiplayer ID unique to lobby. No two lobbies should exist with the same mp ID.
         Do this by implementing [at]IsNewBanchoMultiplayerId() on lobby.entity.ts
     ☐ Finish writing commented-out tests in lobby-create.test.ts
