@@ -5,7 +5,9 @@ export enum LobbyFailure {
   LobbyCreationError,
   LobbyCreationFailure,
   InvalidCreationArguments,
-  BanchoMultiplayerIdAlreadyAssociatedWithGameFailure
+  BanchoMultiplayerIdAlreadyAssociatedWithGameFailure,
+  LobbyNotFound,
+  LobbyRemovalFailure
 }
 
 export type LobbyFailureTypes = LobbyFailure;
@@ -39,4 +41,14 @@ export const banchoMultiplayerIdAlreadyAssociatedWithGameFailure = (
   reason: [`The multiplayer ID of ${banchoMultiplayerId} has already been added to game ID ${gameId}.`, additionalErrorMessageText].join(
     " "
   )
+});
+
+export const lobbyDoesNotExistFailure = (reason?: string): Failure<LobbyFailure.LobbyNotFound> => ({
+  type: LobbyFailure.LobbyNotFound,
+  reason: reason || "Lobby not found."
+});
+
+export const lobbyRemovalFailure = (reason?: string): Failure<LobbyFailure.LobbyRemovalFailure> => ({
+  type: LobbyFailure.LobbyRemovalFailure,
+  reason: reason || "Something went wrong when we tried to remove a lobby."
 });

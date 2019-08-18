@@ -12,10 +12,8 @@
   "lobbyReadFailed": "lobby read failed",
   "lobbyCreateSuccess": "lobby add success",
   "lobbyCreateFailed": "lobby add failed",
-  "lobbyWatchFailed": "lobby watch failed",
-  "lobbyWatchSuccess": "lobby watch success",
-  "lobbyUnwatchFailed": "lobby unwatch failed",
-  "lobbyUnwatchSuccess": "lobby unwatch success",
+  "lobbyRemoveFailed": "lobby remove failed",
+  "lobbyRemoveSuccess": "lobby remove success",
 
   "osuApiFailed": "osu! API failed",
   "osuApiSuccess": "osu! API success",

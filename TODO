@@ -4,9 +4,18 @@ TODO:
     ✔ Make bancho multiplayer ID unique to lobby. No two lobbies should exist with the same mp ID. @done(19-08-18 19:49)
     ✔ Finish writing commented-out tests in lobby-create.test.ts @started(19-08-18 20:12) @done(19-08-18 21:25) @lasted(1h13m39s)
     ✔ Run tests individually @done(19-08-18 22:41)
+    ✔ Add a manual remove-lobby command. Include description like "this will not close the actual lobby; it will only tell the bot to stop scanning the lobby for future results." @started(19-08-19 00:30) @done(19-08-19 05:13) @lasted(4h43m45s)
+    ☐ Finish writing tests for asserting error messages received when sending remove-lobby requests
+    ☐ User-permissions
+        ☐ Ensure that the user sending delete/update commands is a game ref or game creator
+        ☐ A user adding a lobby to a game should be the game creator or game ref
+        ☐ Need some kind of game-permissions abstraction. e.g. user1.for(lobby).isPermittedTo(LobbyUpdateAction) - does a library already exist for this sort of thing?
+    ☐ Improve startup time for `npm run test`
+    ☐ 
+    ☐ Fix having to restart the app multiple times waiting for database connection
+        ☐ Handle soft/hard lobby deletes depending on whether or not matches exist for the given lobby. e.g. if the user adds the lobby, then immediately removes it, this is okay to hard delete.
     ☐ osu-lobby-watcher.ts -> refreshAndEmitMultiplayerResults(): Use lobby.startingMapNumber to skip some results
     ☐ When using command !obr addlobby 54078930 6, on a game which already has that lobby added, return some error message. Add a class-validator decorator?
-    ☐ Add a manual remove-lobby command. Include description like "this will not close the actual lobby; it will only tell the bot to stop scanning the lobby for future results."
     ☐ When adding a lobby before creating a game, the error message returned should replace "user ID X" with [at]DiscordUsername" instead (e.g. No games have been created by user ID 2. -> No games have been created by [at]CeilingWaffle
     ☐ When adding an invalid bancho mp id (e.g. 1234) the error message should be better. Right now it's: banchoMultiplayerId: "1234" is bad because: [object Object]
     ☐ Cleanup the failure methods. Can we abstract and extend these? Keep them more consistent; less method signature copy pasting.

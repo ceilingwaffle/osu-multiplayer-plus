@@ -31,6 +31,12 @@ export class Lobby extends AbstractEntity {
   @Column({ default: LobbyStatus.UNKNOWN.getKey() })
   status: string;
 
+  @Column({ name: "removed_at", nullable: true })
+  removedAt: number;
+
+  @ManyToOne(type => User)
+  removedBy: User;
+
   @ManyToMany(type => Game, game => game.lobbies)
   games: Game[];
 

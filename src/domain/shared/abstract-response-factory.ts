@@ -5,7 +5,7 @@ import { Requester } from "../../requests/requesters/requester";
 import { RequestDto } from "../../requests/dto";
 
 export class AbstractResponseFactory<T> {
-  constructor(protected readonly requester: Requester, protected readonly entity: T, protected readonly requestData: RequestDto) {}
+  constructor(protected readonly requester: Requester, protected readonly subject: T, protected readonly requestData: RequestDto) {}
 
   protected getUserReportPropertiesForUser(user: User): UserReportProperties {
     if (this.requester.dto.type === "discord") {

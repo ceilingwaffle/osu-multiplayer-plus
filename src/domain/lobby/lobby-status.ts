@@ -5,6 +5,7 @@ export class LobbyStatus extends GenericType {
   static readonly ACTIVE = new LobbyStatus("active", "Active");
   static readonly CLOSED = new LobbyStatus("closed", "Closed");
   static readonly UNKNOWN = new LobbyStatus("unknown", "Unknown");
+  static readonly STOPPED_WATCHING = new LobbyStatus("stopped_watching", "Stopped Watching");
 
   static getNotClosed(): string[] {
     return [LobbyStatus.AWAITING_FIRST_SCAN.getKey(), LobbyStatus.ACTIVE.getKey()];

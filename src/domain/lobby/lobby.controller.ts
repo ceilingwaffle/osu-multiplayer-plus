@@ -11,9 +11,12 @@ import { RequesterFactoryInitializationError } from "../shared/errors/RequesterF
 import { User } from "../user/user.entity";
 import { FailureMessage, Message } from "../../utils/message";
 import { AddLobbyReport } from "./reports/add-lobby.report";
-import { Helpers } from "../../utils/helpers";
 import { LobbyResponseFactory } from "./lobby-response-factory";
 import { LobbyStatus } from "./lobby-status";
+import { RemoveLobbyDto } from "./dto/remove-lobby.dto";
+import { RemoveLobbyReport } from "./reports/remove-lobby.report";
+import { RemovedLobbyResult } from "./removed-lobby-result";
+import { RemovedLobbyResponseFactory } from "./removed-lobby-response-factory";
 
 export class LobbyController {
   constructor(@inject(LobbyService) private readonly lobbyService: LobbyService) {
@@ -93,6 +96,74 @@ export class LobbyController {
       return {
         success: false,
         message: FailureMessage.get("lobbyCreateFailed"),
+        errors: {
+          messages: [error]
+        }
+      };
+    }
+  }
+
+  public async remove(lobbyData: { lobbyDto: RemoveLobbyDto; requestDto: RequestDtoType }): Promise<Response<RemoveLobbyReport>> {
+    try {
+      // build the requester
+      const requester: Requester = RequesterFactory.initialize(lobbyData.requestDto);
+      if (!requester) throw new RequesterFactoryInitializationError(this.constructor.name, this.create.name);
+
+      // get/create the user removing the lobby
+      const requesterUserResult = await requester.getOrCreateUser();
+      if (requesterUserResult.failed()) {
+        const failure = requesterUserResult.value;
+        if (failure.error) throw failure.error;
+        Log.methodFailure(this.remove, this.constructor.name, failure.reason);
+        return {
+          success: false,
+          message: FailureMessage.get("lobbyRemoveFailed"),
+          errors: {
+            messages: [failure.reason],
+            validation: failure.validationErrors
+          }
+        };
+      }
+      const lobbyRemover: User = requesterUserResult.value;
+
+      // attempt to remove the lobby
+      const removedLobbyResult = await this.lobbyService.processRemoveLobbyRequest(lobbyData.lobbyDto, lobbyRemover.id);
+      if (removedLobbyResult.failed()) {
+        const failure = removedLobbyResult.value;
+        if (failure.error) throw failure.error;
+        Log.methodFailure(this.remove, this.constructor.name, failure.reason);
+        return {
+          success: false,
+          message: FailureMessage.get("lobbyRemoveFailed"),
+          errors: {
+            messages: [failure.reason],
+            validation: failure.validationErrors
+          }
+        };
+      }
+
+      // return lobby removal success response
+      const removedLobbyData: RemovedLobbyResult = removedLobbyResult.value;
+      Log.methodSuccess(this.create, this.constructor.name);
+      return {
+        success: true,
+        message: Message.get("lobbyRemoveSuccess"),
+        result: ((): RemoveLobbyReport => {
+          const responseFactory = new RemovedLobbyResponseFactory(requester, removedLobbyData, lobbyData.requestDto);
+          return {
+            removedAgo: responseFactory.getRemovedAgoText(),
+            removedBy: responseFactory.getRemovedBy(),
+            gameIdRemovedFrom: responseFactory.getGameId(),
+            multiplayerId: removedLobbyData.lobby.banchoMultiplayerId,
+            status: LobbyStatus.getTextFromKey(removedLobbyData.lobby.status)
+          };
+        })()
+      };
+    } catch (error) {
+      Log.methodError(this.create, this.constructor.name, error);
+      return {
+        success: false,
+        message: FailureMessage.get("lobbyRemoveFailed"),
         errors: {
           messages: [error]
         }

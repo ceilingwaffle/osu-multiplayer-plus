@@ -5,15 +5,15 @@ import { AbstractResponseFactory } from "../shared/abstract-response-factory";
 
 export class GameResponseFactory extends AbstractResponseFactory<Game> {
   getCreator(): UserReportProperties {
-    return this.getUserReportPropertiesForUser(this.entity.createdBy);
+    return this.getUserReportPropertiesForUser(this.subject.createdBy);
   }
 
   getEndedBy(): UserReportProperties {
-    return this.getUserReportPropertiesForUser(this.entity.endedBy);
+    return this.getUserReportPropertiesForUser(this.subject.endedBy);
   }
 
   getReferees(): UserReportProperties[] {
-    return this.entity.refereedBy.map(user => this.getUserReportPropertiesForUser(user));
+    return this.subject.refereedBy.map(user => this.getUserReportPropertiesForUser(user));
   }
 
   getMessageTargets(): GameMessageTarget[] {
@@ -21,10 +21,10 @@ export class GameResponseFactory extends AbstractResponseFactory<Game> {
   }
 
   getCreatedAgoText(): string {
-    return this.getTimeAgoTextForTime(this.entity.createdAt);
+    return this.getTimeAgoTextForTime(this.subject.createdAt);
   }
 
   getEndedAgoText(): string {
-    return this.getTimeAgoTextForTime(this.entity.endedAt);
+    return this.getTimeAgoTextForTime(this.subject.endedAt);
   }
 }

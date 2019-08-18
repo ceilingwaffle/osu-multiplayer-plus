@@ -13,7 +13,9 @@ import {
   LobbyFailure,
   invalidLobbyCreationArgumentsFailure,
   banchoMultiplayerIdAlreadyAssociatedWithGameFailure,
-  lobbyCreationFailure
+  lobbyCreationFailure,
+  lobbyDoesNotExistFailure,
+  lobbyRemovalFailure
 } from "./lobby.failure";
 import { GameService } from "../game/game.service";
 import { inject } from "inversify";
@@ -24,6 +26,9 @@ import { validate } from "class-validator";
 import { OsuLobbyWatcher } from "../../osu/osu-lobby-watcher";
 import { GameRepository } from "../game/game.repository";
 import { GameStatus } from "../game/game-status";
+import { RemoveLobbyDto } from "./dto/remove-lobby.dto";
+import { Helpers } from "../../utils/helpers";
+import { RemovedLobbyResult } from "./removed-lobby-result";
 
 export class LobbyService {
   private readonly lobbyRepository: LobbyRepository = getCustomRepository(LobbyRepository);
@@ -93,16 +98,7 @@ export class LobbyService {
         return failurePromise(invalidLobbyCreationArgumentsFailure(lobbyValidationErrors));
       }
 
-      let foundGameResult: Either<Failure<GameFailure>, Game>;
-      // Game ID will be provided as "-1" if none was given by the user at the boundary.
-      if (!lobbyData.gameId || lobbyData.gameId < 0) {
-        // If a game ID was not provided, get the most recent game created by the user ID (lobby creator).
-        foundGameResult = await this.gameService.findMostRecentGameCreatedByUser(userId);
-      } else {
-        // Get the game targetted by the game ID provided in the request.
-        foundGameResult = await this.gameService.findGameById(lobbyData.gameId);
-      }
-
+      const foundGameResult: Either<Failure<GameFailure>, Game> = await this.getRequestingUserTargetGame(lobbyData, userId);
       if (foundGameResult.failed()) {
         // no game exists created by the user, or no game exists for the provided game ID
         Log.methodFailure(this.processAddLobbyRequest, this.constructor.name, foundGameResult.value.reason, foundGameResult.value.error);
@@ -165,6 +161,113 @@ export class LobbyService {
     }
   }
 
+  public async processRemoveLobbyRequest(
+    lobbyData: RemoveLobbyDto,
+    userId: number
+  ): Promise<Either<Failure<LobbyFailure | GameFailure | UserFailure>, RemovedLobbyResult>> {
+    try {
+      const targetLobby = await this.lobbyRepository.findOne(
+        { banchoMultiplayerId: lobbyData.banchoMultiplayerId },
+        { relations: ["games"] }
+      );
+      if (!targetLobby) {
+        const failureMessage = `A lobby has not been added for multiplayer ID ${lobbyData.banchoMultiplayerId}.`;
+        Log.methodFailure(this.processRemoveLobbyRequest, this.constructor.name, failureMessage);
+        return failurePromise(lobbyDoesNotExistFailure(failureMessage));
+      }
+
+      // get the lobby remover
+      const lobbyRemoverResult: Either<Failure<UserFailure>, User> = await this.userService.findOne({ id: userId });
+      if (lobbyRemoverResult.failed()) {
+        Log.methodFailure(
+          this.processRemoveLobbyRequest,
+          this.constructor.name,
+          lobbyRemoverResult.value.reason,
+          lobbyRemoverResult.value.error
+        );
+        return failurePromise(lobbyRemoverResult.value);
+      }
+      const lobbyRemover = lobbyRemoverResult.value;
+      this.setRemovalPropertiesOnLobby(targetLobby, lobbyRemover);
+
+      // if the requester did not specify a target-game-id, try to use their most-recently created game
+      const foundGameResult: Either<Failure<GameFailure>, Game> = await this.getRequestingUserTargetGame(lobbyData, userId);
+      if (foundGameResult.failed()) {
+        // no game exists created by the user, or no game exists for the provided game ID
+        Log.methodFailure(this.processRemoveLobbyRequest, this.constructor.name, foundGameResult.value.reason, foundGameResult.value.error);
+        return failurePromise(foundGameResult.value);
+      }
+      const gameId = foundGameResult.value.id;
+
+      // Remove the target game from the lobby.games array
+      const removedGame: Game = gameId ? this.extractGameFromLobbyGames(targetLobby, gameId) : null;
+      if (!removedGame) {
+        const failureReason = `Lobby ${
+          targetLobby.banchoMultiplayerId
+        } could not be removed because the lobby was not one of the lobbies of game ID ${gameId}.`;
+        Log.methodFailure(this.processRemoveLobbyRequest, this.constructor.name);
+        return failurePromise(lobbyRemovalFailure(failureReason));
+      }
+
+      // unwatch the bancho lobby if the lobby no longer belongs to any games
+      if (targetLobby.games.length < 1) {
+        this.lobbyWatcher.unwatch({ banchoMultiplayerId: targetLobby.banchoMultiplayerId, gameId: gameId });
+      }
+
+      const savedLobby = await this.saveAndReloadLobby(targetLobby, ["games", "removedBy", "removedBy.discordUser", "removedBy.webUser"]);
+      // TODO: Decide to soft/hard delete depending on whether or not match-scores have been recorded for the lobby:
+      // - if the lobby has some recorded matches, keep the lobby in the database
+      // - if the lobby has no recorded matches, hard-delete the lobby from the database
+      // - if the lobby has some recorded matches, refuse the lobby remove command
+
+      const removedLobbyResult: RemovedLobbyResult = {
+        gameIdRemovedFrom: removedGame.id,
+        lobby: savedLobby
+      };
+
+      return successPromise(removedLobbyResult);
+    } catch (error) {
+      Log.methodError(this.processRemoveLobbyRequest, this.constructor.name, error);
+      throw error;
+    }
+  }
+
+  private setRemovalPropertiesOnLobby(targetLobby: Lobby, lobbyRemoveUser: User) {
+    targetLobby.removedAt = Helpers.getNow();
+    targetLobby.removedBy = lobbyRemoveUser;
+  }
+
+  /**
+   * Removes a game from the given Lobby if one matches the given game ID, and returns the removed game.
+   *
+   * @private
+   * @param {Lobby} lobby
+   * @param {number} targetGameId
+   * @returns {Game}
+   * @memberof LobbyService
+   */
+  private extractGameFromLobbyGames(lobby: Lobby, targetGameId: number): Game {
+    const games: Game[] = lobby.games.filter(lobbyGame => lobbyGame.id === targetGameId);
+    if (!games.length) return null;
+    const removedGame: Game = games[0];
+    const i = lobby.games.indexOf(removedGame);
+    lobby.games.splice(i, 1);
+    return removedGame;
+  }
+
+  private async getRequestingUserTargetGame(lobbyData: AddLobbyDto, userId: number) {
+    // Game ID will be provided as "-1" if none was given by the user at the boundary.
+    let foundGameResult: Either<Failure<GameFailure>, Game>;
+    if (!lobbyData.gameId || lobbyData.gameId < 0) {
+      // If a game ID was not provided, get the most recent game created by the user ID (lobby creator).
+      foundGameResult = await this.gameService.findMostRecentGameCreatedByUser(userId);
+    } else {
+      // Get the game targetted by the game ID provided in the request.
+      foundGameResult = await this.gameService.findGameById(lobbyData.gameId);
+    }
+    return foundGameResult;
+  }
+
   /**
    * Returns true if a game-lobby already exists for the given Bancho-multiplayer-id.
    *
@@ -216,17 +319,24 @@ export class LobbyService {
       }
 
       // save and reload lobby
-      const savedLobby: Lobby = await this.save(lobbyToSave);
-      const reloadedLobby: Lobby = await this.lobbyRepository.findOne(
-        { id: savedLobby.id },
-        { relations: ["games", "addedBy", "addedBy.discordUser", "addedBy.webUser"] }
-      );
+      const reloadedLobby: Lobby = await this.saveAndReloadLobby(lobbyToSave, [
+        "games",
+        "addedBy",
+        "addedBy.discordUser",
+        "addedBy.webUser"
+      ]);
 
       return successPromise(reloadedLobby);
     } catch (error) {
       Log.methodError(this.saveLobbyWithRelations, this.constructor.name, error);
       throw error;
     }
+  }
+
+  private async saveAndReloadLobby(lobbyToSave: Lobby, relations: string[] = []) {
+    const savedLobby: Lobby = await this.save(lobbyToSave);
+    const reloadedLobby: Lobby = await this.lobbyRepository.findOne({ id: savedLobby.id }, { relations: relations });
+    return reloadedLobby;
   }
 
   private getSingleGameOfLobby(lobby: Lobby): Game {
