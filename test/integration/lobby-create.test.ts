@@ -405,8 +405,50 @@ describe("When adding a lobby", function() {
       }
     });
   });
-  // it("should fail to save a Lobby when the requesting user has not yet created a game and when no game ID was provided", function() {
-  //   return new Promise((resolve, reject) => {
+
+  it("should fail to save a Lobby when the requesting user has not yet created a game and when no game ID was provided", function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // there should be no games in the database
+        await TestHelpers.reloadEntities(getEntities());
+
+        const lobbyDto1: AddLobbyDto = {
+          banchoMultiplayerId: "54078930", // replace this with a valid mp id if it expires
+          gameId: 1
+        };
+
+        // fake out the watcher timer so we don't actually start fetching match results for the lobby
+        const clock: InstalledClock = lolex.install();
+        // user 1 attempts to add a lobby without having ever created a game
+        const lobbyController = iocContainer.get(LobbyController);
+        const lobbyAddResponse1 = await lobbyController.create({
+          lobbyDto: lobbyDto1,
+          requestDto: createGame1DiscordRequest
+        });
+        clock.uninstall();
+
+        const lobbyRepository = getCustomRepository(LobbyRepository);
+        const lobbyShouldNotExist = await lobbyRepository.findOne(
+          { banchoMultiplayerId: lobbyDto1.banchoMultiplayerId },
+          { relations: ["games", "games.lobbies", "addedBy", "addedBy.discordUser"] }
+        );
+
+        assert.isFalse(lobbyAddResponse1.success, "The lobby-add request succeeded but should have failed.");
+        assert.isDefined(lobbyAddResponse1.message);
+        assert.isDefined(lobbyAddResponse1.errors);
+        assert.isDefined(lobbyAddResponse1.errors.messages);
+        assert.isTrue(lobbyAddResponse1.errors.messages.length > 0);
+        assert.isUndefined(lobbyShouldNotExist, "The lobby should not have been added to the database.");
+
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
+
+  // it("should fail to add a lobby to an ended-game", function() {
+  //   return new Promise(async (resolve, reject) => {
   //     try {
   //       // TODO
   //       return resolve();
@@ -415,6 +457,7 @@ describe("When adding a lobby", function() {
   //     }
   //   });
   // });
+
   it("it should create a new relationship between the target-game and an existing-Lobby when re-using a Bancho-multiplayer-id", function() {
     return new Promise(async (resolve, reject) => {
       try {
