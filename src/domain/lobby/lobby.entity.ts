@@ -15,7 +15,6 @@ export class Lobby extends AbstractEntity {
   @IsNumberString()
   @Type(() => Number)
   @IsValidBanchoMultiplayerId()
-  // TODO: Add this -> @IsNewBanchoMultiplayerId()
   @Column({ unique: true })
   banchoMultiplayerId: string;
 
