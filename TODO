@@ -1,0 +1,18 @@
+// using TODO+ extension for vscode
+TODO: 
+    ☐ Currently, the lobby service is trying to add a new Lobby with the same banchoMultiplayerId rather than create a new Lobby-Game relationship. To fix this, add some code in the lobby service to check for the existing banchoMultiplayerId Lobby, and push the target-Game onto the lobby.games array.
+    ☐ Make bancho multiplayer ID unique to lobby. No two lobbies should exist with the same mp ID.
+        Do this by implementing [at]IsNewBanchoMultiplayerId() on lobby.entity.ts
+    ☐ Finish writing commented-out tests in lobby-create.test.ts
+    ☐ osu-lobby-watcher.ts -> refreshAndEmitMultiplayerResults(): Use lobby.startingMapNumber to skip some results
+    ☐ When using command !obr addlobby 54078930 6, on a game which already has that lobby added, return some error message. Add a class-validator decorator?
+    ☐ Add a manual remove-lobby command. Include description like "this will not close the actual lobby; it will only tell the bot to stop scanning the lobby for future results."
+    ☐ When adding a lobby before creating a game, the error message returned should replace "user ID X" with [at]DiscordUsername" instead (e.g. No games have been created by user ID 2. -> No games have been created by [at]CeilingWaffle
+    ☐ When adding an invalid bancho mp id (e.g. 1234) the error message should be better. Right now it's: banchoMultiplayerId: "1234" is bad because: [object Object]
+    ☐ Cleanup the failure methods. Can we abstract and extend these? Keep them more consistent; less method signature copy pasting.
+    ☐ Aborting matches: if matchEvent === abort, send discord message: Looks like the last match was aborted. Use "!obr include <matchId>" to include scores from the aborted match.
+    ☐ Error handling: Don't worry about uncaught exceptions like "connection closed" errors - just use foreverjs to restart the app in the event of failure.
+    ☐ Too many match results: Need some way of limiting the maximum number of matches downloaded per multiplayer (right now we're using 500kb/s for 150+ matches in a single multi when polling every 1s)
+    ☐ Replace lolex with a spy in lobby-create.test.
+        Using lolex is just a temp solution for now. The problem is if we use another timer anywhere else within the LobbyController.create method chain, it will replace all those timers with the lolex mock.
+
