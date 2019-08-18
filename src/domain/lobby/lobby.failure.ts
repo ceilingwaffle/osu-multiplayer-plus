@@ -36,8 +36,7 @@ export const banchoMultiplayerIdAlreadyAssociatedWithGameFailure = (
   additionalErrorMessageText?: string
 ): Failure<LobbyFailure.BanchoMultiplayerIdAlreadyAssociatedWithGameFailure> => ({
   type: LobbyFailure.BanchoMultiplayerIdAlreadyAssociatedWithGameFailure,
-  reason: [
-    `The multiplayer ID of ${banchoMultiplayerId} has already been associated with game ID ${gameId}.`,
-    additionalErrorMessageText
-  ].join(" ")
+  reason: [`The multiplayer ID of ${banchoMultiplayerId} has already been added to game ID ${gameId}.`, additionalErrorMessageText].join(
+    " "
+  )
 });

@@ -9,7 +9,12 @@ import { User } from "../user/user.entity";
 import { Game } from "../game/game.entity";
 import { GameFailure } from "../game/game.failure";
 import { UserFailure } from "../user/user.failure";
-import { LobbyFailure, invalidLobbyCreationArgumentsFailure, banchoMultiplayerIdAlreadyAssociatedWithGameFailure } from "./lobby.failure";
+import {
+  LobbyFailure,
+  invalidLobbyCreationArgumentsFailure,
+  banchoMultiplayerIdAlreadyAssociatedWithGameFailure,
+  lobbyCreationFailure
+} from "./lobby.failure";
 import { GameService } from "../game/game.service";
 import { inject } from "inversify";
 import { Log } from "../../utils/Log";
@@ -18,6 +23,7 @@ import { UserService } from "../user/user.service";
 import { validate } from "class-validator";
 import { OsuLobbyWatcher } from "../../osu/osu-lobby-watcher";
 import { GameRepository } from "../game/game.repository";
+import { GameStatus } from "../game/game-status";
 
 export class LobbyService {
   private readonly lobbyRepository: LobbyRepository = getCustomRepository(LobbyRepository);
@@ -101,6 +107,15 @@ export class LobbyService {
         // no game exists created by the user, or no game exists for the provided game ID
         Log.methodFailure(this.processAddLobbyRequest, this.constructor.name, foundGameResult.value.reason, foundGameResult.value.error);
         return failurePromise(foundGameResult.value);
+      }
+
+      // fail to add lobby on a closed-game
+      if (GameStatus.isEndedStatus(foundGameResult.value.status)) {
+        const gameId = foundGameResult.value.id;
+        const gameStatus = GameStatus.getTextFromKey(foundGameResult.value.status);
+        const failureReason = `A lobby cannot be added to game ID ${gameId} because it has a status of ${gameStatus}. Try re-opening the game or creating a new one.`;
+        Log.methodFailure(this.processAddLobbyRequest, this.constructor.name, failureReason);
+        return failurePromise(lobbyCreationFailure(failureReason));
       }
 
       const alreadyUsingBanchoMpId = await this.isGameUsingBanchoMultiplayerId(lobbyData.banchoMultiplayerId, foundGameResult.value.id);

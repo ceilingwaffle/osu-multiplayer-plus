@@ -99,7 +99,7 @@ export class GameService {
         Log.methodFailure(this.endGame, this.constructor.name, failureMessage);
         return failurePromise(gameDoesNotExistFailure(failureMessage));
       }
-      if (!GameStatus.isEndableStatus(game.status)) {
+      if (GameStatus.isEndedStatus(game.status)) {
         const failureMessage = `Game with ID ${gameId} cannot be ended due to having a game status of ${game.status}.`;
         Log.methodFailure(this.endGame, this.constructor.name, failureMessage);
         return failurePromise(gameDoesNotExistFailure(failureMessage));
