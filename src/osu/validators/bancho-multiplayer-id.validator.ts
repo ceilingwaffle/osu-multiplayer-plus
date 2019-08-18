@@ -7,13 +7,19 @@ import {
 } from "class-validator";
 import { NodesuApiFetcher } from "../nodesu-api-fetcher";
 import { IOsuApiFetcher } from "../interfaces/osu-api-fetcher";
+import { LobbyRepository } from "../../domain/lobby/lobby.repository";
+import { getCustomRepository } from "typeorm";
 
 @ValidatorConstraint({ async: true })
 export class IsValidBanchoMultiplayerIdConstraint implements ValidatorConstraintInterface {
   protected osuApi: IOsuApiFetcher = NodesuApiFetcher.getInstance();
+  protected lobbyRepository: LobbyRepository = getCustomRepository(LobbyRepository);
 
-  validate(banchoMultiplayerId: string, args: ValidationArguments): Promise<boolean> {
-    return this.osuApi.isValidBanchoMultiplayerId(banchoMultiplayerId);
+  async validate(banchoMultiplayerId: string, args: ValidationArguments): Promise<boolean> {
+    // Check if the multiplayer id was previously-added to a lobby (and was therefore previously validated).
+    // Otherwise, validate using the osu API.
+    const lobby = await this.lobbyRepository.findOne({ banchoMultiplayerId: banchoMultiplayerId });
+    return !!lobby || this.osuApi.isValidBanchoMultiplayerId(banchoMultiplayerId);
   }
 
   defaultMessage(args: ValidationArguments) {
