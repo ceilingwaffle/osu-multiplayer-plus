@@ -31,7 +31,7 @@ export class NodesuApiFetcher implements IOsuApiFetcher {
   }
 
   async isValidBanchoMultiplayerId(banchoMultiplayerId: string): Promise<boolean> {
-    Log.debug(`Validating Bancho MP ${banchoMultiplayerId}...`);
+    Log.debug(`Validating Bancho MP ${banchoMultiplayerId} using osu API...`);
     const mpid = Number(banchoMultiplayerId);
     if (isNaN(mpid)) {
       Log.debug(`Validation failed for Bancho MP: ${IsValidBanchoMultiplayerId} is NaN.`);

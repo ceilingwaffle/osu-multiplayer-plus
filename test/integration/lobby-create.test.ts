@@ -391,7 +391,7 @@ describe("When adding a lobby", function() {
   //     }
   //   });
   // });
-  it("it should create a new relationship between the target game id and a Lobby, where the provided Bancho-multiplayer-id already belongs to another Lobby", function() {
+  it("it should create a new relationship between the target-game and an existing-Lobby when re-using a Bancho-multiplayer-id", function() {
     return new Promise(async (resolve, reject) => {
       try {
         /* #region  Setup */
