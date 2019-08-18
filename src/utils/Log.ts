@@ -40,6 +40,6 @@ export class Log {
   }
 
   static methodError(method: Function, ...args: any[]) {
-    Log.error(`Method unhandled-error: ${method.name}`, args);
+    Log.error(`Method unexpected-error: ${method.name}`, args);
   }
 }
