@@ -29,24 +29,24 @@ export class CreateGameDiscordMessageBuilder extends AbstractDiscordMessageBuild
   public buildDiscordMessage(commandMessage: CommandMessage): RichEmbed {
     const message = super.buildDiscordMessage(commandMessage);
 
-    const creator = this.responseResult.createdBy as DiscordUserReportProperties;
-    const refs = this.responseResult.refereedBy as DiscordUserReportProperties[];
+    const creator = this.response.result.createdBy as DiscordUserReportProperties;
+    const refs = this.response.result.refereedBy as DiscordUserReportProperties[];
 
     const livesCommandExample = DiscordCommandExampleBuilder.getExampleFor(this.command, "lives", {
-      gameId: this.responseResult.gameId
+      gameId: this.response.result.gameId
     });
     const countFailedCommandExample = DiscordCommandExampleBuilder.getExampleFor(this.command, "countFailed", {
-      gameId: this.responseResult.gameId
+      gameId: this.response.result.gameId
     });
 
     message.addField(
       "Game Properties",
-      `Game ID: ${this.responseResult.gameId}
-      Starting Lives: ${this.responseResult.teamLives} (change using: \`\`${livesCommandExample}\`\`)
-      Count Failed Scores: ${this.responseResult.countFailedScores} (change using: \`\`${countFailedCommandExample}\`\`)
-      Game Status: ${this.responseResult.status}
+      `Game ID: ${this.response.result.gameId}
+      Starting Lives: ${this.response.result.teamLives} (change using: \`\`${livesCommandExample}\`\`)
+      Count Failed Scores: ${this.response.result.countFailedScores} (change using: \`\`${countFailedCommandExample}\`\`)
+      Game Status: ${this.response.result.status}
       Referees: ${refs.map(ref => `<@${ref.discordUserId}>`).join(", ")}
-      Created by: <@${creator.discordUserId}> ${this.responseResult.createdAgo}`
+      Created by: <@${creator.discordUserId}> ${this.response.result.createdAgo}`
     );
 
     return message;

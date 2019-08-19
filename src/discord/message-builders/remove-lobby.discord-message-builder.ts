@@ -15,14 +15,14 @@ export class RemoveLobbyDiscordMessageBuilder extends AbstractDiscordMessageBuil
   public buildDiscordMessage(commandMessage: CommandMessage): RichEmbed {
     const message = super.buildDiscordMessage(commandMessage);
 
-    const remover = this.responseResult.removedBy as DiscordUserReportProperties;
+    const remover = this.response.result.removedBy as DiscordUserReportProperties;
 
     message.addField(
       "Removed-Lobby Properties",
-      `Multiplayer ID: ${this.responseResult.multiplayerId}
-      Game ID: ${this.responseResult.gameIdRemovedFrom} (for info: \`\`!obr game ${this.responseResult.gameIdRemovedFrom}\`\`)
-      Lobby Status: ${this.responseResult.status} 
-      Removed by: <@${remover.discordUserId}> ${this.responseResult.removedAgo}`
+      `Multiplayer ID: ${this.response.result.multiplayerId}
+      Game ID: ${this.response.result.gameIdRemovedFrom} (for info: \`\`!obr game ${this.response.result.gameIdRemovedFrom}\`\`)
+      Lobby Status: ${this.response.result.status} 
+      Removed by: <@${remover.discordUserId}> ${this.response.result.removedAgo}`
     );
 
     return message;

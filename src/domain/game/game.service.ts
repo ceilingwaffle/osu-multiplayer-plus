@@ -18,6 +18,7 @@ import { OsuLobbyWatcher } from "../../osu/osu-lobby-watcher";
 import { LobbyStatus } from "../lobby/lobby-status";
 import { User } from "../user/user.entity";
 import { Helpers } from "../../utils/helpers";
+import { CreateGameCommand } from "../../discord/commands/create-game.command";
 
 export class GameService {
   private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);

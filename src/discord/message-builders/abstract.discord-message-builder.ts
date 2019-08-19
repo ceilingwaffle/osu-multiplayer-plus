@@ -56,14 +56,6 @@ export abstract class AbstractDiscordMessageBuilder<ResponseResultType> {
   protected response: Response<ResponseResultType>;
 
   /**
-   * The Response result data.
-   *
-   * @protected
-   * @type {ResponseResultType}
-   */
-  protected responseResult: ResponseResultType;
-
-  /**
    * Used to ensure the setup has been completed before building the message.
    *
    * @private
@@ -82,7 +74,6 @@ export abstract class AbstractDiscordMessageBuilder<ResponseResultType> {
 
     this.command = command;
     this.response = response;
-    this.responseResult = response.result;
     this.title = response.message;
 
     this.isReadyForBuilding = true;

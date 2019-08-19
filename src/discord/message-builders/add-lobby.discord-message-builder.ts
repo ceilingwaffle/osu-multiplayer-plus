@@ -15,15 +15,15 @@ export class AddLobbyDiscordMessageBuilder extends AbstractDiscordMessageBuilder
   public buildDiscordMessage(commandMessage: CommandMessage): RichEmbed {
     const message = super.buildDiscordMessage(commandMessage);
 
-    const creator = this.responseResult.addedBy as DiscordUserReportProperties;
+    const creator = this.response.result.addedBy as DiscordUserReportProperties;
 
     message.addField(
       "Lobby Properties",
-      `Multiplayer ID: ${this.responseResult.multiplayerId}
-      Starting Map Number: ${this.responseResult.startAtMapNumber}
-      Game ID: ${this.responseResult.gameId} (for info: \`\`!obr game ${this.responseResult.gameId}\`\`)
-      Lobby Status: ${this.responseResult.status} 
-      Added by: <@${creator.discordUserId}> ${this.responseResult.addedAgo}`
+      `Multiplayer ID: ${this.response.result.multiplayerId}
+      Starting Map Number: ${this.response.result.startAtMapNumber}
+      Game ID: ${this.response.result.gameId} (for info: \`\`!obr game ${this.response.result.gameId}\`\`)
+      Lobby Status: ${this.response.result.status} 
+      Added by: <@${creator.discordUserId}> ${this.response.result.addedAgo}`
     );
 
     return message;
