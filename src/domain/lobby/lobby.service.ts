@@ -212,6 +212,8 @@ export class LobbyService {
       // unwatch the bancho lobby if the lobby no longer belongs to any games
       if (targetLobby.games.length < 1) {
         this.lobbyWatcher.unwatch({ banchoMultiplayerId: targetLobby.banchoMultiplayerId, gameId: gameId });
+        // update the lobby status
+        targetLobby.status = LobbyStatus.STOPPED_WATCHING.getKey();
       }
 
       const savedLobby = await this.saveAndReloadLobby(targetLobby, ["games", "removedBy", "removedBy.discordUser", "removedBy.webUser"]);

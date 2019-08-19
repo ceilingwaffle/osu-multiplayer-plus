@@ -6,6 +6,7 @@ TODO:
     ✔ Run tests individually @done(19-08-18 22:41)
     ✔ Add a manual remove-lobby command. Include description like "this will not close the actual lobby; it will only tell the bot to stop scanning the lobby for future results." @started(19-08-19 00:30) @done(19-08-19 05:13) @lasted(4h43m45s)
     ✔ When using command !obr addlobby 54078930 6, on a game which already has that lobby added, return some error message. @started(19-08-19 00:30) @done(19-08-19 05:13) @lasted(4h43m45s)
+    ✔ Write tests for asserting lobby status after lobby-removal @started(19-08-20 05:22) @done(19-08-20 05:44) @lasted(22m21s)
     ☐ Finish writing tests for asserting error messages received when sending remove-lobby requests
     ☐ User-permissions
         ☐ Ensure that the user sending delete/update commands is a game ref or game creator
