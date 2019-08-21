@@ -2,19 +2,21 @@ import { Failure } from "../../utils/Failure";
 import { ValidationError } from "class-validator";
 
 export enum GameFailure {
-  InvalidCreationArguments,
+  InvalidGameProperties,
   CreatorUserLookupFailed,
   CreatorUserCreationFailed,
-  GameNotFound
+  GameNotFound,
+  GameStatusNotAllowed,
+  UserHasNotCreatedGame
 }
 
-export const invalidCreationArgumentsFailure = (
+export const invalidGamePropertiesFailure = (
   validationErrors: ValidationError[],
   reason?: string
-): Failure<GameFailure.InvalidCreationArguments> => ({
-  type: GameFailure.InvalidCreationArguments,
+): Failure<GameFailure.InvalidGameProperties> => ({
+  type: GameFailure.InvalidGameProperties,
   validationErrors: validationErrors,
-  reason: reason || "One or more game arguments were invalid."
+  reason: reason || "One or more game properties were invalid."
 });
 
 export const creatorUserLookupError = (error: Error, reason?: string): Failure<GameFailure.CreatorUserLookupFailed> => ({
@@ -29,7 +31,17 @@ export const creatorUserCreationError = (error: Error, reason?: string): Failure
   error: error
 });
 
-export const gameDoesNotExistFailure = (reason?: string): Failure<GameFailure.GameNotFound> => ({
+export const gameDoesNotExistFailure = (gameId: number): Failure<GameFailure.GameNotFound> => ({
   type: GameFailure.GameNotFound,
-  reason: reason || "Game not found."
+  reason: `A game does not exist matching game ID ${gameId}.`
+});
+
+export const gameStatusNotAllowedFailure = (gameId: number, gameStatus: string): Failure<GameFailure.GameStatusNotAllowed> => ({
+  type: GameFailure.GameStatusNotAllowed,
+  reason: `Game with ID ${gameId} cannot be ended due to having a game status of ${gameStatus}.`
+});
+
+export const userHasNotCreatedGameFailure = (userId: number): Failure<GameFailure.UserHasNotCreatedGame> => ({
+  type: GameFailure.UserHasNotCreatedGame,
+  reason: `No games have been created by user ID ${userId}.`
 });

@@ -14,6 +14,8 @@ TODO:
         ☐ Ensure that the user *adding a lobby* is a game ref or game creator
         ☐ Need some kind of game-permissions abstraction. e.g. user1.for(lobby).isPermittedTo(LobbyUpdateAction) - does a library already exist for this sort of thing?
         ☐ Allow Discord roles to be used for app-roles. Use both Discord-roles and DB-user-roles.
+    ☐ Replace the default commando "catch-all" error-handler with our own specific one with messages formatted the same as the ErrorDiscordMessageBuilder
+        Consider making ErrorDiscordMessageBuilder handle something less specific than just Response objects, or create another ErrorBuilder abstraction layer.
     ☐ osu-lobby-watcher.ts -> refreshAndEmitMultiplayerResults(): Use lobby.startingMapNumber to skip some results
     ☐ When adding a lobby before creating a game, the error message returned should replace "user ID X" with [at]DiscordUsername" instead (e.g. No games have been created by user ID 2. -> No games have been created by [at]CeilingWaffle
         ☐ Response<T> should be of type AddLobbyFailureReport and contain a discordUserId property

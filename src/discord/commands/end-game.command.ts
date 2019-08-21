@@ -44,7 +44,7 @@ export class EndGameCommand extends Command {
       requestDto: {
         type: "discord",
         authorId: message.author.id,
-        originChannel: message.channel.id
+        originChannelId: message.channel.id
       }
     });
 

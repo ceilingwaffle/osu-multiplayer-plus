@@ -4,7 +4,7 @@ import { WebRequestDto } from "./web-request.dto";
 export interface RequestDto {
   type: CommunicationClientType;
   authorId: string;
-  originChannel: string;
+  originChannelId: string;
 }
 
 export type RequestDtoType = DiscordRequestDto | WebRequestDto;

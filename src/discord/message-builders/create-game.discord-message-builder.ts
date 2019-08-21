@@ -2,12 +2,12 @@ import { RichEmbed } from "discord.js";
 import { CommandMessage, Command } from "discord.js-commando";
 import { AbstractDiscordMessageBuilder } from "./abstract.discord-message-builder";
 import { Response } from "../../requests/Response";
-import { CreateGameReport } from "../../domain/game/reports/create-game.report";
+import { UpdateGameReport } from "../../domain/game/reports/update-game.report";
 import { DiscordUserReportProperties } from "../../domain/shared/reports/discord-user-report-properties";
 import { DiscordCommandExampleBuilder } from "../discord-command-example-builder";
 
-export class CreateGameDiscordMessageBuilder extends AbstractDiscordMessageBuilder<CreateGameReport> {
-  public from(response: Response<CreateGameReport>, command: Command): this {
+export class CreateGameDiscordMessageBuilder extends AbstractDiscordMessageBuilder<UpdateGameReport> {
+  public from(response: Response<UpdateGameReport>, command: Command): this {
     super.from(response, command);
     this.validateSuccessResponse(response);
 

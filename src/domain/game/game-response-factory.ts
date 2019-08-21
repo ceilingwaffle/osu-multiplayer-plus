@@ -17,7 +17,13 @@ export class GameResponseFactory extends AbstractResponseFactory<Game> {
   }
 
   getMessageTargets(): GameMessageTarget[] {
-    return [{ type: this.requestData.type, authorId: this.requestData.authorId, channel: this.requestData.originChannel }];
+    return [
+      {
+        type: this.requestData.type,
+        // authorId: this.requestData.authorId,
+        channelId: this.requestData.originChannelId
+      }
+    ];
   }
 
   getCreatedAgoText(): string {
