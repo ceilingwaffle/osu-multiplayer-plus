@@ -107,27 +107,24 @@ describe("When removing a lobby", function() {
           gameDto: game1,
           requestDto: createGame1DiscordRequest
         });
-        if (!createGame1Response || !createGame1Response.success) {
-          fail();
-        }
+        assert.isDefined(createGame1Response);
+        assert.isTrue(createGame1Response.success);
 
         // user 2 creates game 2
         const createGame2Response = await gameController.create({
           gameDto: game2,
           requestDto: createGame2DiscordRequest
         });
-        if (!createGame2Response || !createGame2Response.success) {
-          fail();
-        }
+        assert.isDefined(createGame2Response);
+        assert.isTrue(createGame2Response.success);
 
         // user 1 creates game 3
         const createGame3Response = await gameController.create({
           gameDto: game3,
           requestDto: createGame3DiscordRequest
         });
-        if (!createGame3Response || !createGame3Response.success) {
-          fail();
-        }
+        assert.isDefined(createGame3Response);
+        assert.isTrue(createGame3Response.success);
         /* #endregion */
 
         return resolve();
@@ -316,6 +313,16 @@ describe("When removing a lobby", function() {
       }
     });
   });
+
+  // it("should deny a lobby-removal when the requesting-user does not have permission", function() {
+  //   return new Promise(async (resolve, reject) => {
+  //     try {
+  //       return resolve();
+  //     } catch (error) {
+  //       return reject(error);
+  //     }
+  //   });
+  // });
 
   // it("should receive an error message when trying to remove a Lobby when the Lobby was not one of the lobbies of a game", function() {
   //   return new Promise((resolve, reject) => {

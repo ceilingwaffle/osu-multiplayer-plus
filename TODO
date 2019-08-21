@@ -9,9 +9,11 @@ TODO:
     ✔ Write tests for asserting lobby status after lobby-removal @started(19-08-20 05:22) @done(19-08-20 05:44) @lasted(22m21s)
     ☐ Finish writing tests for asserting error messages received when sending remove-lobby requests
     ☐ User-permissions
-        ☐ Ensure that the user sending delete/update commands is a game ref or game creator
-        ☐ A user adding a lobby to a game should be the game creator or game ref
+        https://github.com/tensult/role-acl
+        ☐ Ensure that the user *removing a lobby* is a game ref or game creator
+        ☐ Ensure that the user *adding a lobby* is a game ref or game creator
         ☐ Need some kind of game-permissions abstraction. e.g. user1.for(lobby).isPermittedTo(LobbyUpdateAction) - does a library already exist for this sort of thing?
+        ☐ Allow Discord roles to be used for app-roles. Use both Discord-roles and DB-user-roles.
     ☐ osu-lobby-watcher.ts -> refreshAndEmitMultiplayerResults(): Use lobby.startingMapNumber to skip some results
     ☐ When adding a lobby before creating a game, the error message returned should replace "user ID X" with [at]DiscordUsername" instead (e.g. No games have been created by user ID 2. -> No games have been created by [at]CeilingWaffle
         ☐ Response<T> should be of type AddLobbyFailureReport and contain a discordUserId property
