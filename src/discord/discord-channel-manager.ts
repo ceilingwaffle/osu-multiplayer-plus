@@ -1,7 +1,8 @@
 import { Guild, TextChannel } from "discord.js";
-import { Either, failurePromise, successPromise } from "../utils/Either";
 import { Failure } from "../utils/Failure";
 import { DiscordFailureTypes, notPermittedManageChannelsFailure, unexpectedChannelTypeFailure } from "./discord.failure";
+import { Response } from "../requests/Response";
+import { FailureMessage } from "../utils/message";
 
 export class DiscordChannelManager {
   /**
@@ -13,20 +14,37 @@ export class DiscordChannelManager {
    * @returns {Promise<Either<Failure<DiscordFailureTypes>, TextChannel>>}
    * @memberof DiscordChannelManager
    */
-  static createGameChannel(gameId: number, guild: Guild): Promise<Either<Failure<DiscordFailureTypes>, TextChannel>> {
+  static createGameChannel(gameId: number, guild: Guild): Promise<Response<TextChannel>> {
     return this.createTextChannel(`obr-game-${gameId}`, guild);
   }
 
-  static async createTextChannel(channelName: string, guild: Guild): Promise<Either<Failure<DiscordFailureTypes>, TextChannel>> {
+  static async createTextChannel(channelName: string, guild: Guild): Promise<Response<TextChannel>> {
     if (!guild.me.hasPermission("MANAGE_CHANNELS")) {
-      return failurePromise(notPermittedManageChannelsFailure());
+      return {
+        success: false,
+        message: FailureMessage.get("discordChannelCreateFailed"),
+        errors: {
+          messages: [notPermittedManageChannelsFailure().reason]
+        }
+      };
     }
 
     const channel = await guild.createChannel(`${channelName}`, { type: "text" });
+
     if (!(channel instanceof TextChannel)) {
-      return failurePromise(unexpectedChannelTypeFailure());
+      return {
+        success: false,
+        message: FailureMessage.get("discordChannelCreateFailed"),
+        errors: {
+          messages: [unexpectedChannelTypeFailure().reason]
+        }
+      };
     }
 
-    return successPromise(channel);
+    return {
+      success: true,
+      message: FailureMessage.get("discordChannelCreateSuccess"),
+      result: channel
+    };
   }
 }

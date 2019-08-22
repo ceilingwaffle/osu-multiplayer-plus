@@ -50,7 +50,7 @@ export class RemoveLobbyCommand extends Command {
         gameId: args.gameId
       },
       requestDto: {
-        type: "discord",
+        commType: "discord",
         authorId: message.author.id,
         originChannelId: message.channel.id
       }

@@ -59,7 +59,7 @@ export class AddLobbyCommand extends Command {
         startAtMap: args.startAtMap
       },
       requestDto: {
-        type: "discord",
+        commType: "discord",
         authorId: message.author.id,
         originChannelId: message.channel.id
       }

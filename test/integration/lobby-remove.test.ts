@@ -58,9 +58,9 @@ const game1: CreateGameDto = {
   teamLives: 11
 };
 const createGame1DiscordRequest: DiscordRequestDto = {
-  type: "discord",
+  commType: "discord",
   authorId: "tester1",
-  originChannel: "tester1's amazing channel"
+  originChannelId: "tester1's amazing channel"
 };
 // user 2 creates game 2
 const game2: CreateGameDto = {
@@ -68,9 +68,9 @@ const game2: CreateGameDto = {
   teamLives: 22
 };
 const createGame2DiscordRequest: DiscordRequestDto = {
-  type: "discord",
+  commType: "discord",
   authorId: "tester2",
-  originChannel: "tester2's amazing channel"
+  originChannelId: "tester2's amazing channel"
 };
 // user 1 creates game 3
 const game3: CreateGameDto = {
@@ -78,9 +78,9 @@ const game3: CreateGameDto = {
   teamLives: 33
 };
 const createGame3DiscordRequest: DiscordRequestDto = {
-  type: "discord",
+  commType: "discord",
   authorId: "tester1",
-  originChannel: "tester1's amazing channel"
+  originChannelId: "tester1's amazing channel"
 };
 
 describe("When removing a lobby", function() {

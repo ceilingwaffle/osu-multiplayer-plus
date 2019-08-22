@@ -11,9 +11,10 @@ import { User } from "../../src/domain/user/user.entity";
 import { GameStatus } from "../../src/domain/game/game-status";
 import { ConnectionManager } from "../../src/utils/connection-manager";
 import { DiscordUser } from "../../src/domain/user/discord-user.entity";
-import { CreateGameReport } from "../../src/domain/game/reports/create-game.report";
+import { UpdateGameReport } from "../../src/domain/game/reports/update-game.report";
 import { DiscordUserReportProperties } from "../../src/domain/shared/reports/discord-user-report-properties";
 import { GameDefaults } from "../../src/domain/game/game-defaults";
+import { GameMessageTarget } from "../../src/domain/game/game-message-target";
 
 async function getEntities(): Promise<TestContextEntities[]> {
   const conn = await ConnectionManager.getInstance();
@@ -50,16 +51,16 @@ describe("When creating a game", function() {
       try {
         const gameDto: CreateGameDto = {};
         const requestDto: DiscordRequestDto = {
-          type: "discord",
+          commType: "discord",
           authorId: "tester",
-          originChannel: "tester's amazing channel"
+          originChannelId: "tester's amazing channel"
         };
 
         const gameController = iocContainer.get(GameController);
         const gameCreateResponse = await gameController.create({ gameDto: gameDto, requestDto: requestDto });
         assert.isNotNull(gameCreateResponse);
         assert.isTrue(gameCreateResponse.success);
-        const gameReport = gameCreateResponse.result as CreateGameReport;
+        const gameReport = gameCreateResponse.result as UpdateGameReport;
         assert.isNotNull(gameReport);
         assert.isNotNull(gameReport.teamLives, "Expected some default value for game team lives.");
         assert.strictEqual(gameReport.teamLives, GameDefaults.teamLives);
@@ -82,9 +83,9 @@ describe("When creating a game", function() {
           countFailedScores: false
         };
         const requestDto: DiscordRequestDto = {
-          type: "discord",
+          commType: "discord",
           authorId: "tester",
-          originChannel: "tester's amazing channel"
+          originChannelId: "tester's amazing channel"
         };
 
         /* #region  game properties */
@@ -93,7 +94,7 @@ describe("When creating a game", function() {
         assert.isDefined(gameCreateResponse);
         assert.isTrue(gameCreateResponse.success);
 
-        const gameReport = gameCreateResponse.result as CreateGameReport;
+        const gameReport = gameCreateResponse.result as UpdateGameReport;
         expect(gameReport).to.not.be.undefined;
         expect(gameReport.status).to.equal(GameStatus.IDLE_NEWGAME.getText(), "New games should have an initial game status of idle.").but
           .not.be.null;
@@ -106,18 +107,19 @@ describe("When creating a game", function() {
         assert.isNotNull(gameReport.messageTargets);
         assert.lengthOf(gameReport.messageTargets, 1);
 
-        let msgTarget: { type: any; authorId: any; channel?: string };
-        msgTarget = gameReport.messageTargets.find(msgTarget => msgTarget.type === requestDto.type);
+        let msgTarget: GameMessageTarget;
+        msgTarget = gameReport.messageTargets.find(msgTarget => msgTarget.commType === requestDto.commType);
         assert.isDefined(msgTarget, "Game should have a message target contaning the expected request type (e.g. DiscordRequest).");
-        assert.isNotNull(msgTarget.type);
+        assert.isNotNull(msgTarget.commType);
 
-        msgTarget = gameReport.messageTargets.find(msgTarget => msgTarget.authorId === requestDto.authorId);
-        assert.isDefined(msgTarget, "Game should have a message target contaning the requester's author ID.");
-        assert.isNotNull(msgTarget.authorId);
+        // NOTE: removed authorId 2019-08-22 because I couldn't find a purpose for it
+        // msgTarget = gameReport.messageTargets.find(msgTarget => msgTarget.authorId === requestDto.authorId);
+        // assert.isDefined(msgTarget, "Game should have a message target contaning the requester's author ID.");
+        // assert.isNotNull(msgTarget.authorId);
 
-        msgTarget = gameReport.messageTargets.find(msgTarget => msgTarget.channel === requestDto.originChannel);
+        msgTarget = gameReport.messageTargets.find(msgTarget => msgTarget.channelId === requestDto.originChannelId);
         assert.isDefined(msgTarget, "Game should have a message target contaning the channel where the request was initiated.");
-        assert.isNotNull(msgTarget.channel);
+        assert.isNotNull(msgTarget.channelId);
         /* #endregion */
 
         /* #region  game creator */
@@ -147,9 +149,9 @@ describe("When creating a game", function() {
           teamLives: 1.5 // should be a whole number
         };
         const requestDto: DiscordRequestDto = {
-          type: "discord",
+          commType: "discord",
           authorId: "tester",
-          originChannel: "tester's amazing channel"
+          originChannelId: "tester's amazing channel"
         };
 
         const gameController = iocContainer.get(GameController);

@@ -20,9 +20,9 @@ export class RequesterFactory {
    * @returns {Requester}
    */
   public static initialize(requestDto: RequestDtoType): Requester {
-    if (requestDto.type === "discord") {
+    if (requestDto.commType === "discord") {
       return new DiscordRequester(requestDto, iocContainer.get(entities.UserService));
-    } else if (requestDto.type === "web") {
+    } else if (requestDto.commType === "web") {
       return new WebRequester(requestDto, iocContainer.get(entities.UserService));
     } else {
       const _exhaustiveCheck: never = requestDto;

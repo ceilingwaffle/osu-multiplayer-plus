@@ -1,4 +1,4 @@
-import { CommunicationClientType } from "../../requests/dto/request.dto";
+import { GameMessageTarget } from "./game-message-target";
 
 /**
  * Used to modify the Message Targets of a Game in some way.
@@ -7,7 +7,7 @@ import { CommunicationClientType } from "../../requests/dto/request.dto";
  * @export
  * @interface GameMessageTargetAction
  */
-export interface GameMessageTargetAction {
+export interface GameMessageTargetAction extends GameMessageTarget {
   /**
    * overwrite-all: Overwrites all other game message-target-channels with this channel.
    *
@@ -18,18 +18,4 @@ export interface GameMessageTargetAction {
    * @type {("overwrite-all" | "add" | "remove")}
    */
   action: "overwrite-all" | "add" | "remove";
-
-  /**
-   * e.g. Discord or web
-   *
-   * @type {CommunicationClientType}
-   * @memberof GameMessageTargetAction
-   */
-  type: CommunicationClientType;
-  /**
-   * The target channel ID (e.g. Discord channel ID).
-   *
-   * @type {string}
-   */
-  channelId: string;
 }

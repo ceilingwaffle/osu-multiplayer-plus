@@ -48,7 +48,7 @@ export class CreateGameCommand extends Command {
     }
   ): Promise<Message | Message[]> {
     const requestDto: DiscordRequestDto = {
-      type: "discord",
+      commType: "discord",
       authorId: message.author.id,
       originChannelId: message.channel.id
     };
@@ -69,21 +69,23 @@ export class CreateGameCommand extends Command {
     }
 
     // game was created
-    // TODO: change the return type of createGameChannel from "Either<...>" to "Response<CreateDiscordChannelReport>"
+    // add a discord channel
     const createTextChannelResponse = await DiscordChannelManager.createGameChannel(createGameResponse.result.gameId, message.guild);
     if (!createTextChannelResponse || !createTextChannelResponse.success) {
-      // TODO
       toBeSent = new ErrorDiscordMessageBuilder().from(createTextChannelResponse, this).buildDiscordMessage(message);
       return message.embed(toBeSent);
     }
 
     // TODO: Write test asserting that the game-message-target was added
+    const channel: TextChannel = createTextChannelResponse.result;
+
+    // update the game message target with the discord channel just created
     const updateGameResponse = await this.gameController.update({
       gameDto: {
         gameId: createGameResponse.result.gameId,
         // Since it's a new game, this discord channel we're setting should be the *only* channel.
         // We're not adding a channel at this point, so use the "overwrite-all" action.
-        gameMessageTargetAction: { action: "overwrite-all", type: "discord", channelId: createTextChannelResponse.result.channelId }
+        gameMessageTargetAction: { action: "overwrite-all", commType: "discord", channelId: channel.id, channelType: "game-channel" }
       },
       requestDto: requestDto
     });
@@ -94,7 +96,7 @@ export class CreateGameCommand extends Command {
       return message.embed(toBeSent);
     }
 
-    toBeSent = new CreateGameDiscordMessageBuilder().from(createGameResponse, this).buildDiscordMessage(message);
+    toBeSent = new CreateGameDiscordMessageBuilder().from(updateGameResponse, this).buildDiscordMessage(message);
     return message.embed(toBeSent);
   }
 }

@@ -1,7 +1,13 @@
-import { CommunicationClientType } from "../../requests/dto/request.dto";
+import { CommunicationClientType, CommunicationChannelType } from "../../communication-types";
 
 export interface GameMessageTarget {
-  type: CommunicationClientType;
-  // authorId: string;
+  commType: CommunicationClientType;
+  /**
+   * The target channel ID (e.g. Discord channel ID).
+   *
+   * @type {string}
+   */
   channelId: string;
+  channelType: CommunicationChannelType;
+  // authorId: string;
 }
