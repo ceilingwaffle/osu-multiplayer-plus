@@ -68,7 +68,7 @@ export class GameService {
         messageTargets: [
           {
             commType: requestData.commType,
-            // authorId: requestData.authorId,
+            authorId: requestData.authorId,
             channelId: requestData.originChannelId,
             channelType: "initial-channel"
           }
@@ -205,13 +205,25 @@ export class GameService {
     }
 
     if (gmtAction.action === "add") {
-      game.messageTargets.push({ commType: gmtAction.commType, channelId: gmtAction.channelId, channelType: gmtAction.channelType });
+      game.messageTargets.push({
+        authorId: gmtAction.authorId,
+        commType: gmtAction.commType,
+        channelId: gmtAction.channelId,
+        channelType: gmtAction.channelType
+      });
     } else if (gmtAction.action === "remove") {
       const i = game.messageTargets.indexOf(gmtAction);
       if (i < 0) throw new Error("Cannot remove Game Message Target because it does not exist.");
       game.messageTargets.splice(i, 1);
     } else if (gmtAction.action === "overwrite-all") {
-      game.messageTargets = [{ commType: gmtAction.commType, channelId: gmtAction.channelId, channelType: gmtAction.channelType }];
+      game.messageTargets = [
+        {
+          authorId: gmtAction.authorId,
+          commType: gmtAction.commType,
+          channelId: gmtAction.channelId,
+          channelType: gmtAction.channelType
+        }
+      ];
     } else {
       const _exhaustiveCheck: never = gmtAction.action;
       return _exhaustiveCheck;

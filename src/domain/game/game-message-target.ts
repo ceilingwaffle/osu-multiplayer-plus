@@ -9,5 +9,11 @@ export interface GameMessageTarget {
    */
   channelId: string;
   channelType: CommunicationChannelType;
-  // authorId: string;
+  /**
+   * The author of the original create-game command. This is used as a fallback message-target if the channel or Discord-server is deleted.
+   *
+   * @type {string}
+   * @memberof GameMessageTarget
+   */
+  authorId: string;
 }

@@ -7,10 +7,19 @@ TODO:
     ✔ Add a manual remove-lobby command. Include description like "this will not close the actual lobby; it will only tell the bot to stop scanning the lobby for future results." @started(19-08-19 00:30) @done(19-08-19 05:13) @lasted(4h43m45s)
     ✔ When using command !obr addlobby 54078930 6, on a game which already has that lobby added, return some error message. @started(19-08-19 00:30) @done(19-08-19 05:13) @lasted(4h43m45s)
     ✔ Write tests for asserting lobby status after lobby-removal @started(19-08-20 05:22) @done(19-08-20 05:44) @lasted(22m21s)
-    ☐ Add discord command `!obr set-channels-category "OBR Games"`
-    ☐ Refuse `!obr creategame` command from a game-channel.
     ☐ Finish writing tests for asserting error messages received when sending remove-lobby requests
-    ☐ User-permissions
+    Discord Channels:
+        ✘ Add discord command `!obr set-channels-category "OBR Games"` @cancelled(19-08-22 20:14)
+            This should create a new Discord-category (container of text-channels) where all future-created game-channels will be created in for this server.
+        ✘ Refuse `!obr creategame` command from a game-channel. @cancelled(19-08-22 20:14)
+            This *should* be OK to allow, but could be weird in situations where one game has an initial-channel as the game-channel of another game. Could be problematic with channel deletions. So just disallow this for now to be safe.
+        ☐ Figure out how to handle the situation where the target-channel of the GameMessageTarget has been deleted. Where do messages get sent to? Maybe DM the original author?
+            Use authorId as the message-target to do this.
+        ☐ End game and shut-down watchers if the game target-channel is deleted. Listen for the "Channel Delete" event on the Discord.js Client: 
+            Channel Delete event: https://discord.js.org/#/docs/main/stable/class/Client?scrollTo=e-channelDelete
+            All Discord events: https://discord.js.org/#/docs/main/stable/typedef/WSEventType
+            ☐ Also if the server is deleted. Is there an event for that? Send some kind of "server deleted, so we're shutting down the game" message to the original game author.
+    User Permissions:
         https://github.com/tensult/role-acl
         ☐ Ensure that the user *removing a lobby* is a game ref or game creator
         ☐ Ensure that the user *adding a lobby* is a game ref or game creator

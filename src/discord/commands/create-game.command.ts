@@ -68,35 +68,34 @@ export class CreateGameCommand extends Command {
       return message.embed(toBeSent);
     }
 
-    // game was created
-    // add a discord channel
-    const createTextChannelResponse = await DiscordChannelManager.createGameChannel(createGameResponse.result.gameId, message.guild);
-    if (!createTextChannelResponse || !createTextChannelResponse.success) {
-      toBeSent = new ErrorDiscordMessageBuilder().from(createTextChannelResponse, this).buildDiscordMessage(message);
-      return message.embed(toBeSent);
-    }
+    // // game was created
+    // // add a discord channel
+    // const createTextChannelResponse = await DiscordChannelManager.createGameChannel(createGameResponse.result.gameId, message.guild);
+    // if (!createTextChannelResponse || !createTextChannelResponse.success) {
+    //   toBeSent = new ErrorDiscordMessageBuilder().from(createTextChannelResponse, this).buildDiscordMessage(message);
+    //   return message.embed(toBeSent);
+    // }
 
-    // TODO: Write test asserting that the game-message-target was added
-    const channel: TextChannel = createTextChannelResponse.result;
+    // // TODO: Write test asserting that the game-message-target was added
+    // const channel: TextChannel = createTextChannelResponse.result;
+    // // update the game message target with the discord channel just created
+    // const updateGameResponse = await this.gameController.update({
+    //   gameDto: {
+    //     gameId: createGameResponse.result.gameId,
+    //     // Since it's a new game, this discord channel we're setting should be the *only* channel.
+    //     // We're not adding a channel at this point, so use the "overwrite-all" action.
+    //     gameMessageTargetAction: { action: "overwrite-all", commType: "discord", channelId: channel.id, channelType: "game-channel" }
+    //   },
+    //   requestDto: requestDto
+    // });
 
-    // update the game message target with the discord channel just created
-    const updateGameResponse = await this.gameController.update({
-      gameDto: {
-        gameId: createGameResponse.result.gameId,
-        // Since it's a new game, this discord channel we're setting should be the *only* channel.
-        // We're not adding a channel at this point, so use the "overwrite-all" action.
-        gameMessageTargetAction: { action: "overwrite-all", commType: "discord", channelId: channel.id, channelType: "game-channel" }
-      },
-      requestDto: requestDto
-    });
+    // if (!updateGameResponse || !updateGameResponse.success) {
+    //   // game was not updated
+    //   toBeSent = new ErrorDiscordMessageBuilder().from(updateGameResponse, this).buildDiscordMessage(message);
+    //   return message.embed(toBeSent);
+    // }
 
-    if (!updateGameResponse || !updateGameResponse.success) {
-      // game was not updated
-      toBeSent = new ErrorDiscordMessageBuilder().from(updateGameResponse, this).buildDiscordMessage(message);
-      return message.embed(toBeSent);
-    }
-
-    toBeSent = new CreateGameDiscordMessageBuilder().from(updateGameResponse, this).buildDiscordMessage(message);
+    toBeSent = new CreateGameDiscordMessageBuilder().from(createGameResponse, this).buildDiscordMessage(message);
     return message.embed(toBeSent);
   }
 }

@@ -41,9 +41,10 @@ export class CreateGameDiscordMessageBuilder extends AbstractDiscordMessageBuild
 
     // TODO: Write test asserting only one game-channel defined for all message targets for this game
     const gameChannel = this.response.result.messageTargets.find(mt => mt.channelType === "game-channel");
+    const initialChannel = this.response.result.messageTargets.find(mt => mt.channelType === "initial-channel");
     message.addField(
       "Game Properties",
-      `Channel: ${gameChannel ? "<#" + gameChannel.channelId + ">" : ""}
+      `Channel: ${gameChannel ? this.linkChannel(gameChannel.channelId) : this.linkChannel(initialChannel.channelId)}
       Game ID: ${this.response.result.gameId}
       Starting Lives: ${this.response.result.teamLives} (change using: \`\`${livesCommandExample}\`\`)
       Count Failed Scores: ${this.response.result.countFailedScores} (change using: \`\`${countFailedCommandExample}\`\`)

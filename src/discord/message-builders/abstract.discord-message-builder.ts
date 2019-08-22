@@ -110,4 +110,8 @@ export abstract class AbstractDiscordMessageBuilder<ResponseResultType> {
     this.validateResponse(response);
     if (response.success === true) throw new Error(`Response should have failed.`);
   }
+
+  protected linkChannel(channelId: string): string {
+    return "<#" + channelId + ">";
+  }
 }

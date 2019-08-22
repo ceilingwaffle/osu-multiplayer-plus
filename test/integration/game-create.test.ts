@@ -112,10 +112,9 @@ describe("When creating a game", function() {
         assert.isDefined(msgTarget, "Game should have a message target contaning the expected request type (e.g. DiscordRequest).");
         assert.isNotNull(msgTarget.commType);
 
-        // NOTE: removed authorId 2019-08-22 because I couldn't find a purpose for it
-        // msgTarget = gameReport.messageTargets.find(msgTarget => msgTarget.authorId === requestDto.authorId);
-        // assert.isDefined(msgTarget, "Game should have a message target contaning the requester's author ID.");
-        // assert.isNotNull(msgTarget.authorId);
+        msgTarget = gameReport.messageTargets.find(msgTarget => msgTarget.authorId === requestDto.authorId);
+        assert.isDefined(msgTarget, "Game should have a message target contaning the requester's author ID.");
+        assert.isNotNull(msgTarget.authorId);
 
         msgTarget = gameReport.messageTargets.find(msgTarget => msgTarget.channelId === requestDto.originChannelId);
         assert.isDefined(msgTarget, "Game should have a message target contaning the channel where the request was initiated.");
