@@ -15,9 +15,13 @@ import { GameStatus } from "./game-status";
 import { EndGameDto } from "./dto/end-game.dto";
 import { EndGameReport } from "./reports/end-game.report";
 import { UpdateGameDto } from "./dto/update-game.dto";
+import { Permissions } from "../../authorization/permissions";
 
 export class GameController {
-  constructor(@inject(GameService) private readonly gameService: GameService) {
+  constructor(
+    @inject(GameService) private readonly gameService: GameService,
+    @inject(Permissions) private readonly permissions: Permissions
+  ) {
     Log.info("Initialized Game Controller.");
   }
 
@@ -47,6 +51,8 @@ export class GameController {
           }
         };
       }
+
+      // skip permissions check - everyone is allowed to create a game
 
       // create and save the game
       const createGameResult = await this.gameService.createAndSaveGame(creatorResult.value.id, gameData.gameDto, gameData.requestDto);
@@ -102,24 +108,30 @@ export class GameController {
       if (!requester) throw new RequesterFactoryInitializationError(this.constructor.name, this.endGame.name);
 
       // get/create the user ending the game
-      const creatorResult = await requester.getOrCreateUser();
-      if (creatorResult.failed()) {
-        if (creatorResult.value.error) throw creatorResult.value.error;
-        Log.methodFailure(this.endGame, this.constructor.name, creatorResult.value.reason);
+      const requestingUserResult = await requester.getOrCreateUser();
+      if (requestingUserResult.failed()) {
+        if (requestingUserResult.value.error) throw requestingUserResult.value.error;
+        Log.methodFailure(this.endGame, this.constructor.name, requestingUserResult.value.reason);
         return {
           success: false,
           message: FailureMessage.get("gameEndFailed"),
           errors: {
-            messages: [creatorResult.value.reason],
-            validation: creatorResult.value.validationErrors
+            messages: [requestingUserResult.value.reason],
+            validation: requestingUserResult.value.validationErrors
           }
         };
+      }
+
+      const requestingUser = requestingUserResult.value;
+      const userRole: string = await this.gameService.getUserRoleForGame(requestingUser.id, gameData.gameDto.gameId);
+      const permission = this.permissions.ac.can(userRole).execute("end").on("game"); // prettier-ignore
+      if (!permission.granted) {
       }
 
       // try to end the game
       const endGameResult = await this.gameService.endGame({
         gameDto: gameData.gameDto,
-        endedByUser: creatorResult.value
+        endedByUser: requestingUserResult.value
       });
       if (endGameResult.failed()) {
         if (endGameResult.value.error) throw endGameResult.value.error;

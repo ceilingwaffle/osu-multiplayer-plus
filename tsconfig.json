@@ -5,7 +5,7 @@
     "target": "es6",
     "module": "commonjs",
     "lib": ["es6"],
-    "types": ["reflect-metadata", "node", "set-interval-async"],
+    "types": ["reflect-metadata", "node", "set-interval-async", "role-acl"],
     "typeRoots": ["./typings", "./node_modules/@types"],
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,

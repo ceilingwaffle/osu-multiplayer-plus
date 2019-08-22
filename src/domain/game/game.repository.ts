@@ -1,6 +1,7 @@
 import { Repository, EntityRepository, Brackets, UpdateResult, SelectQueryBuilder } from "typeorm";
 import { Game } from "./game.entity";
 import { Lobby } from "../lobby/lobby.entity";
+import { Role } from "../roles/role.type";
 
 @EntityRepository(Game)
 export class GameRepository extends Repository<Game> {
@@ -39,6 +40,17 @@ export class GameRepository extends Repository<Game> {
       .leftJoinAndSelect("game.lobbies", "lobbies")
       .where("game.id = :gameId", { gameId: gameId })
       .getOne();
+  }
+
+  findUserRoleForGame(gameId: number, userId: number): Promise<Role> {
+    throw new Error("Method not implemented.");
+    // return this.createQueryBuilder("game")
+    //   .leftJoinAndSelect("game.createdBy", "createdBy")
+    //   .where("createdBy.id = :userId", { userId: userId })
+    //   .leftJoinAndSelect("game.refereedBy", "refereedBy")
+    //   .where("refereedBy.id = :userId", { userId: userId })
+    //   .where("game.id = :gameId", { gameId: gameId })
+    //   .getMany();
   }
 
   private getFindGameQb(gameId: number): SelectQueryBuilder<Game> {

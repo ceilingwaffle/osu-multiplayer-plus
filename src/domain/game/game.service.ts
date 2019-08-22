@@ -58,13 +58,14 @@ export class GameService {
         return failurePromise(userResult.value);
       }
       const gameCreator = userResult.value;
+
       // create the game
       const game = this.gameRepository.create({
         teamLives: gameData.teamLives != null ? gameData.teamLives : GameDefaults.teamLives,
         countFailedScores: gameData.countFailedScores != null ? gameData.countFailedScores : GameDefaults.countFailedScores,
-        createdBy: gameCreator,
+        // createdBy: gameCreator.userGameRoles.filter(ugr => ugr.user.id === gameCreator.id),
         status: GameStatus.IDLE_NEWGAME.getKey(),
-        refereedBy: [gameCreator],
+        // refereedBy: [gameCreator],
         messageTargets: [
           {
             commType: requestData.commType,
@@ -74,6 +75,11 @@ export class GameService {
           }
         ]
       });
+
+      // TODO: After the game is created, add an entry in UserGameRoles using game id and requester-user id
+      // TODO: OLD IDEA -------- add the game without a relation to the UserGameRole, then create a new UserGameRole using gameCreator.userId + newGame.gameId + role === "game-creator" (this should update the game afterwards with a reference to the UserGameRole)
+      // TODO: Should we store a redundant reference to the game creator on the game entity? Possibly bad because now we have multiple references to the creator - what if we access it from the wrong entity while working on this in a few months time?
+
       // validate the game
       const errors = await validate(game);
       if (errors.length > 0) {
@@ -181,6 +187,13 @@ export class GameService {
       Log.methodSuccess(this.createAndSaveGame, this.constructor.name);
       return successPromise(reloadedGame);
     } catch (error) {}
+  }
+
+  public async getUserRoleForGame(userId: number, gameId: number): Promise<string> {
+    const games = this.gameRepository.findUserRoleForGame(gameId, userId);
+    if (!games) return null;
+
+    throw new Error("Method not implemented.");
   }
 
   /**
