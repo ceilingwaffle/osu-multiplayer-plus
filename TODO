@@ -1,44 +1,57 @@
 // using TODO+ extension for vscode
 TODO: 
-    ✔ Currently, the lobby service is trying to add a new Lobby with the same banchoMultiplayerId rather than create a new Lobby-Game relationship. To fix this, add some code in the lobby service to check for the existing banchoMultiplayerId Lobby, and push the target-Game onto the lobby.games array. @started(19-08-18 17:00) @done(19-08-18 17:31) @lasted(31m15s)
-    ✔ Make bancho multiplayer ID unique to lobby. No two lobbies should exist with the same mp ID. @done(19-08-18 19:49)
-    ✔ Finish writing commented-out tests in lobby-create.test.ts @started(19-08-18 20:12) @done(19-08-18 21:25) @lasted(1h13m39s)
-    ✔ Run tests individually @done(19-08-18 22:41)
-    ✔ Add a manual remove-lobby command. Include description like "this will not close the actual lobby; it will only tell the bot to stop scanning the lobby for future results." @started(19-08-19 00:30) @done(19-08-19 05:13) @lasted(4h43m45s)
-    ✔ When using command !obr addlobby 54078930 6, on a game which already has that lobby added, return some error message. @started(19-08-19 00:30) @done(19-08-19 05:13) @lasted(4h43m45s)
-    ✔ Write tests for asserting lobby status after lobby-removal @started(19-08-20 05:22) @done(19-08-20 05:44) @lasted(22m21s)
-    ☐ Finish writing tests for asserting error messages received when sending remove-lobby requests
-    Discord Channels:
-        ✘ Add discord command `!obr set-channels-category "OBR Games"` @cancelled(19-08-22 20:14)
-            This should create a new Discord-category (container of text-channels) where all future-created game-channels will be created in for this server.
-        ✘ Refuse `!obr creategame` command from a game-channel. @cancelled(19-08-22 20:14)
-            This *should* be OK to allow, but could be weird in situations where one game has an initial-channel as the game-channel of another game. Could be problematic with channel deletions. So just disallow this for now to be safe.
-        ☐ Figure out how to handle the situation where the target-channel of the GameMessageTarget has been deleted. Where do messages get sent to? Maybe DM the original author?
-            Use authorId as the message-target to do this.
-        ☐ End game and shut-down watchers if the game target-channel is deleted. Listen for the "Channel Delete" event on the Discord.js Client: 
-            Channel Delete event: https://discord.js.org/#/docs/main/stable/class/Client?scrollTo=e-channelDelete
-            All Discord events: https://discord.js.org/#/docs/main/stable/typedef/WSEventType
-            ☐ Also if the server is deleted. Is there an event for that? Send some kind of "server deleted, so we're shutting down the game" message to the original game author.
-    User Permissions:
-        https://github.com/tensult/role-acl
-        ☐ Ensure that the user *removing a lobby* is a game ref or game creator
-        ☐ Ensure that the user *adding a lobby* is a game ref or game creator
-        ☐ Need some kind of game-permissions abstraction. e.g. user1.for(lobby).isPermittedTo(LobbyUpdateAction) - does a library already exist for this sort of thing?
-        ☐ Allow Discord roles to be used for app-roles. Use both Discord-roles and DB-user-roles.
-    ☐ Replace the default commando "catch-all" error-handler with our own specific one with messages formatted the same as the ErrorDiscordMessageBuilder
-        Consider making ErrorDiscordMessageBuilder handle something less specific than just Response objects, or create another ErrorBuilder abstraction layer.
-    ☐ osu-lobby-watcher.ts -> refreshAndEmitMultiplayerResults(): Use lobby.startingMapNumber to skip some results
-    ☐ When adding a lobby before creating a game, the error message returned should replace "user ID X" with [at]DiscordUsername" instead (e.g. No games have been created by user ID 2. -> No games have been created by [at]CeilingWaffle
+    Error Messages:
+        ☐ When adding a lobby before creating a game, the error message returned should replace "user ID X" with [at]DiscordUsername" instead (e.g. No games have been created by user ID 2. -> No games have been created by [at]CeilingWaffle
         ☐ Response<T> should be of type AddLobbyFailureReport and contain a discordUserId property
-    ☐ When adding an invalid bancho mp id (e.g. 1234) the error message should be better. Right now it's: banchoMultiplayerId: "1234" is bad because: [object Object]
-    ☐ Cleanup the failure methods. Can we abstract and extend these? Keep them more consistent; less method signature copy pasting.
-    ☐ Aborting matches: if matchEvent === abort, send discord message: Looks like the last match was aborted. Use "!obr include <matchId>" to include scores from the aborted match.
-    ☐ Error handling: Don't worry about uncaught exceptions like "connection closed" errors - just use foreverjs to restart the app in the event of failure.
-    ☐ Too many match results: Need some way of limiting the maximum number of matches downloaded per multiplayer (right now we're using 500kb/s for 150+ matches in a single multi when polling every 1s)
-    ☐ Replace lolex with a spy in lobby-create.test.
+            ☐ When adding an invalid bancho mp id (e.g. 1234) the error message should be better. Right now it's: banchoMultiplayerId: "1234" is bad because: [object Object]
+    Server:
+        ☐ Ensure app does not crash, or if it does, restart it in a reliable way
+        Don't worry about uncaught exceptions like "connection closed" errors - just use foreverjs to restart the app in the event of failure.
+    Tests:
+        ✔ Finish writing commented-out tests in lobby-create.test.ts @started(19-08-18 20:12) @done(19-08-18 21:25) @lasted(1h13m39s)
+        ✔ Run tests individually @done(19-08-18 22:41)
+        ✔ Write tests for asserting lobby status after lobby-removal @started(19-08-20 05:22) @done(19-08-20 05:44) @lasted(22m21s)
+        ☐ Finish writing tests for asserting error messages received when sending remove-lobby requests
+    Optimize: 
+        ☐ Improve startup time for `npm run test`
+        ☐ Fix having to restart the app multiple times waiting for database connection
+            ☐ Handle soft/hard lobby deletes depending on whether or not matches exist for the given lobby.
+            e.g. if the user adds the lobby, then immediately removes it, this is okay to hard delete.
+        ☐ Too many match results being downloaded from the osu API.
+            Need some way of limiting the maximum number of matches downloaded per multiplayer (right now we're using 500kb/s for 150+ matches in a single multi when polling every 1s)
+    Refactor:
+        ☐ Replace the default commando "catch-all" error-handler.
+        Replace it with our own specific one with messages formatted the same as the ErrorDiscordMessageBuilder. Consider making ErrorDiscordMessageBuilder handle something less specific than just Response objects, or create another ErrorBuilder abstraction layer.
+        ☐ Cleanup the failure methods. 
+        Can we abstract and extend these? Keep them more consistent; less method signature copy pasting.
+        ☐ Replace lolex with a spy in lobby-create.test.
         Using lolex is just a temp solution for now. The problem is if we use another timer anywhere else within the LobbyController.create method chain, it will replace all those timers with the lolex mock.
-
-Optimize: 
-    ☐ Improve startup time for `npm run test`
-    ☐ Fix having to restart the app multiple times waiting for database connection
-        ☐ Handle soft/hard lobby deletes depending on whether or not matches exist for the given lobby. e.g. if the user adds the lobby, then immediately removes it, this is okay to hard delete.
+    Features:
+        Adding Lobbies:
+            ✔ Currently, the lobby service is trying to add a new Lobby with the same banchoMultiplayerId rather than create a new Lobby-Game relationship. To fix this, add some code in the lobby service to check for the existing banchoMultiplayerId Lobby, and push the target-Game onto the lobby.games array. @started(19-08-18 17:00) @done(19-08-18 17:31) @lasted(31m15s)
+            ✔ Make bancho multiplayer ID unique to lobby. No two lobbies should exist with the same mp ID. @done(19-08-18 19:49)
+        User Permissions:
+            https://github.com/tensult/role-acl
+            ☐ Ensure that the user *removing a lobby* is a game ref or game creator
+            ☐ Ensure that the user *adding a lobby* is a game ref or game creator
+            ☐ Need some kind of game-permissions abstraction. e.g. user1.for(lobby).isPermittedTo(LobbyUpdateAction) - does a library already exist for this sort of thing?
+            ☐ Allow Discord roles to be used for app-roles. Use both Discord-roles and DB-user-roles.
+        Discord:
+            ✔ Add a manual remove-lobby command. Include description like "this will not close the actual lobby; it will only tell the bot to stop scanning the lobby for future results." @started(19-08-19 00:30) @done(19-08-19 05:13) @lasted(4h43m45s)
+            ✔ When using command !obr addlobby 54078930 6, on a game which already has that lobby added, return some error message. @started(19-08-19 00:30) @done(19-08-19 05:13) @lasted(4h43m45s)
+            ✘ Add discord command `!obr set-channels-category "OBR Games"` @cancelled(19-08-22 20:14)
+                This should create a new Discord-category (container of text-channels) where all future-created game-channels will be created in for this server.
+            ✘ Refuse `!obr creategame` command from a game-channel. @cancelled(19-08-22 20:14)
+                This *should* be OK to allow, but could be weird in situations where one game has an initial-channel as the game-channel of another game. Could be problematic with channel deletions. So just disallow this for now to be safe.
+            ☐ Figure out how to handle the situation where the target-channel of the GameMessageTarget has been deleted. Where do messages get sent to? Maybe DM the original author?
+                Use authorId as the message-target to do this.
+            ☐ End game and shut-down watchers if the game target-channel is deleted. Listen for the "Channel Delete" event on the Discord.js Client: 
+                Channel Delete event: https://discord.js.org/#/docs/main/stable/class/Client?scrollTo=e-channelDelete
+                All Discord events: https://discord.js.org/#/docs/main/stable/typedef/WSEventType
+                ☐ Also if the server is deleted. Is there an event for that? Send some kind of "server deleted, so we're shutting down the game" message to the original game author.
+        Matches:
+            ☐  Use lobby.startingMapNumber to skip some map results
+            osu-lobby-watcher.ts -> refreshAndEmitMultiplayerResults()
+            ☐ Send discord message if it looks like the last match was aborted. 
+            Implement some kind of MatchEvent Observer system? Discord message sender will then observe this event and send a message.
+            Use "!obr include <matchId>" to include scores from the aborted match. 
