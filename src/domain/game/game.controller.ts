@@ -216,7 +216,7 @@ export class GameController {
       return {
         success: true,
         message: Message.get("gameUpdateSuccess"),
-        result: ((): UpdateGameReport => {
+        result: await (async (): Promise<UpdateGameReport> => {
           // TODO: Only include which properties were changed. Need to include an array of property names on the update-response for those props which were changed.
           const responseFactory = new GameResponseFactory(requester, game, gameData.requestDto);
           return {
@@ -226,7 +226,7 @@ export class GameController {
             status: GameStatus.getTextFromKey(game.status),
             createdBy: responseFactory.getCreator(),
             createdAgo: responseFactory.getCreatedAgoText(),
-            refereedBy: responseFactory.getReferees(),
+            refereedBy: await responseFactory.getReferees(),
             messageTargets: responseFactory.getMessageTargets()
           };
         })()

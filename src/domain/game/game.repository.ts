@@ -1,7 +1,7 @@
 import { Repository, EntityRepository, Brackets, UpdateResult, SelectQueryBuilder } from "typeorm";
 import { Game } from "./game.entity";
 import { Lobby } from "../lobby/lobby.entity";
-import { Role } from "../roles/role.type";
+import { Role, getRefereeRole } from "../roles/role.type";
 
 @EntityRepository(Game)
 export class GameRepository extends Repository<Game> {
@@ -54,15 +54,24 @@ export class GameRepository extends Repository<Game> {
   }
 
   private getFindGameQb(gameId: number): SelectQueryBuilder<Game> {
-    return this.createQueryBuilder("game")
-      .select()
-      .leftJoinAndSelect("game.createdBy", "createdBy")
-      .leftJoinAndSelect("createdBy.discordUser", "discordUser_createdBy")
-      .leftJoinAndSelect("game.endedBy", "endedBy")
-      .leftJoinAndSelect("endedBy.discordUser", "discordUser_endedBy")
-      .leftJoinAndSelect("game.refereedBy", "refereedBy")
-      .leftJoinAndSelect("refereedBy.discordUser", "discordUser_refereedBy")
-      .where("game.id = :gameId", { gameId: gameId });
+    return (
+      this.createQueryBuilder("game")
+        .select()
+        .leftJoinAndSelect("game.createdBy", "createdBy")
+        .leftJoinAndSelect("createdBy.discordUser", "discordUser_createdBy")
+        .leftJoinAndSelect("game.endedBy", "endedBy")
+        .leftJoinAndSelect("endedBy.discordUser", "discordUser_endedBy")
+        // .leftJoinAndSelect("game.refereedBy", "refereedBy")
+        // .leftJoinAndSelect("refereedBy.discordUser", "discordUser_refereedBy")
+
+        // .leftJoinAndMapMany("game.refereedBy", "game.userGameRoles", "userGameRoles", "userGameRoles.role = :refRole", {
+        //   refRole: getRefereeRole()
+        // })
+
+        // where userGameRoles role === ref    as game.refereedBy
+
+        .where("game.id = :gameId", { gameId: gameId })
+    );
     // .leftJoinAndSelect("createdBy.webUser", "webUser_createdBy")
     // .leftJoinAndSelect("endedBy.webUser", "webUser_endedBy")
     // .leftJoinAndSelect("refereedBy.webUser", "webUser_refereedBy")

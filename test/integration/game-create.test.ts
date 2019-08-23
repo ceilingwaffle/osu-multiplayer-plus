@@ -15,6 +15,7 @@ import { UpdateGameReport } from "../../src/domain/game/reports/update-game.repo
 import { DiscordUserReportProperties } from "../../src/domain/shared/reports/discord-user-report-properties";
 import { GameDefaults } from "../../src/domain/game/game-defaults";
 import { GameMessageTarget } from "../../src/domain/game/game-message-target";
+import { UserGameRole } from "../../src/domain/roles/user-game-role.entity";
 
 async function getEntities(): Promise<TestContextEntities[]> {
   const conn = await ConnectionManager.getInstance();
@@ -161,6 +162,69 @@ describe("When creating a game", function() {
         assert.isNotNull(gameCreateResponse.errors);
 
         expect(gameCreateResponse.errors.validation).to.be.not.empty;
+
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
+
+  it("should have a user-game-role of game-creator after a game is created", function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const gameDto: CreateGameDto = {
+          teamLives: 66,
+          countFailedScores: false
+        };
+        const requestDto: DiscordRequestDto = {
+          commType: "discord",
+          authorId: "tester",
+          originChannelId: "tester's amazing channel"
+        };
+
+        /* #region  game properties */
+        // user 1 creates game 1
+        const gameController = iocContainer.get(GameController);
+        const game1CreateResponse = await gameController.create({ gameDto: gameDto, requestDto: requestDto });
+        assert.isDefined(game1CreateResponse);
+        assert.isTrue(game1CreateResponse.success);
+        const savedGame1 = await Game.findOne({ id: game1CreateResponse.result.gameId }, { relations: ["createdBy"] });
+        assert.isDefined(savedGame1);
+        assert.isNotNull(savedGame1);
+        // the creator of game 1 (user 1) should have the "game-creator" role for game 1
+        const user1Game1Role = await UserGameRole.getRepository().findOne({ game: savedGame1, user: savedGame1.createdBy });
+        assert.isDefined(user1Game1Role);
+        assert.isNotNull(user1Game1Role);
+        assert.equal(user1Game1Role.role, "game-creator");
+
+        // user 2 creates game 2
+        const game2Dto: CreateGameDto = {
+          teamLives: 123,
+          countFailedScores: false
+        };
+        const request2Dto: DiscordRequestDto = {
+          commType: "discord",
+          authorId: "tester2",
+          originChannelId: "tester's amazing channel"
+        };
+        const game2CreateResponse = await gameController.create({ gameDto: game2Dto, requestDto: request2Dto });
+        assert.isDefined(game2CreateResponse);
+        assert.isTrue(game2CreateResponse.success);
+        const savedGame2 = await Game.findOne({ id: game2CreateResponse.result.gameId }, { relations: ["createdBy"] });
+        assert.isDefined(savedGame2);
+        assert.isNotNull(savedGame2);
+
+        // the creator of game 2 (user 2) should NOT be a ref (or creator) of game 1
+        const reloadedGame1 = await Game.findOne({ id: game1CreateResponse.result.gameId }, { relations: ["createdBy"] });
+        const user2Game1Role = await UserGameRole.getRepository().findOne({ game: reloadedGame1, user: savedGame2.createdBy });
+        assert.isUndefined(user2Game1Role, "the creator of game 2 (user 2) should NOT be a ref (or creator) of game 1");
+
+        // the creator of game 1 (user 1) should NOT be a ref (or creator) of game 2
+        const user1Game2Role = await UserGameRole.getRepository().findOne({ game: savedGame2, user: reloadedGame1.createdBy });
+        assert.isUndefined(user1Game2Role, "the creator of game 1 (user 1) should NOT be a ref (or creator) of game 2");
+
+        // TODO: Create a new user and add that user to a ref of a game, then assert that the user is a ref of that game
 
         return resolve();
       } catch (error) {

@@ -2,8 +2,12 @@ import { UserReportProperties } from "../shared/reports/user-report-properties.t
 import { Game } from "./game.entity";
 import { GameMessageTarget } from "./game-message-target";
 import { AbstractResponseFactory } from "../shared/abstract-response-factory";
+// import { UserGameRoleRepository } from "../roles/user-game-role.repository";
+// import { getCustomRepository } from "typeorm";
 
 export class GameResponseFactory extends AbstractResponseFactory<Game> {
+  // protected readonly userGameRoleRepository: UserGameRoleRepository = getCustomRepository(UserGameRoleRepository);
+
   getCreator(): UserReportProperties {
     return this.getUserReportPropertiesForUser(this.subject.createdBy);
   }
@@ -12,18 +16,16 @@ export class GameResponseFactory extends AbstractResponseFactory<Game> {
     return this.getUserReportPropertiesForUser(this.subject.endedBy);
   }
 
+  // async getReferees(): Promise<UserReportProperties[]> {
+  //   const referees = await this.userGameRoleRepository.getGameReferees(this.subject.id);
+  //   return referees.map(user => this.getUserReportPropertiesForUser(user));
+  // }
+
   getReferees(): UserReportProperties[] {
     return this.subject.refereedBy.map(user => this.getUserReportPropertiesForUser(user));
   }
 
   getMessageTargets(): GameMessageTarget[] {
-    // return [
-    //   {
-    //     commType: this.requestData.commType,
-    //     // authorId: this.requestData.authorId,
-    //     channelId: this.requestData.originChannelId
-    //   }
-    // ];
     return this.subject.messageTargets;
   }
 

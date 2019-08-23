@@ -23,17 +23,9 @@ export class User extends AbstractEntity {
   })
   webUser: WebUser;
 
-  // @OneToMany(type => Game, game => game.createdBy)
-  // gamesCreated: Game[];
+  @OneToMany(type => Game, game => game.createdBy)
+  gamesCreated: Game[];
 
-  // @ManyToMany(type => Game, user => user.refereedBy, {
-  //   cascade: [],
-  //   nullable: true
-  // })
-  // @JoinTable()
-  // refereeOf: Game[];
-
-  // must be x-to-MANY
   @OneToMany(type => UserGameRole, userGameRole => userGameRole.user)
   userGameRoles: UserGameRole[];
 }

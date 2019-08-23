@@ -27,9 +27,11 @@ import { Helpers } from "../../utils/helpers";
 import { UpdateGameDto } from "./dto/update-game.dto";
 import { RequestDtoType } from "../../requests/dto/request.dto";
 import { GameMessageTargetAction } from "./game-message-target-action";
+import { UserGameRoleRepository } from "../roles/user-game-role.repository";
 
 export class GameService {
   private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
+  private readonly userGameRoleRepository: UserGameRoleRepository = getCustomRepository(UserGameRoleRepository);
 
   constructor(@inject(UserService) private readonly userService: UserService) {
     Log.info("Initialized Game Service.");
@@ -46,8 +48,7 @@ export class GameService {
   public async createAndSaveGame(
     userId: number,
     gameData: CreateGameDto,
-    requestData: RequestDto,
-    returnWithRelations: string[] = ["createdBy", "createdBy.discordUser", "refereedBy", "refereedBy.discordUser"]
+    requestData: RequestDto
   ): Promise<Either<Failure<GameFailure | UserFailure>, Game>> {
     try {
       // get the game creator
@@ -63,9 +64,8 @@ export class GameService {
       const game = this.gameRepository.create({
         teamLives: gameData.teamLives != null ? gameData.teamLives : GameDefaults.teamLives,
         countFailedScores: gameData.countFailedScores != null ? gameData.countFailedScores : GameDefaults.countFailedScores,
-        // createdBy: gameCreator.userGameRoles.filter(ugr => ugr.user.id === gameCreator.id),
+        createdBy: gameCreator, // createdBy: gameCreator.userGameRoles.filter(ugr => ugr.user.id === gameCreator.id),
         status: GameStatus.IDLE_NEWGAME.getKey(),
-        // refereedBy: [gameCreator],
         messageTargets: [
           {
             commType: requestData.commType,
@@ -76,22 +76,20 @@ export class GameService {
         ]
       });
 
-      // TODO: After the game is created, add an entry in UserGameRoles using game id and requester-user id
-      // TODO: OLD IDEA -------- add the game without a relation to the UserGameRole, then create a new UserGameRole using gameCreator.userId + newGame.gameId + role === "game-creator" (this should update the game afterwards with a reference to the UserGameRole)
-      // TODO: Should we store a redundant reference to the game creator on the game entity? Possibly bad because now we have multiple references to the creator - what if we access it from the wrong entity while working on this in a few months time?
-
       // validate the game
       const errors = await validate(game);
       if (errors.length > 0) {
         Log.methodFailure(this.createAndSaveGame, this.constructor.name, "Game validation failed.");
         return failurePromise(invalidGamePropertiesFailure(errors));
       }
+
       // save the game
       const savedGame = await this.gameRepository.save(game);
-      const reloadedGame = await this.gameRepository.findOneOrFail(savedGame.id, {
-        relations: returnWithRelations
-      });
-      // return the saved game
+      // TODO: Optimize - some way of combining these into a single query
+      const reloadedGame = await this.gameRepository.findGame(savedGame.id);
+      const gameRefs = await this.userGameRoleRepository.getGameReferees(reloadedGame.id);
+      reloadedGame["refereedBy"] = gameRefs;
+
       Log.methodSuccess(this.createAndSaveGame, this.constructor.name);
       return successPromise(reloadedGame);
     } catch (error) {
@@ -153,7 +151,7 @@ export class GameService {
   public async updateGame(
     gameDto: UpdateGameDto,
     requestDto: RequestDtoType,
-    returnWithRelations: string[] = ["createdBy", "createdBy.discordUser", "refereedBy", "refereedBy.discordUser"]
+    returnWithRelations: string[] = ["createdBy", "createdBy.discordUser"] // , "refereedBy", "refereedBy.discordUser"
   ): Promise<Either<Failure<GameFailure | UserFailure>, Game>> {
     try {
       // assume permissions have been checked before this method was called

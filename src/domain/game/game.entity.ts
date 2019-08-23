@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, ManyToMany, JoinTable, OneToMany } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, ManyToMany, JoinTable, OneToMany, AfterInsert } from "typeorm";
 import { IsInt, IsBoolean } from "class-validator";
 import { User } from "../user/user.entity";
 import { GameStatus } from "./game-status";
@@ -40,17 +40,20 @@ export class Game extends AbstractEntity {
   // @ManyToMany(type => User, user => user.refereeOf)
   // refereedBy: User[];
 
-  // @ManyToOne(type => User, user => user.gamesCreated)
-  // @JoinColumn({ name: "created_by_user_id" })
-  // createdBy: User;
+  @ManyToOne(type => User, user => user.gamesCreated)
+  @JoinColumn({ name: "created_by_user_id" })
+  createdBy: User;
 
-  // // Must be x-to-MANY.
-  // // Nullable because we need the game ID in order to create a relationship between the game and the UserGameRole, and in order
-  // // to get a game ID we need to first create the game, therefore the game must first be created momentarily without a UserGameRole.
-  // @OneToMany(type => UserGameRole, userGameRole => userGameRole.game, { nullable: true })
-  // userGameRoles: UserGameRole[];
+  // Must be x-to-MANY.
+  // Nullable because we need the game ID in order to create a relationship between the game and the UserGameRole, and in order
+  // to get a game ID we need to first create the game, therefore the game must first be created momentarily without a UserGameRole.
+  @OneToMany(type => UserGameRole, userGameRole => userGameRole.game, { nullable: true })
+  userGameRoles: UserGameRole[];
+
+  /**
+   * Referees of the game. Initially empty when the game is created. Populated later during the game-creation/update process.
+   *
+   * @type {User[]}
+   */
+  refereedBy: User[];
 }
-
-// @ManyToOne(type => GameStatus, gameStatus => gameStatus.games)
-// @JoinColumn({ name: "game_status_id" })
-// status: GameStatus;
