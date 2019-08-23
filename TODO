@@ -36,6 +36,10 @@ TODO:
             ☐ Ensure that the user *adding a lobby* is a game ref or game creator
             ☐ Need some kind of game-permissions abstraction. e.g. user1.for(lobby).isPermittedTo(LobbyUpdateAction) - does a library already exist for this sort of thing?
             ☐ Allow Discord roles to be used for app-roles. Use both Discord-roles and DB-user-roles.
+        User-Game-Roles:
+            ✘ After the game is created, add an entry in UserGameRoles using game id and requester-user id @cancelled(19-08-23 19:32)
+            ✘ OLD IDEA -------- add the game without a relation to the UserGameRole, then create a new UserGameRole using gameCreator.userId + newGame.gameId + role === "game-creator" (this should update the game afterwards with a reference to the UserGameRole) @cancelled(19-08-23 19:32)
+            ✘ Should we store a redundant reference to the game creator on the game entity? Possibly bad because now we have multiple references to the creator - what if we access it from the wrong entity while working on this in a few months time? @cancelled(19-08-23 19:32)
         Discord:
             ✔ Add a manual remove-lobby command. Include description like "this will not close the actual lobby; it will only tell the bot to stop scanning the lobby for future results." @started(19-08-19 00:30) @done(19-08-19 05:13) @lasted(4h43m45s)
             ✔ When using command !obr addlobby 54078930 6, on a game which already has that lobby added, return some error message. @started(19-08-19 00:30) @done(19-08-19 05:13) @lasted(4h43m45s)
