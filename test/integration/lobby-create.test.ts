@@ -461,11 +461,11 @@ describe("When adding a lobby", function() {
 
         // update game status to closed
         const gameController = iocContainer.get(GameController);
-        const gameEndResponse1 = await gameController.endGame({ gameDto: endGameDto1, requestDto: createGame1DiscordRequest });
+        const gameEndResponse1 = await gameController.endGame({ endGameDto: endGameDto1, requestDto: createGame1DiscordRequest });
 
         // fake out the watcher timer so we don't actually start fetching match results for the lobby
         const clock: InstalledClock = lolex.install();
-        // user 1 attempts to add a lobby without having ever created a game
+        // user 1 attempts to add a lobby to a game that has ended
         const lobbyController = iocContainer.get(LobbyController);
         const lobbyAddResponse1 = await lobbyController.create({
           lobbyDto: lobbyDto1,
@@ -494,7 +494,7 @@ describe("When adding a lobby", function() {
     });
   });
 
-  it("it should create a new relationship between the target-game and an existing-Lobby when re-using a Bancho-multiplayer-id", function() {
+  it("should create a new relationship between the target-game and an existing-Lobby when re-using a Bancho-multiplayer-id", function() {
     return new Promise(async (resolve, reject) => {
       try {
         /* #region  Setup */

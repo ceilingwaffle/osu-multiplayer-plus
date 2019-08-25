@@ -98,6 +98,20 @@ export class GameService {
     }
   }
 
+  /**
+   * Attempts to end a game by stopping any watchers running for lobbies of the game (if they're not longer being used for any other games),
+   * and updates the game status to some appropriate game-ended-status.
+   *
+   * @param {{
+   *     gameDto: EndGameDto;
+   *     endedByUser: User;
+   *   }} {
+   *     gameDto,
+   *     endedByUser
+   *   }
+   * @returns {(Promise<Either<Failure<GameFailure | UserFailure>, Game>>)}
+   * @memberof GameService
+   */
   public async endGame({
     gameDto,
     endedByUser
@@ -131,12 +145,7 @@ export class GameService {
       }
 
       // update game status in database
-      await this.gameRepository.update(gameId, {
-        status: GameStatus.MANUALLY_ENDED.getKey(),
-        endedAt: Helpers.getNow(),
-        endedBy: endedByUser
-      });
-      Log.debug(`Updated game wtih ended-data.`);
+      await this.updateGameAsEnded(gameId, endedByUser);
 
       // return the updated game
       const reloadedGame = await this.gameRepository.findGame(gameId);
@@ -146,6 +155,15 @@ export class GameService {
       Log.methodError(this.endGame, this.constructor.name, error);
       throw error;
     }
+  }
+
+  private async updateGameAsEnded(gameId: number, endedByUser: User) {
+    await this.gameRepository.update(gameId, {
+      status: GameStatus.MANUALLY_ENDED.getKey(),
+      endedAt: Helpers.getNow(),
+      endedBy: endedByUser
+    });
+    Log.methodSuccess(this.updateGameAsEnded, this.constructor.name, { gameId: gameId });
   }
 
   public async updateGame(
@@ -181,6 +199,7 @@ export class GameService {
       const reloadedGame = await this.gameRepository.findOneOrFail(savedGame.id, {
         relations: returnWithRelations
       });
+
       // return the saved game
       Log.methodSuccess(this.createAndSaveGame, this.constructor.name);
       return successPromise(reloadedGame);
@@ -263,6 +282,59 @@ export class GameService {
       return successPromise(game);
     } catch (error) {
       Log.methodError(this.findGameById, this.constructor.name, error);
+      throw error;
+    }
+  }
+
+  public isGameActive(game: Game): boolean {
+    try {
+      return GameStatus.isActiveStatus(game.status);
+    } catch (error) {
+      Log.methodError(this.isGameEnded, this.constructor.name, error);
+      throw error;
+    }
+  }
+
+  public isGameEnded(game: Game): boolean {
+    try {
+      return GameStatus.isEndedStatus(game.status);
+    } catch (error) {
+      Log.methodError(this.isGameEnded, this.constructor.name, error);
+      throw error;
+    }
+  }
+
+  public async updateGameStatusForGameId({
+    gameId,
+    status
+  }: {
+    gameId: number;
+    status: GameStatus;
+  }): Promise<Either<Failure<GameFailure>, Game>> {
+    try {
+      const findGameResult = await this.findGameById(gameId);
+      if (findGameResult.failed()) return findGameResult;
+      const game = findGameResult.value;
+      return await this.updateGameStatusForGameEntity({ game, status });
+    } catch (error) {
+      Log.methodError(this.updateGameStatusForGameId, this.constructor.name, error);
+      throw error;
+    }
+  }
+
+  public async updateGameStatusForGameEntity({
+    game,
+    status
+  }: {
+    game: Game;
+    status: GameStatus;
+  }): Promise<Either<Failure<GameFailure>, Game>> {
+    try {
+      game.status = status.getKey();
+      const savedGame = await this.gameRepository.save(game);
+      return successPromise(savedGame);
+    } catch (error) {
+      Log.methodError(this.updateGameStatusForGameEntity, this.constructor.name, error);
       throw error;
     }
   }

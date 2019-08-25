@@ -345,4 +345,14 @@ describe("When removing a lobby", function() {
   //     }
   //   });
   // });
+
+  // it("should receive an error message when trying to remove a Lobby from a concluded game", function() {
+  //   return new Promise((resolve, reject) => {
+  //     try {
+  //       return resolve();
+  //     } catch (error) {
+  //       return reject(error);
+  //     }
+  //   });
+  // });
 });

@@ -1,17 +1,31 @@
 // using TODO+ extension for vscode
 TODO: 
+    ☐ Explore the osu! API - we need to know if submitting a map when you're in a multi will display the map in your "recent" played maps. This is mainly for MING MODE where we need to know - if it's displayed in your recent plays with an F (if failed in a multi). Does it only show F if you didn't recover in the multi, or will it show some letter (S,A,B,C,D) when you recover before the end of the map.
+    ☐ Remove GameStatus.UNKNOWN
+        Using "UNKNOWN" feels lazy. If there's an error preventing a known-status being applied, we should just throw an error instead of resorting to an "UNKNOWN" status. Also having a game status as "UNKNOWN" means that status has to be handled in some way eventually, so why not just handle it that way to start with?
+    ☐ Take a look at the new osu! API
     Error Messages:
         ☐ When adding a lobby before creating a game, the error message returned should replace "user ID X" with [at]DiscordUsername" instead (e.g. No games have been created by user ID 2. -> No games have been created by [at]CeilingWaffle
         ☐ Response<T> should be of type AddLobbyFailureReport and contain a discordUserId property
             ☐ When adding an invalid bancho mp id (e.g. 1234) the error message should be better. Right now it's: banchoMultiplayerId: "1234" is bad because: [object Object]
     Server:
         ☐ Ensure app does not crash, or if it does, restart it in a reliable way
-        Don't worry about uncaught exceptions like "connection closed" errors - just use foreverjs to restart the app in the event of failure.
+            Don't worry about uncaught exceptions like "connection closed" errors - just use foreverjs to restart the app in the event of failure.
     Tests:
         ✔ Finish writing commented-out tests in lobby-create.test.ts @started(19-08-18 20:12) @done(19-08-18 21:25) @lasted(1h13m39s)
         ✔ Run tests individually @done(19-08-18 22:41)
         ✔ Write tests for asserting lobby status after lobby-removal @started(19-08-20 05:22) @done(19-08-20 05:44) @lasted(22m21s)
         ☐ Finish writing tests for asserting error messages received when sending remove-lobby requests
+        ☐ Write test for: Create a new user and add that user to a ref of a game, then assert that the user is a ref of that game
+        ☐ Write test for testing ending games @started(19-08-25 20:00)
+        ☐ We have an issue where some tests are responsible for too much
+            e.g. end game is creating a game, changing the status, and ending the game. So now the test for "end game" will fail if the code fails in the GameControler under "create game".
+            Solution 1 - Instead of calling controller methods, just directly modify the state of the database. The only disadvantage I can see to this is that there will be less test-coverage-redundancy, but this should be fine if we've tested every possible scenario in its own test. This way when a specific function fails, it will only fail the corresponding test.
+        ☐ Replace assert.equal with assert.strictEqual
+            I feel like using strictEqual would be less susceptible to some rare instances of tests passing when they shouldn't. I have no idea if this is actually true though. Needs research. 
+    Design: 
+        ☐ We need a name for this thing
+            Last Man Standing = LMS, so maybe lmsu -> lemonsu (good lord this is terrible; need more coffee) 
     Optimize: 
         ☐ Improve startup time for `npm run test`
         ☐ Fix having to restart the app multiple times waiting for database connection
@@ -21,12 +35,44 @@ TODO:
             Need some way of limiting the maximum number of matches downloaded per multiplayer (right now we're using 500kb/s for 150+ matches in a single multi when polling every 1s)
     Refactor:
         ☐ Replace the default commando "catch-all" error-handler.
-        Replace it with our own specific one with messages formatted the same as the ErrorDiscordMessageBuilder. Consider making ErrorDiscordMessageBuilder handle something less specific than just Response objects, or create another ErrorBuilder abstraction layer.
+            Replace it with our own specific one with messages formatted the same as the ErrorDiscordMessageBuilder. Consider making ErrorDiscordMessageBuilder handle something less specific than just Response objects, or create another ErrorBuilder abstraction layer.
         ☐ Cleanup the failure methods. 
-        Can we abstract and extend these? Keep them more consistent; less method signature copy pasting.
+            Can we abstract and extend these? Keep them more consistent; less method signature copy pasting.
         ☐ Replace lolex with a spy in lobby-create.test.
-        Using lolex is just a temp solution for now. The problem is if we use another timer anywhere else within the LobbyController.create method chain, it will replace all those timers with the lolex mock.
+            Using lolex is just a temp solution for now. The problem is if we use another timer anywhere else within the LobbyController.create method chain, it will replace all those timers with the lolex mock.
+    Pre-release checklist:
+        ☐ Some way of keeping dependencies secure and up-to-date
+            Something like:https://dependabot.com/javascript/
     Features:
+        Game Variations:
+            What we have access to - maps, mods(SD), modes - team vs, ffa, TAG4, osu API
+            Progression/Level-up Server System:
+                Encourage people to use the bot more.
+                ☐ Prestige Badges
+                ☐ The more games you start, the more you level up.
+                ☐ As you level up, you unlock more modes, e.g. like winner deciding who gets host.
+                ☐ [1:18] Dionysaw: You unlock maps that you can play in lobbies
+            Mini-Games:
+                ☐ Voting for the winner
+                ☐ Guess the roll
+                ☐ osu! trivia quiz
+            Game Modes:
+                ☐ Team Vs / Sudden Death idea
+                Multiple lobby support for 16x16 teams. Could in theory have any nxn sizes, but maybe we want to limit it to 16x16 to make the chat experience better.
+                ☐ Battle Royale / Last-Man-Standing, either solo or teams
+                    ☐ The winner gets host
+                    ☐ The winner gets to the decide who gets kicked,
+                        ☐ or maybe gets to choose one of the bottom 2 or 3 players to be kicked
+                        ☐ or make it - everyone votes to decide who gets kicked
+                        ☐ or the winner decides the target player, and the lobby votes yay or nay on whether or not they actually get kicked.
+                    ☐ If you SS, you gain a life, or temporarily gain some kind of forbidden power. Like you choose the next map. 
+                    ☐ If you're on 0 lives, you need to win the next map, otherwise you're eliminated. "One final chance" mode.
+                    ☐ Riwaka: One player can force a mod on the entire lobby
+                        Would also be cool if one player could force a mod on a specific player
+                ☐ MING MODE - Whoever can pass with the lowest acc wins. Can't fail at any point.
+                ☐ "True Elimination" Mode - Add option for kicking the losing team/player from the lobby within some short time after losing all their lives.
+                    "CeilingWaffle doesn't feel so good..."
+                    ☐ Randomly request a roll of 50 or above to save themselves (to gain a life)
         Adding Lobbies:
             ✔ Currently, the lobby service is trying to add a new Lobby with the same banchoMultiplayerId rather than create a new Lobby-Game relationship. To fix this, add some code in the lobby service to check for the existing banchoMultiplayerId Lobby, and push the target-Game onto the lobby.games array. @started(19-08-18 17:00) @done(19-08-18 17:31) @lasted(31m15s)
             ✔ Make bancho multiplayer ID unique to lobby. No two lobbies should exist with the same mp ID. @done(19-08-18 19:49)
@@ -55,7 +101,7 @@ TODO:
                 ☐ Also if the server is deleted. Is there an event for that? Send some kind of "server deleted, so we're shutting down the game" message to the original game author.
         Matches:
             ☐  Use lobby.startingMapNumber to skip some map results
-            osu-lobby-watcher.ts -> refreshAndEmitMultiplayerResults()
+                osu-lobby-watcher.ts -> refreshAndEmitMultiplayerResults()
             ☐ Send discord message if it looks like the last match was aborted. 
-            Implement some kind of MatchEvent Observer system? Discord message sender will then observe this event and send a message.
-            Use "!obr include <matchId>" to include scores from the aborted match. 
+                Implement some kind of MatchEvent Observer system? Discord message sender will then observe this event and send a message. Use "!obr include <matchId>" to include scores from the aborted match. 
+Archive:

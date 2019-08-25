@@ -1,7 +1,7 @@
 import { UserGameRole } from "./user-game-role.entity";
 import { EntityRepository, Repository } from "typeorm";
 import { User } from "../user/user.entity";
-import { refereeRoles } from "./role.type";
+import { gameAdminRoles } from "./role.type";
 
 @EntityRepository(UserGameRole)
 export class UserGameRoleRepository extends Repository<UserGameRole> {
@@ -12,7 +12,7 @@ export class UserGameRoleRepository extends Repository<UserGameRole> {
    * @returns {Promise<User[]>}
    */
   async getGameReferees(gameId: number): Promise<User[]> {
-    const refRoles = refereeRoles.map(role => role.valueOf());
+    const refRoles = gameAdminRoles.map(role => role.valueOf());
 
     const userGameRoles = await this.createQueryBuilder("user_game_role")
       .leftJoinAndSelect("user_game_role.game", "game")

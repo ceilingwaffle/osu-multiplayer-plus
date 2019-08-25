@@ -38,7 +38,7 @@ export class EndGameCommand extends Command {
     }
   ): Promise<Message | Message[]> {
     const endGameResponse = await this.gameController.endGame({
-      gameDto: {
+      endGameDto: {
         gameId: args.gameID
       },
       requestDto: {

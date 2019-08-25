@@ -101,7 +101,7 @@ export class GameController {
     }
   }
 
-  public async endGame(gameData: { gameDto: EndGameDto; requestDto: RequestDtoType }): Promise<Response<EndGameReport>> {
+  public async endGame(gameData: { endGameDto: EndGameDto; requestDto: RequestDtoType }): Promise<Response<EndGameReport>> {
     try {
       // build the requester
       const requester: Requester = RequesterFactory.initialize(gameData.requestDto);
@@ -123,14 +123,15 @@ export class GameController {
       }
 
       const requestingUser = requestingUserResult.value;
-      const userRole: string = await this.gameService.getUserRoleForGame(requestingUser.id, gameData.gameDto.gameId);
+      const userRole: string = await this.gameService.getUserRoleForGame(requestingUser.id, gameData.endGameDto.gameId);
       const permission = this.permissions.ac.can(userRole).execute("end").on("game"); // prettier-ignore
       if (!permission.granted) {
+        Log.methodFailure();
       }
 
       // try to end the game
       const endGameResult = await this.gameService.endGame({
-        gameDto: gameData.gameDto,
+        gameDto: gameData.endGameDto,
         endedByUser: requestingUserResult.value
       });
       if (endGameResult.failed()) {

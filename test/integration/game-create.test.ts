@@ -47,7 +47,7 @@ describe("When creating a game", function() {
     // TODO: Teardown DB
   });
 
-  it("should save a new game from a Discord request containing no specified game properties", function() {
+  it("should save a game from a Discord request containing no specified game properties", function() {
     return new Promise(async (resolve, reject) => {
       try {
         const gameDto: CreateGameDto = {};
@@ -76,7 +76,7 @@ describe("When creating a game", function() {
     });
   });
 
-  it("should save a new game from a Discord request containing some game properties", function() {
+  it("should save a game from a Discord request containing some game properties", function() {
     return new Promise(async (resolve, reject) => {
       try {
         const gameDto: CreateGameDto = {
@@ -142,7 +142,7 @@ describe("When creating a game", function() {
     });
   });
 
-  it("should not save a game with validation errors", function() {
+  it("should fail to save a game with validation errors", function() {
     return new Promise(async (resolve, reject) => {
       try {
         const gameDto: CreateGameDto = {
@@ -170,7 +170,7 @@ describe("When creating a game", function() {
     });
   });
 
-  it("should have a user-game-role of game-creator after a game is created", function() {
+  it("should set the `game-creator` role on the user creating the game", function() {
     return new Promise(async (resolve, reject) => {
       try {
         const gameDto: CreateGameDto = {
@@ -223,8 +223,6 @@ describe("When creating a game", function() {
         // the creator of game 1 (user 1) should NOT be a ref (or creator) of game 2
         const user1Game2Role = await UserGameRole.getRepository().findOne({ game: savedGame2, user: reloadedGame1.createdBy });
         assert.isUndefined(user1Game2Role, "the creator of game 1 (user 1) should NOT be a ref (or creator) of game 2");
-
-        // TODO: Create a new user and add that user to a ref of a game, then assert that the user is a ref of that game
 
         return resolve();
       } catch (error) {
