@@ -122,6 +122,19 @@ export class GameController {
         };
       }
 
+      // ensure game exists
+      const targetGameResult = await this.gameService.findGameById(gameData.endGameDto.gameId);
+      if (targetGameResult.failed()) {
+        Log.methodFailure(this.endGame, this.constructor.name, targetGameResult.value.reason);
+        return {
+          success: false,
+          message: FailureMessage.get("gameEndFailed"),
+          errors: {
+            messages: [targetGameResult.value.reason]
+          }
+        };
+      }
+
       // check if user is permitted to end the game
       const requestingUser = requestingUserResult.value;
       const userRole: string = await this.gameService.getUserRoleForGame(requestingUser.id, gameData.endGameDto.gameId);
@@ -206,6 +219,19 @@ export class GameController {
           errors: {
             messages: [creatorResult.value.reason],
             validation: creatorResult.value.validationErrors
+          }
+        };
+      }
+
+      // ensure game exists
+      const targetGameResult = await this.gameService.findGameById(gameData.gameDto.gameId);
+      if (targetGameResult.failed()) {
+        Log.methodFailure(this.endGame, this.constructor.name, targetGameResult.value.reason);
+        return {
+          success: false,
+          message: FailureMessage.get("gameUpdateFailed"),
+          errors: {
+            messages: [targetGameResult.value.reason]
           }
         };
       }

@@ -78,7 +78,7 @@ export class Permissions {
       // TODO: Some context-specific instruction on how the user can obtain a higher role (e.g. ask game-creator bob to use command !obr somecommandon <user>)
       const reason =
         `Oops! Can't do that. <@${user.discordUser.discordUserId}> has a role of '${userRole}' and this role is not permitted ` +
-        `to perform a ${targetResource} ${attemptedAction} on ${targetResource} ID #${entityId}. You may want to ask someone to grant you another role if you need to do this.`;
+        `to perform a ${targetResource} ${attemptedAction} on ${targetResource} ID ${entityId}. You may want to ask someone to grant you another role if you need to do this.`;
       const permissionsFailure = userDoesNotHavePermissionsFailure(reason);
       return failure(permissionsFailure);
     } else if (requestingSource === "web") {
