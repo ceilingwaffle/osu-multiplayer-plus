@@ -21,7 +21,6 @@ import { GameDefaults } from "./game-defaults";
 import { GameStatus } from "./game-status";
 import { EndGameDto } from "./dto/end-game.dto";
 import { OsuLobbyWatcher } from "../../osu/osu-lobby-watcher";
-import { LobbyStatus } from "../lobby/lobby-status";
 import { User } from "../user/user.entity";
 import { Helpers } from "../../utils/helpers";
 import { UpdateGameDto } from "./dto/update-game.dto";
@@ -122,7 +121,7 @@ export class GameService {
   }): Promise<Either<Failure<GameFailure | UserFailure>, Game>> {
     try {
       const gameId = gameDto.gameId;
-      const game = await this.gameRepository.findGameIncludingLobbiesWithStatus(gameId, LobbyStatus.getNotClosed());
+      const game = await this.gameRepository.findGameWithLobbies(gameId);
       if (!game) {
         const failure = gameDoesNotExistFailure(gameId);
         Log.methodFailure(this.endGame, this.constructor.name, failure.reason);

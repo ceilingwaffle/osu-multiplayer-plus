@@ -1,12 +1,13 @@
 import iocContainer from "../../inversify.config";
-import { Command, CommandoClient, CommandMessage } from "discord.js-commando";
+import { CommandoClient, CommandMessage } from "discord.js-commando";
 import { LobbyController } from "../../inversify.entities";
 import { Message, RichEmbed } from "discord.js";
 import { ErrorDiscordMessageBuilder } from "../message-builders/error.discord-message-builder";
 import * as entities from "../../inversify.entities";
 import { RemoveLobbyDiscordMessageBuilder } from "../message-builders/remove-lobby.discord-message-builder";
+import { AppBaseCommand } from "./app-base-command";
 
-export class RemoveLobbyCommand extends Command {
+export class RemoveLobbyCommand extends AppBaseCommand {
   protected readonly lobbyController: LobbyController = iocContainer.get(entities.LobbyController);
 
   constructor(commando: CommandoClient) {
@@ -44,6 +45,8 @@ export class RemoveLobbyCommand extends Command {
       gameId: number;
     }
   ): Promise<Message | Message[]> {
+    if (!(await this.confirm(message.message))) return;
+
     const removeLobbyResponse = await this.lobbyController.remove({
       lobbyDto: {
         banchoMultiplayerId: args.multiplayerId,

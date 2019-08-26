@@ -100,6 +100,8 @@ TODO:
                 Channel Delete event: https://discord.js.org/#/docs/main/stable/class/Client?scrollTo=e-channelDelete
                 All Discord events: https://discord.js.org/#/docs/main/stable/typedef/WSEventType
                 ☐ Also if the server is deleted. Is there an event for that? Send some kind of "server deleted, so we're shutting down the game" message to the original game author.
+            ✔ Get user confirmation before performing destructive commands @created(19-08-26 21:53) @done(19-08-26 23:17)
+                e.g. !obr endgame -> "Are you sure you want to end game 5? Enter yes to confirm."
         Matches:
             ☐  Use lobby.startingMapNumber to skip some map results
                 osu-lobby-watcher.ts -> refreshAndEmitMultiplayerResults()

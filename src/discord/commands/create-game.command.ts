@@ -1,5 +1,5 @@
 import iocContainer from "../../inversify.config";
-import { Command, CommandoClient, CommandMessage } from "discord.js-commando";
+import { CommandoClient, CommandMessage } from "discord.js-commando";
 import { GameController } from "../../domain/game/game.controller";
 import { Message, RichEmbed, TextChannel } from "discord.js";
 import { ErrorDiscordMessageBuilder } from "../message-builders/error.discord-message-builder";
@@ -7,8 +7,9 @@ import { CreateGameDiscordMessageBuilder } from "../message-builders/create-game
 import * as entities from "../../inversify.entities";
 import { DiscordChannelManager } from "../discord-channel-manager";
 import { DiscordRequestDto } from "../../requests/dto";
+import { AppBaseCommand } from "./app-base-command";
 
-export class CreateGameCommand extends Command {
+export class CreateGameCommand extends AppBaseCommand {
   // @inject(GameController) protected readonly gameController: GameController
   protected readonly gameController: GameController = iocContainer.get(entities.GameController);
 

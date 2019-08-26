@@ -1,12 +1,13 @@
 import iocContainer from "../../inversify.config";
-import { Command, CommandoClient, CommandMessage } from "discord.js-commando";
+import { CommandoClient, CommandMessage } from "discord.js-commando";
 import { LobbyController } from "../../inversify.entities";
 import { Message, RichEmbed } from "discord.js";
 import { ErrorDiscordMessageBuilder } from "../message-builders/error.discord-message-builder";
 import { AddLobbyDiscordMessageBuilder } from "../message-builders/add-lobby.discord-message-builder";
 import * as entities from "../../inversify.entities";
+import { AppBaseCommand } from "./app-base-command";
 
-export class AddLobbyCommand extends Command {
+export class AddLobbyCommand extends AppBaseCommand {
   protected readonly lobbyController: LobbyController = iocContainer.get(entities.LobbyController);
 
   constructor(commando: CommandoClient) {
