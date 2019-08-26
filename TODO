@@ -1,8 +1,8 @@
 // using TODO+ extension for vscode
 TODO: 
-    ☐ Explore the osu! API - we need to know if submitting a map when you're in a multi will display the map in your "recent" played maps. This is mainly for MING MODE where we need to know - if it's displayed in your recent plays with an F (if failed in a multi). Does it only show F if you didn't recover in the multi, or will it show some letter (S,A,B,C,D) when you recover before the end of the map.
     ☐ Remove GameStatus.UNKNOWN
-        Using "UNKNOWN" feels lazy. If there's an error preventing a known-status being applied, we should just throw an error instead of resorting to an "UNKNOWN" status. Also having a game status as "UNKNOWN" means that status has to be handled in some way eventually, so why not just handle it that way to start with?
+    Using "UNKNOWN" feels lazy. If there's an error preventing a known-status being applied, we should just throw an error instead of resorting to an "UNKNOWN" status. Also having a game status as "UNKNOWN" means that status has to be handled in some way eventually, so why not just handle it that way to start with?
+    ☐ Explore the osu! API - we need to know if submitting a map when you're in a multi will display the map in your "recent" played maps. This is mainly for MING MODE where we need to know - if it's displayed in your recent plays with an F (if failed in a multi). Does it only show F if you didn't recover in the multi, or will it show some letter (S,A,B,C,D) when you recover before the end of the map.
     ☐ Take a look at the new osu! API
     ☐ Use test Discord Commando database depending on env context @started(19-08-26 21:40)
     Error Messages:
@@ -18,7 +18,7 @@ TODO:
         ✔ Write tests for asserting lobby status after lobby-removal @started(19-08-20 05:22) @done(19-08-20 05:44) @lasted(22m21s)
         ☐ Finish writing tests for asserting error messages received when sending remove-lobby requests
         ☐ Write test for: Create a new user and add that user to a ref of a game, then assert that the user is a ref of that game
-        ☐ Write more tests for testing ending games
+        ✔ Write more tests for testing ending games @done(19-08-27 02:54)
         ☐ We have an issue where some tests are responsible for too much
             e.g. The end-game test is creating a game, changing the status, and ending the game. So now the test for "end game" will fail if the code fails in the GameControler under "create game".
             Solution 1 - Instead of calling controller methods, just directly modify the state of the database. The only disadvantage I can see to this is that there will be less test-coverage-redundancy, but this should be fine if we've tested every possible scenario in its own test. This way when a specific function fails, it will only fail the corresponding test.
@@ -43,7 +43,7 @@ TODO:
             Using lolex is just a temp solution for now. The problem is if we use another timer anywhere else within the LobbyController.create method chain, it will replace all those timers with the lolex mock.
     Pre-release checklist:
         ☐ Some way of keeping dependencies secure and up-to-date
-            Something like:https://dependabot.com/javascript/
+            Something like: https://dependabot.com/javascript/
     Features:
         Game Variations:
             What we have access to - maps, mods(SD), modes - team vs, ffa, TAG4, osu API
@@ -61,27 +61,28 @@ TODO:
                 ☐ Team Vs / Sudden Death idea
                 Multiple lobby support for 16x16 teams. Could in theory have any nxn sizes, but maybe we want to limit it to 16x16 to make the chat experience better.
                 ☐ Battle Royale / Last-Man-Standing, either solo or teams
+                    ☐ MING MODE - Whoever can pass with the lowest acc wins. Can't fail at any point.
+                    ☐ "True Elimination" Mode - Add option for kicking the losing team/player from the lobby within some short time after losing all their lives.
+                        e.g. "CeilingWaffle doesn't feel so good..." *kicked*
+                        ☐ Randomly request a roll of 50 or above to save themselves (to gain a life)
                     ☐ The winner gets host
                     ☐ The winner gets to the decide who gets kicked,
-                        ☐ or maybe gets to choose one of the bottom 2 or 3 players to be kicked
+                        ☐ or maybe gets to choose one of the bottom 2 players to be kicked
                         ☐ or make it - everyone votes to decide who gets kicked
                         ☐ or the winner decides the target player, and the lobby votes yay or nay on whether or not they actually get kicked.
                     ☐ If you SS, you gain a life, or temporarily gain some kind of forbidden power. Like you choose the next map. 
                     ☐ If you're on 0 lives, you need to win the next map, otherwise you're eliminated. "One final chance" mode.
                     ☐ Riwaka: One player can force a mod on the entire lobby
                         Would also be cool if one player could force a mod on a specific player
-                ☐ MING MODE - Whoever can pass with the lowest acc wins. Can't fail at any point.
-                ☐ "True Elimination" Mode - Add option for kicking the losing team/player from the lobby within some short time after losing all their lives.
-                    "CeilingWaffle doesn't feel so good..."
-                    ☐ Randomly request a roll of 50 or above to save themselves (to gain a life)
+            
         Adding Lobbies:
             ✔ Currently, the lobby service is trying to add a new Lobby with the same banchoMultiplayerId rather than create a new Lobby-Game relationship. To fix this, add some code in the lobby service to check for the existing banchoMultiplayerId Lobby, and push the target-Game onto the lobby.games array. @started(19-08-18 17:00) @done(19-08-18 17:31) @lasted(31m15s)
             ✔ Make bancho multiplayer ID unique to lobby. No two lobbies should exist with the same mp ID. @done(19-08-18 19:49)
         User Permissions:
             https://github.com/tensult/role-acl
-            ☐ Ensure that the user *removing a lobby* is a game ref or game creator
-            ☐ Ensure that the user *adding a lobby* is a game ref or game creator
-            ☐ Need some kind of game-permissions abstraction. e.g. user1.for(lobby).isPermittedTo(LobbyUpdateAction) - does a library already exist for this sort of thing?
+            ✔ Ensure that the user *removing a lobby* is a game ref or game creator @done(19-08-27 00:46)
+            ✔ Ensure that the user *adding a lobby* is a game ref or game creator @done(19-08-27 00:46)
+            ✔ Need some kind of game-permissions abstraction. e.g. user1.for(lobby).isPermittedTo(LobbyUpdateAction) - does a library already exist for this sort of thing? @done(19-08-27 00:46)
             ☐ Allow Discord roles to be used for app-roles. Use both Discord-roles and DB-user-roles.
         User-Game-Roles:
             ✘ After the game is created, add an entry in UserGameRoles using game id and requester-user id @cancelled(19-08-23 19:32)

@@ -130,7 +130,8 @@ export class GameController {
           success: false,
           message: FailureMessage.get("gameEndFailed"),
           errors: {
-            messages: [targetGameResult.value.reason]
+            messages: [targetGameResult.value.reason],
+            validation: targetGameResult.value.validationErrors
           }
         };
       }

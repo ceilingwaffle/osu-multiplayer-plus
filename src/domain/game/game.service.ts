@@ -13,7 +13,7 @@ import {
 } from "./game.failure";
 import { UserService } from "../user/user.service";
 import { UserFailure } from "../user/user.failure";
-import { validate } from "class-validator";
+import { validate, ValidationError } from "class-validator";
 import { Log } from "../../utils/Log";
 import { GameRepository } from "./game.repository";
 import { RequestDto } from "../../requests/dto";
@@ -98,6 +98,15 @@ export class GameService {
     }
   }
 
+  private isValidGameId(gameId: number): boolean {
+    if (!Number.isInteger(gameId)) {
+      Log.warn("Game ID is invalid.");
+      return false;
+    } else {
+      return true;
+    }
+  }
+
   /**
    * Attempts to end a game by stopping any watchers running for lobbies of the game (if they're not longer being used for any other games),
    * and updates the game status to some appropriate game-ended-status.
@@ -121,6 +130,13 @@ export class GameService {
   }): Promise<Either<Failure<GameFailure | UserFailure>, Game>> {
     try {
       const gameId = gameDto.gameId;
+
+      // validate the game ID
+      if (!this.isValidGameId(gameId)) {
+        Log.methodFailure(this.endGame, this.constructor.name, "End-game validation failed.");
+        return failurePromise(invalidGamePropertiesFailure(this.makeValidationErrorsOfGameId(gameId)));
+      }
+
       const game = await this.gameRepository.findGameWithLobbies(gameId);
       if (!game) {
         const failure = gameDoesNotExistFailure(gameId);
@@ -155,6 +171,13 @@ export class GameService {
       Log.methodError(this.endGame, this.constructor.name, error);
       throw error;
     }
+  }
+
+  private makeValidationErrorsOfGameId(gameId: number) {
+    const validationErrors = [new ValidationError()];
+    validationErrors[0].property = "id";
+    validationErrors[0].value = gameId;
+    return validationErrors;
   }
 
   private async updateGameAsEnded(gameId: number, endedByUser: User) {
@@ -280,10 +303,19 @@ export class GameService {
 
   public async findGameById(gameId: number, relations?: string[]): Promise<Either<Failure<GameFailure>, Game>> {
     try {
+      // validate the game ID
+      if (!this.isValidGameId(gameId)) {
+        Log.methodFailure(this.endGame, this.constructor.name, "End-game validation failed.");
+        return failurePromise(invalidGamePropertiesFailure(this.makeValidationErrorsOfGameId(gameId)));
+      }
+
+      // find the game
       const game = await this.gameRepository.findOne({ id: gameId }, { relations: relations });
+
       if (!game) {
         return failurePromise(gameDoesNotExistFailure(gameId));
       }
+
       return successPromise(game);
     } catch (error) {
       Log.methodError(this.findGameById, this.constructor.name, error);
