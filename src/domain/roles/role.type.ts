@@ -1,7 +1,13 @@
 export const gameAdminRoles = ["game-creator", "referee"] as const;
 
-export type Role = "admin" | "player" | typeof gameAdminRoles[number];
+const lowestUserRole = "user" as const;
+
+export type Role = "admin" | typeof gameAdminRoles[number] | "player" | typeof lowestUserRole;
 
 export const getRefereeRole = () => {
   return gameAdminRoles.find(refRole => refRole === "referee");
+};
+
+export const getLowestUserRole = () => {
+  return lowestUserRole;
 };

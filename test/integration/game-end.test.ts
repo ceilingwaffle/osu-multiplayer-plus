@@ -18,6 +18,7 @@ import { GameMessageTarget } from "../../src/domain/game/game-message-target";
 import { UserGameRole } from "../../src/domain/roles/user-game-role.entity";
 import { EndGameReport } from "../../src/domain/game/reports/end-game.report";
 import { GameService } from "../../src/domain/game/game.service";
+import { success } from "../../src/utils/either";
 
 async function getEntities(): Promise<TestContextEntities[]> {
   const conn = await ConnectionManager.getInstance();
@@ -88,10 +89,10 @@ describe("When ending a game", function() {
         const gameService = iocContainer.get(GameService);
         const foundGameResponse = await gameService.findGameById(createdGameReport.gameId);
         assert.isDefined(foundGameResponse);
-        assert.isTrue(foundGameResponse.succeeded);
+        assert.isTrue(foundGameResponse.succeeded());
         const game = foundGameResponse.value as Game;
-        assert.isTrue(gameService.isGameActive(game), "The game is in an 'ended' state but it shouldn't be.");
-        await gameService.updateGameStatusForGameEntity({ game, status: GameStatus.IDLE_NEWGAME });
+        // assert.isTrue(gameService.isGameActive(game), "The game is in an 'ended' state but it shouldn't be.");
+        // await gameService.updateGameStatusForGameEntity({ game, status: GameStatus.IDLE_NEWGAME });
         assert.isTrue(gameService.isGameActive(game), "The game is in an 'ended' state but it shouldn't be.");
 
         // the same Discord user ends the game

@@ -8,7 +8,7 @@ import {
   GameFailure,
   invalidGamePropertiesFailure,
   gameDoesNotExistFailure,
-  gameStatusNotAllowedFailure,
+  gameCannotBeEndedDueToStatusFailure,
   userHasNotCreatedGameFailure
 } from "./game.failure";
 import { UserService } from "../user/user.service";
@@ -28,6 +28,7 @@ import { UpdateGameDto } from "./dto/update-game.dto";
 import { RequestDtoType } from "../../requests/dto/request.dto";
 import { GameMessageTargetAction } from "./game-message-target-action";
 import { UserGameRoleRepository } from "../roles/user-game-role.repository";
+import { getLowestUserRole } from "../roles/role.type";
 
 export class GameService {
   private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
@@ -128,7 +129,7 @@ export class GameService {
         return failurePromise(failure);
       }
       if (GameStatus.isEndedStatus(game.status)) {
-        const failure = gameStatusNotAllowedFailure(gameId, game.status);
+        const failure = gameCannotBeEndedDueToStatusFailure(gameId, game.status);
         Log.methodFailure(this.endGame, this.constructor.name, failure.reason);
         return failurePromise(failure);
       }
@@ -206,11 +207,16 @@ export class GameService {
     } catch (error) {}
   }
 
+  /**
+   * Returns the user's role for a game, or the standard user-role if the user has no role assigned for the game.
+   *
+   * @param {number} userId
+   * @param {number} gameId
+   * @returns {Promise<string>}
+   */
   public async getUserRoleForGame(userId: number, gameId: number): Promise<string> {
-    const games = this.gameRepository.findUserRoleForGame(gameId, userId);
-    if (!games) return null;
-
-    throw new Error("Method not implemented.");
+    const role = await this.userGameRoleRepository.findUserRoleForGame(gameId, userId);
+    return role ? role : getLowestUserRole();
   }
 
   /**

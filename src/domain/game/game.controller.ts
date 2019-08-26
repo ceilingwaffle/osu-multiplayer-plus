@@ -15,7 +15,7 @@ import { GameStatus } from "./game-status";
 import { EndGameDto } from "./dto/end-game.dto";
 import { EndGameReport } from "./reports/end-game.report";
 import { UpdateGameDto } from "./dto/update-game.dto";
-import { Permissions } from "../../authorization/permissions";
+import { Permissions } from "../../permissions/permissions";
 
 export class GameController {
   constructor(
@@ -122,11 +122,26 @@ export class GameController {
         };
       }
 
+      // check if user is permitted to end the game
       const requestingUser = requestingUserResult.value;
       const userRole: string = await this.gameService.getUserRoleForGame(requestingUser.id, gameData.endGameDto.gameId);
       const permission = this.permissions.ac.can(userRole).execute("end").on("game"); // prettier-ignore
-      if (!permission.granted) {
-        Log.methodFailure();
+      const permissionsCheckResult = this.permissions.buildPermittedResult({
+        permission,
+        requestingSource: requester.dto.commType,
+        action: "end",
+        user: requestingUser,
+        entityId: gameData.endGameDto.gameId
+      });
+      if (permissionsCheckResult.failed()) {
+        Log.methodFailure(this.endGame, this.constructor.name, `User ${requestingUser.id} does not have permission.`);
+        return {
+          success: false,
+          message: FailureMessage.get("gameEndFailed"),
+          errors: {
+            messages: [permissionsCheckResult.value.reason]
+          }
+        };
       }
 
       // try to end the game
@@ -147,6 +162,7 @@ export class GameController {
         };
       }
 
+      // the game was ended successfully
       const game: Game = endGameResult.value;
       Log.methodSuccess(this.endGame, this.constructor.name);
       return {

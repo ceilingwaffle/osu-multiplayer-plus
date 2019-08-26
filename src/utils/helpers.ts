@@ -6,6 +6,7 @@ export class Helpers {
   }
 
   static getCommandoDatabasePath(): string {
+    // TODO: Use test database depending on env, similar to ConnectionManager.createConnection()
     return path.join(__dirname, "../database/commando-database.sqlite");
   }
 }

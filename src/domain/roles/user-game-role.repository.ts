@@ -1,7 +1,7 @@
 import { UserGameRole } from "./user-game-role.entity";
 import { EntityRepository, Repository } from "typeorm";
 import { User } from "../user/user.entity";
-import { gameAdminRoles } from "./role.type";
+import { gameAdminRoles, Role } from "./role.type";
 
 @EntityRepository(UserGameRole)
 export class UserGameRoleRepository extends Repository<UserGameRole> {
@@ -25,5 +25,16 @@ export class UserGameRoleRepository extends Repository<UserGameRole> {
     const refs = userGameRoles.map(ugr => ugr.user);
 
     return refs;
+  }
+
+  async findUserRoleForGame(gameId: number, userId: number): Promise<Role> {
+    const ugrResult = await this.createQueryBuilder("user_game_role")
+      .innerJoin("user_game_role.user", "user")
+      .innerJoin("user_game_role.game", "game")
+      .where("game.id = :gameId", { gameId: gameId })
+      .andWhere("user.id = :userId", { userId: userId })
+      .getOne();
+
+    return ugrResult ? ugrResult.role : null;
   }
 }

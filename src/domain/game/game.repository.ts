@@ -42,17 +42,6 @@ export class GameRepository extends Repository<Game> {
       .getOne();
   }
 
-  findUserRoleForGame(gameId: number, userId: number): Promise<Role> {
-    throw new Error("Method not implemented.");
-    // return this.createQueryBuilder("game")
-    //   .leftJoinAndSelect("game.createdBy", "createdBy")
-    //   .where("createdBy.id = :userId", { userId: userId })
-    //   .leftJoinAndSelect("game.refereedBy", "refereedBy")
-    //   .where("refereedBy.id = :userId", { userId: userId })
-    //   .where("game.id = :gameId", { gameId: gameId })
-    //   .getMany();
-  }
-
   private getFindGameQb(gameId: number): SelectQueryBuilder<Game> {
     return (
       this.createQueryBuilder("game")

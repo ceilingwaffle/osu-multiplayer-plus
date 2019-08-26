@@ -1,5 +1,6 @@
 import { Failure } from "../../utils/Failure";
 import { ValidationError } from "class-validator";
+import { GameStatus } from "./game-status";
 
 export enum GameFailure {
   InvalidGameProperties,
@@ -36,9 +37,9 @@ export const gameDoesNotExistFailure = (gameId: number): Failure<GameFailure.Gam
   reason: `A game does not exist matching game ID ${gameId}.`
 });
 
-export const gameStatusNotAllowedFailure = (gameId: number, gameStatus: string): Failure<GameFailure.GameStatusNotAllowed> => ({
+export const gameCannotBeEndedDueToStatusFailure = (gameId: number, gameStatus: string): Failure<GameFailure.GameStatusNotAllowed> => ({
   type: GameFailure.GameStatusNotAllowed,
-  reason: `Game with ID ${gameId} cannot be ended due to having a game status of ${gameStatus}.`
+  reason: `Game with ID ${gameId} cannot be ended due to having a game status of '${GameStatus.getTextFromKey(gameStatus)}'.`
 });
 
 export const userHasNotCreatedGameFailure = (userId: number): Failure<GameFailure.UserHasNotCreatedGame> => ({

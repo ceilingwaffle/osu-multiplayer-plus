@@ -19,4 +19,4 @@ export { LobbyRepository } from "./domain/lobby/lobby.repository";
 // export { NodesuApiFetcher } from "./osu/nodesu-api-fetcher";
 // export { OsuMultiplayerService } from "./osu/osu-multiplayer-service";
 
-export { Permissions } from "./authorization/permissions";
+export { Permissions } from "./permissions/permissions";
