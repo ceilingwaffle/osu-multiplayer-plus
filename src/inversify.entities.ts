@@ -20,3 +20,7 @@ export { LobbyRepository } from "./domain/lobby/lobby.repository";
 // export { OsuMultiplayerService } from "./osu/osu-multiplayer-service";
 
 export { Permissions } from "./permissions/permissions";
+
+// export { IOsuLobbyScanner } from "./osu/interfaces/osu-lobby-scanner";
+export { OsuLobbyScannerService } from "./osu/osu-lobby-scanner-service";
+export { EventEmitter } from "events";

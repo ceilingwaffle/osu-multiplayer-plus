@@ -32,6 +32,7 @@
   "dependencies": {
     "@types/fs-extra": "^7.0.0",
     "@types/lolex": "^3.1.1",
+    "async-eventemitter": "^0.2.4",
     "bancho.js": "^0.9.5",
     "bottleneck": "^2.19.5",
     "class-transformer": "^0.2.3",
@@ -54,6 +55,7 @@
     "set-interval-async": "^1.0.26",
     "sqlite": "^3.0.3",
     "sqlite3": "^4.1.0",
+    "tasktimer": "^3.0.0",
     "ts-cleaner": "^1.0.2",
     "typeorm": "0.2.17",
     "typeorm-seeding": "^1.0.0-rc.2"

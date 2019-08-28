@@ -1,3 +1,4 @@
+import { IOsuLobbyScanner } from "../../osu/interfaces/osu-lobby-scanner";
 import { LobbyRepository } from "./lobby.repository";
 import { getCustomRepository } from "typeorm";
 import { Either, success } from "../../utils/Either";
@@ -23,21 +24,21 @@ import { Log } from "../../utils/Log";
 import { failurePromise, successPromise } from "../../utils/either";
 import { UserService } from "../user/user.service";
 import { validate } from "class-validator";
-import { OsuLobbyWatcher } from "../../osu/osu-lobby-watcher";
 import { GameRepository } from "../game/game.repository";
 import { GameStatus } from "../game/game-status";
 import { RemoveLobbyDto } from "./dto/remove-lobby.dto";
 import { Helpers } from "../../utils/helpers";
 import { RemovedLobbyResult } from "./removed-lobby-result";
+import { TYPES } from "../../types";
 
 export class LobbyService {
   private readonly lobbyRepository: LobbyRepository = getCustomRepository(LobbyRepository);
   private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
-  private readonly lobbyWatcher: OsuLobbyWatcher = OsuLobbyWatcher.getInstance();
 
   constructor(
     @inject(GameService) private readonly gameService: GameService,
-    @inject(UserService) private readonly userService: UserService
+    @inject(UserService) private readonly userService: UserService,
+    @inject(TYPES.IOsuLobbyScanner) private readonly osuLobbyScanner: IOsuLobbyScanner
   ) {
     Log.info("Initialized Lobby Service.");
   }
@@ -148,7 +149,8 @@ export class LobbyService {
 
       // start the lobby watcher
       // TODO: Wrap this in a failure check - e.g what if the osu api is down? Should have some max time limit to try to start the watcher, and return a failure if it fails to start within that time.
-      this.lobbyWatcher.watch({ banchoMultiplayerId: lobbyData.banchoMultiplayerId, gameId: lobbyGame.id });
+      this.osuLobbyScanner.watch(lobbyGame.id, lobbyData.banchoMultiplayerId);
+      // this.lobbyWatcher.watch({ banchoMultiplayerId: lobbyData.banchoMultiplayerId, gameId: lobbyGame.id });
 
       // We only want the game we just retrieved, not any other games that may have been previously added this lobby.
       // This ensures that the game data we're returning is definitely of the game we expect it to be.
@@ -202,16 +204,15 @@ export class LobbyService {
       // Remove the target game from the lobby.games array
       const removedGame: Game = gameId ? this.extractGameFromLobbyGames(targetLobby, gameId) : null;
       if (!removedGame) {
-        const failureReason = `Lobby ${
-          targetLobby.banchoMultiplayerId
-        } could not be removed because the lobby was not one of the lobbies of game ID ${gameId}.`;
+        const failureReason = `Lobby ${targetLobby.banchoMultiplayerId} could not be removed because the lobby was not one of the lobbies of game ID ${gameId}.`;
         Log.methodFailure(this.processRemoveLobbyRequest, this.constructor.name);
         return failurePromise(lobbyRemovalFailure(failureReason));
       }
 
       // unwatch the bancho lobby if the lobby no longer belongs to any games
       if (targetLobby.games.length < 1) {
-        this.lobbyWatcher.unwatch({ banchoMultiplayerId: targetLobby.banchoMultiplayerId, gameId: gameId });
+        this.osuLobbyScanner.unwatch(gameId, targetLobby.banchoMultiplayerId);
+        // this.lobbyWatcher.unwatch({ banchoMultiplayerId: targetLobby.banchoMultiplayerId, gameId: gameId });
         // update the lobby status
         targetLobby.status = LobbyStatus.STOPPED_WATCHING.getKey();
       }

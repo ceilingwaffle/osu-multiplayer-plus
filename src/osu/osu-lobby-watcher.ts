@@ -23,7 +23,7 @@ interface Watching {
  * @export
  * @class OsuLobbyWatcher
  */
-export class OsuLobbyWatcher {
+class OsuLobbyWatcher {
   private static instance: OsuLobbyWatcher;
   protected static config = {
     lobbyScanInterval: 1000
@@ -176,9 +176,7 @@ export class OsuLobbyWatcher {
     }
 
     if (comparison.multiplayerId !== this.latestMultiResults.multiplayerId) {
-      const error = `The multiplayer ID should never change for an instance of ${
-        this.constructor.name
-      }. Create a new instance to scan a new multiplayer.`;
+      const error = `The multiplayer ID should never change for an instance of ${this.constructor.name}. Create a new instance to scan a new multiplayer.`;
       Log.methodError(this.isNewerMultiplayerResults, this.constructor.name);
       throw new Error(error);
     }

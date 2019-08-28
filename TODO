@@ -5,6 +5,12 @@ TODO:
     ☐ Explore the osu! API - we need to know if submitting a map when you're in a multi will display the map in your "recent" played maps. This is mainly for MING MODE where we need to know - if it's displayed in your recent plays with an F (if failed in a multi). Does it only show F if you didn't recover in the multi, or will it show some letter (S,A,B,C,D) when you recover before the end of the map.
     ☐ Take a look at the new osu! API
     ✔ Use test Discord Commando database depending on env context @started(19-08-26 21:40) @done(19-08-27 08:11) @lasted(10h31m25s)
+    Osu Lobby Watcher:
+        ☐ Rebuild osu-lobby-watcher.ts using listener and EventEmitter @created(19-08-27 12:09)
+            https://github.com/onury/tasktimer
+            https://blog.x5ff.xyz/blog/typescript-interval-iot/ 
+            https://github.com/sindresorhus/emittery
+            https://www.npmjs.com/package/async-eventemitter
     Error Messages:
         ☐ When adding a lobby before creating a game, the error message returned should replace "user ID X" with [at]DiscordUsername" instead (e.g. No games have been created by user ID 2. -> No games have been created by [at]CeilingWaffle
         ☐ Response<T> should be of type AddLobbyFailureReport and contain a discordUserId property
@@ -18,6 +24,7 @@ TODO:
         ✔ Write tests for asserting lobby status after lobby-removal @started(19-08-20 05:22) @done(19-08-20 05:44) @lasted(22m21s)
         ☐ Finish writing tests for asserting error messages received when sending remove-lobby requests
         ☐ Write test for: Create a new user and add that user to a ref of a game, then assert that the user is a ref of that game
+        ☐ Write test for LobbyService: Add 2 lobbies to a game, then remove 2 lobbies, then assert that game.lobbies.length = 0 @created(19-08-28 13:51)
         ✔ Write more tests for testing ending games @done(19-08-27 02:54)
         ☐ We have an issue where some tests are responsible for too much
             e.g. The end-game test is creating a game, changing the status, and ending the game. So now the test for "end game" will fail if the code fails in the GameControler under "create game".
@@ -105,6 +112,13 @@ TODO:
                 ☐ Also if the server is deleted. Is there an event for that? Send some kind of "server deleted, so we're shutting down the game" message to the original game author.
             ✔ Get user confirmation before performing destructive commands @created(19-08-26 21:53) @done(19-08-26 23:17)
                 e.g. !obr endgame -> "Are you sure you want to end game 5? Enter yes to confirm."
+            ☐ Send game-event messages to a specific game channel, and send @ replies to the user in the channel where they wrote the command. @created(19-08-28 08:22)
+                e.g. User types !obr creategame.
+                     Bot creates channel #obr-game-5
+                     Bot replies in same channel "@user, The game has been created and channel #obr-game-5 was opened".
+                     Bot emits message in #obr-game-5 with a game-created card containing the game properties.
+                     Bot emits message with match results in #obr-game-5 when a lobby-match finishes.
+                     Only admin, game-creator, and game ref are allowed to write messages in channel #obr-game-5.
         Matches:
             ☐  Use lobby.startingMapNumber to skip some map results
                 osu-lobby-watcher.ts -> refreshAndEmitMultiplayerResults()

@@ -4,7 +4,6 @@ import { Log } from "../utils/Log";
 import { Multiplayer } from "./types/multiplayer";
 import { NodesuApiTransformer } from "./nodesu-api-transformer";
 import Bottleneck from "bottleneck";
-import { IsValidBanchoMultiplayerId } from "./validators/bancho-multiplayer-id.validator";
 
 /**
  * Singleton
@@ -34,7 +33,7 @@ export class NodesuApiFetcher implements IOsuApiFetcher {
     Log.debug(`Validating Bancho MP ${banchoMultiplayerId} using osu API...`);
     const mpid = Number(banchoMultiplayerId);
     if (isNaN(mpid)) {
-      Log.debug(`Validation failed for Bancho MP: ${IsValidBanchoMultiplayerId} is NaN.`);
+      Log.debug(`Validation failed for Bancho MP: ${mpid} is NaN.`);
       return false;
     }
 
@@ -43,18 +42,18 @@ export class NodesuApiFetcher implements IOsuApiFetcher {
     // Assume that if the response did not resolve into a Multi object, then it was not a valid ID.
     // This will only work if { parseData: true } is set in the Nodesu client options.
     if (!(mp instanceof Nodesu.Multi)) {
-      Log.debug(`Validation failed for Bancho MPID ${IsValidBanchoMultiplayerId}: mp not instanceof Nodesu.Multi.`);
+      Log.debug(`Validation failed for Bancho MPID ${mpid}: mp not instanceof Nodesu.Multi.`);
       return false;
     }
 
     if (!mp.match) {
-      Log.debug(`Validation failed for Bancho MPID ${IsValidBanchoMultiplayerId}: mp.match was undefined.`);
+      Log.debug(`Validation failed for Bancho MPID ${mpid}: mp.match was undefined.`);
       return false;
     }
 
     if (mp.match.matchId !== mpid) {
       Log.debug(
-        `Validation failed for Bancho MPID ${IsValidBanchoMultiplayerId}: mp.match.matchId was not equal to mpid (this could mean the lobby was once valid, but has expired.).`
+        `Validation failed for Bancho MPID ${mpid}: mp.match.matchId was not equal to mpid (this could mean the lobby was once valid, but has expired.).`
       );
       return false;
     }

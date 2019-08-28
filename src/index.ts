@@ -24,12 +24,12 @@ String.prototype.toSentenceCase = function(): string {
   return sentence;
 };
 
-import iocContainer from "./inversify.config";
+// import iocContainer from "./inversify.config";
 import * as entities from "./inversify.entities";
 import { Message } from "./utils/message";
 import { ConnectionManager } from "./utils/connection-manager";
 import { DiscordBot } from "./discord/discord-bot";
-import { OsuLobbyWatcher } from "./osu/osu-lobby-watcher";
+// import { OsuLobbyWatcher } from "./osu/osu-lobby-watcher";
 import { Log } from "./utils/Log";
 
 Message.enableSentenceCaseOutput();

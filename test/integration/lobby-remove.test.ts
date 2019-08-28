@@ -24,6 +24,8 @@ import { AddLobbyReport } from "../../src/domain/lobby/reports/add-lobby.report"
 import { EndGameDto } from "../../src/domain/game/dto/end-game.dto";
 import { RemoveLobbyDto } from "../../src/domain/lobby/dto/remove-lobby.dto";
 import { LobbyStatus } from "../../src/domain/lobby/lobby-status";
+import { TYPES } from "../../src/types";
+import { IOsuLobbyScanner } from "../../src/osu/interfaces/osu-lobby-scanner";
 var lolex: LolexWithContext = require("lolex");
 
 async function getEntities(): Promise<TestContextEntities[]> {
@@ -213,6 +215,86 @@ describe("When removing a lobby", function() {
         assert.lengthOf(lobbyAfterRemoval.games, 2, "There should be exactly one fewer game associated with the lobby than before.");
         assert.equal(lobbyAfterRemoval.games[0].id, lobbyDto1.gameId, "The 1st lobby-game should be the game targeted by the 1st request.");
         assert.equal(lobbyAfterRemoval.games[1].id, lobbyDto3.gameId, "The 2nd lobby-game should be the game targeted by the 3rd request.");
+
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
+
+  it("should disassociate multiple lobbies from a single game", function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const lobbyController = iocContainer.get(LobbyController);
+        const lobbyRepository = getCustomRepository(LobbyRepository);
+        const osuLobbyWatcher: IOsuLobbyScanner = iocContainer.get(TYPES.IOsuLobbyScanner);
+
+        // add 2 different bancho mp's for game 1
+        const lobbyDto1: AddLobbyDto = {
+          banchoMultiplayerId: "54078930", // replace this with a valid mp id if it expires
+          gameId: 1
+        };
+        const lobbyDto2: AddLobbyDto = {
+          banchoMultiplayerId: "45007374", // replace this with a valid mp id if it expires
+          gameId: 1
+        };
+        const clock: InstalledClock = lolex.install();
+        const lobbyAddResponse1 = await lobbyController.create({
+          lobbyDto: lobbyDto1,
+          requestDto: createGame1DiscordRequest
+        });
+        const lobbyAddResponse2 = await lobbyController.create({
+          lobbyDto: lobbyDto2,
+          requestDto: createGame1DiscordRequest
+        });
+        clock.uninstall();
+
+        assert.isTrue(lobbyAddResponse1 && lobbyAddResponse1.success);
+        assert.isTrue(lobbyAddResponse2 && lobbyAddResponse2.success);
+
+        // fetch the Lobbies with games included
+        const lobby1AfterAdds = await lobbyRepository.findOne(
+          { banchoMultiplayerId: lobbyDto1.banchoMultiplayerId },
+          { relations: ["games", "games.lobbies", "addedBy", "addedBy.discordUser"] }
+        );
+        const lobby2AfterAdds = await lobbyRepository.findOne(
+          { banchoMultiplayerId: lobbyDto2.banchoMultiplayerId },
+          { relations: ["games", "games.lobbies", "addedBy", "addedBy.discordUser"] }
+        );
+        assert.isDefined(lobby1AfterAdds.games);
+        assert.isDefined(lobby2AfterAdds.games);
+        assert.lengthOf(lobby1AfterAdds.games, 1, "Lobby 1 should have been added to game 1.");
+        assert.lengthOf(lobby2AfterAdds.games, 1, "Lobby 2 should have been added to game 1.");
+        assert.equal(lobby1AfterAdds.games[0].id, lobbyDto1.gameId, "Game 1 of lobby 1 should be the game targeted by the 1st request.");
+        assert.equal(lobby2AfterAdds.games[0].id, lobbyDto2.gameId, "Game 1 of lobby 2 should be the game targeted by the 2nd request.");
+
+        // remove the bancho mp id of lobby 1 from game 1
+        const removeLobby1Dto: RemoveLobbyDto = {
+          banchoMultiplayerId: lobbyDto1.banchoMultiplayerId,
+          gameId: lobbyDto1.gameId
+        };
+        const lobby1RemoveResponse = await lobbyController.remove({ lobbyDto: removeLobby1Dto, requestDto: createGame1DiscordRequest });
+        assert.isTrue(lobby1RemoveResponse && lobby1RemoveResponse.success);
+
+        // remove the bancho mp id of lobby 2 from game 1
+        const removeLobby2Dto: RemoveLobbyDto = {
+          banchoMultiplayerId: lobbyDto2.banchoMultiplayerId,
+          gameId: lobbyDto2.gameId
+        };
+        const lobby2RemoveResponse = await lobbyController.remove({ lobbyDto: removeLobby2Dto, requestDto: createGame2DiscordRequest });
+        assert.isTrue(lobby2RemoveResponse && lobby2RemoveResponse.success);
+
+        // assert that Lobby 1 is still associated with game 1 and that no watcher is active for Lobby 1
+        const lobby1AfterRemoval = await lobbyRepository.findOne(
+          { banchoMultiplayerId: lobbyDto1.banchoMultiplayerId },
+          { relations: ["games", "games.lobbies", "addedBy", "addedBy.discordUser"] }
+        );
+        assert.isDefined(lobby1AfterRemoval.games);
+        assert.lengthOf(lobby1AfterRemoval.games, 1, "There should still be exactly one game associated with the lobby.");
+        assert.equal(lobby1AfterRemoval.games[0].id, lobbyDto1.gameId, "Game 1 of lobby 1 should be the game targeted by the 1st request.");
+
+        // TODO: assert osuLobbyWatcher is no longer watching this thing
 
         return resolve();
       } catch (error) {
