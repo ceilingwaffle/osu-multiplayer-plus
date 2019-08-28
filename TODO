@@ -1,5 +1,7 @@
 // using TODO+ extension for vscode
 TODO: 
+    ☐ Completely rework adding/removing lobbies from games @created(19-08-28 20:27) @started(19-08-28 20:20)
+        Storing add/remove values on a many-to-many GamesLobby table: https://github.com/typeorm/typeorm/issues/1224
     ☐ Remove GameStatus.UNKNOWN
         Using "UNKNOWN" feels lazy. If there's an error preventing a known-status being applied, we should just throw an error instead of resorting to an "UNKNOWN" status. Also having a game status as "UNKNOWN" means that status has to be handled in some way eventually, so why not just handle it that way to start with?
     ☐ Explore the osu! API - we need to know if submitting a map when you're in a multi will display the map in your "recent" played maps. This is mainly for MING MODE where we need to know - if it's displayed in your recent plays with an F (if failed in a multi). Does it only show F if you didn't recover in the multi, or will it show some letter (S,A,B,C,D) when you recover before the end of the map.
@@ -44,6 +46,7 @@ TODO:
         ☐ Too many match results being downloaded from the osu API.
             Need some way of limiting the maximum number of matches downloaded per multiplayer (right now we're using 500kb/s for 150+ matches in a single multi when polling every 1s)
     Refactor:
+        ☐ Replace strings with Symbols in locale files e.g. en.json @created(19-08-28 19:41)
         ☐ Replace the default commando "catch-all" error-handler.
             Replace it with our own specific one with messages formatted the same as the ErrorDiscordMessageBuilder. Consider making ErrorDiscordMessageBuilder handle something less specific than just Response objects, or create another ErrorBuilder abstraction layer.
         ☐ Cleanup the failure methods. 

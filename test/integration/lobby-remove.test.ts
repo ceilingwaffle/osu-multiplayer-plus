@@ -228,7 +228,8 @@ describe("When removing a lobby", function() {
       try {
         const lobbyController = iocContainer.get(LobbyController);
         const lobbyRepository = getCustomRepository(LobbyRepository);
-        const osuLobbyWatcher: IOsuLobbyScanner = iocContainer.get(TYPES.IOsuLobbyScanner);
+        const gameRepository = getCustomRepository(GameRepository);
+        // const osuLobbyWatcher: IOsuLobbyScanner = iocContainer.get(TYPES.IOsuLobbyScanner);
 
         // add 2 different bancho mp's for game 1
         const lobbyDto1: AddLobbyDto = {
@@ -264,10 +265,10 @@ describe("When removing a lobby", function() {
         );
         assert.isDefined(lobby1AfterAdds.games);
         assert.isDefined(lobby2AfterAdds.games);
-        assert.lengthOf(lobby1AfterAdds.games, 1, "Lobby 1 should have been added to game 1.");
-        assert.lengthOf(lobby2AfterAdds.games, 1, "Lobby 2 should have been added to game 1.");
-        assert.equal(lobby1AfterAdds.games[0].id, lobbyDto1.gameId, "Game 1 of lobby 1 should be the game targeted by the 1st request.");
-        assert.equal(lobby2AfterAdds.games[0].id, lobbyDto2.gameId, "Game 1 of lobby 2 should be the game targeted by the 2nd request.");
+        assert.lengthOf(lobby1AfterAdds.games, 1, "Lobby 1 should be added to game 1.");
+        assert.lengthOf(lobby2AfterAdds.games, 1, "Lobby 2 should beadded to game 1.");
+        assert.equal(lobby1AfterAdds.games[0].id, lobbyDto1.gameId, "Game 1 of lobby 1 should be the game targeted by lobbyDto1.");
+        assert.equal(lobby2AfterAdds.games[0].id, lobbyDto2.gameId, "Game 1 of lobby 2 should be the game targeted by lobbyDto2.");
 
         // remove the bancho mp id of lobby 1 from game 1
         const removeLobby1Dto: RemoveLobbyDto = {
@@ -285,16 +286,34 @@ describe("When removing a lobby", function() {
         const lobby2RemoveResponse = await lobbyController.remove({ lobbyDto: removeLobby2Dto, requestDto: createGame2DiscordRequest });
         assert.isTrue(lobby2RemoveResponse && lobby2RemoveResponse.success);
 
-        // assert that Lobby 1 is still associated with game 1 and that no watcher is active for Lobby 1
         const lobby1AfterRemoval = await lobbyRepository.findOne(
           { banchoMultiplayerId: lobbyDto1.banchoMultiplayerId },
           { relations: ["games", "games.lobbies", "addedBy", "addedBy.discordUser"] }
         );
+        assert.isNotNull(lobby1AfterRemoval);
+        const lobby2AfterRemoval = await lobbyRepository.findOne(
+          { banchoMultiplayerId: lobbyDto2.banchoMultiplayerId },
+          { relations: ["games", "games.lobbies", "addedBy", "addedBy.discordUser"] }
+        );
+        assert.isNotNull(lobby2AfterRemoval);
+        const game1AfterLobbyRemoval = await gameRepository.findOne({ id: lobbyDto1.gameId }, { relations: ["lobbies"] });
+        assert.isNotNull(game1AfterLobbyRemoval);
+        // assert that Lobby 1 is still associated with game 1
         assert.isDefined(lobby1AfterRemoval.games);
         assert.lengthOf(lobby1AfterRemoval.games, 1, "There should still be exactly one game associated with the lobby.");
-        assert.equal(lobby1AfterRemoval.games[0].id, lobbyDto1.gameId, "Game 1 of lobby 1 should be the game targeted by the 1st request.");
+        assert.equal(lobby1AfterRemoval.games[0].id, lobbyDto1.gameId, "Game 1 of lobby 1 should be the game targeted by lobbyDto1.");
+        // assert that Lobby 2 is still associated with game 1
+        assert.isDefined(lobby2AfterRemoval.games);
+        assert.lengthOf(lobby2AfterRemoval.games, 1, "There should still be exactly one game associated with the lobby.");
+        assert.equal(lobby2AfterRemoval.games[0].id, lobbyDto2.gameId, "Game 1 of lobby 2 should be the game targeted by lobbyDto2.");
+        // assert that Game 1 is still associated with Lobby 1 and Loby 2
+        assert.isDefined(game1AfterLobbyRemoval);
+        assert.lengthOf(game1AfterLobbyRemoval.lobbies, 2, "There should still be exactly two lobbies associated with game 1.");
+        assert.equal(game1AfterLobbyRemoval.lobbies[0].id, lobby1AfterRemoval.id, "Lobby 1 of game 1 should have the expected lobby ID.");
+        assert.equal(game1AfterLobbyRemoval.lobbies[1].id, lobby2AfterRemoval.id, "Lobby 2 of game 1 should have the expected lobby ID.");
 
-        // TODO: assert osuLobbyWatcher is no longer watching this thing
+        // TODO: assert that no watcher is active for Lobby 1
+        // TODO: assert that no watcher is active for Lobby 2
 
         return resolve();
       } catch (error) {

@@ -1,11 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, ManyToMany, JoinTable, OneToMany, AfterInsert } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, JoinTable, OneToMany } from "typeorm";
 import { IsInt, IsBoolean } from "class-validator";
 import { User } from "../user/user.entity";
 import { GameStatus } from "./game-status";
-import { Lobby } from "../lobby/lobby.entity";
 import { AbstractEntity } from "../shared/abstract-entity";
 import { GameMessageTarget } from "./game-message-target";
 import { UserGameRole } from "../roles/user-game-role.entity";
+import { GameLobby } from "./game-lobby.entity";
 
 @Entity("games")
 export class Game extends AbstractEntity {
@@ -33,9 +33,9 @@ export class Game extends AbstractEntity {
   @Column({ name: "ended_at", nullable: true })
   endedAt: number;
 
-  @ManyToMany(type => Lobby, lobby => lobby.games)
+  @OneToMany(type => GameLobby, gameLobby => gameLobby.game)
   @JoinTable()
-  lobbies: Lobby[];
+  gameLobbies: GameLobby[];
 
   // @ManyToMany(type => User, user => user.refereeOf)
   // refereedBy: User[];

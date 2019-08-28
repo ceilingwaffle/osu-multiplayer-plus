@@ -30,6 +30,7 @@ import { RemoveLobbyDto } from "./dto/remove-lobby.dto";
 import { Helpers } from "../../utils/helpers";
 import { RemovedLobbyResult } from "./removed-lobby-result";
 import { TYPES } from "../../types";
+import { GameLobby } from "../game/game-lobby.entity";
 
 export class LobbyService {
   private readonly lobbyRepository: LobbyRepository = getCustomRepository(LobbyRepository);
@@ -53,12 +54,22 @@ export class LobbyService {
    */
   public create(lobbyData: AddLobbyDto, createdBy?: User, games?: Game[]): Lobby {
     const lobby = new Lobby();
+    lobby.gameLobbies = [];
 
-    lobby.addedBy = createdBy;
+    for (const game of games) {
+      const gameLobby = new GameLobby();
+      gameLobby.game = game;
+      gameLobby.lobby = lobby;
+      gameLobby.addedBy = createdBy;
+      gameLobby.startingMapNumber = lobbyData.startAtMap > 1 ? lobbyData.startAtMap : 1;
+      lobby.gameLobbies.push(gameLobby);
+    }
+
+    // GL: lobby.addedBy = createdBy;
     lobby.banchoMultiplayerId = lobbyData.banchoMultiplayerId;
     lobby.status = LobbyStatus.AWAITING_FIRST_SCAN.getKey();
-    lobby.games = games || [];
-    lobby.startingMapNumber = lobbyData.startAtMap > 1 ? lobbyData.startAtMap : 1;
+    // GL: lobby.games = games || [];
+    // GL: lobby.startingMapNumber = lobbyData.startAtMap > 1 ? lobbyData.startAtMap : 1;
 
     return lobby;
   }
@@ -154,7 +165,8 @@ export class LobbyService {
 
       // We only want the game we just retrieved, not any other games that may have been previously added this lobby.
       // This ensures that the game data we're returning is definitely of the game we expect it to be.
-      builtLobby.games = [foundGameResult.value];
+      // GL: builtLobby.games = [foundGameResult.value];
+      builtLobby.gameLobbies = [builtLobby.gameLobbies.find(gameLobby => gameLobby.game.id === foundGameResult.value.id)];
 
       return successPromise(builtLobby);
     } catch (error) {
@@ -170,7 +182,7 @@ export class LobbyService {
     try {
       const targetLobby = await this.lobbyRepository.findOne(
         { banchoMultiplayerId: lobbyData.banchoMultiplayerId },
-        { relations: ["games"] }
+        { relations: ["gameLobbies", "gameLobbies.lobby", "gameLobbies.game"] }
       );
       if (!targetLobby) {
         const failureMessage = `A lobby has not been added for multiplayer ID ${lobbyData.banchoMultiplayerId}.`;
@@ -204,20 +216,28 @@ export class LobbyService {
       // Remove the target game from the lobby.games array
       const removedGame: Game = gameId ? this.extractGameFromLobbyGames(targetLobby, gameId) : null;
       if (!removedGame) {
-        const failureReason = `Lobby ${targetLobby.banchoMultiplayerId} could not be removed because the lobby was not one of the lobbies of game ID ${gameId}.`;
+        const failureReason = `Lobby ${targetLobby.banchoMultiplayerId} could not be removed because it was not a lobby of game ID ${gameId}.`;
         Log.methodFailure(this.processRemoveLobbyRequest, this.constructor.name);
         return failurePromise(lobbyRemovalFailure(failureReason));
       }
 
       // unwatch the bancho lobby if the lobby no longer belongs to any games
-      if (targetLobby.games.length < 1) {
+      // GL: if (targetLobby.games.length < 1) {
+      if (targetLobby.gameLobbies.map(gameLobby => gameLobby.game).length < 1) {
         this.osuLobbyScanner.unwatch(gameId, targetLobby.banchoMultiplayerId);
         // this.lobbyWatcher.unwatch({ banchoMultiplayerId: targetLobby.banchoMultiplayerId, gameId: gameId });
         // update the lobby status
         targetLobby.status = LobbyStatus.STOPPED_WATCHING.getKey();
       }
 
-      const savedLobby = await this.saveAndReloadLobby(targetLobby, ["games", "removedBy", "removedBy.discordUser", "removedBy.webUser"]);
+      const savedLobby = await this.saveAndReloadLobby(targetLobby, [
+        "gameLobbies",
+        "gameLobbies.lobby",
+        "gameLobbies.game",
+        "gameLobbies.removedBy",
+        "gameLobbies.removedBy.discordUser",
+        "gameLobbies.removedBy.webUser"
+      ]);
       // TODO: Decide to soft/hard delete depending on whether or not match-scores have been recorded for the lobby:
       // - if the lobby has some recorded matches, keep the lobby in the database
       // - if the lobby has no recorded matches, hard-delete the lobby from the database
@@ -236,8 +256,11 @@ export class LobbyService {
   }
 
   private setRemovalPropertiesOnLobby(targetLobby: Lobby, lobbyRemoveUser: User) {
-    targetLobby.removedAt = Helpers.getNow();
-    targetLobby.removedBy = lobbyRemoveUser;
+    // GL: targetLobby.removedAt = Helpers.getNow();
+    // GL: targetLobby.removedBy = lobbyRemoveUser;
+    const gameLobby = targetLobby.gameLobbies.find(gameLobby => gameLobby.lobby.id === targetLobby.id);
+    gameLobby.removedAt = Helpers.getNow();
+    gameLobby.removedBy = lobbyRemoveUser;
   }
 
   /**
@@ -250,12 +273,16 @@ export class LobbyService {
    * @memberof LobbyService
    */
   private extractGameFromLobbyGames(lobby: Lobby, targetGameId: number): Game {
-    const games: Game[] = lobby.games.filter(lobbyGame => lobbyGame.id === targetGameId);
-    if (!games.length) return null;
-    const removedGame: Game = games[0];
-    const i = lobby.games.indexOf(removedGame);
-    lobby.games.splice(i, 1);
-    return removedGame;
+    // GL: const games: Game[] = lobby.games.filter(lobbyGame => lobbyGame.id === targetGameId);
+    // GL: if (!games.length) return null;
+    // GL: const removedGame: Game = games[0];
+    // GL: const i = lobby.games.indexOf(removedGame);
+    // GL: lobby.games.splice(i, 1);
+    if (!lobby.gameLobbies.length) return null;
+    const removingGameLobby: GameLobby = lobby.gameLobbies.find(gameLobby => gameLobby.game.id === targetGameId);
+    const i = lobby.gameLobbies.indexOf(removingGameLobby);
+    const removedGameLobby = lobby.gameLobbies.splice(i, 1)[0];
+    return removedGameLobby.game;
   }
 
   private async getRequestingUserTargetGame(lobbyData: AddLobbyDto, userId: number) {
@@ -311,22 +338,36 @@ export class LobbyService {
       // This could have some weird side-effects e.g. if two users from two Discord servers add the same lobby to different games, the
       // Discord-message-reply will show for one user that the Lobby was added by the other user from the other server.
       let lobbyToSave: Lobby;
-      const existingLobby = await Lobby.findOne({ banchoMultiplayerId: unsavedNewLobby.banchoMultiplayerId }, { relations: ["games"] });
+      const existingLobby = await Lobby.findOne(
+        { banchoMultiplayerId: unsavedNewLobby.banchoMultiplayerId },
+        // GL: { relations: ["games"] }
+        { relations: ["gameLobbies", "gameLobbies.game", "gameLobbies.addedBy"] }
+      );
+      const newGameLobby = new GameLobby();
+      newGameLobby.game = game;
+      newGameLobby.addedBy = creator;
       if (!existingLobby) {
+        // GL: lobbyToSave = unsavedNewLobby;
+        // GL: lobbyToSave.games = [game];
+        // GL: lobbyToSave.addedBy = creator;
+        newGameLobby.lobby = unsavedNewLobby;
         lobbyToSave = unsavedNewLobby;
-        lobbyToSave.games = [game];
-        lobbyToSave.addedBy = creator;
+        lobbyToSave.gameLobbies = [newGameLobby];
       } else {
+        // GL: lobbyToSave.games.push(game);
+        newGameLobby.lobby = existingLobby;
         lobbyToSave = existingLobby;
-        lobbyToSave.games.push(game);
+        lobbyToSave.gameLobbies.push(newGameLobby);
       }
 
       // save and reload lobby
       const reloadedLobby: Lobby = await this.saveAndReloadLobby(lobbyToSave, [
-        "games",
-        "addedBy",
-        "addedBy.discordUser",
-        "addedBy.webUser"
+        "gameLobbies",
+        "gameLobbies.lobby",
+        "gameLobbies.game",
+        "gameLobbies.addedBy",
+        "gameLobbies.addedBy.discordUser",
+        "gameLobbies.addedBy.webUser"
       ]);
 
       return successPromise(reloadedLobby);
@@ -343,14 +384,20 @@ export class LobbyService {
   }
 
   private getSingleGameOfLobby(lobby: Lobby): Game {
-    return lobby.games.length ? lobby.games.slice(-1)[0] : null;
+    // GL: return lobby.games.length ? lobby.games.slice(-1)[0] : null;
+    return lobby.gameLobbies.length ? lobby.gameLobbies.slice(-1)[0].game : null;
   }
 
   private async getBanchoMultiplayerIdsForGame(gameId: number): Promise<string[]> {
     const game = await this.gameRepository.findGameWithLobbies(gameId);
-    if (!game.lobbies || !game.lobbies.length) {
+    // GL: if (!game.lobbies || !game.lobbies.length) {
+    //   return [];
+    // }
+    // return game.lobbies.map(lobby => lobby.banchoMultiplayerId);
+
+    if (!game.gameLobbies || !game.gameLobbies.length) {
       return [];
     }
-    return game.lobbies.map(lobby => lobby.banchoMultiplayerId);
+    return game.gameLobbies.map(gameLobby => gameLobby.lobby.banchoMultiplayerId);
   }
 }

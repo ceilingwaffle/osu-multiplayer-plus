@@ -86,7 +86,8 @@ export class LobbyController {
             addedBy: responseFactory.getAddedBy(),
             gameId: responseFactory.getGameId(),
             multiplayerId: savedLobby.banchoMultiplayerId,
-            startAtMapNumber: savedLobby.startingMapNumber,
+            // GL: startAtMapNumber: savedLobby.startingMapNumber,
+            startAtMapNumber: savedLobby.gameLobbies.find(gameLobby => gameLobby.lobby.id == savedLobby.id).startingMapNumber,
             status: LobbyStatus.getTextFromKey(savedLobby.status)
           };
         })()

@@ -8,10 +8,14 @@ export class RemovedLobbyResponseFactory extends AbstractResponseFactory<Removed
   }
 
   getRemovedBy(): UserReportProperties {
-    return this.getUserReportPropertiesForUser(this.subject.lobby.removedBy);
+    // GL: return this.getUserReportPropertiesForUser(this.subject.lobby.removedBy);
+    const gameLobby = this.subject.lobby.gameLobbies.find(gameLobby => gameLobby.game.id === this.subject.gameIdRemovedFrom);
+    return this.getUserReportPropertiesForUser(gameLobby.removedBy);
   }
 
   getRemovedAgoText(): string {
-    return this.getTimeAgoTextForTime(this.subject.lobby.removedAt);
+    // GL: return this.getTimeAgoTextForTime(this.subject.lobby.removedAt);
+    const gameLobby = this.subject.lobby.gameLobbies.find(gameLobby => gameLobby.game.id === this.subject.gameIdRemovedFrom);
+    return this.getTimeAgoTextForTime(gameLobby.removedAt);
   }
 }
