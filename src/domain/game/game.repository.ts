@@ -16,14 +16,11 @@ export class GameRepository extends Repository<Game> {
   }
 
   findGameWithLobbies(gameId: number): Promise<Game> {
-    return (
-      this.createQueryBuilder("game")
-        // .select()
-        .leftJoinAndSelect("game.gameLobbies", "gameLobbies")
-        .leftJoinAndSelect("gameLobbies.lobby", "lobby")
-        .where("game.id = :gameId", { gameId: gameId })
-        .getOne()
-    );
+    return this.createQueryBuilder("game")
+      .leftJoinAndSelect("game.gameLobbies", "gameLobbies")
+      .leftJoinAndSelect("gameLobbies.lobby", "lobby")
+      .where("game.id = :gameId", { gameId: gameId })
+      .getOne();
   }
 
   private getFindGameQb(gameId: number): SelectQueryBuilder<Game> {

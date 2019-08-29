@@ -7,17 +7,23 @@ import { Game } from "./game.entity";
 
 @Entity("game_lobbies")
 export class GameLobby extends AbstractEntity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @ManyToOne(type => Lobby, lobby => lobby.gameLobbies, { primary: true })
+  lobby: Lobby;
 
-  @Column()
-  active: boolean;
+  @ManyToOne(type => Game, game => game.gameLobbies, { primary: true })
+  game: Game;
 
   @IsPositive()
   @IsInt()
   @Column({ default: 1 })
   startingMapNumber: number;
 
+  /**
+   * Has a value if the lobby was "removed" from the game.
+   * e.g. using the `!obr removelobby` Discord command would set this value to some timestamp.
+   *
+   * @type {number}
+   */
   @Column({ nullable: true })
   removedAt: number;
 
@@ -26,10 +32,4 @@ export class GameLobby extends AbstractEntity {
 
   @ManyToOne(type => User)
   addedBy: User;
-
-  @ManyToOne(type => Lobby, lobby => lobby.gameLobbies, { primary: true })
-  lobby: Lobby;
-
-  @ManyToOne(type => Game, game => game.gameLobbies, { primary: true })
-  game: Game;
 }

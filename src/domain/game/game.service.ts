@@ -154,12 +154,12 @@ export class GameService {
       if (game.gameLobbies) {
         const unwatchedBanchoMultiplayerIds = await Promise.all(
           game.gameLobbies
+            .filter(gameLobby => gameLobby.lobby && gameLobby.lobby.banchoMultiplayerId)
             // for all bancho multiplayer ids belongings to this game
-            .map(gameLobby => gameLobby.lobby)
-            .map(lobby => lobby.banchoMultiplayerId)
+            .map(gameLobby => gameLobby.lobby.banchoMultiplayerId)
             // call unwatch on all lobbies for this game on the lobby scanner.
-            // GL: .map(mpid => OsuLobbyWatcher.getInstance().unwatch({ gameId: gameId, banchoMultiplayerId: mpid }))
-            .map(mpid => this.osuLobbyScanner.unwatch(gameId, mpid))
+            .map(banchoMultiplayerId => this.osuLobbyScanner.unwatch(gameId, banchoMultiplayerId))
+          // GL: .map(mpid => OsuLobbyWatcher.getInstance().unwatch({ gameId: gameId, banchoMultiplayerId: mpid }))
         );
         Log.debug("Unwatched MP IDs: ", unwatchedBanchoMultiplayerIds);
       }

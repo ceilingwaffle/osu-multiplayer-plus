@@ -180,7 +180,16 @@ describe("When adding a lobby", function() {
         const game2creator = await discordUserRepository.findByDiscordUserId(createGame2DiscordRequest.authorId);
         const savedLobby = await lobbyRepository.findOne(
           { banchoMultiplayerId: lobbyDto.banchoMultiplayerId },
-          { relations: ["games", "games.lobbies", "addedBy", "addedBy.discordUser"] }
+          {
+            relations: [
+              "gameLobbies",
+              "gameLobbies.game",
+              "gameLobbies.lobby",
+              "gameLobbies.addedBy",
+              "gameLobbies.addedBy.discordUser",
+              "gameLobbies.addedBy.webUser"
+            ]
+          }
         );
         /* #endregion */
 
@@ -199,16 +208,18 @@ describe("When adding a lobby", function() {
         assert.isNotNull(game2creator);
         assert.isNotNull(game2creator.user);
         assert.isDefined(savedLobby);
-        assert.isNotNull(savedLobby.games[0], "The lobby should be attached to a game.");
-        assert.lengthOf(savedLobby.games, 1, "The lobby should only be added to one game.");
+        const savedLobbyGames = savedLobby.gameLobbies.map(gameLobby => gameLobby.game);
+        const savedLobbyAddedBy = savedLobby.gameLobbies.find(gameLobby => gameLobby.lobby.id === savedLobby.id).addedBy;
+        assert.isNotNull(savedLobbyGames[0], "The lobby should be attached to a game.");
+        assert.lengthOf(savedLobbyGames, 1, "The lobby should only be added to one game.");
         assert.equal(
-          savedLobby.games[0].teamLives,
+          savedLobbyGames[0].teamLives,
           game2.teamLives,
           "The lobby should be added to game id 2 (the game most recently created by user 2)."
         );
-        assert.equal(savedLobby.games[0].id, 2, "The lobby should be added to game id 2 (the game most recently created by user 2).");
-        assert.equal(savedLobby.games.length, 1, "The lobby should only include a reference to a single game.");
-        assert.equal(savedLobby.addedBy.id, game2creator.user.id, "The lobby should reflect that it was added by user 2.");
+        assert.equal(savedLobbyGames[0].id, 2, "The lobby should be added to game id 2 (the game most recently created by user 2).");
+        assert.equal(savedLobbyGames.length, 1, "The lobby should only include a reference to a single game.");
+        assert.equal(savedLobbyAddedBy.id, game2creator.user.id, "The lobby should reflect that it was added by user 2.");
         const addedByDiscordUser = lobbyReport.addedBy as DiscordUserReportProperties;
         assert.equal(
           addedByDiscordUser.discordUserId,
@@ -219,11 +230,11 @@ describe("When adding a lobby", function() {
         // game with id 2 should reference the saved lobby
         const gameRepository = getCustomRepository(GameRepository);
         let game: Game;
-        game = await gameRepository.findOne({ id: 2 }, { relations: ["lobbies"] });
-        assert.equal(savedLobby.id, game.lobbies[0].id, "Game with ID 2 should contain a reference to the new lobby.");
+        game = await gameRepository.findOne({ id: 2 }, { relations: ["gameLobbies", "gameLobbies.lobby"] });
+        assert.equal(savedLobby.id, game.gameLobbies[0].lobby.id, "Game with ID 2 should contain a reference to the new lobby.");
         // game with id 1 should NOT reference the saved lobby
-        game = await gameRepository.findOne({ id: 1 }, { relations: ["lobbies"] });
-        assert.isUndefined(game.lobbies[0], "Game with ID 1 should NOT contain a reference to any lobbies.");
+        game = await gameRepository.findOne({ id: 1 }, { relations: ["gameLobbies"] });
+        assert.isUndefined(game.gameLobbies[0], "Game with ID 1 should NOT contain a reference to any lobbies.");
         /* #endregion */
 
         return resolve();
@@ -258,7 +269,16 @@ describe("When adding a lobby", function() {
         const game3creator = await discordUserRepository.findByDiscordUserId(createGame3DiscordRequest.authorId);
         const savedLobby = await lobbyRepository.findOne(
           { banchoMultiplayerId: lobbyDto.banchoMultiplayerId },
-          { relations: ["games", "games.lobbies", "addedBy", "addedBy.discordUser"] }
+          {
+            relations: [
+              "gameLobbies",
+              "gameLobbies.game",
+              "gameLobbies.lobby",
+              "gameLobbies.addedBy",
+              "gameLobbies.addedBy.discordUser",
+              "gameLobbies.addedBy.webUser"
+            ]
+          }
         );
         /* #endregion */
 
@@ -276,16 +296,18 @@ describe("When adding a lobby", function() {
         );
         assert.isNotNull(game3creator!.user);
         assert.isDefined(savedLobby);
-        assert.isNotNull(savedLobby.games[0], "The lobby should be attached to a game.");
-        assert.lengthOf(savedLobby.games, 1, "The lobby should only be added to one game.");
+        const savedLobbyGames = savedLobby.gameLobbies.map(gameLobby => gameLobby.game);
+        const savedLobbyAddedBy = savedLobby.gameLobbies.find(gameLobby => gameLobby.lobby.id === savedLobby.id).addedBy;
+        assert.isNotNull(savedLobbyGames[0], "The lobby should be attached to a game.");
+        assert.lengthOf(savedLobbyGames, 1, "The lobby should only be added to one game.");
         assert.equal(
-          savedLobby.games[0].teamLives,
+          savedLobbyGames[0].teamLives,
           game3.teamLives,
           "The lobby should be added to game id 3 (the game most recently created by user 2)."
         );
-        assert.equal(savedLobby.games[0].id, 3, "The lobby should be added to game id 3 (the game targeted in the DTO).");
-        assert.equal(savedLobby.games.length, 1, "The lobby should only include a reference to a single game.");
-        assert.equal(savedLobby.addedBy.id, game3creator.user.id, "The lobby should reflect that it was added by user 3.");
+        assert.equal(savedLobbyGames[0].id, 3, "The lobby should be added to game id 3 (the game targeted in the DTO).");
+        assert.equal(savedLobbyGames.length, 1, "The lobby should only include a reference to a single game.");
+        assert.equal(savedLobbyAddedBy.id, game3creator.user.id, "The lobby should reflect that it was added by user 3.");
         const addedByDiscordUser = lobbyReport.addedBy as DiscordUserReportProperties;
         assert.equal(
           addedByDiscordUser.discordUserId,
@@ -378,7 +400,16 @@ describe("When adding a lobby", function() {
         const lobbyRepository = getCustomRepository(LobbyRepository);
         const savedLobby = await lobbyRepository.findOne(
           { banchoMultiplayerId: lobbyDto1.banchoMultiplayerId },
-          { relations: ["games", "games.lobbies", "addedBy", "addedBy.discordUser"] }
+          {
+            relations: [
+              "gameLobbies",
+              "gameLobbies.game",
+              "gameLobbies.lobby",
+              "gameLobbies.addedBy",
+              "gameLobbies.addedBy.discordUser",
+              "gameLobbies.addedBy.webUser"
+            ]
+          }
         );
         /* #endregion */
 
@@ -395,9 +426,10 @@ describe("When adding a lobby", function() {
 
         // Ensure the lobby exists in the database from the first request.
         // This ensures that the response isn't a failure due to it not saving anything during the first attempt aswell.
+        const savedLobbyGames = savedLobby.gameLobbies.map(gameLobby => gameLobby.game);
         assert.isDefined(savedLobby);
-        assert.isNotNull(savedLobby.games[0], "The lobby should be attached to a game.");
-        assert.equal(savedLobby.games[0].id, 3, "The lobby should be associated with game id 3 (the game targeted in the DTO).");
+        assert.isNotNull(savedLobbyGames[0], "The lobby should be attached to a game.");
+        assert.equal(savedLobbyGames[0].id, 3, "The lobby should be associated with game id 3 (the game targeted in the DTO).");
 
         /* #endregion */
         return resolve();
@@ -431,7 +463,7 @@ describe("When adding a lobby", function() {
         const lobbyRepository = getCustomRepository(LobbyRepository);
         const lobbyShouldNotExist = await lobbyRepository.findOne(
           { banchoMultiplayerId: lobbyDto1.banchoMultiplayerId },
-          { relations: ["games", "games.lobbies", "addedBy", "addedBy.discordUser"] }
+          { relations: [] }
         );
 
         assert.isFalse(lobbyAddResponse1.success, "The lobby-add request succeeded but should have failed.");
@@ -476,7 +508,7 @@ describe("When adding a lobby", function() {
         const lobbyRepository = getCustomRepository(LobbyRepository);
         const lobbyShouldNotExist = await lobbyRepository.findOne(
           { banchoMultiplayerId: lobbyDto1.banchoMultiplayerId },
-          { relations: ["games", "games.lobbies", "addedBy", "addedBy.discordUser"] }
+          { relations: [] }
         );
 
         assert.isTrue(gameEndResponse1.success, "The end-game request failed to end the game.");
@@ -525,7 +557,16 @@ describe("When adding a lobby", function() {
         const lobbyRepository = getCustomRepository(LobbyRepository);
         const savedLobby = await lobbyRepository.findOne(
           { banchoMultiplayerId: lobbyDto1.banchoMultiplayerId },
-          { relations: ["games", "games.lobbies", "addedBy", "addedBy.discordUser"] }
+          {
+            relations: [
+              "gameLobbies",
+              "gameLobbies.game",
+              "gameLobbies.lobby",
+              "gameLobbies.addedBy",
+              "gameLobbies.addedBy.discordUser",
+              "gameLobbies.addedBy.webUser"
+            ]
+          }
         );
         /* #endregion */
 
@@ -536,11 +577,12 @@ describe("When adding a lobby", function() {
         assert.isNotNull(lobbyAddResponse2);
         assert.isTrue(lobbyAddResponse2.success, "The second lobby-add request failed but should have succeeded.");
 
+        const savedLobbyGames = savedLobby.gameLobbies.map(gameLobby => gameLobby.game);
         assert.isDefined(savedLobby);
-        assert.isDefined(savedLobby.games, "The lobby should contains a games property.");
-        assert.equal(savedLobby.games.length, 2, "The lobby should be associated with 2 games.");
-        assert.equal(savedLobby.games[0].id, 1, "The lobby should be associated with game id 1 (the game targeted in the DTO).");
-        assert.equal(savedLobby.games[1].id, 2, "The lobby should be associated with game id 2 (the game targeted in the DTO).");
+        assert.isDefined(savedLobbyGames, "The lobby should contains a games property.");
+        assert.equal(savedLobbyGames.length, 2, "The lobby should be associated with 2 games.");
+        assert.equal(savedLobbyGames[0].id, 1, "The lobby should be associated with game id 1 (the game targeted in the DTO).");
+        assert.equal(savedLobbyGames[1].id, 2, "The lobby should be associated with game id 2 (the game targeted in the DTO).");
 
         return resolve();
       } catch (error) {

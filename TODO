@@ -1,6 +1,6 @@
 // using TODO+ extension for vscode
 TODO: 
-    ☐ Completely rework adding/removing lobbies from games @created(19-08-28 20:27) @started(19-08-28 20:20)
+    ✔ Completely rework adding/removing lobbies from games @created(19-08-28 20:27) @started(19-08-28 20:20) @done(19-08-30 07:41) @lasted(1d11h21m46s)
         Storing add/remove values on a many-to-many GamesLobby table: https://github.com/typeorm/typeorm/issues/1224
     ☐ Remove GameStatus.UNKNOWN
         Using "UNKNOWN" feels lazy. If there's an error preventing a known-status being applied, we should just throw an error instead of resorting to an "UNKNOWN" status. Also having a game status as "UNKNOWN" means that status has to be handled in some way eventually, so why not just handle it that way to start with?
@@ -70,6 +70,8 @@ TODO:
                 ☐ Guess the roll
                 ☐ osu! trivia quiz
             Game Modes:
+                ☐ Team handicaps 
+                ☐ Option to ignore score bonuses/reductions in score calculations (e.g. EZ 50% -> 100%, HD 106% -> 100%)
                 ☐ Team Vs / Sudden Death idea
                 Multiple lobby support for 16x16 teams. Could in theory have any nxn sizes, but maybe we want to limit it to 16x16 to make the chat experience better.
                 ☐ Battle Royale / Last-Man-Standing, either solo or teams

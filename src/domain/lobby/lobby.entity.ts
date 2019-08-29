@@ -25,6 +25,6 @@ export class Lobby extends AbstractEntity {
   @Column({ default: LobbyStatus.UNKNOWN.getKey() })
   status: string;
 
-  @OneToMany(type => GameLobby, gameLobby => gameLobby.lobby)
+  @OneToMany(type => GameLobby, gameLobby => gameLobby.lobby, { cascade: true })
   gameLobbies: GameLobby[];
 }

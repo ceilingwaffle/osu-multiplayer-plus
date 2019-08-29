@@ -72,7 +72,7 @@ export class UserService {
 
   async findOne(userData: FindUserDto): Promise<Either<Failure<UserFailure>, User>> {
     try {
-      const user = await this.userRepository.findOne(userData.id);
+      const user = await this.userRepository.findOne(userData.id, { relations: ["discordUser", "webUser"] });
       if (!user) {
         const msg = `A user with ID '${user.id}' does not exist.`;
         Log.methodFailure(this.findOne, this.constructor.name, msg);

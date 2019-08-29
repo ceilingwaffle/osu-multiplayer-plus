@@ -33,7 +33,7 @@ export class Game extends AbstractEntity {
   @Column({ name: "ended_at", nullable: true })
   endedAt: number;
 
-  @OneToMany(type => GameLobby, gameLobby => gameLobby.game)
+  @OneToMany(type => GameLobby, gameLobby => gameLobby.game, { cascade: true })
   @JoinTable()
   gameLobbies: GameLobby[];
 
