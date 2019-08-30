@@ -1,7 +1,7 @@
 // using TODO+ extension for vscode
 TODO: 
     ✔ Fix `Error: Multiplayer 54078930 is not currently being watched` when using `!endgame` command @created(19-08-30 07:43) @done(19-08-30 23:29)
-    ☐ Fix `!obr removelobby` command not unwatching the lobby in the osu lobby scanner @created(19-08-30 23:29)
+    ✔ Fix `!obr removelobby` command not unwatching the lobby in the osu lobby scanner @created(19-08-30 23:29) @done(19-08-30 23:52)
     ☐ Remove all the comments starting with "GL:" from when we implemented the GameLobby entity @created(19-08-30 07:48)
     ✔ Completely rework adding/removing lobbies from games @created(19-08-28 20:27) @started(19-08-28 20:20) @done(19-08-30 07:41) @lasted(1d11h21m46s)
     Storing add/remove values on a many-to-many GamesLobby table: https://github.com/typeorm/typeorm/issues/1224
@@ -25,6 +25,8 @@ TODO:
         ☐ Ensure app does not crash, or if it does, restart it in a reliable way
             Don't worry about uncaught exceptions like "connection closed" errors - just use foreverjs to restart the app in the event of failure.
     Tests:
+        ☐ Speed up test execution times @created(19-08-30 23:52)
+            ☐ Can we run each group of tests in parallel by using a separate sqlite database for each group? @created(19-08-30 23:52)
         ✔ Finish writing commented-out tests in lobby-create.test.ts @started(19-08-18 20:12) @done(19-08-18 21:25) @lasted(1h13m39s)
         ✔ Run tests individually @done(19-08-18 22:41)
         ✔ Write tests for asserting lobby status after lobby-removal @started(19-08-20 05:22) @done(19-08-20 05:44) @lasted(22m21s)

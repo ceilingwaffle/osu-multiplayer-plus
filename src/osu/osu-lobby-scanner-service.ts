@@ -74,6 +74,10 @@ export class OsuLobbyScannerService extends EventEmitter implements IOsuLobbySca
     }
   }
 
+  isWatching(multiplayerId: string): boolean {
+    return !!this.findWatcher(multiplayerId);
+  }
+
   /**
    * Returns true if disposed successfully.
    *

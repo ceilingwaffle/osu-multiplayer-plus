@@ -19,4 +19,12 @@ export interface IOsuLobbyScanner {
    * @returns {Promise<void>}
    */
   unwatch(gameId: number, multiplayerId: string): Promise<void>;
+
+  /**
+   * Returns true if the given Bancho multiplayer ID is currently being actively scanned for match results.
+   *
+   * @param {string} multiplayerId
+   * @returns {Promise<boolean>}
+   */
+  isWatching(multiplayerId: string): boolean;
 }

@@ -46,5 +46,5 @@ export const gameCannotBeEndedDueToStatusFailure = (gameId: number, gameStatus: 
 
 export const userHasNotCreatedGameFailure = (userId: number): Failure<GameFailure.UserHasNotCreatedGame> => ({
   type: GameFailure.UserHasNotCreatedGame,
-  reason: `No games have been created by user ID ${userId}.`
+  reason: `No games have been created by user ID ${userId}. Try creating a game first.`
 });

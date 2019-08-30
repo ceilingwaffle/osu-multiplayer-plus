@@ -175,7 +175,7 @@ describe("When removing a lobby", function() {
     });
   });
 
-  it("should associate the same lobby with three games then remove the lobby from one game", function() {
+  it("should add the same lobby to three games then remove the lobby from one game", function() {
     return new Promise(async (resolve, reject) => {
       try {
         const lobbyController = iocContainer.get(LobbyController);
@@ -282,7 +282,7 @@ describe("When removing a lobby", function() {
     });
   });
 
-  it("should disassociate multiple lobbies from a single game", function() {
+  it("should remove two lobbies from one game", function() {
     return new Promise(async (resolve, reject) => {
       try {
         const lobbyController = iocContainer.get(LobbyController);
@@ -425,46 +425,42 @@ describe("When removing a lobby", function() {
     });
   });
 
-  it(
-    "should update the status of a lobby to STOPPED_WATCHING after sending a valid " +
-      "remove-lobby request, when the lobby is no longer being watched for any games",
-    function() {
-      return new Promise(async (resolve, reject) => {
-        try {
-          // add lobby
-          const lobbyDto1: AddLobbyDto = {
-            banchoMultiplayerId: "54078930", // replace this with a valid mp id if it expires
-            gameId: 1
-          };
-          const clock: InstalledClock = lolex.install();
-          const lobbyController = iocContainer.get(LobbyController);
-          const lobbyAddResponse1 = await lobbyController.create({
-            lobbyDto: lobbyDto1,
-            requestDto: createGame1DiscordRequest
-          });
-          clock.uninstall();
-          assert.isTrue(lobbyAddResponse1 && lobbyAddResponse1.success, "The lobby-add-request did not complete successfully.");
+  it("should update the status of a lobby to STOPPED_WATCHING when the lobby is no longer being watched for any games", function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // add lobby
+        const lobbyDto1: AddLobbyDto = {
+          banchoMultiplayerId: "54078930", // replace this with a valid mp id if it expires
+          gameId: 1
+        };
+        const clock: InstalledClock = lolex.install();
+        const lobbyController = iocContainer.get(LobbyController);
+        const lobbyAddResponse1 = await lobbyController.create({
+          lobbyDto: lobbyDto1,
+          requestDto: createGame1DiscordRequest
+        });
+        clock.uninstall();
+        assert.isTrue(lobbyAddResponse1 && lobbyAddResponse1.success, "The lobby-add-request did not complete successfully.");
 
-          // remove the bancho mp id from game #1
-          const removeLobbyDto: RemoveLobbyDto = {
-            banchoMultiplayerId: lobbyDto1.banchoMultiplayerId,
-            gameId: lobbyDto1.gameId
-          };
-          const lobbyRemoveResponse = await lobbyController.remove({ lobbyDto: removeLobbyDto, requestDto: createGame1DiscordRequest });
-          assert.isTrue(lobbyRemoveResponse && lobbyRemoveResponse.success);
+        // remove the bancho mp id from game #1
+        const removeLobbyDto: RemoveLobbyDto = {
+          banchoMultiplayerId: lobbyDto1.banchoMultiplayerId,
+          gameId: lobbyDto1.gameId
+        };
+        const lobbyRemoveResponse = await lobbyController.remove({ lobbyDto: removeLobbyDto, requestDto: createGame1DiscordRequest });
+        assert.isTrue(lobbyRemoveResponse && lobbyRemoveResponse.success);
 
-          // assert lobby status
-          const lobbyAfterRemoval = await Lobby.findOne({ banchoMultiplayerId: lobbyDto1.banchoMultiplayerId }, { relations: [] });
-          assert.isDefined(lobbyAfterRemoval);
-          assert.equal(lobbyAfterRemoval.status, LobbyStatus.STOPPED_WATCHING.getKey());
+        // assert lobby status
+        const lobbyAfterRemoval = await Lobby.findOne({ banchoMultiplayerId: lobbyDto1.banchoMultiplayerId }, { relations: [] });
+        assert.isDefined(lobbyAfterRemoval);
+        assert.equal(lobbyAfterRemoval.status, LobbyStatus.STOPPED_WATCHING.getKey());
 
-          return resolve();
-        } catch (error) {
-          return reject(error);
-        }
-      });
-    }
-  );
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
 
   it("should NOT update the lobby status when removing a lobby that still belongs to at least one game (still watching)", function() {
     return new Promise(async (resolve, reject) => {

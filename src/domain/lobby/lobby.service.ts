@@ -198,7 +198,7 @@ export class LobbyService {
       }
 
       // get the lobby remover
-      const lobbyRemoverResult: Either<Failure<UserFailure>, User> = await this.userService.findOne({ id: userId });
+      const lobbyRemoverResult = await this.userService.findOne({ id: userId });
       if (lobbyRemoverResult.failed()) {
         Log.methodFailure(
           this.processRemoveLobbyRequest,
@@ -211,17 +211,13 @@ export class LobbyService {
       const lobbyRemover = lobbyRemoverResult.value;
 
       // if the requester did not specify a target-game-id, try to use their most-recently created game
-      const foundGameResult: Either<Failure<GameFailure>, Game> = await this.getRequestingUserTargetGame(lobbyData, userId);
+      const foundGameResult = await this.getRequestingUserTargetGame(lobbyData, userId);
       if (foundGameResult.failed()) {
         // no game exists created by the user, or no game exists for the provided game ID
         Log.methodFailure(this.processRemoveLobbyRequest, this.constructor.name, foundGameResult.value.reason, foundGameResult.value.error);
         return failurePromise(foundGameResult.value);
       }
       const gameId = foundGameResult.value.id;
-
-      // update some GameLobby properties to mark it as removed
-      // GL: const removedGameLobby: GameLobby = gameId ? this.extractGameLobbyFromLobby(targetLobby, gameId) : null;
-      this.setRemovalPropertiesOnGameLobby(targetLobby, gameId, lobbyRemover);
 
       // we need the game being disassociated from the lobby
       const removingGameLobby = targetLobby.gameLobbies.find(gameLobby => gameLobby.game.id === gameId);
@@ -232,17 +228,25 @@ export class LobbyService {
       }
       const removingGame = removingGameLobby.game;
 
-      // unwatch the bancho lobby if the lobby no longer belongs to any non-removed games
-      // GL: if (targetLobby.games.length < 1) {
-      if (targetLobby.gameLobbies.filter(gameLobby => !gameLobby.removedAt).map(gameLobby => gameLobby.game).length < 1) {
-        this.osuLobbyScanner.unwatch(gameId, targetLobby.banchoMultiplayerId);
-        // this.lobbyWatcher.unwatch({ banchoMultiplayerId: targetLobby.banchoMultiplayerId, gameId: gameId });
-        // update the lobby status
+      // ensure that the game lobby is not already removed
+      const removableGameLobby = targetLobby.gameLobbies.find(gameLobby => !gameLobby.removedAt && gameLobby.game.id === gameId);
+      if (!removableGameLobby) {
+        const failureReason = `Lobby ${targetLobby.banchoMultiplayerId} has already been removed from game ID ${gameId}.`;
+        Log.methodFailure(this.processRemoveLobbyRequest, this.constructor.name);
+        return failurePromise(lobbyRemovalFailure(failureReason));
+      }
+
+      // Attempt to unwatch the bancho lobby for this game. The OsuLobbyScanner will handle whether or not the lobby will
+      // actually really be unwatched, depending on whether or not it still needs to be watched for any other games.
+      this.osuLobbyScanner.unwatch(gameId, targetLobby.banchoMultiplayerId);
+
+      // update the lobby status if it's no longer being scanned
+      if (!this.osuLobbyScanner.isWatching(targetLobby.banchoMultiplayerId)) {
         targetLobby.status = LobbyStatus.STOPPED_WATCHING.getKey();
       }
 
-      // // remove the GameLobby from the database
-      // await this.gameLobbyRepository.deleteGameLobby(removedGameLobby);
+      // update some GameLobby properties to mark it as removed
+      this.setRemovalPropertiesOnGameLobby(targetLobby, gameId, lobbyRemover);
 
       const savedLobby = await this.saveAndReloadLobby(targetLobby);
       // TODO: Decide to soft/hard delete depending on whether or not match-scores have been recorded for the lobby:
