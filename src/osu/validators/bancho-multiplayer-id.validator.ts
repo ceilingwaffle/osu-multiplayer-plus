@@ -23,8 +23,8 @@ export class IsValidBanchoMultiplayerIdConstraint implements ValidatorConstraint
   }
 
   defaultMessage(args: ValidationArguments) {
-    // TODO: reason for failed validation
-    return "Bancho Multiplayer ID ($value) is not valid (why?).";
+    // TODO: include a reason for failed validation
+    return "$value is not a valid multiplayer ID.";
   }
 }
 

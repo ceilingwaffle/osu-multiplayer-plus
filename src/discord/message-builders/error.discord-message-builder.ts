@@ -44,7 +44,11 @@ export class ErrorDiscordMessageBuilder extends AbstractDiscordMessageBuilder<an
       message.addField(
         "Validation Errors",
         this.response.errors.validation
-          .map(vError => `${vError.property}: "${vError.value}" is bad because: ${vError.constraints}`)
+          .map(vError => {
+            const reasons: string[] = [];
+            for (let key in vError.constraints) reasons.push(vError.constraints[key]);
+            return `${vError.property} ${vError.value} is bad because: ${reasons.join(", ")}`;
+          })
           .join("\n")
       );
     }
