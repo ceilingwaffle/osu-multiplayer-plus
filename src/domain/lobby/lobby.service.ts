@@ -153,6 +153,10 @@ export class LobbyService {
         return failurePromise(lobbyCreatorResult.value);
       }
 
+      // set the lobby status (in case the lobby was previously removed and has now been re-added)
+      lobby.status = LobbyStatus.AWAITING_FIRST_SCAN.getKey();
+
+      // save the lobby in the db
       const builtLobbyResult = await this.saveLobbyWithRelations(lobby, foundGameResult.value, lobbyCreatorResult.value, lobbyData);
       if (builtLobbyResult.failed()) {
         Log.methodFailure(this.processAddLobbyRequest, this.constructor.name, builtLobbyResult.value.reason, builtLobbyResult.value.error);
@@ -395,6 +399,7 @@ export class LobbyService {
         }
 
         // GL: lobbyToSave.games.push(game);
+        existingLobby.status = unsavedNewLobby.status;
         gameLobbyToBeSaved.lobby = existingLobby;
         lobbyToSave = existingLobby;
         lobbyToSave.gameLobbies.push(gameLobbyToBeSaved);

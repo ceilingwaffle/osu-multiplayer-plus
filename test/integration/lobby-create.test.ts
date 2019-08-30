@@ -1,6 +1,6 @@
 import "../../src/index";
 import "mocha";
-import { assert } from "chai";
+import { assert, expect } from "chai";
 import { TestHelpers, TestContextEntities } from "../test-helpers";
 import iocContainer from "../../src/inversify.config";
 import { ConnectionManager } from "../../src/utils/connection-manager";
@@ -22,6 +22,7 @@ import { LobbyRepository } from "../../src/domain/lobby/lobby.repository";
 import { DiscordUserReportProperties } from "../../src/domain/shared/reports/discord-user-report-properties";
 import { AddLobbyReport } from "../../src/domain/lobby/reports/add-lobby.report";
 import { EndGameDto } from "../../src/domain/game/dto/end-game.dto";
+import { LobbyStatus } from "../../src/domain/lobby/lobby-status";
 var lolex: LolexWithContext = require("lolex");
 
 async function getEntities(): Promise<TestContextEntities[]> {
@@ -583,6 +584,51 @@ describe("When adding a lobby", function() {
         assert.equal(savedLobbyGames.length, 2, "The lobby should be associated with 2 games.");
         assert.equal(savedLobbyGames[0].id, 1, "The lobby should be associated with game id 1 (the game targeted in the DTO).");
         assert.equal(savedLobbyGames[1].id, 2, "The lobby should be associated with game id 2 (the game targeted in the DTO).");
+
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
+
+  it("should add a lobby, remove the lobby, then re-add the lobby", function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const lobbyController = iocContainer.get(LobbyController);
+
+        const lobbyDto1: AddLobbyDto = {
+          banchoMultiplayerId: "54078930", // replace this with a valid mp id if it expires
+          gameId: 1
+        };
+
+        // user 1 adds lobby 1 to game 1
+        const lobbyAddResponse1 = await lobbyController.create({
+          lobbyDto: lobbyDto1,
+          requestDto: createGame1DiscordRequest
+        });
+        assert.isTrue(lobbyAddResponse1 && lobbyAddResponse1.success);
+
+        // user 1 removes lobby 1 from game 1
+        const lobbyRemoveResponse1 = await lobbyController.remove({
+          lobbyDto: lobbyDto1,
+          requestDto: createGame1DiscordRequest
+        });
+        assert.isTrue(lobbyRemoveResponse1 && lobbyRemoveResponse1.success);
+
+        // user 1 re-adds lobby 1 to game 1
+        const lobbyAddResponse2 = await lobbyController.create({
+          lobbyDto: lobbyDto1,
+          requestDto: createGame1DiscordRequest
+        });
+        assert.isTrue(lobbyAddResponse2 && lobbyAddResponse2.success);
+
+        // assert lobby report has expected properties
+        const lobbyReport: AddLobbyReport = lobbyAddResponse2.result;
+        const addedBy = lobbyReport.addedBy as DiscordUserReportProperties;
+        expect(lobbyReport.status).to.equal(LobbyStatus.AWAITING_FIRST_SCAN.getText());
+        expect(addedBy.discordUserId).to.equal(createGame1DiscordRequest.authorId);
+        expect(lobbyReport.addedAgo).to.have.lengthOf.greaterThan(1);
 
         return resolve();
       } catch (error) {

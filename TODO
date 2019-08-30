@@ -93,6 +93,10 @@ TODO:
                 ☐ If you're on 0 lives, you need to win the next map, otherwise you're eliminated. "One final chance" mode.
                 ☐ Riwaka: One player can force a mod on the entire lobby
                     Would also be cool if one player could force a mod on a specific player
+    Creating a Game:
+        ☐ Warn the user if they use `!obr creategame` if the last game they created is still active @created(19-08-31 08:05)
+            "Looks like the last game you created is still active (game id x). Are you sure you want to start a new game? Reply with "yes" if so. Otherwise do nothing and this message will expire in t seconds." 
+        ☐ Rename `!obr creategame` -> `!obr newgame` @created(19-08-31 08:05)
     Adding Lobbies:
         ✔ Currently, the lobby service is trying to add a new Lobby with the same banchoMultiplayerId rather than create a new Lobby-Game relationship. To fix this, add some code in the lobby service to check for the existing banchoMultiplayerId Lobby, and push the target-Game onto the lobby.games array. @started(19-08-18 17:00) @done(19-08-18 17:31) @lasted(31m15s)
         ✔ Make bancho multiplayer ID unique to lobby. No two lobbies should exist with the same mp ID. @done(19-08-18 19:49)
@@ -129,8 +133,8 @@ TODO:
                     Only admin, game-creator, and game ref are allowed to write messages in channel #obr-game-5.
         Commands:
             Role Management:
-                ☐ Add command `!obr addrole referee @user` @created(19-08-31 00:22)
-                ☐ Add command `!obr removerole referee @user` @created(19-08-31 00:22)
+                ☐ Add command `!obr promote @user` @created(19-08-31 00:22)
+                ☐ Add command `!obr demote @user` @created(19-08-31 00:22)
             Lobby Management: 
                 ✔ Add a manual remove-lobby command. Include description like "this will not close the actual lobby; it will only tell the bot to stop scanning the lobby for future results." @started(19-08-19 00:30) @done(19-08-19 05:13) @lasted(4h43m45s)
                 ✔ When using command !obr addlobby 54078930 6, on a game which already has that lobby added, return some error message. @started(19-08-19 00:30) @done(19-08-19 05:13) @lasted(4h43m45s)
