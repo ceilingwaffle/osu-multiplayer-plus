@@ -1,13 +1,17 @@
 // using TODO+ extension for vscode
 TODO: 
+    ✔ Fix `Error: Multiplayer 54078930 is not currently being watched` when using `!endgame` command @created(19-08-30 07:43) @done(19-08-30 23:29)
+    ☐ Fix `!obr removelobby` command not unwatching the lobby in the osu lobby scanner @created(19-08-30 23:29)
+    ☐ Remove all the comments starting with "GL:" from when we implemented the GameLobby entity @created(19-08-30 07:48)
     ✔ Completely rework adding/removing lobbies from games @created(19-08-28 20:27) @started(19-08-28 20:20) @done(19-08-30 07:41) @lasted(1d11h21m46s)
-        Storing add/remove values on a many-to-many GamesLobby table: https://github.com/typeorm/typeorm/issues/1224
+    Storing add/remove values on a many-to-many GamesLobby table: https://github.com/typeorm/typeorm/issues/1224
     ☐ Remove GameStatus.UNKNOWN
-        Using "UNKNOWN" feels lazy. If there's an error preventing a known-status being applied, we should just throw an error instead of resorting to an "UNKNOWN" status. Also having a game status as "UNKNOWN" means that status has to be handled in some way eventually, so why not just handle it that way to start with?
+    Using "UNKNOWN" feels lazy. If there's an error preventing a known-status being applied, we should just throw an error instead of resorting to an "UNKNOWN" status. Also having a game status as "UNKNOWN" means that status has to be handled in some way eventually, so why not just handle it that way to start with?
     ☐ Explore the osu! API - we need to know if submitting a map when you're in a multi will display the map in your "recent" played maps. This is mainly for MING MODE where we need to know - if it's displayed in your recent plays with an F (if failed in a multi). Does it only show F if you didn't recover in the multi, or will it show some letter (S,A,B,C,D) when you recover before the end of the map.
     ☐ Take a look at the new osu! API
     ✔ Use test Discord Commando database depending on env context @started(19-08-26 21:40) @done(19-08-27 08:11) @lasted(10h31m25s)
     Osu Lobby Watcher:
+        ☐ Persist osu watcher lobbies being watched after app exits @created(19-08-30 22:45)
         ☐ Rebuild osu-lobby-watcher.ts using listener and EventEmitter @created(19-08-27 12:09)
             https://github.com/onury/tasktimer
             https://blog.x5ff.xyz/blog/typescript-interval-iot/ 
@@ -39,6 +43,7 @@ TODO:
     Database:
         ☐ Write typeorm migrations - but only once we go to production @created(19-08-27 08:08)
     Optimize: 
+        ☐ Consider adding "use strict" to the top of all source files @created(19-08-30 23:18)
         ☐ Improve startup time for `npm run test`
         ☐ Fix having to restart the app multiple times waiting for database connection
             ☐ Handle soft/hard lobby deletes depending on whether or not matches exist for the given lobby.
@@ -103,6 +108,9 @@ TODO:
             ✘ OLD IDEA -------- add the game without a relation to the UserGameRole, then create a new UserGameRole using gameCreator.userId + newGame.gameId + role === "game-creator" (this should update the game afterwards with a reference to the UserGameRole) @cancelled(19-08-23 19:32)
             ✘ Should we store a redundant reference to the game creator on the game entity? Possibly bad because now we have multiple references to the creator - what if we access it from the wrong entity while working on this in a few months time? @cancelled(19-08-23 19:32)
         Discord:
+            Bot Permissions Required:
+                ☐ Delete messages (e.g. user types yes to confirm destructive command - we need to delete that message) @created(19-08-30 23:06)
+                ☐ Create text channels (to create game-specific channels) @created(19-08-30 23:07)
             ✔ Add a manual remove-lobby command. Include description like "this will not close the actual lobby; it will only tell the bot to stop scanning the lobby for future results." @started(19-08-19 00:30) @done(19-08-19 05:13) @lasted(4h43m45s)
             ✔ When using command !obr addlobby 54078930 6, on a game which already has that lobby added, return some error message. @started(19-08-19 00:30) @done(19-08-19 05:13) @lasted(4h43m45s)
             ✘ Add discord command `!obr set-channels-category "OBR Games"` @cancelled(19-08-22 20:14)
@@ -117,6 +125,7 @@ TODO:
                 ☐ Also if the server is deleted. Is there an event for that? Send some kind of "server deleted, so we're shutting down the game" message to the original game author.
             ✔ Get user confirmation before performing destructive commands @created(19-08-26 21:53) @done(19-08-26 23:17)
                 e.g. !obr endgame -> "Are you sure you want to end game 5? Enter yes to confirm."
+            ☐ Delete the user's `yes` confirmation message @created(19-08-30 23:05)
             ☐ Send game-event messages to a specific game channel, and send @ replies to the user in the channel where they wrote the command. @created(19-08-28 08:22)
                 e.g. User types !obr creategame.
                      Bot creates channel #obr-game-5

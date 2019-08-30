@@ -9,16 +9,18 @@ import { Multiplayer } from "./types/multiplayer";
 interface Watcher {
   multiplayerId: string;
   gameIds: number[];
+  startAtMapNumber: number;
   timer: NodeJS.Timer;
 }
 
 export class OsuLobbyScannerService extends EventEmitter implements IOsuLobbyScanner {
   protected readonly api: IOsuApiFetcher = NodesuApiFetcher.getInstance();
   protected readonly interval: number = 5000;
-  protected readonly watching: { [multiplayerId: string]: Watcher }[] = [];
+  protected readonly watching: { [multiplayerId: string]: Watcher } = {};
 
   constructor() {
     super();
+    Log.info(`Initialized ${this.constructor.name}`);
 
     this.addListener("scan", this.action);
 
@@ -43,6 +45,7 @@ export class OsuLobbyScannerService extends EventEmitter implements IOsuLobbySca
       this.watching[multiplayerId] = {
         multiplayerId: multiplayerId,
         gameIds: [gameId],
+        startAtMapNumber: startAtMapNumber,
         timer: setInterval(() => this.emit("scan", multiplayerId), this.interval)
       };
       Log.info("Created new multi watcher");
@@ -71,14 +74,30 @@ export class OsuLobbyScannerService extends EventEmitter implements IOsuLobbySca
     }
   }
 
-  private disposeWatcher(multiplayerId: string) {
+  /**
+   * Returns true if disposed successfully.
+   *
+   * @private
+   * @param {string} multiplayerId
+   * @returns {boolean}
+   */
+  private disposeWatcher(multiplayerId: string): boolean {
     const watcher: Watcher = this.findWatcher(multiplayerId);
-    if (!watcher) throw new Error(`Cannot dispose watcher because no watcher exists for multiplayer ${multiplayerId}.`);
-    clearInterval(this.watching[multiplayerId].timer);
-    this.watching[multiplayerId].timer = undefined;
-    this.watching[multiplayerId].gameIds = undefined;
-    this.watching[multiplayerId] = undefined;
-    Log.info(`Disposed watcher for multiplayer ${multiplayerId}`);
+    if (!watcher) {
+      throw new Error(`Cannot dispose watcher because no watcher exists for multiplayer ${multiplayerId}.`);
+    }
+    if (this.watching[multiplayerId].timer) {
+      clearInterval(this.watching[multiplayerId].timer);
+    } else {
+      Log.warn(`Watcher for multiplayer ${multiplayerId} did not have a timer for some reason.`);
+    }
+    const deleted = delete this.watching[multiplayerId];
+    if (deleted) {
+      Log.info(`Disposed watcher for multiplayer ${multiplayerId}.`);
+    } else {
+      Log.warn(`Failed to dispose watcher for multiplayer ${multiplayerId}.`);
+    }
+    return deleted;
   }
 
   private findWatcher(multiplayerId: string): Watcher {

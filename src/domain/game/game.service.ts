@@ -29,13 +29,17 @@ import { RequestDtoType } from "../../requests/dto/request.dto";
 import { GameMessageTargetAction } from "./game-message-target-action";
 import { UserGameRoleRepository } from "../roles/user-game-role.repository";
 import { getLowestUserRole } from "../roles/role.type";
+import { TYPES } from "../../types";
+import { IOsuLobbyScanner } from "../../osu/interfaces/osu-lobby-scanner";
 
 export class GameService {
   private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
   private readonly userGameRoleRepository: UserGameRoleRepository = getCustomRepository(UserGameRoleRepository);
-  private readonly osuLobbyScanner: OsuLobbyScannerService = new OsuLobbyScannerService();
 
-  constructor(@inject(UserService) private readonly userService: UserService) {
+  constructor(
+    @inject(UserService) private readonly userService: UserService,
+    @inject(TYPES.IOsuLobbyScanner) private readonly osuLobbyScanner: IOsuLobbyScanner
+  ) {
     Log.info("Initialized Game Service.");
   }
 
@@ -152,16 +156,15 @@ export class GameService {
       }
 
       if (game.gameLobbies) {
-        const unwatchedBanchoMultiplayerIds = await Promise.all(
+        await Promise.all(
           game.gameLobbies
             .filter(gameLobby => gameLobby.lobby && gameLobby.lobby.banchoMultiplayerId)
             // for all bancho multiplayer ids belongings to this game
             .map(gameLobby => gameLobby.lobby.banchoMultiplayerId)
             // call unwatch on all lobbies for this game on the lobby scanner.
-            .map(banchoMultiplayerId => this.osuLobbyScanner.unwatch(gameId, banchoMultiplayerId))
+            .map(async banchoMultiplayerId => await this.osuLobbyScanner.unwatch(gameId, banchoMultiplayerId))
           // GL: .map(mpid => OsuLobbyWatcher.getInstance().unwatch({ gameId: gameId, banchoMultiplayerId: mpid }))
         );
-        Log.debug("Unwatched MP IDs: ", unwatchedBanchoMultiplayerIds);
       }
 
       // update game status in database
