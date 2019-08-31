@@ -14,13 +14,13 @@ export class CreateGameDiscordMessageBuilder extends AbstractDiscordMessageBuild
     DiscordCommandExampleBuilder.addExample({
       command: command,
       argument: "lives",
-      exampleCommandText: "!obr game <gameId> edit lives <n>"
+      exampleCommandText: "!obr editgame <gameId> lives <n>"
     });
 
     DiscordCommandExampleBuilder.addExample({
       command: command,
       argument: "countFailed",
-      exampleCommandText: "!obr game <gameId> edit countFailed <n>"
+      exampleCommandText: "!obr editgame <gameId> countFailed <n>"
     });
 
     return this;
