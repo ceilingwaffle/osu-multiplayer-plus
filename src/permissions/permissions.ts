@@ -45,7 +45,7 @@ export class Permissions {
    * @param {CommunicationClientType} requestingSource
    * @returns {Either<Failure<PermissionsFailure>, boolean>}
    */
-  buildPermittedResult({
+  private buildPermittedResult({
     permission,
     requestingSource,
     action,
@@ -87,5 +87,31 @@ export class Permissions {
       const _exhaustiveCheck: never = requestingSource;
       return _exhaustiveCheck;
     }
+  }
+
+  async checkUserPermission({
+    user,
+    userRole,
+    action,
+    resource,
+    gameId,
+    requesterClientType
+  }: {
+    user: User;
+    userRole: string;
+    action: string;
+    resource: string;
+    gameId: number;
+    requesterClientType: CommunicationClientType;
+  }): Promise<Either<Failure<PermissionsFailure>, boolean>> {
+    const permission = this.ac.can(userRole).execute(action).on(resource); // prettier-ignore
+    const permissionResult = this.buildPermittedResult({
+      permission,
+      requestingSource: requesterClientType,
+      action: action,
+      user: user,
+      entityId: gameId
+    });
+    return permissionResult;
   }
 }

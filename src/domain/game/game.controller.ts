@@ -16,6 +16,12 @@ import { EndGameDto } from "./dto/end-game.dto";
 import { EndGameReport } from "./reports/end-game.report";
 import { UpdateGameDto } from "./dto/update-game.dto";
 import { Permissions } from "../../permissions/permissions";
+import { Right, Either } from "../../utils/Either";
+import { Failure } from "../../utils/Failure";
+import { UserFailureTypes } from "../user/user.failure";
+import { User } from "../user/user.entity";
+import { PermissionsFailure } from "../../permissions/permissions.failure";
+import { CommunicationClientType } from "../../communication-types";
 
 export class GameController {
   constructor(
@@ -104,23 +110,24 @@ export class GameController {
   public async endGame(gameData: { endGameDto: EndGameDto; requestDto: RequestDtoType }): Promise<Response<EndGameReport>> {
     try {
       // build the requester
-      const requester: Requester = RequesterFactory.initialize(gameData.requestDto);
+      const requester = RequesterFactory.initialize(gameData.requestDto);
       if (!requester) throw new RequesterFactoryInitializationError(this.constructor.name, this.endGame.name);
 
       // get/create the user ending the game
-      const requestingUserResult = await requester.getOrCreateUser();
-      if (requestingUserResult.failed()) {
-        if (requestingUserResult.value.error) throw requestingUserResult.value.error;
-        Log.methodFailure(this.endGame, this.constructor.name, requestingUserResult.value.reason);
+      const userResult = await requester.getOrCreateUser();
+      if (userResult.failed()) {
+        if (userResult.value.error) throw userResult.value.error;
+        Log.methodFailure(this.endGame, this.constructor.name, userResult.value.reason);
         return {
           success: false,
           message: FailureMessage.get("gameEndFailed"),
           errors: {
-            messages: [requestingUserResult.value.reason],
-            validation: requestingUserResult.value.validationErrors
+            messages: [userResult.value.reason],
+            validation: userResult.value.validationErrors
           }
         };
       }
+      const requestingUser = userResult.value;
 
       // ensure game exists
       const targetGameResult = await this.gameService.findGameById(gameData.endGameDto.gameId);
@@ -137,23 +144,22 @@ export class GameController {
       }
 
       // check if user is permitted to end the game
-      const requestingUser = requestingUserResult.value;
-      const userRole: string = await this.gameService.getUserRoleForGame(requestingUser.id, gameData.endGameDto.gameId);
-      const permission = this.permissions.ac.can(userRole).execute("end").on("game"); // prettier-ignore
-      const permissionsCheckResult = this.permissions.buildPermittedResult({
-        permission,
-        requestingSource: requester.dto.commType,
-        action: "end",
+      const userRole = await this.gameService.getUserRoleForGame(requestingUser.id, gameData.endGameDto.gameId);
+      const userPermittedResult = await this.permissions.checkUserPermission({
         user: requestingUser,
-        entityId: gameData.endGameDto.gameId
+        userRole: userRole,
+        action: "end",
+        resource: "game",
+        gameId: gameData.endGameDto.gameId,
+        requesterClientType: requester.dto.commType
       });
-      if (permissionsCheckResult.failed()) {
+      if (userPermittedResult.failed()) {
         Log.methodFailure(this.endGame, this.constructor.name, `User ${requestingUser.id} does not have permission.`);
         return {
           success: false,
           message: FailureMessage.get("gameEndFailed"),
           errors: {
-            messages: [permissionsCheckResult.value.reason]
+            messages: [userPermittedResult.value.reason]
           }
         };
       }
@@ -161,7 +167,7 @@ export class GameController {
       // try to end the game
       const endGameResult = await this.gameService.endGame({
         gameDto: gameData.endGameDto,
-        endedByUser: requestingUserResult.value
+        endedByUser: userResult.value
       });
       if (endGameResult.failed()) {
         if (endGameResult.value.error) throw endGameResult.value.error;
