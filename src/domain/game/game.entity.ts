@@ -1,5 +1,5 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, JoinTable, OneToMany } from "typeorm";
-import { IsInt, IsBoolean } from "class-validator";
+import { IsInt, IsBoolean, IsPositive } from "class-validator";
 import { User } from "../user/user.entity";
 import { GameStatus } from "./game-status";
 import { AbstractEntity } from "../shared/abstract-entity";
@@ -13,6 +13,7 @@ export class Game extends AbstractEntity {
   id: number;
 
   @IsInt()
+  @IsPositive()
   @Column()
   teamLives: number;
 
