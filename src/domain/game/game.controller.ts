@@ -150,7 +150,7 @@ export class GameController {
         userRole: userRole,
         action: "end",
         resource: "game",
-        gameId: gameData.endGameDto.gameId,
+        entityId: gameData.endGameDto.gameId,
         requesterClientType: requester.dto.commType
       });
       if (userPermittedResult.failed()) {

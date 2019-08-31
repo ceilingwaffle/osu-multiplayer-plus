@@ -36,6 +36,31 @@ export class Permissions {
     return this._ac;
   }
 
+  async checkUserPermission({
+    user,
+    userRole,
+    action,
+    resource,
+    entityId,
+    requesterClientType
+  }: {
+    user: User;
+    userRole: string;
+    action: string;
+    resource: string;
+    entityId: number;
+    requesterClientType: CommunicationClientType;
+  }): Promise<Either<Failure<PermissionsFailure>, boolean>> {
+    const permission = this.ac.can(userRole).execute(action).on(resource); // prettier-ignore
+    const permissionResult = this.buildPermittedResult({
+      permission,
+      requestingSource: requesterClientType,
+      action: action,
+      user: user,
+      entityId: entityId
+    });
+    return permissionResult;
+  }
   /**
    * Returns either a failure message formatted to the context of the requesting source (e.g. web or Discord request), or true if permitted.
    *
@@ -87,31 +112,5 @@ export class Permissions {
       const _exhaustiveCheck: never = requestingSource;
       return _exhaustiveCheck;
     }
-  }
-
-  async checkUserPermission({
-    user,
-    userRole,
-    action,
-    resource,
-    gameId,
-    requesterClientType
-  }: {
-    user: User;
-    userRole: string;
-    action: string;
-    resource: string;
-    gameId: number;
-    requesterClientType: CommunicationClientType;
-  }): Promise<Either<Failure<PermissionsFailure>, boolean>> {
-    const permission = this.ac.can(userRole).execute(action).on(resource); // prettier-ignore
-    const permissionResult = this.buildPermittedResult({
-      permission,
-      requestingSource: requesterClientType,
-      action: action,
-      user: user,
-      entityId: gameId
-    });
-    return permissionResult;
   }
 }
