@@ -33,6 +33,8 @@ TODO:
         ☐ Finish writing tests for asserting error messages received when sending remove-lobby requests
         ☐ Write test for: Create a new user and add that user to a ref of a game, then assert that the user is a ref of that game
         ☐ Write test for LobbyService: Add 2 lobbies to a game, then remove 2 lobbies, then assert that game.lobbies.length = 0 @created(19-08-28 13:51)
+        ☐ Create test suite for updating a game @created(19-08-31 13:58)
+            ☐ Test user permission allowed/denied update @created(19-08-31 13:58)
         ✔ Write more tests for testing ending games @done(19-08-27 02:54)
         ☐ We have an issue where some tests are responsible for too much
             e.g. The end-game test is creating a game, changing the status, and ending the game. So now the test for "end game" will fail if the code fails in the GameControler under "create game".
@@ -132,18 +134,50 @@ TODO:
                     Bot emits message with match results in #obr-game-5 when a lobby-match finishes.
                     Only admin, game-creator, and game ref are allowed to write messages in channel #obr-game-5.
         Commands:
-            Role Management:
-                ☐ Add command `!obr promote @user` @created(19-08-31 00:22)
-                ☐ Add command `!obr demote @user` @created(19-08-31 00:22)
-            Lobby Management: 
-                ✔ Add a manual remove-lobby command. Include description like "this will not close the actual lobby; it will only tell the bot to stop scanning the lobby for future results." @started(19-08-19 00:30) @done(19-08-19 05:13) @lasted(4h43m45s)
-                ✔ When using command !obr addlobby 54078930 6, on a game which already has that lobby added, return some error message. @started(19-08-19 00:30) @done(19-08-19 05:13) @lasted(4h43m45s)
-            Game Management: 
-                ✘ Refuse `!obr creategame` command from a game-channel. @cancelled(19-08-22 20:14)
+            General:
+                ☐ `!obr undo` @created(19-09-01 22:36)
+                    Undoes the last command of the user. We won't need to confirm command actions with "yes" after this is implemented.
+                ☐ `!obr redo` @created(19-09-01 22:36)
+                    Redoes the last command of the user
+                ☐ `!obr targetgame <gameId>` @created(19-09-01 22:37)
+                    Sets the gameId as the target of the user's commands. If not used, the user's most recent game is the target.
+            Game:
+                ✔ `!obr creategame` @done(19-09-01 22:56)
+                    ✘ Refuse `!obr creategame` command from a game-channel. @cancelled(19-08-22 20:14)
                     This *should* be OK to allow, but could be weird in situations where one game has an initial-channel as the game-channel of another game. Could be problematic with channel deletions. So just disallow this for now to be safe.
-            Server Management:
-                ✘ Add discord command `!obr set-channels-category "OBR Games"` @cancelled(19-08-22 20:14)
-                    This should create a new Discord-category (container of text-channels) where all future-created game-channels will be created in for this server.
+                ✔ `!obr endgame <gameId?>` DESTRUCTIVE @created(19-09-01 22:48) @done(19-09-01 22:56)
+                ☐ `!obr startgame <gameId?>` @created(19-09-01 22:57)
+                ☐ `!obr gameinfo <gameId?>` @created(19-08-31 23:41)
+                ☐ `!obr editgame <gameId:int/prop:string> <prop:string/propValue:string|boolean> <propValue?:int|boolean>` @created(19-08-31 23:41)
+                    See types - https://discord.js.org/#/docs/commando/master/typedef/ArgumentInfo
+                    Use a union type to check: If integer, assume gameId. If string, assume propKey.
+                    Include description "use !obr targetgame to specify another game"
+                ☐ `!obr listgames <active/closed/(default:all)?>` @created(19-09-01 22:38)
+                    List the games created within this Discord server
+            Lobby:
+                ✔ `!obr addlobby <banchoMpId>` @created(19-09-01 22:58) @done(19-09-01 23:05)
+                    ✔ When using command !obr addlobby 54078930 6, on a game which already has that lobby added, return some error message. @started(19-08-19 00:30) @done(19-08-19 05:13) @lasted(4h43m45s)
+                ✔ `!obr removelobby <banchoMpId>` @created(19-09-01 23:05) @done(19-09-01 23:05)
+                    ✔ Add a manual remove-lobby command. Include description like "this will not close the actual lobby; it will only tell the bot to stop scanning the lobby for future results." @started(19-08-19 00:30) @done(19-08-19 05:13) @lasted(4h43m45s)
+            User Roles:
+                ☐ `!obr addref @<discordUser>, @<discordUser>, ...` @created(19-08-31 23:41)
+                ☐ `!obr removeref @<discordUser>, @<discordUser>, ...` @created(19-08-31 23:41)
+                ☐ `!obr listrefs` @created(19-08-31 23:41)
+            Teams:
+                ☐ `!obr addteam <ouid1> <ouid2> ...` @created(19-08-31 23:41)
+                    Adds a team of osu users. See targetgame command.
+                    ☐ Allow multiline like `!obr addteams\n<ouid1> <ouid2>\n<ouid3> <ouid4>\n...` @created(19-08-31 14:04)
+                ☐ `!obr removeteam <ouid1> <ouid2> ...` @created(19-08-31 23:41)
+                ☐ `!obr clearteams` DESTRUCTIVE @created(19-08-31 23:41)
+                
+        Lobby Management: 
+
+        Game Management: 
+            ☐ Add command `!obr game <gameId> <prop> <newPropValue>` @created(19-08-31 13:59)
+
+        Server Management:
+            ✘ Add discord command `!obr set-channels-category "OBR Games"` @cancelled(19-08-22 20:14)
+                This should create a new Discord-category (container of text-channels) where all future-created game-channels will be created in for this server.
 
     Matches:
         ☐  Use lobby.startingMapNumber to skip some map results
