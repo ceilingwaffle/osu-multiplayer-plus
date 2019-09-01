@@ -209,29 +209,30 @@ export class GameController {
     }
   }
 
-  public async update(gameData: { gameDto: UpdateGameDto; requestDto: RequestDtoType }): Promise<Response<UpdateGameReport>> {
+  public async update(gameData: { updateGameDto: UpdateGameDto; requestDto: RequestDtoType }): Promise<Response<UpdateGameReport>> {
     try {
       // build the requester
       const requester: Requester = RequesterFactory.initialize(gameData.requestDto);
       if (!requester) throw new RequesterFactoryInitializationError(this.constructor.name, this.create.name);
 
       // get/create the user updating the game
-      const creatorResult = await requester.getOrCreateUser();
-      if (creatorResult.failed()) {
-        if (creatorResult.value.error) throw creatorResult.value.error;
-        Log.methodFailure(this.update, this.constructor.name, creatorResult.value.reason);
+      const requestingUserResult = await requester.getOrCreateUser();
+      if (requestingUserResult.failed()) {
+        if (requestingUserResult.value.error) throw requestingUserResult.value.error;
+        Log.methodFailure(this.update, this.constructor.name, requestingUserResult.value.reason);
         return {
           success: false,
           message: FailureMessage.get("gameUpdateFailed"),
           errors: {
-            messages: [creatorResult.value.reason],
-            validation: creatorResult.value.validationErrors
+            messages: [requestingUserResult.value.reason],
+            validation: requestingUserResult.value.validationErrors
           }
         };
       }
+      const requestingUser = requestingUserResult.value;
 
       // ensure game exists
-      const targetGameResult = await this.gameService.findGameById(gameData.gameDto.gameId);
+      const targetGameResult = await this.gameService.findGameById(gameData.updateGameDto.gameId);
       if (targetGameResult.failed()) {
         Log.methodFailure(this.endGame, this.constructor.name, targetGameResult.value.reason);
         return {
@@ -243,10 +244,29 @@ export class GameController {
         };
       }
 
-      // TODO: permissions check on creatorResult user
+      // check if user is permitted to update the game
+      const userRole = await this.gameService.getUserRoleForGame(requestingUser.id, gameData.updateGameDto.gameId);
+      const userPermittedResult = await this.permissions.checkUserPermission({
+        user: requestingUser,
+        userRole: userRole,
+        action: "update",
+        resource: "game",
+        entityId: gameData.updateGameDto.gameId,
+        requesterClientType: requester.dto.commType
+      });
+      if (userPermittedResult.failed()) {
+        Log.methodFailure(this.update, this.constructor.name, `User ${requestingUser.id} does not have permission.`);
+        return {
+          success: false,
+          message: FailureMessage.get("gameUpdateFailed"),
+          errors: {
+            messages: [userPermittedResult.value.reason]
+          }
+        };
+      }
 
       // create and save the game
-      const updateGameResult = await this.gameService.updateGame(gameData.gameDto, gameData.requestDto);
+      const updateGameResult = await this.gameService.updateGame(gameData.updateGameDto, gameData.requestDto);
       if (updateGameResult.failed()) {
         if (updateGameResult.value.error) throw updateGameResult.value.error;
         Log.methodFailure(this.update, this.constructor.name, updateGameResult.value.reason);
