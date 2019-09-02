@@ -10,6 +10,15 @@ TODO:
     ☐ Explore the osu! API - we need to know if submitting a map when you're in a multi will display the map in your "recent" played maps. This is mainly for MING MODE where we need to know - if it's displayed in your recent plays with an F (if failed in a multi). Does it only show F if you didn't recover in the multi, or will it show some letter (S,A,B,C,D) when you recover before the end of the map.
     ☐ Take a look at the new osu! API
     ✔ Use test Discord Commando database depending on env context @started(19-08-26 21:40) @done(19-08-27 08:11) @lasted(10h31m25s)
+    Functionality:
+        Game in Progress:
+            Things to Handle:
+                ☐ All players of a team do not submit a score @created(19-09-02 13:36)
+                    ☐ Option 1: Team loses a life @created(19-09-02 13:37)
+                    ✘ Option 2: Team does not lose a life and we treat it as if they "skipped" this map @created(19-09-02 13:37) @cancelled(19-09-02 13:37)
+                        Bad because it could be abused as a way to not lose lives.
+                    ☐ Option 3: Team loses a life and receives warning that if they fail to submit a score on the next map, they will be immediately eliminated. @created(19-09-02 13:38)
+                    ☐ Option 4: @created(19-09-02 13:39)
     Osu Lobby Watcher:
         ☐ Persist osu watcher lobbies being watched after app exits @created(19-08-30 22:45)
         ☐ Rebuild osu-lobby-watcher.ts using listener and EventEmitter @created(19-08-27 12:09)
@@ -98,10 +107,6 @@ TODO:
                 ☐ If you're on 0 lives, you need to win the next map, otherwise you're eliminated. "One final chance" mode.
                 ☐ Riwaka: One player can force a mod on the entire lobby
                     Would also be cool if one player could force a mod on a specific player
-    Creating a Game:
-        ☐ Warn the user if they use `!obr creategame` if the last game they created is still active @created(19-08-31 08:05)
-            "Looks like the last game you created is still active (game id x). Are you sure you want to start a new game? Reply with "yes" if so. Otherwise do nothing and this message will expire in t seconds." 
-        ☐ Rename `!obr creategame` -> `!obr newgame` @created(19-08-31 08:05)
     Adding Lobbies:
         ✔ Currently, the lobby service is trying to add a new Lobby with the same banchoMultiplayerId rather than create a new Lobby-Game relationship. To fix this, add some code in the lobby service to check for the existing banchoMultiplayerId Lobby, and push the target-Game onto the lobby.games array. @started(19-08-18 17:00) @done(19-08-18 17:31) @lasted(31m15s)
         ✔ Make bancho multiplayer ID unique to lobby. No two lobbies should exist with the same mp ID. @done(19-08-18 19:49)
@@ -143,6 +148,7 @@ TODO:
             General:
                 ☐ `!obr undo` @created(19-09-01 22:36)
                     Undoes the last command of the user. We won't need to confirm command actions with "yes" after this is implemented.
+                    If this command is fired multiple times, it keeps undoing the command preceeding the previous undone one.
                 ☐ `!obr redo` @created(19-09-01 22:36)
                     Redoes the last command of the user.
                 ☐ `!obr targetgame <gameId>` @created(19-09-01 22:37)
@@ -150,7 +156,10 @@ TODO:
             Game:
                 ✔ `!obr creategame` @done(19-09-01 22:56)
                     ✘ Refuse `!obr creategame` command from a game-channel. @cancelled(19-08-22 20:14)
-                    This *should* be OK to allow, but could be weird in situations where one game has an initial-channel as the game-channel of another game. Could be problematic with channel deletions. So just disallow this for now to be safe.
+                        This *should* be OK to allow, but could be weird in situations where one game has an initial-channel as the game-channel of another game. Could be problematic with channel deletions. So just disallow this for now to be safe.
+                    ☐ Warn the user if they use `!obr creategame` if the last game they created is still active @created(19-08-31 08:05)
+                        "Looks like the last game you created is still active (game id x). Are you sure you want to start a new game? Reply with "yes" if so. Otherwise do nothing and this message will expire in t seconds." 
+                    ☐ Alias `!obr creategame` -> `!obr newgame` @created(19-08-31 08:05)
                 ✔ `!obr endgame <gameId?>` DESTRUCTIVE @created(19-09-01 22:48) @done(19-09-01 22:56)
                 ✔ `!obr editgame <prop> <propValue>` @created(19-08-31 23:41) @started(19-09-01 23:11) @done(19-09-02 12:36) @lasted(13h25m58s)
                 ☐ `!obr startgame <gameId?>` @created(19-09-01 22:57)
@@ -163,6 +172,8 @@ TODO:
             Lobby:
                 ✔ `!obr addlobby <banchoMpId>` @created(19-09-01 22:58) @done(19-09-01 23:05)
                     ✔ When using command !obr addlobby 54078930 6, on a game which already has that lobby added, return some error message. @started(19-08-19 00:30) @done(19-08-19 05:13) @lasted(4h43m45s)
+                    ☐ Don't actually starting watching for results until `!obr startgame` is used, unless the lobby was added to an already-started game @created(19-09-02 13:57)
+                    ☐ We should be able to add a lobby to an already-started game and just have the score calculator calculate scores for registered players in the new lobby during the score-calculation at the end of each match @created(19-09-02 13:58)
                 ✔ `!obr removelobby <banchoMpId>` @created(19-09-01 23:05) @done(19-09-01 23:05)
                     ✔ Add a manual remove-lobby command. Include description like "this will not close the actual lobby; it will only tell the bot to stop scanning the lobby for future results." @started(19-08-19 00:30) @done(19-08-19 05:13) @lasted(4h43m45s)
             User Roles:
@@ -175,12 +186,22 @@ TODO:
                     ☐ Allow multiline like `!obr addteams\n<ouid1> <ouid2>\n<ouid3> <ouid4>\n...` @created(19-08-31 14:04)
                 ☐ `!obr removeteam <ouid1> <ouid2> ...` @created(19-08-31 23:41)
                 ☐ `!obr clearteams` DESTRUCTIVE @created(19-08-31 23:41)
-                
+            Matches:
+                ☐ `!obr undoresult <mapId?/mapName?>` @created(19-09-02 13:40)
+                    Undoes the last match result for this game (i.e. when a map should be replayed).
+                    Match scores are marked as skipped, and the preceeding lost team life gets restored.
+                    If the game ended, it is restored to active.
+                    If this command is fired multiple times, it keeps undoing the result preceeding the previous undone one.
+                    ☐ mapName @created(19-09-02 13:49)
+                        Clever search to target the result of a specific map.
+                    ☐ Some minimum distance time @created(19-09-02 13:50)
+                        So if a result comes in immediately before they use the command, it doesn't undo that immediate recent result - it should target the result prior to that one instead. 
+                ☐ `!obr redoresult <mapId?/mapName?>` @created(19-09-02 13:43)
+                    In case they want to undo the undo.
         Lobby Management: 
 
         Game Management: 
             ☐ Add command `!obr game <gameId> <prop> <newPropValue>` @created(19-08-31 13:59)
-
         Server Management:
             ✘ Add discord command `!obr set-channels-category "OBR Games"` @cancelled(19-08-22 20:14)
                 This should create a new Discord-category (container of text-channels) where all future-created game-channels will be created in for this server.
