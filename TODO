@@ -24,6 +24,7 @@ TODO:
     Server:
         ☐ Ensure app does not crash, or if it does, restart it in a reliable way
             Don't worry about uncaught exceptions like "connection closed" errors - just use foreverjs to restart the app in the event of failure.
+        ☐ Handle internet disconnections by auto-reconnecting - e.g. https://i.imgur.com/v4GDoRf.png @created(19-09-02 10:01)
     Tests:
         ☐ Speed up test execution times @created(19-08-30 23:52)
             ☐ Can we run each group of tests in parallel by using a separate sqlite database for each group? @created(19-08-30 23:52)
@@ -52,6 +53,8 @@ TODO:
         ☐ Too many match results being downloaded from the osu API.
             Need some way of limiting the maximum number of matches downloaded per multiplayer (right now we're using 500kb/s for 150+ matches in a single multi when polling every 1s)
     Refactor:
+        ☐ Swap inversify back to typical @injectable() decorators on classes instead of using autoProvide with inversify.entities.ts file @created(19-09-02 09:58)
+            This is just so we have one less dependency, and we can do things like mapping interfaces to class implementations. And create singleton instances of classes.
         ☐ Replace strings with Symbols in locale files e.g. en.json @created(19-08-28 19:41)
         ☐ Replace the default commando "catch-all" error-handler.
             Replace it with our own specific one with messages formatted the same as the ErrorDiscordMessageBuilder. Consider making ErrorDiscordMessageBuilder handle something less specific than just Response objects, or create another ErrorBuilder abstraction layer.
@@ -134,11 +137,14 @@ TODO:
                     Bot emits message with match results in #obr-game-5 when a lobby-match finishes.
                     Only admin, game-creator, and game ref are allowed to write messages in channel #obr-game-5.
         Commands:
+            Discord:
+                ☐ `!obr setchannel #<discordTextChannelName>` @created(19-09-01 23:50)
+                    Sets the channel where match results and game-related messages will be delivered to.
             General:
                 ☐ `!obr undo` @created(19-09-01 22:36)
                     Undoes the last command of the user. We won't need to confirm command actions with "yes" after this is implemented.
                 ☐ `!obr redo` @created(19-09-01 22:36)
-                    Redoes the last command of the user
+                    Redoes the last command of the user.
                 ☐ `!obr targetgame <gameId>` @created(19-09-01 22:37)
                     Sets the gameId as the target of the user's commands. If not used, the user's most recent game is the target.
             Game:
@@ -146,14 +152,14 @@ TODO:
                     ✘ Refuse `!obr creategame` command from a game-channel. @cancelled(19-08-22 20:14)
                     This *should* be OK to allow, but could be weird in situations where one game has an initial-channel as the game-channel of another game. Could be problematic with channel deletions. So just disallow this for now to be safe.
                 ✔ `!obr endgame <gameId?>` DESTRUCTIVE @created(19-09-01 22:48) @done(19-09-01 22:56)
+                ✔ `!obr editgame <prop> <propValue>` @created(19-08-31 23:41) @started(19-09-01 23:11) @done(19-09-02 12:36) @lasted(13h25m58s)
                 ☐ `!obr startgame <gameId?>` @created(19-09-01 22:57)
                 ☐ `!obr gameinfo <gameId?>` @created(19-08-31 23:41)
-                ☐ `!obr editgame <gameId:int/prop:string> <prop:string/propValue:string|boolean> <propValue?:int|boolean>` @created(19-08-31 23:41)
                     See types - https://discord.js.org/#/docs/commando/master/typedef/ArgumentInfo
                     Use a union type to check: If integer, assume gameId. If string, assume propKey.
-                    Include description "use !obr targetgame to specify another game"
+                    Include description "use !obr targetgame to specify another game".
                 ☐ `!obr listgames <active/closed/(default:all)?>` @created(19-09-01 22:38)
-                    List the games created within this Discord server
+                    List the games created within this Discord server.
             Lobby:
                 ✔ `!obr addlobby <banchoMpId>` @created(19-09-01 22:58) @done(19-09-01 23:05)
                     ✔ When using command !obr addlobby 54078930 6, on a game which already has that lobby added, return some error message. @started(19-08-19 00:30) @done(19-08-19 05:13) @lasted(4h43m45s)

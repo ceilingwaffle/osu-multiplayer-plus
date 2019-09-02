@@ -20,7 +20,7 @@ export class OsuLobbyScannerService extends EventEmitter implements IOsuLobbySca
 
   constructor() {
     super();
-    Log.info(`Initialized ${this.constructor.name}`);
+    Log.info(`Initialized ${this.constructor.name}.`);
 
     this.addListener("scan", this.action);
 

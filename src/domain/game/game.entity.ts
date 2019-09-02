@@ -38,9 +38,6 @@ export class Game extends AbstractEntity {
   @JoinTable()
   gameLobbies: GameLobby[];
 
-  // @ManyToMany(type => User, user => user.refereeOf)
-  // refereedBy: User[];
-
   @ManyToOne(type => User, user => user.gamesCreated)
   @JoinColumn({ name: "created_by_user_id" })
   createdBy: User;
@@ -51,10 +48,13 @@ export class Game extends AbstractEntity {
   @OneToMany(type => UserGameRole, userGameRole => userGameRole.game, { nullable: true })
   userGameRoles: UserGameRole[];
 
-  /**
-   * Referees of the game. Initially empty when the game is created. Populated later during the game-creation/update process.
-   *
-   * @type {User[]}
-   */
-  refereedBy: User[];
+  // @ManyToMany(type => User, user => user.refereeOf)
+  // refereedBy: User[];
+
+  // /**
+  //  * Referees of the game. Initially empty when the game is created. Populated later during the game-creation/update process.
+  //  *
+  //  * @type {User[]}
+  //  */
+  // refereedBy: User[];
 }

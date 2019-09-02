@@ -1,4 +1,4 @@
-import { inject } from "inversify";
+import { inject, LazyServiceIdentifer } from "inversify";
 import { getCustomRepository } from "typeorm";
 import { Game } from "./game.entity";
 import { CreateGameDto } from "./dto/create-game.dto";
@@ -20,17 +20,17 @@ import { RequestDto } from "../../requests/dto";
 import { GameDefaults } from "./game-defaults";
 import { GameStatus } from "./game-status";
 import { EndGameDto } from "./dto/end-game.dto";
-// import { OsuLobbyWatcher } from "../../osu/osu-lobby-watcher";
-import { OsuLobbyScannerService } from "../../osu/osu-lobby-scanner-service";
 import { User } from "../user/user.entity";
 import { Helpers } from "../../utils/helpers";
 import { UpdateGameDto } from "./dto/update-game.dto";
-import { RequestDtoType } from "../../requests/dto/request.dto";
 import { GameMessageTargetAction } from "./game-message-target-action";
 import { UserGameRoleRepository } from "../roles/user-game-role.repository";
 import { getLowestUserRole } from "../roles/role.type";
 import { TYPES } from "../../types";
 import { IOsuLobbyScanner } from "../../osu/interfaces/osu-lobby-scanner";
+import { Permissions } from "../../inversify.entities";
+import { CommunicationClientType } from "../../communication-types";
+import { PermissionsFailure } from "../../permissions/permissions.failure";
 
 export class GameService {
   private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
@@ -38,7 +38,8 @@ export class GameService {
 
   constructor(
     @inject(UserService) private readonly userService: UserService,
-    @inject(TYPES.IOsuLobbyScanner) private readonly osuLobbyScanner: IOsuLobbyScanner
+    @inject(TYPES.IOsuLobbyScanner) private readonly osuLobbyScanner: IOsuLobbyScanner,
+    @inject(new LazyServiceIdentifer(() => Permissions)) private readonly permissions: Permissions
   ) {
     Log.info("Initialized Game Service.");
   }
@@ -90,11 +91,7 @@ export class GameService {
       }
 
       // save the game
-      const savedGame = await this.gameRepository.save(game);
-      // TODO: Optimize - some way of combining these into a single query
-      const reloadedGame = await this.gameRepository.findGame(savedGame.id);
-      const gameRefs = await this.userGameRoleRepository.getGameReferees(reloadedGame.id);
-      reloadedGame["refereedBy"] = gameRefs;
+      const reloadedGame = await this.saveAndReloadGame(game);
 
       Log.methodSuccess(this.createAndSaveGame, this.constructor.name);
       return successPromise(reloadedGame);
@@ -103,6 +100,10 @@ export class GameService {
       throw error;
     }
   }
+
+  // private convertTextToBoolean(text: "true" | "false", valueIfTextNull: boolean): boolean {
+  //   return text != null ? (text === "true" ? true : false) : valueIfTextNull;
+  // }
 
   private isValidGameId(gameId: number): boolean {
     if (!Number.isInteger(gameId)) {
@@ -198,42 +199,65 @@ export class GameService {
 
   public async updateGame(
     gameDto: UpdateGameDto,
-    requestDto: RequestDtoType,
-    returnWithRelations: string[] = ["createdBy", "createdBy.discordUser"] // , "refereedBy", "refereedBy.discordUser"
-  ): Promise<Either<Failure<GameFailure | UserFailure>, Game>> {
+    requestingUser: User,
+    requestingCommType: CommunicationClientType
+  ): Promise<Either<Failure<GameFailure | UserFailure | PermissionsFailure>, Game>> {
     try {
-      // assume permissions have been checked before this method was called
+      // TODO: Refactor some way to not include requestingCommType. The service layer shouldn't care at all about where the request came from. We should be building the Discord error message in the DiscordErrorMessageBuilder class instead of in the Permissions class.
 
-      // find the game
-      const gameId = gameDto.gameId;
-      let game = await this.gameRepository.findGame(gameId);
-      if (!game) {
-        const failure = gameDoesNotExistFailure(gameId);
-        Log.methodFailure(this.updateGame, this.constructor.name, failure.reason);
-        return failurePromise(failure);
+      // get the user's most-recent game created if no game ID was specified in the request
+      const foundGameResult: Either<Failure<GameFailure>, Game> = await this.getRequestingUserTargetGame({
+        userId: requestingUser.id,
+        gameId: gameDto.gameId
+      });
+      if (foundGameResult.failed()) {
+        // no game exists created by the user, or no game exists for the provided game ID
+        Log.methodFailure(this.updateGame, this.constructor.name, foundGameResult.value.reason, foundGameResult.value.error);
+        return failurePromise(foundGameResult.value);
+      }
+      const game = foundGameResult.value;
+
+      // check if user is permitted to update the game
+      const userRole = await this.getUserRoleForGame(requestingUser.id, game.id);
+      const userPermittedResult = await this.permissions.checkUserPermission({
+        user: requestingUser,
+        userRole: userRole,
+        action: "update",
+        resource: "game",
+        entityId: game.id,
+        requesterClientType: requestingCommType
+      });
+      if (userPermittedResult.failed()) {
+        Log.methodFailure(
+          this.updateGame,
+          this.constructor.name,
+          `User ${requestingUser.id} does not have permission to update game ${game.id}.`
+        );
+        return failurePromise(userPermittedResult.value);
       }
 
       // update the game object
-      this.updateGameWithGameMessageTargetAction(game, gameDto.gameMessageTargetAction);
-      // TODO: Add more props to the UpdateGameDTO and update the game here
+      if (gameDto.gameMessageTargetAction) this.updateGameWithGameMessageTargetAction(game, gameDto.gameMessageTargetAction);
+      if (gameDto.teamLives != null) game.teamLives = gameDto.teamLives;
+      if (gameDto.countFailedScores != null) game.countFailedScores = gameDto.countFailedScores;
 
       // validate the game
       const errors = await validate(game);
       if (errors.length > 0) {
-        Log.methodFailure(this.updateGame, this.constructor.name, `Game validation failed when trying to update game ID ${gameId}.`);
+        Log.methodFailure(this.updateGame, this.constructor.name, `Game validation failed when trying to update game ID ${game.id}.`);
         return failurePromise(invalidGamePropertiesFailure(errors));
       }
 
       // save the game
-      const savedGame = await this.gameRepository.save(game);
-      const reloadedGame = await this.gameRepository.findOneOrFail(savedGame.id, {
-        relations: returnWithRelations
-      });
+      const reloadedGame = await this.saveAndReloadGame(game);
 
       // return the saved game
-      Log.methodSuccess(this.createAndSaveGame, this.constructor.name);
+      Log.methodSuccess(this.updateGame, this.constructor.name);
       return successPromise(reloadedGame);
-    } catch (error) {}
+    } catch (error) {
+      Log.methodError(this.updateGame, this.constructor.name, error);
+      throw error;
+    }
   }
 
   /**
@@ -276,10 +300,12 @@ export class GameService {
         channelId: gmtAction.channelId,
         channelType: gmtAction.channelType
       });
+      Log.debug(`Added game message target to game ${game.id}.`);
     } else if (gmtAction.action === "remove") {
       const i = game.messageTargets.indexOf(gmtAction);
       if (i < 0) throw new Error("Cannot remove Game Message Target because it does not exist.");
       game.messageTargets.splice(i, 1);
+      Log.debug(`Removed game message target from game ${game.id}.`);
     } else if (gmtAction.action === "overwrite-all") {
       game.messageTargets = [
         {
@@ -289,6 +315,7 @@ export class GameService {
           channelType: gmtAction.channelType
         }
       ];
+      Log.debug(`Overwrote all game message targets on game ${game.id}.`);
     } else {
       const _exhaustiveCheck: never = gmtAction.action;
       return _exhaustiveCheck;
@@ -379,6 +406,44 @@ export class GameService {
       return successPromise(savedGame);
     } catch (error) {
       Log.methodError(this.updateGameStatusForGameEntity, this.constructor.name, error);
+      throw error;
+    }
+  }
+
+  async getRequestingUserTargetGame({ userId, gameId }: { userId: number; gameId?: number }) {
+    // Game ID will be provided as "-1" if none was given by the user at the boundary.
+    let foundGameResult: Either<Failure<GameFailure>, Game>;
+    if (!gameId || gameId < 1) {
+      // If a game ID was not provided, get the most recent game created by the user ID (lobby creator).
+      foundGameResult = await this.findMostRecentGameCreatedByUser(userId);
+    } else {
+      // Get the game targetted by the game ID provided in the request.
+      foundGameResult = await this.findGameById(gameId);
+    }
+    return foundGameResult;
+  }
+
+  private async saveAndReloadGame(
+    game: Game,
+    returnWithRelations: string[] = [
+      "createdBy",
+      "createdBy.discordUser",
+      "createdBy.webUser",
+      "userGameRoles",
+      "userGameRoles.user",
+      "userGameRoles.user.discordUser",
+      "userGameRoles.user.webUser"
+    ]
+  ): Promise<Game> {
+    try {
+      // TODO: Optimize - some way of combining these into a single query
+      const savedGame = await this.gameRepository.save(game);
+      const reloadedGame = await this.gameRepository.findOneOrFail(savedGame.id, {
+        relations: returnWithRelations
+      });
+      return reloadedGame;
+    } catch (error) {
+      Log.methodError(this.saveAndReloadGame, this.constructor.name, error);
       throw error;
     }
   }

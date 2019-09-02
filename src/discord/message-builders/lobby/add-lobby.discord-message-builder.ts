@@ -1,9 +1,9 @@
 import { RichEmbed } from "discord.js";
 import { CommandMessage, Command } from "discord.js-commando";
-import { AbstractDiscordMessageBuilder } from "./abstract.discord-message-builder";
-import { Response } from "../../requests/Response";
-import { DiscordUserReportProperties } from "../../domain/shared/reports/discord-user-report-properties";
-import { AddLobbyReport } from "../../domain/lobby/reports/add-lobby.report";
+import { AbstractDiscordMessageBuilder } from "../abstract.discord-message-builder";
+import { Response } from "../../../requests/Response";
+import { DiscordUserReportProperties } from "../../../domain/shared/reports/discord-user-report-properties";
+import { AddLobbyReport } from "../../../domain/lobby/reports/add-lobby.report";
 
 export class AddLobbyDiscordMessageBuilder extends AbstractDiscordMessageBuilder<AddLobbyReport> {
   public from(response: Response<AddLobbyReport>, command: Command): this {

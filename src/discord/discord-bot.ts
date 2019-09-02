@@ -1,12 +1,13 @@
 import { CommandoClient, SQLiteProvider } from "discord.js-commando";
-import { CreateGameCommand } from "./commands/create-game.command";
+import { CreateGameCommand } from "./commands/game/create-game.command";
 import { ConnectionManager } from "../utils/connection-manager";
 import { Helpers } from "../utils/helpers";
 import { Database } from "sqlite";
-import { EndGameCommand } from "./commands/end-game.command";
+import { EndGameCommand } from "./commands/game/end-game.command";
 import { Log } from "../utils/Log";
-import { AddLobbyCommand } from "./commands/add-lobby.command";
-import { RemoveLobbyCommand } from "./commands/remove-lobby.command";
+import { AddLobbyCommand } from "./commands/lobby/add-lobby.command";
+import { RemoveLobbyCommand } from "./commands/lobby/remove-lobby.command";
+import { EditGameCommand } from "./commands/game/edit-game.command";
 const sqlite = require("sqlite");
 
 export class DiscordBot {
@@ -51,6 +52,7 @@ export class DiscordBot {
         .registerDefaultCommands()
         .registerGroups([["osu", "osu! Battle Royale Commands"]])
         .registerCommand(new CreateGameCommand(this.commando))
+        .registerCommand(new EditGameCommand(this.commando))
         .registerCommand(new EndGameCommand(this.commando))
         .registerCommand(new AddLobbyCommand(this.commando))
         .registerCommand(new RemoveLobbyCommand(this.commando));

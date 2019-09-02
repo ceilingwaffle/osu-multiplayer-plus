@@ -1,4 +1,4 @@
-import { inject } from "inversify";
+import { inject, LazyServiceIdentifer } from "inversify";
 import { GameService } from "./game.service";
 import { CreateGameDto } from "./dto/index";
 import { RequesterFactory } from "../../requests/requester-factory";
@@ -16,19 +16,13 @@ import { EndGameDto } from "./dto/end-game.dto";
 import { EndGameReport } from "./reports/end-game.report";
 import { UpdateGameDto } from "./dto/update-game.dto";
 import { Permissions } from "../../permissions/permissions";
-import { Right, Either } from "../../utils/Either";
-import { Failure } from "../../utils/Failure";
-import { UserFailureTypes } from "../user/user.failure";
-import { User } from "../user/user.entity";
-import { PermissionsFailure } from "../../permissions/permissions.failure";
-import { CommunicationClientType } from "../../communication-types";
 
 export class GameController {
   constructor(
     @inject(GameService) private readonly gameService: GameService,
-    @inject(Permissions) private readonly permissions: Permissions
+    @inject(new LazyServiceIdentifer(() => Permissions)) private readonly permissions: Permissions
   ) {
-    Log.info("Initialized Game Controller.");
+    Log.info(`Initialized ${this.constructor.name}.`);
   }
 
   /**
@@ -231,42 +225,8 @@ export class GameController {
       }
       const requestingUser = requestingUserResult.value;
 
-      // ensure game exists
-      const targetGameResult = await this.gameService.findGameById(gameData.updateGameDto.gameId);
-      if (targetGameResult.failed()) {
-        Log.methodFailure(this.endGame, this.constructor.name, targetGameResult.value.reason);
-        return {
-          success: false,
-          message: FailureMessage.get("gameUpdateFailed"),
-          errors: {
-            messages: [targetGameResult.value.reason]
-          }
-        };
-      }
-
-      // check if user is permitted to update the game
-      const userRole = await this.gameService.getUserRoleForGame(requestingUser.id, gameData.updateGameDto.gameId);
-      const userPermittedResult = await this.permissions.checkUserPermission({
-        user: requestingUser,
-        userRole: userRole,
-        action: "update",
-        resource: "game",
-        entityId: gameData.updateGameDto.gameId,
-        requesterClientType: requester.dto.commType
-      });
-      if (userPermittedResult.failed()) {
-        Log.methodFailure(this.update, this.constructor.name, `User ${requestingUser.id} does not have permission.`);
-        return {
-          success: false,
-          message: FailureMessage.get("gameUpdateFailed"),
-          errors: {
-            messages: [userPermittedResult.value.reason]
-          }
-        };
-      }
-
-      // create and save the game
-      const updateGameResult = await this.gameService.updateGame(gameData.updateGameDto, gameData.requestDto);
+      // update and save the game
+      const updateGameResult = await this.gameService.updateGame(gameData.updateGameDto, requestingUser, gameData.requestDto.commType);
       if (updateGameResult.failed()) {
         if (updateGameResult.value.error) throw updateGameResult.value.error;
         Log.methodFailure(this.update, this.constructor.name, updateGameResult.value.reason);
@@ -280,13 +240,14 @@ export class GameController {
         };
       }
 
-      // return new game creation success response
+      // return new game update success response
       const game: Game = updateGameResult.value;
-      Log.methodSuccess(this.create, this.constructor.name);
+      Log.methodSuccess(this.update, this.constructor.name);
       return {
         success: true,
         message: Message.get("gameUpdateSuccess"),
-        result: await (async (): Promise<UpdateGameReport> => {
+        // result: await (async (): Promise<UpdateGameReport> => {
+        result: ((): UpdateGameReport => {
           // TODO: Only include which properties were changed. Need to include an array of property names on the update-response for those props which were changed.
           const responseFactory = new GameResponseFactory(requester, game, gameData.requestDto);
           return {
@@ -296,13 +257,13 @@ export class GameController {
             status: GameStatus.getTextFromKey(game.status),
             createdBy: responseFactory.getCreator(),
             createdAgo: responseFactory.getCreatedAgoText(),
-            refereedBy: await responseFactory.getReferees(),
+            refereedBy: responseFactory.getReferees(),
             messageTargets: responseFactory.getMessageTargets()
           };
         })()
       };
     } catch (error) {
-      Log.methodError(this.create, this.constructor.name, error);
+      Log.methodError(this.update, this.constructor.name, error);
       return {
         success: false,
         message: FailureMessage.get("gameUpdateFailed"),

@@ -4,6 +4,7 @@ import { GameMessageTarget } from "./game-message-target";
 import { AbstractResponseFactory } from "../shared/abstract-response-factory";
 // import { UserGameRoleRepository } from "../roles/user-game-role.repository";
 // import { getCustomRepository } from "typeorm";
+import { gameAdminRoles, getRefereeTypeRoles } from "../roles/role.type";
 
 export class GameResponseFactory extends AbstractResponseFactory<Game> {
   // protected readonly userGameRoleRepository: UserGameRoleRepository = getCustomRepository(UserGameRoleRepository);
@@ -22,7 +23,9 @@ export class GameResponseFactory extends AbstractResponseFactory<Game> {
   // }
 
   getReferees(): UserReportProperties[] {
-    return this.subject.refereedBy.map(user => this.getUserReportPropertiesForUser(user));
+    return this.subject.userGameRoles
+      .filter(ugr => getRefereeTypeRoles().includes(ugr.role))
+      .map(ugr => this.getUserReportPropertiesForUser(ugr.user));
   }
 
   getMessageTargets(): GameMessageTarget[] {

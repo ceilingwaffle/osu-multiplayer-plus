@@ -10,6 +10,7 @@ export class Permissions {
   private _ac: AccessControl;
 
   constructor() {
+    Log.info(`Initialized ${this.constructor.name}.`);
     this._ac = new AccessControl();
     this.load();
   }

@@ -1,9 +1,9 @@
 import { RichEmbed } from "discord.js";
 import { CommandMessage, Command } from "discord.js-commando";
-import { AbstractDiscordMessageBuilder } from "./abstract.discord-message-builder";
-import { Response } from "../../requests/Response";
-import { DiscordUserReportProperties } from "../../domain/shared/reports/discord-user-report-properties";
-import { EndGameReport } from "../../domain/game/reports/end-game.report";
+import { AbstractDiscordMessageBuilder } from "../abstract.discord-message-builder";
+import { Response } from "../../../requests/Response";
+import { DiscordUserReportProperties } from "../../../domain/shared/reports/discord-user-report-properties";
+import { EndGameReport } from "../../../domain/game/reports/end-game.report";
 
 export class EndGameDiscordMessageBuilder extends AbstractDiscordMessageBuilder<EndGameReport> {
   public from(response: Response<EndGameReport>, command: Command): this {

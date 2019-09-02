@@ -3,11 +3,13 @@ import { Game } from "./game.entity";
 
 @EntityRepository(Game)
 export class GameRepository extends Repository<Game> {
+  // TODO: Cleanup comments in this class
+
   getMostRecentGameCreatedByUser(userId: number): Promise<Game> {
-    return this.createQueryBuilder("games")
-      .leftJoin("games.createdBy", "user")
-      .where("user.id = :userId", { userId: userId })
-      .orderBy("games.createdAt", "DESC")
+    return this.createQueryBuilder("game")
+      .leftJoin("game.createdBy", "createdBy")
+      .where("createdBy.id = :userId", { userId: userId })
+      .orderBy("game.id", "DESC")
       .getOne();
   }
 

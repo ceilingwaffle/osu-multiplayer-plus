@@ -31,12 +31,10 @@ import { Helpers } from "../../utils/helpers";
 import { RemovedLobbyResult } from "./removed-lobby-result";
 import { TYPES } from "../../types";
 import { GameLobby } from "../game/game-lobby.entity";
-import { GameLobbyRepository } from "../game/game-lobby.repository";
 
 export class LobbyService {
   private readonly lobbyRepository: LobbyRepository = getCustomRepository(LobbyRepository);
   private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
-  private readonly gameLobbyRepository: GameLobbyRepository = getCustomRepository(GameLobbyRepository);
 
   constructor(
     @inject(GameService) private readonly gameService: GameService,
@@ -115,7 +113,10 @@ export class LobbyService {
       }
 
       // get the user's most-recent game created if no game ID was specified in the request
-      const foundGameResult: Either<Failure<GameFailure>, Game> = await this.getRequestingUserTargetGame(lobbyData, userId);
+      const foundGameResult: Either<Failure<GameFailure>, Game> = await this.gameService.getRequestingUserTargetGame({
+        userId: userId,
+        gameId: lobbyData.gameId
+      });
       if (foundGameResult.failed()) {
         // no game exists created by the user, or no game exists for the provided game ID
         Log.methodFailure(this.processAddLobbyRequest, this.constructor.name, foundGameResult.value.reason, foundGameResult.value.error);
@@ -215,7 +216,7 @@ export class LobbyService {
       const lobbyRemover = lobbyRemoverResult.value;
 
       // if the requester did not specify a target-game-id, try to use their most-recently created game
-      const foundGameResult = await this.getRequestingUserTargetGame(lobbyData, userId);
+      const foundGameResult = await this.gameService.getRequestingUserTargetGame({ userId: userId, gameId: lobbyData.gameId });
       if (foundGameResult.failed()) {
         // no game exists created by the user, or no game exists for the provided game ID
         Log.methodFailure(this.processRemoveLobbyRequest, this.constructor.name, foundGameResult.value.reason, foundGameResult.value.error);
@@ -298,19 +299,6 @@ export class LobbyService {
     const i = lobby.gameLobbies.indexOf(removingGameLobby);
     const removedGameLobby = lobby.gameLobbies.splice(i, 1)[0];
     return removedGameLobby;
-  }
-
-  private async getRequestingUserTargetGame(lobbyData: AddLobbyDto, userId: number) {
-    // Game ID will be provided as "-1" if none was given by the user at the boundary.
-    let foundGameResult: Either<Failure<GameFailure>, Game>;
-    if (!lobbyData.gameId || lobbyData.gameId < 0) {
-      // If a game ID was not provided, get the most recent game created by the user ID (lobby creator).
-      foundGameResult = await this.gameService.findMostRecentGameCreatedByUser(userId);
-    } else {
-      // Get the game targetted by the game ID provided in the request.
-      foundGameResult = await this.gameService.findGameById(lobbyData.gameId);
-    }
-    return foundGameResult;
   }
 
   /**

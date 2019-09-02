@@ -1,4 +1,4 @@
 export class CreateGameDto {
-  readonly teamLives?: number;
   readonly countFailedScores?: boolean;
+  readonly teamLives?: number;
 }

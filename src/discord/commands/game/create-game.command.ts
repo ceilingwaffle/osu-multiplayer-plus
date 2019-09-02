@@ -1,16 +1,15 @@
-import iocContainer from "../../inversify.config";
+import iocContainer from "../../../inversify.config";
 import { CommandoClient, CommandMessage } from "discord.js-commando";
-import { GameController } from "../../domain/game/game.controller";
+import { GameController } from "../../../domain/game/game.controller";
 import { Message, RichEmbed, TextChannel } from "discord.js";
-import { ErrorDiscordMessageBuilder } from "../message-builders/error.discord-message-builder";
-import { CreateGameDiscordMessageBuilder } from "../message-builders/create-game.discord-message-builder";
-import * as entities from "../../inversify.entities";
-import { DiscordChannelManager } from "../discord-channel-manager";
-import { DiscordRequestDto } from "../../requests/dto";
-import { AppBaseCommand } from "./app-base-command";
+import { ErrorDiscordMessageBuilder } from "../../message-builders/error.discord-message-builder";
+import { UpdateGameDiscordMessageBuilder } from "../../message-builders/game/update-game.discord-message-builder";
+import * as entities from "../../../inversify.entities";
+import { DiscordChannelManager } from "../../discord-channel-manager";
+import { DiscordRequestDto } from "../../../requests/dto";
+import { AppBaseCommand } from "../app-base-command";
 
 export class CreateGameCommand extends AppBaseCommand {
-  // @inject(GameController) protected readonly gameController: GameController
   protected readonly gameController: GameController = iocContainer.get(entities.GameController);
 
   constructor(commando: CommandoClient) {
@@ -32,10 +31,10 @@ export class CreateGameCommand extends AppBaseCommand {
           default: 2
         },
         {
-          key: "countFailedScores",
+          key: "countFailed",
           prompt: "Should failed scores be counted in the team score calculations?",
-          type: "boolean",
-          default: true
+          type: "string",
+          default: "true"
         }
       ]
     });
@@ -45,7 +44,7 @@ export class CreateGameCommand extends AppBaseCommand {
     message: CommandMessage,
     args: {
       lives: number;
-      countFailedScores: boolean;
+      countFailed: "true" | "false";
     }
   ): Promise<Message | Message[]> {
     const requestDto: DiscordRequestDto = {
@@ -57,7 +56,7 @@ export class CreateGameCommand extends AppBaseCommand {
     const createGameResponse = await this.gameController.create({
       gameDto: {
         teamLives: args.lives,
-        countFailedScores: args.countFailedScores
+        countFailedScores: args.countFailed === "true"
       },
       requestDto: requestDto
     });
@@ -96,7 +95,7 @@ export class CreateGameCommand extends AppBaseCommand {
     //   return message.embed(toBeSent);
     // }
 
-    toBeSent = new CreateGameDiscordMessageBuilder().from(createGameResponse, this).buildDiscordMessage(message);
+    toBeSent = new UpdateGameDiscordMessageBuilder().from(createGameResponse, this).buildDiscordMessage(message);
     return message.embed(toBeSent);
   }
 }
