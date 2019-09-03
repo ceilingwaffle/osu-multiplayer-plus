@@ -30,46 +30,71 @@ export class NodesuApiFetcher implements IOsuApiFetcher {
   }
 
   async isValidBanchoMultiplayerId(banchoMultiplayerId: string): Promise<boolean> {
-    Log.debug(`Validating Bancho MP ${banchoMultiplayerId} using osu API...`);
-    const mpid = Number(banchoMultiplayerId);
-    if (isNaN(mpid)) {
-      Log.debug(`Validation failed for Bancho MP: ${mpid} is NaN.`);
-      return false;
+    try {
+      Log.debug(`Validating Bancho MP ${banchoMultiplayerId} using osu API...`);
+      const mpid = Number(banchoMultiplayerId);
+      if (isNaN(mpid)) {
+        Log.debug(`Validation failed for Bancho MP: ${mpid} is NaN.`);
+        return false;
+      }
+
+      const mp = await this.api.multi.getMatch(mpid);
+
+      // Assume that if the response did not resolve into a Multi object, then it was not a valid ID.
+      // This will only work if { parseData: true } is set in the Nodesu client options.
+      if (!(mp instanceof Nodesu.Multi)) {
+        Log.methodFailure(
+          this.isValidBanchoMultiplayerId,
+          this.constructor.name,
+          `Validation failed for Bancho MPID ${mpid}: mp not instanceof Nodesu.Multi.`
+        );
+        return false;
+      }
+
+      if (!mp.match) {
+        Log.methodFailure(
+          this.isValidBanchoMultiplayerId,
+          this.constructor.name,
+          `Validation failed for Bancho MPID ${mpid}: mp.match was undefined.`
+        );
+        return false;
+      }
+
+      if (mp.match.matchId !== mpid) {
+        Log.methodFailure(
+          this.isValidBanchoMultiplayerId,
+          this.constructor.name,
+          `Validation failed for Bancho MPID ${mpid}: mp.match.matchId was not equal to mpid (this could mean the lobby was once valid, but has expired.).`
+        );
+        return false;
+      }
+
+      Log.methodSuccess(this.isValidBanchoMultiplayerId, this.constructor.name);
+      return true;
+    } catch (error) {
+      Log.methodError(this.isValidBanchoMultiplayerId, this.constructor.name, error);
+      throw error;
     }
-
-    const mp = await this.api.multi.getMatch(mpid);
-
-    // Assume that if the response did not resolve into a Multi object, then it was not a valid ID.
-    // This will only work if { parseData: true } is set in the Nodesu client options.
-    if (!(mp instanceof Nodesu.Multi)) {
-      Log.debug(`Validation failed for Bancho MPID ${mpid}: mp not instanceof Nodesu.Multi.`);
-      return false;
-    }
-
-    if (!mp.match) {
-      Log.debug(`Validation failed for Bancho MPID ${mpid}: mp.match was undefined.`);
-      return false;
-    }
-
-    if (mp.match.matchId !== mpid) {
-      Log.debug(
-        `Validation failed for Bancho MPID ${mpid}: mp.match.matchId was not equal to mpid (this could mean the lobby was once valid, but has expired.).`
-      );
-      return false;
-    }
-
-    Log.methodSuccess(this.isValidBanchoMultiplayerId, this.constructor.name);
-    return true;
   }
 
   async fetchMultiplayerResults(banchoMultiplayerId: string): Promise<Multiplayer> {
-    Log.debug("Fetching match results for Bancho MP...", banchoMultiplayerId);
-    const result = await this.limiter.schedule(() => this.api.multi.getMatch(Number(banchoMultiplayerId)));
-
-    if (result instanceof Nodesu.Multi) {
-      return NodesuApiTransformer.transformMultiplayer(result);
-    } else {
-      return null;
+    try {
+      const result = await this.limiter.schedule(() => this.api.multi.getMatch(Number(banchoMultiplayerId)));
+      if (result instanceof Nodesu.Multi) {
+        const transformed = NodesuApiTransformer.transformMultiplayer(result);
+        Log.methodSuccess(
+          this.fetchMultiplayerResults,
+          this.constructor.name,
+          `Fetched match results for Bancho MP ${banchoMultiplayerId}`
+        );
+        return transformed;
+      } else {
+        Log.methodFailure(this.fetchMultiplayerResults, this.constructor.name, "Match result was not instanceof Nodesu.Multi");
+        return null;
+      }
+    } catch (error) {
+      Log.methodFailure(this.fetchMultiplayerResults, this.constructor.name, error);
+      throw error;
     }
   }
 }
