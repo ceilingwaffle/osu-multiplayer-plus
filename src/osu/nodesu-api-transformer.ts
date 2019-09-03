@@ -14,7 +14,7 @@ export class NodesuApiTransformer {
    * @returns {Multiplayer}
    */
   static transformMultiplayer(result: NodesuMulti): Multiplayer {
-    Log.debug("Converting Nodesu Multi object...");
+    // Log.info("Converting Nodesu Multi object...");
 
     if (!result) {
       Log.methodError(this.transformMultiplayer, "Nodesu Multi object was undefined/null. This shouldn't happen.");
