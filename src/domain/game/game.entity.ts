@@ -6,6 +6,7 @@ import { AbstractEntity } from "../shared/abstract-entity";
 import { GameMessageTarget } from "./game-message-target";
 import { UserGameRole } from "../role/user-game-role.entity";
 import { GameLobby } from "./game-lobby.entity";
+import { GameTeam } from "../team/game-team.entity";
 
 @Entity("games")
 export class Game extends AbstractEntity {
@@ -47,6 +48,9 @@ export class Game extends AbstractEntity {
   // to get a game ID we need to first create the game, therefore the game must first be created momentarily without a UserGameRole.
   @OneToMany(type => UserGameRole, userGameRole => userGameRole.game, { nullable: true })
   userGameRoles: UserGameRole[];
+
+  @OneToMany(type => GameTeam, gameTeam => gameTeam.game)
+  gameTeams: GameTeam[];
 
   // @ManyToMany(type => User, user => user.refereeOf)
   // refereedBy: User[];

@@ -5,6 +5,7 @@ import { DiscordUser } from "./discord-user.entity";
 import { AbstractEntity } from "../shared/abstract-entity";
 import { WebUser } from "./web-user.entity";
 import { UserGameRole } from "../role/user-game-role.entity";
+import { Team } from "../team/team.entity";
 
 @Entity("users")
 export class User extends AbstractEntity {
@@ -28,4 +29,7 @@ export class User extends AbstractEntity {
 
   @OneToMany(type => UserGameRole, userGameRole => userGameRole.user)
   userGameRoles: UserGameRole[];
+
+  @ManyToMany(type => Team, team => team.users)
+  teams: Team[];
 }
