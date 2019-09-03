@@ -13,7 +13,7 @@ export class GameSubscriber implements EntitySubscriberInterface<Game> {
     await this.setGameCreatorRole(event);
   }
 
-  async setGameCreatorRole(event: InsertEvent<Game>): Promise<void> {
+  private async setGameCreatorRole(event: InsertEvent<Game>): Promise<void> {
     try {
       const game = event.entity;
       const userGameRole: UserGameRole = new UserGameRole();
