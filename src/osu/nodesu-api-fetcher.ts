@@ -16,11 +16,31 @@ export class NodesuApiFetcher implements IOsuApiFetcher {
   private static instance: IOsuApiFetcher;
   protected readonly api: Nodesu.Client = new Nodesu.Client(process.env.OSU_API_KEY, { parseData: true });
   protected readonly limiter: Bottleneck = new Bottleneck({
-    maxConcurrent: 1,
-    minTime: 333
+    // NOTE: 50ms = 1000ms/20 (where 20 is the max requests per second allowed by the osu API).
+    // I think we need permission from peppy to obtain this limit.
+    // Seems to pause requests when we hit 60 requests within a minute, then resumes at the next minute.
+    // Use minTime 1000ms (1 req per second) until we obtain elevated permissions.
+    //
+    // The more lobbies we add to the scanner, the higher the delay between retrieving results. See notes for maxConcurrent.
+    minTime: 1000,
+    // While we're osu API ratelimited to 60 req per 60s, maxConcurrent is equivalent to the maximum number of seconds between API
+    // requests per job. e.g. if we are scanning 15 lobbies, each lobby will be scanned about once per 15 seconds (keep in mind,
+    // there may be other API requests happening, like isValidBanchoMultiplayerId, meaning the lobby scan delay may be higher).
+    maxConcurrent: 15
+    // strategy: Bottleneck.strategy.LEAK,
   });
 
-  private constructor() {}
+  private constructor() {
+    this.registerEventListeners();
+  }
+
+  private registerEventListeners() {
+    this.limiter.on("depleted", function(empty) {
+      // This will be called every time the reservoir drops to 0.
+      // The `empty` (boolean) argument indicates whether `limiter.empty()` is currently true.
+      Log.warn(`Bottleneck reservoir depleted in ${this.constructor.name}.`);
+    });
+  }
 
   public static getInstance(): IOsuApiFetcher {
     if (!NodesuApiFetcher.instance) {

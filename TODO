@@ -19,7 +19,7 @@ TODO:
                         Bad because it could be abused as a way to not lose lives.
                     ☐ Option 3: Team loses a life and receives warning that if they fail to submit a score on the next map, they will be immediately eliminated. @created(19-09-02 13:38)
                     ☐ Option 4: @created(19-09-02 13:39)
-    Osu Lobby Watcher:
+    Osu Lobby Watcher / Osu API:
         ☐ Persist osu watcher lobbies being watched after app exits @created(19-08-30 22:45)
         ☐ Rebuild osu-lobby-watcher.ts using listener and EventEmitter @created(19-08-27 12:09)
             https://github.com/onury/tasktimer
@@ -27,6 +27,9 @@ TODO:
             https://github.com/sindresorhus/emittery
             https://www.npmjs.com/package/async-eventemitter
         ☐ Load mpids from database lobbies for all active games when the app starts @created(19-09-03 11:15)
+        ☐ Deny adding a lobby and send a warning to the user if the maximum allowed number of lobbies being scanned is reached @created(19-09-04 06:54)
+            ☐ We can accomplish this by adding a method to IOsuApiFetcher like isMaxJobsReached() - which would compare the current number of lobbies being scanned with Bottleneck.limiter.maxConcurrent @created(19-09-04 06:58)
+            ☐ If a user adds the bot from source code, using their own osu API key, the limit should be kept at 60 max requests per 60 seconds. The Bottleneck limiter should be able to dynamically set this depending on the user's own account API limit. @created(19-09-04 06:58)
     Error Messages:
         ☐ When adding a lobby before creating a game, the error message returned should replace "user ID X" with [at]DiscordUsername" instead (e.g. No games have been created by user ID 2. -> No games have been created by [at]CeilingWaffle
         ☐ Response<T> should be of type AddLobbyFailureReport and contain a discordUserId property
@@ -74,9 +77,10 @@ TODO:
             Can we abstract and extend these? Keep them more consistent; less method signature copy pasting.
         ☐ Replace lolex with a spy in lobby-create.test.
             Using lolex is just a temp solution for now. The problem is if we use another timer anywhere else within the LobbyController.create method chain, it will replace all those timers with the lolex mock.
-    Pre-release checklist:
+    Pre-launch checklist:
         ☐ Some way of keeping dependencies secure and up-to-date
             Something like: https://dependabot.com/javascript/
+        ☐ Contact peppy and see if we can get the API ratelimit increased from 60 max within 60 seconds to 1200 within 60 seconds. @created(19-09-04 06:57)
     Design:
         What we have access to - maps, mods(SD), modes - team vs, ffa, TAG4, osu API
         ☐ We need a name for this thing
@@ -215,4 +219,7 @@ TODO:
         ☐ Send discord message if it looks like the last match was aborted. 
             Implement some kind of MatchEvent Observer system? Discord message sender will then observe this event and send a message. Use "!obr include <matchId>" to include scores from the aborted match. 
         ☐ Process match results @created(19-09-03 11:19) @started(19-09-03 11:19)
+            ☐ Add OsuUser entity @created(19-09-03 19:37)
+            ☐ Add Score entity @created(19-09-03 19:37)
+            ☐ Add Match entity @created(19-09-03 19:38)
 Archive:

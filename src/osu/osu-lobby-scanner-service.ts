@@ -1,4 +1,3 @@
-// import { SetIntervalAsyncTimer, dynamic } from "set-interval-async";
 import { IOsuLobbyScanner } from "./interfaces/osu-lobby-scanner";
 import { NodesuApiFetcher } from "./nodesu-api-fetcher";
 import { IOsuApiFetcher } from "./interfaces/osu-api-fetcher";
@@ -14,11 +13,12 @@ interface Watcher {
   startAtMapNumber: number;
   timer: SetIntervalAsyncTimer;
   latestResults?: Multiplayer;
+  isScanning?: boolean;
 }
 
 export class OsuLobbyScannerService extends EventEmitter<OsuLobbyScannerEvents> implements IOsuLobbyScanner {
   protected readonly api: IOsuApiFetcher = NodesuApiFetcher.getInstance();
-  protected readonly interval: number = 5000;
+  protected readonly interval: number = 1000;
   protected readonly watching: { [multiplayerId: string]: Watcher } = {};
 
   constructor() {
@@ -28,37 +28,38 @@ export class OsuLobbyScannerService extends EventEmitter<OsuLobbyScannerEvents> 
   }
 
   private registerEventListeners() {
-    this.on("scan", multiplayerId => {
-      this.handleScanEvent(multiplayerId);
-    });
     this.on("newMultiplayerMatches", results => {
       Log.warn("Event newMultiplayerMatches", { mpid: results.multiplayerId, matches: results.matches.length });
     });
+
     this.on("watcherFailed", mpid => {
       // TODO: Fire event for the Lobby class to update its status indicating that an error occurred while it was being scanned for results
       Log.warn("Event watcherFailed", `Watcher failed for mp ${mpid}`);
     });
+
     this.on("watcherStarted", mpid => {
       // TODO: Fire event for the Lobby class to update its status indicating that it is now being actively scanned for results
       Log.info("Event watcherStarted", `Watcher started for mp ${mpid}`);
     });
+
     this.on("watcherStopped", mpid => {
       // TODO: Fire event for the Lobby class to update its status indicating that it is no longer being scanned for results
       Log.warn("Event watcherStopped", `Watcher stopped for mp ${mpid}`);
     });
   }
 
-  protected async handleScanEvent(multiplayerId: string, startAtMapNumber: number = 1): Promise<void> {
+  private async scan(multiplayerId: string): Promise<void> {
     try {
+      const watcher = this.watching[multiplayerId];
       // TODO: Update Lobby status to UNKNOWN if connection/API issue
       Log.info(`Scanning mp ${multiplayerId}...`);
       const results = await this.api.fetchMultiplayerResults(multiplayerId);
       if (this.containsNewMatches(results)) {
-        this.watching[multiplayerId].latestResults = results;
+        watcher.latestResults = results;
         this.emit("newMultiplayerMatches", results);
       }
     } catch (error) {
-      Log.methodError(this.handleScanEvent, this.constructor.name, error);
+      Log.methodError(this.scan, this.constructor.name, error);
       throw error;
     }
   }
@@ -72,7 +73,7 @@ export class OsuLobbyScannerService extends EventEmitter<OsuLobbyScannerEvents> 
           multiplayerId: multiplayerId,
           gameIds: [gameId],
           startAtMapNumber: startAtMapNumber,
-          timer: dynamic.setIntervalAsync(() => this.emit("scan", multiplayerId), this.interval)
+          timer: dynamic.setIntervalAsync(async () => await this.scan(multiplayerId), this.interval)
         };
         Log.info("Created new multi watcher");
       } else if (!watcher.gameIds.includes(gameId)) {
