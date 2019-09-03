@@ -15,7 +15,7 @@ import { UpdateGameReport } from "../../src/domain/game/reports/update-game.repo
 import { DiscordUserReportProperties } from "../../src/domain/shared/reports/discord-user-report-properties";
 import { GameDefaults } from "../../src/domain/game/game-defaults";
 import { GameMessageTarget } from "../../src/domain/game/game-message-target";
-import { UserGameRole } from "../../src/domain/roles/user-game-role.entity";
+import { UserGameRole } from "../../src/domain/role/user-game-role.entity";
 import { EndGameReport } from "../../src/domain/game/reports/end-game.report";
 import { GameService } from "../../src/domain/game/game.service";
 import { success } from "../../src/utils/either";

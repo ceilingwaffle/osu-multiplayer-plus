@@ -2,9 +2,9 @@ import { UserReportProperties } from "../shared/reports/user-report-properties.t
 import { Game } from "./game.entity";
 import { GameMessageTarget } from "./game-message-target";
 import { AbstractResponseFactory } from "../shared/abstract-response-factory";
-// import { UserGameRoleRepository } from "../roles/user-game-role.repository";
+// import { UserGameRoleRepository } from "../role/user-game-role.repository";
 // import { getCustomRepository } from "typeorm";
-import { gameAdminRoles, getRefereeTypeRoles } from "../roles/role.type";
+import { gameAdminRoles, getRefereeTypeRoles } from "../role/role.type";
 
 export class GameResponseFactory extends AbstractResponseFactory<Game> {
   // protected readonly userGameRoleRepository: UserGameRoleRepository = getCustomRepository(UserGameRoleRepository);

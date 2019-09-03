@@ -1,6 +1,6 @@
 import { EventSubscriber, EntitySubscriberInterface, InsertEvent } from "typeorm";
 import { Game } from "./game.entity";
-import { UserGameRole } from "../roles/user-game-role.entity";
+import { UserGameRole } from "../role/user-game-role.entity";
 import { Log } from "../../utils/Log";
 
 @EventSubscriber()

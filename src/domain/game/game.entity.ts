@@ -4,7 +4,7 @@ import { User } from "../user/user.entity";
 import { GameStatus } from "./game-status";
 import { AbstractEntity } from "../shared/abstract-entity";
 import { GameMessageTarget } from "./game-message-target";
-import { UserGameRole } from "../roles/user-game-role.entity";
+import { UserGameRole } from "../role/user-game-role.entity";
 import { GameLobby } from "./game-lobby.entity";
 
 @Entity("games")
