@@ -1,6 +1,6 @@
 import { IOsuApiFetcher } from "./interfaces/osu-api-fetcher";
 import { Log } from "../utils/Log";
-import { OsuMultiplayerService } from "./osu-multiplayer-service";
+// import { OsuMultiplayerService } from "./osu-multiplayer-service";
 import { Multiplayer } from "./types/multiplayer";
 import { SetIntervalAsyncTimer, dynamic, clearIntervalAsync } from "set-interval-async";
 import { NodesuApiFetcher } from "./nodesu-api-fetcher";
@@ -29,7 +29,7 @@ class OsuLobbyWatcher {
     lobbyScanInterval: 1000
   };
   protected api: IOsuApiFetcher = NodesuApiFetcher.getInstance();
-  protected multiplayerService: OsuMultiplayerService = new OsuMultiplayerService();
+  // protected multiplayerService: OsuMultiplayerService = new OsuMultiplayerService();
   protected watchers: { [banchoMpId: string]: Watching } = {};
   protected latestMultiResults: Multiplayer;
 
