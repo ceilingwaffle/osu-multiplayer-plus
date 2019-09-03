@@ -8,7 +8,7 @@ export class Log {
   static init() {
     Log4js.configure(Path.join(__dirname, "../../logconfig.json"));
     Log.logger = getLogger("default");
-    Log.logger.level = "debug";
+    // Log.logger.level = "debug";
   }
 
   static info(info: string, ...args: any[]) {
