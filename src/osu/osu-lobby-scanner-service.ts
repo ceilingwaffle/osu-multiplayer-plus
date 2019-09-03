@@ -1,19 +1,22 @@
-import { EventEmitter } from "events";
 // import { SetIntervalAsyncTimer, dynamic } from "set-interval-async";
 import { IOsuLobbyScanner } from "./interfaces/osu-lobby-scanner";
 import { NodesuApiFetcher } from "./nodesu-api-fetcher";
 import { IOsuApiFetcher } from "./interfaces/osu-api-fetcher";
 import { Log } from "../utils/Log";
+import { EventEmitter } from "eventemitter3";
+import { MultiplayerEvents } from "./interfaces/multiplayer-events";
 import { Multiplayer } from "./types/multiplayer";
+import { dynamic, SetIntervalAsyncTimer, clearIntervalAsync } from "set-interval-async";
 
 interface Watcher {
   multiplayerId: string;
   gameIds: number[];
   startAtMapNumber: number;
-  timer: NodeJS.Timer;
+  timer: SetIntervalAsyncTimer;
+  latestResults?: Multiplayer;
 }
 
-export class OsuLobbyScannerService extends EventEmitter implements IOsuLobbyScanner {
+export class OsuLobbyScannerService extends EventEmitter<MultiplayerEvents> implements IOsuLobbyScanner {
   protected readonly api: IOsuApiFetcher = NodesuApiFetcher.getInstance();
   protected readonly interval: number = 5000;
   protected readonly watching: { [multiplayerId: string]: Watcher } = {};
@@ -22,20 +25,25 @@ export class OsuLobbyScannerService extends EventEmitter implements IOsuLobbySca
     super();
     Log.info(`Initialized ${this.constructor.name}.`);
 
-    this.addListener("scan", this.action);
+    this.on("scan", multiplayerId => this.handleScanEvent(multiplayerId));
 
-    this.on("new-multiplayer-match-results", results => {
-      // TODO: Use TypedEvent instead of casing with 'as'
-      const mp = results as Multiplayer;
-      Log.info("Event new-multiplayer-match-results", { mpid: mp.multiplayerId, matches: mp.matches.length });
+    this.on("newMultiplayerMatches", results => {
+      Log.warn("Event new-multiplayer-match-results", { mpid: results.multiplayerId, matches: results.matches.length });
     });
   }
 
-  protected async action(multiplayerId: string, startAtMapNumber: number): Promise<void> {
-    Log.info(`Scanning mp ${multiplayerId}...`);
-    const results = await this.api.fetchMultiplayerResults(multiplayerId);
-    // TODO: emit only if new results
-    this.emit("new-multiplayer-match-results", results);
+  protected async handleScanEvent(multiplayerId: string, startAtMapNumber: number = 1): Promise<void> {
+    try {
+      Log.info(`Scanning mp ${multiplayerId}...`);
+      const results = await this.api.fetchMultiplayerResults(multiplayerId);
+      if (this.containsNewMatches(results)) {
+        this.watching[multiplayerId].latestResults = results;
+        this.emit("newMultiplayerMatches", results);
+      }
+    } catch (error) {
+      Log.methodError(this.handleScanEvent, this.constructor.name, error);
+      throw error;
+    }
   }
 
   async watch(gameId: number, multiplayerId: string, startAtMapNumber: number = 1): Promise<void> {
@@ -46,7 +54,7 @@ export class OsuLobbyScannerService extends EventEmitter implements IOsuLobbySca
         multiplayerId: multiplayerId,
         gameIds: [gameId],
         startAtMapNumber: startAtMapNumber,
-        timer: setInterval(() => this.emit("scan", multiplayerId), this.interval)
+        timer: dynamic.setIntervalAsync(() => this.emit("scan", multiplayerId), this.interval)
       };
       Log.info("Created new multi watcher");
     } else if (!watcher.gameIds.includes(gameId)) {
@@ -70,7 +78,7 @@ export class OsuLobbyScannerService extends EventEmitter implements IOsuLobbySca
     watcher.gameIds = watcher.gameIds.filter(id => id !== gameId);
     Log.info("Removed game id from watcher");
     if (watcher.gameIds.length < 1) {
-      this.disposeWatcher(multiplayerId);
+      await this.disposeWatcher(multiplayerId);
     }
   }
 
@@ -85,13 +93,13 @@ export class OsuLobbyScannerService extends EventEmitter implements IOsuLobbySca
    * @param {string} multiplayerId
    * @returns {boolean}
    */
-  private disposeWatcher(multiplayerId: string): boolean {
+  private async disposeWatcher(multiplayerId: string): Promise<boolean> {
     const watcher: Watcher = this.findWatcher(multiplayerId);
     if (!watcher) {
       throw new Error(`Cannot dispose watcher because no watcher exists for multiplayer ${multiplayerId}.`);
     }
     if (this.watching[multiplayerId].timer) {
-      clearInterval(this.watching[multiplayerId].timer);
+      await clearIntervalAsync(this.watching[multiplayerId].timer);
     } else {
       Log.warn(`Watcher for multiplayer ${multiplayerId} did not have a timer for some reason.`);
     }
@@ -108,11 +116,37 @@ export class OsuLobbyScannerService extends EventEmitter implements IOsuLobbySca
     return this.watching[multiplayerId];
   }
 
-  // private handle(): SetIntervalAsyncTimer {
-  //   return dynamic.setIntervalAsync(() => this.emit("scan"), this.interval);
-  // }
+  /**
+   * Compares the match start time and end time of previous most-recent fetched multiplayer matches with the given multiplayer matches.
+   *
+   * @private
+   * @param {Multiplayer} multi The multiplayer results being checked for new results
+   * @returns {boolean} true if the given multiplayer results contain new results
+   */
+  private containsNewMatches(multi: Multiplayer): boolean {
+    // TODO: unit test containsNewMatches
+    try {
+      if (!multi || !multi.multiplayerId) throw new Error(`No multiplayer results provided.`);
+      if (!multi.multiplayerId) throw new Error(`No multiplayer ID provided with multiplayer results.`);
+      const watcher = this.watching[multi.multiplayerId];
+      if (!watcher) throw new Error(`No watcher for multiplayer ${multi.multiplayerId}`);
 
-  // private async scan(mpId: string): Promise<void> {
-  //   console.log(`Scanning multi ${mpId}.... If new match results, emit messages to scanning.find(mpid).gameIds`);
-  // }
+      if (multi.matches.length < 1) return false; // there are no new matches if there are no matches
+      if (!watcher.latestResults) return true;
+
+      const latestKnownMatch = watcher.latestResults.matches.slice(-1)[0];
+      const checkingMatch = multi.matches.slice(-1)[0];
+      const latestST = latestKnownMatch.startTime.getTime();
+      const latestET = latestKnownMatch.endTime.getTime();
+      const checkingST = checkingMatch.startTime.getTime();
+      const checkingET = checkingMatch.endTime.getTime();
+
+      const answer = latestST !== checkingST && latestET !== checkingET;
+      Log.methodSuccess(this.containsNewMatches, { mpid: multi.multiplayerId, newResults: answer });
+      return answer;
+    } catch (error) {
+      Log.methodError(this.containsNewMatches, this.constructor.name, error);
+      throw error;
+    }
+  }
 }

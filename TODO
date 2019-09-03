@@ -26,6 +26,7 @@ TODO:
             https://blog.x5ff.xyz/blog/typescript-interval-iot/ 
             https://github.com/sindresorhus/emittery
             https://www.npmjs.com/package/async-eventemitter
+        ☐ Load mpids from database lobbies for all active games when the app starts @created(19-09-03 11:15)
     Error Messages:
         ☐ When adding a lobby before creating a game, the error message returned should replace "user ID X" with [at]DiscordUsername" instead (e.g. No games have been created by user ID 2. -> No games have been created by [at]CeilingWaffle
         ☐ Response<T> should be of type AddLobbyFailureReport and contain a discordUserId property
@@ -33,7 +34,9 @@ TODO:
     Server:
         ☐ Ensure app does not crash, or if it does, restart it in a reliable way
             Don't worry about uncaught exceptions like "connection closed" errors - just use foreverjs to restart the app in the event of failure.
-        ☐ Handle internet disconnections by auto-reconnecting - e.g. https://i.imgur.com/v4GDoRf.png @created(19-09-02 10:01)
+        ☐ Handle internet disconnections by auto-reconnecting  @created(19-09-02 10:01)
+            eg1: https://i.imgur.com/v4GDoRf.png
+            eg2: https://i.imgur.com/9A5uA5A.png
     Tests:
         ☐ Speed up test execution times @created(19-08-30 23:52)
             ☐ Can we run each group of tests in parallel by using a separate sqlite database for each group? @created(19-08-30 23:52)
@@ -206,9 +209,10 @@ TODO:
             ✘ Add discord command `!obr set-channels-category "OBR Games"` @cancelled(19-08-22 20:14)
                 This should create a new Discord-category (container of text-channels) where all future-created game-channels will be created in for this server.
 
-    Matches:
+    Multiplayer Matches:
         ☐  Use lobby.startingMapNumber to skip some map results
             osu-lobby-watcher.ts -> refreshAndEmitMultiplayerResults()
         ☐ Send discord message if it looks like the last match was aborted. 
             Implement some kind of MatchEvent Observer system? Discord message sender will then observe this event and send a message. Use "!obr include <matchId>" to include scores from the aborted match. 
+        ☐ Process match results @created(19-09-03 11:19) @started(19-09-03 11:19)
 Archive:

@@ -23,4 +23,4 @@ export { Permissions } from "./permissions/permissions";
 
 // export { IOsuLobbyScanner } from "./osu/interfaces/osu-lobby-scanner";
 export { OsuLobbyScannerService } from "./osu/osu-lobby-scanner-service";
-export { EventEmitter } from "events";
+export { EventEmitter } from "eventemitter3";

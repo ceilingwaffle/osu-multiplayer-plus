@@ -41,6 +41,7 @@
     "discord.js": "^11.5.1",
     "discord.js-commando": "^0.10.0",
     "dotenv": "^8.0.0",
+    "eventemitter3": "^4.0.0",
     "events-intercept": "^2.0.0",
     "fs-extra": "^8.0.1",
     "inversify": "^5.0.1",
