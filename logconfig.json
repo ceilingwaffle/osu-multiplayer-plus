@@ -14,7 +14,7 @@
   "categories": {
     "default": {
       "appenders": ["console", "file"],
-      "level": "info"
+      "level": "debug"
     }
   }
 }
