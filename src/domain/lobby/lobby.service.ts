@@ -171,9 +171,10 @@ export class LobbyService {
       }
 
       // start the lobby watcher
-      // TODO: Wrap this in a failure check - e.g what if the osu api is down? Should have some max time limit to try to start the watcher, and return a failure if it fails to start within that time.
+      // TODO: Can we listen for events from the osu lobby scanner from within the Lobby entity class, and update the status automatically when something happens with the scanner e.g. error, lobby scanning stopped, lobby scanning started
+      //    ^ This will mean that the lobby returned from this method will have a status of AWAITING_FIRST_SCAN (since we're not awaiting
+      //      scanner.watch()) and the scanner will update the lobby status some ~300ms later after the scanner for that lobby starts/fails.
       this.osuLobbyScanner.watch(lobbyGame.id, lobbyData.banchoMultiplayerId);
-      // this.lobbyWatcher.watch({ banchoMultiplayerId: lobbyData.banchoMultiplayerId, gameId: lobbyGame.id });
 
       // We only want the game we just retrieved, not any other games that may have been previously added this lobby.
       // This ensures that the game data we're returning is definitely of the game we expect it to be.

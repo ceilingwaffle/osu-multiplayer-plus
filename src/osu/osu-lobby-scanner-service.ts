@@ -4,7 +4,7 @@ import { NodesuApiFetcher } from "./nodesu-api-fetcher";
 import { IOsuApiFetcher } from "./interfaces/osu-api-fetcher";
 import { Log } from "../utils/Log";
 import { EventEmitter } from "eventemitter3";
-import { MultiplayerEvents } from "./interfaces/multiplayer-events";
+import { OsuLobbyScannerEvents } from "./interfaces/osu-lobby-scanner-events";
 import { Multiplayer } from "./types/multiplayer";
 import { dynamic, SetIntervalAsyncTimer, clearIntervalAsync } from "set-interval-async";
 
@@ -16,7 +16,7 @@ interface Watcher {
   latestResults?: Multiplayer;
 }
 
-export class OsuLobbyScannerService extends EventEmitter<MultiplayerEvents> implements IOsuLobbyScanner {
+export class OsuLobbyScannerService extends EventEmitter<OsuLobbyScannerEvents> implements IOsuLobbyScanner {
   protected readonly api: IOsuApiFetcher = NodesuApiFetcher.getInstance();
   protected readonly interval: number = 5000;
   protected readonly watching: { [multiplayerId: string]: Watcher } = {};
@@ -24,16 +24,33 @@ export class OsuLobbyScannerService extends EventEmitter<MultiplayerEvents> impl
   constructor() {
     super();
     Log.info(`Initialized ${this.constructor.name}.`);
+    this.registerEventListeners();
+  }
 
-    this.on("scan", multiplayerId => this.handleScanEvent(multiplayerId));
-
+  private registerEventListeners() {
+    this.on("scan", multiplayerId => {
+      this.handleScanEvent(multiplayerId);
+    });
     this.on("newMultiplayerMatches", results => {
-      Log.warn("Event new-multiplayer-match-results", { mpid: results.multiplayerId, matches: results.matches.length });
+      Log.warn("Event newMultiplayerMatches", { mpid: results.multiplayerId, matches: results.matches.length });
+    });
+    this.on("watcherFailed", mpid => {
+      // TODO: Fire event for the Lobby class to update its status indicating that an error occurred while it was being scanned for results
+      Log.warn("Event watcherFailed", `Watcher failed for mp ${mpid}`);
+    });
+    this.on("watcherStarted", mpid => {
+      // TODO: Fire event for the Lobby class to update its status indicating that it is now being actively scanned for results
+      Log.info("Event watcherStarted", `Watcher started for mp ${mpid}`);
+    });
+    this.on("watcherStopped", mpid => {
+      // TODO: Fire event for the Lobby class to update its status indicating that it is no longer being scanned for results
+      Log.warn("Event watcherStopped", `Watcher stopped for mp ${mpid}`);
     });
   }
 
   protected async handleScanEvent(multiplayerId: string, startAtMapNumber: number = 1): Promise<void> {
     try {
+      // TODO: Update Lobby status to UNKNOWN if connection/API issue
       Log.info(`Scanning mp ${multiplayerId}...`);
       const results = await this.api.fetchMultiplayerResults(multiplayerId);
       if (this.containsNewMatches(results)) {
@@ -47,21 +64,26 @@ export class OsuLobbyScannerService extends EventEmitter<MultiplayerEvents> impl
   }
 
   async watch(gameId: number, multiplayerId: string, startAtMapNumber: number = 1): Promise<void> {
-    Log.info(`Watching game ${gameId}, multi ${multiplayerId}...`);
-    const watcher: Watcher = this.findWatcher(multiplayerId);
-    if (!watcher) {
-      this.watching[multiplayerId] = {
-        multiplayerId: multiplayerId,
-        gameIds: [gameId],
-        startAtMapNumber: startAtMapNumber,
-        timer: dynamic.setIntervalAsync(() => this.emit("scan", multiplayerId), this.interval)
-      };
-      Log.info("Created new multi watcher");
-    } else if (!watcher.gameIds.includes(gameId)) {
-      watcher.gameIds.push(gameId);
-      Log.info("Added game ID to existing watcher");
-    } else {
-      throw new Error(`Game ${gameId} invalid or already being watched for multiplayer ${multiplayerId}.`);
+    try {
+      Log.info(`Watching game ${gameId}, multi ${multiplayerId}...`);
+      const watcher: Watcher = this.findWatcher(multiplayerId);
+      if (!watcher) {
+        this.watching[multiplayerId] = {
+          multiplayerId: multiplayerId,
+          gameIds: [gameId],
+          startAtMapNumber: startAtMapNumber,
+          timer: dynamic.setIntervalAsync(() => this.emit("scan", multiplayerId), this.interval)
+        };
+        Log.info("Created new multi watcher");
+      } else if (!watcher.gameIds.includes(gameId)) {
+        watcher.gameIds.push(gameId);
+        Log.info("Added game ID to existing watcher");
+      } else {
+        throw new Error(`Game ${gameId} invalid or already being watched for multiplayer ${multiplayerId}.`);
+      }
+    } catch (error) {
+      Log.methodError(this.watch, this.constructor.name, error);
+      throw error;
     }
   }
 
