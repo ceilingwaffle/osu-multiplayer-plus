@@ -65,7 +65,7 @@ export class NodesuApiTransformer {
   }
 
   static determineMatchEvent(endTime: Date): MatchEvent {
-    return isNaN(endTime.getTime()) ? MatchEvent.MATCH_START : MatchEvent.MATCH_END;
+    return isNaN(endTime.getTime()) ? "match_start" : "match_end";
   }
 
   /**

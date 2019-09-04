@@ -1,4 +1,1 @@
-export enum MatchEvent {
-  MATCH_START = "match_start",
-  MATCH_END = "match_end"
-}
+export type MatchEvent = "match_start" | "match_end";
