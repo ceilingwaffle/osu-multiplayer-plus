@@ -222,4 +222,48 @@ TODO:
             ☐ Add OsuUser entity @created(19-09-03 19:37)
             ☐ Add Score entity @created(19-09-03 19:37)
             ☐ Add Match entity @created(19-09-03 19:38)
+        ☐ A team can continue submitted scores after eliminated, but they won't be counted for anything important - only included with the report to be displayed in the match results message. @created(19-09-04 11:03)
+        ☐ Team rank/leaderboard @created(19-09-04 10:08)
+            Rank 1...n listed from top to bottom in order of
+                -- time when eliminated (team listed further towards the top if their time eliminated is more recent)
+                -- current lives remaining (higher lives => higher rank)
+                -- cumulative number of positions achieved (e.g. Team A has positioned higher than Team B on average during this game => list Team A above Team B)
+                -- total of all team scores achieved during this game
+                ^ (algorithm: proceed to continue checking the next condition only if the current condition is equal)
+    Match Result Reports:
+        Discord Message Design:
+            ☐ Example 1 @created(19-09-04 10:55)
+                e.g. https://i.imgur.com/9Fhz8yJ.png
+                e.g. 
+                    Alive (4 maps remain)
+                    ⬆ 01. 🔥 Team 1 - 🤍🤍🤍 - player1 [SS], player2 [S] - Score: 123,456
+                    ⬇ 02.    Team 3 - 🤍💔💔 - p5 [S], player6 [A] - Score: 111,111 (TIED)
+                    ⏹03.    Team 2 - 🤍💔💔 - player7 [B], playerlongername8 [C] - Score: 111,111 (TIED)
+                    Eliminated
+                    ⬇ 04. 💀 Team 4 - 💔💔💔 - player3 [D], player4 [B] - Score: 100,000
+                    ⏹05. 💀 Team 5 - 💔💔💔 - player9 [🚫], player10 [F] - Score: 0
+            ☐ Emoji indicators @created(19-09-04 09:44)
+                ☐ Match 
+                    ☐ 🛑 Match aborted 
+                    ☐ 5⭐ = 5 star map 
+                ☐ Team Line 
+                    ☐ 😍 Perfect Score (all team members SS) 
+                    ☐ 🏆 Game champion (final winner) 
+                    ☐ 🔥 This team is on a 1st-place winning streak (won gte 2 times in a row)
+                    ☐ 🧯 This team had their 1st-place streak ended by another team 
+                    ☐ ♿ Team score was less than 5% of the highest team score 
+                    ☐ 😭 Team score was 0 
+                    ☐ _   When no relevant emoji to use 
+                    ☐ ❤❤❤ = 3 lives remaining
+                        -- Use red heart, not the white heart shown in the example below - red looks better on Discord).
+                        -- If maxLives > 5, show "x lives" text instead of hearts.
+                    ☐ 💀 = 0 lives remaining (eliminated)
+                    ☐ Leaderboard position
+                        ☐ ⬆ - Gained position 🤍❤
+                        ☐ ⬇ - Lost position  
+                        ☐ ⏹ or ↕️ - Same position
+                    ☐ Player
+                        ☐ [S][A][B][C][D][❌] Player map rank achieved (listed next to player name)
+                            ☐ [❌] Listed next to player if they failed the map (regardless of whether or not the game is counting failed scores)
+                        ☐ 🚫 Player left lobby / did not submit map result
 Archive:
