@@ -232,38 +232,54 @@ TODO:
                 ^ (algorithm: proceed to continue checking the next condition only if the current condition is equal)
     Match Result Reports:
         Discord Message Design:
+            Test message design with: https://cog-creators.github.io/discord-embed-sandbox/
             ☐ Example 1 @created(19-09-04 10:55)
                 e.g. https://i.imgur.com/9Fhz8yJ.png
                 e.g. 
                     Alive (4 maps remain)
-                    ⬆ 01. 🔥 Team 1 - 🤍🤍🤍 - player1 [SS], player2 [S] - Score: 123,456
-                    ⬇ 02.    Team 3 - 🤍💔💔 - p5 [S], player6 [A] - Score: 111,111 (TIED)
-                    ⏹03.    Team 2 - 🤍💔💔 - player7 [B], playerlongername8 [C] - Score: 111,111 (TIED)
+                    ⬆ 01. Team 1 - 🔥 - 🤎🤎🤎 - Score: 123,456 (player1 [SS] | player2 [S])
+                    ⬇ 02. Team 3 -    - 🤎🤍🤍 - Score: 111,111👔 (p5 [S] | player6 [A])
+                      03. Team 2 -    - 🤎🤍🤍 - Score: 111,111👔 (player7 [B] | playerlongername8 [C])
                     Eliminated
-                    ⬇ 04. 💀 Team 4 - 💔💔💔 - player3 [D], player4 [B] - Score: 100,000
-                    ⏹05. 💀 Team 5 - 💔💔💔 - player9 [🚫], player10 [F] - Score: 0
+                    ⬇ 04. Team 4 - 💀 - 🤍🤍🤍 - Score: 100,000 (player3 [D] | player4 [B])
+                      05. Team 5 -    - 🤍🤍🤍 - Score: 0 (player9 [🚫] | player10 [F])
             ☐ Emoji indicators @created(19-09-04 09:44)
                 ☐ Match 
-                    ☐ 🛑 Match aborted 
-                    ☐ 5⭐ = 5 star map 
-                ☐ Team Line 
-                    ☐ 😍 Perfect Score (all team members SS) 
-                    ☐ 🏆 Game champion (final winner) 
-                    ☐ 🔥 This team is on a 1st-place winning streak (won gte 2 times in a row)
-                    ☐ 🧯 This team had their 1st-place streak ended by another team 
-                    ☐ ♿ Team score was less than 5% of the highest team score 
-                    ☐ 😭 Team score was 0 
-                    ☐ _   When no relevant emoji to use 
-                    ☐ ❤❤❤ = 3 lives remaining
-                        -- Use red heart, not the white heart shown in the example below - red looks better on Discord).
-                        -- If maxLives > 5, show "x lives" text instead of hearts.
-                    ☐ 💀 = 0 lives remaining (eliminated)
+                    ☐ 5⭐ in map title line (5 star map)
+                    ☐ Match Summary (may include more than one, listed in order of which is to be written first)
+                        ☐ 🤍 Team X lost 1 life.
+                        ☐ 💀 Team X was eliminated.
+                        ☐ 🛑 Match aborted. No lives were lost.
+                        ☐ 👔 Bottom tied. No lives were lost.
+                            If bottom teams tied (i.e. no loser can be determined)
+                        ☐ 🏆 Game over! The winner is Team X!
+                ☐ Team Line
+                    ☐ Team Performance Icon (in order of priority)
+                        ☐ 🏆 Game champion (final winner) 
+                        ☐ 💀 Skull if team was eliminated this match
+                        ✘ 😍 Perfect Score (all team members SS) @cancelled(19-09-04 12:26)
+                        ✘ 🔥 Team is on a 1st-place winning streak (won gte 2 times in a row) @cancelled(19-09-04 12:26)
+                        ✘ 🧯 Team had their 1st-place streak ended by another team @cancelled(19-09-04 12:26)
+                        ✘ 😭 Team score was exactly 0 @cancelled(19-09-04 12:26)
+                        ✘ 😅 Team scored 2nd-last and the score was only 1% more than the last team's score @cancelled(19-09-04 12:26)
+                        ✘ ♿ Team score was less than 5% of the highest team score @cancelled(19-09-04 12:26)
+                        ☐     Default empty space
+                    ☐ Lives 
+                        ☐ 🤎 One full-heart for each life remaining
+                            -- If maxLives > 5, show "x lives" text instead of hearts.
+                        ☐ 🤍 One empty-heart for each life lost 
                     ☐ Leaderboard position
-                        ☐ ⬆ - Gained position 🤍❤
-                        ☐ ⬇ - Lost position  
-                        ☐ ⏹ or ↕️ - Same position
+                        ☐ ⬆📈☝🏻  - Gained position
+                        ☐ ⬇📉👇🏿 - Lost position  
+                        ☐ ⏹↕️⬜✋🏽 - Same position
+                            Or just display an empty space for same position
                     ☐ Player
                         ☐ [S][A][B][C][D][❌] Player map rank achieved (listed next to player name)
                             ☐ [❌] Listed next to player if they failed the map (regardless of whether or not the game is counting failed scores)
                         ☐ 🚫 Player left lobby / did not submit map result
+                    ☐ Score
+                        ☐ 👔 Tied with at least one other team
+            Footer Text Memes:
+                ☐ Azer @created(19-09-04 11:55)
+                    <WinningTeam> isn't so great? Are you kidding me? When was the last time you saw a player with such aim ability and movement with a tablet? Alex puts the game on another level, and we will be blessed if we ever see a player with his skill and passion for the game again. Cookiezi breaks records. Rafis breaks records. <WinningTeam> breaks the rules. You can keep your statistics. I prefer the magic.
 Archive:
