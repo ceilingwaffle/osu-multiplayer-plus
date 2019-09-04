@@ -4,7 +4,7 @@ import { IOsuApiFetcher } from "./interfaces/osu-api-fetcher";
 import { Log } from "../utils/Log";
 import { EventEmitter } from "eventemitter3";
 import { OsuLobbyScannerEvents } from "./interfaces/osu-lobby-scanner-events";
-import { Multiplayer } from "./types/multiplayer";
+import { ApiMultiplayer } from "./types/api-multiplayer";
 import { dynamic, SetIntervalAsyncTimer, clearIntervalAsync } from "set-interval-async";
 
 interface Watcher {
@@ -12,7 +12,7 @@ interface Watcher {
   gameIds: number[];
   startAtMapNumber: number;
   timer: SetIntervalAsyncTimer;
-  latestResults?: Multiplayer;
+  latestResults?: ApiMultiplayer;
   isScanning?: boolean;
 }
 
@@ -143,10 +143,10 @@ export class OsuLobbyScannerService extends EventEmitter<OsuLobbyScannerEvents> 
    * Compares the match start time and end time of previous most-recent fetched multiplayer matches with the given multiplayer matches.
    *
    * @private
-   * @param {Multiplayer} multi The multiplayer results being checked for new results
+   * @param {ApiMultiplayer} multi The multiplayer results being checked for new results
    * @returns {boolean} true if the given multiplayer results contain new results
    */
-  private containsNewMatches(multi: Multiplayer): boolean {
+  private containsNewMatches(multi: ApiMultiplayer): boolean {
     // TODO: unit test containsNewMatches
     try {
       if (!multi || !multi.multiplayerId) throw new Error(`No multiplayer results provided.`);

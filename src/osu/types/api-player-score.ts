@@ -1,4 +1,4 @@
-export type PlayerScore = {
+export type ApiPlayerScore = {
   osuUserId: number;
   score: number;
   passed: boolean;

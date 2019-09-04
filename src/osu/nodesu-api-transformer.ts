@@ -1,19 +1,19 @@
 import { Multi as NodesuMulti, MultiTeamTypeType as NodesuMultiTeamTypeType, MultiTeamType as NodesuMultiTeamType } from "nodesu";
 import { Log } from "../utils/Log";
-import { Multiplayer } from "./types/multiplayer";
-import { Match } from "./types/match";
-import { PlayerScore } from "./types/player-score";
-import { TeamMode } from "./types/team-mode";
-import { MatchEvent } from "./types/match-event";
+import { ApiMultiplayer } from "./types/api-multiplayer";
+import { ApiMatch } from "./types/api-match";
+import { ApiPlayerScore } from "./types/api-player-score";
+import { ApiTeamMode } from "./types/api-team-mode";
+import { ApiMatchEvent } from "./types/api-match-event";
 
 export class NodesuApiTransformer {
   /**
    * Transforms a Nodesu Multi object into our own custom type.
    *
    * @param {NodesuMulti} result
-   * @returns {Multiplayer}
+   * @returns {ApiMultiplayer}
    */
-  static transformMultiplayer(result: NodesuMulti): Multiplayer {
+  static transformMultiplayer(result: NodesuMulti): ApiMultiplayer {
     // Log.info("Converting Nodesu Multi object...");
 
     if (!result) {
@@ -21,20 +21,20 @@ export class NodesuApiTransformer {
       return null;
     }
 
-    let converted: Multiplayer = {
+    let converted: ApiMultiplayer = {
       multiplayerId: result.match.matchId,
       matches: []
     };
 
     let mapNumber = 1;
     for (const apiMatch of result.games) {
-      let matchResult: Match;
+      let matchResult: ApiMatch;
       if (!apiMatch) {
         Log.debug("Skipped empty apiMatch in result.games");
         continue;
       }
 
-      let scores: PlayerScore[] = [];
+      let scores: ApiPlayerScore[] = [];
 
       for (const apiScore of apiMatch.scores) {
         scores.push({
@@ -64,7 +64,7 @@ export class NodesuApiTransformer {
     return converted;
   }
 
-  static determineMatchEvent(endTime: Date): MatchEvent {
+  static determineMatchEvent(endTime: Date): ApiMatchEvent {
     return isNaN(endTime.getTime()) ? "match_start" : "match_end";
   }
 
@@ -72,18 +72,18 @@ export class NodesuApiTransformer {
    * Converts the Nodesu MultiTeamTypeType into our own custom type.
    *
    * @param {NodesuMultiTeamTypeType} teamType
-   * @returns {TeamMode}
+   * @returns {ApiTeamMode}
    */
-  private static convertNodesuTeamType(teamType: NodesuMultiTeamTypeType): TeamMode {
+  private static convertNodesuTeamType(teamType: NodesuMultiTeamTypeType): ApiTeamMode {
     switch (teamType) {
       case NodesuMultiTeamType.headToHead:
-        return TeamMode.HeadToHead;
+        return ApiTeamMode.HeadToHead;
       case NodesuMultiTeamType.tagCoop:
-        return TeamMode.TagCoop;
+        return ApiTeamMode.TagCoop;
       case NodesuMultiTeamType.tagTeamVs:
-        return TeamMode.TagTeamVs;
+        return ApiTeamMode.TagTeamVs;
       case NodesuMultiTeamType.teamVs:
-        return TeamMode.TeamVs;
+        return ApiTeamMode.TeamVs;
       default:
         throw new Error("Nodesu API team type was not expected.");
     }

@@ -1,13 +1,13 @@
-import { Multiplayer } from "../types/multiplayer";
+import { ApiMultiplayer } from "../types/api-multiplayer";
 
 export interface OsuLobbyScannerEvents {
   /**
    * *New* multiplayer matches were fetched (not previously fetched).
    * May include matches that have not finished yet (if the MatchEvent is "match_start").
    *
-   * @type {[Multiplayer]} The Multiplayer object containing new matches.
+   * @type {[ApiMultiplayer]} The Multiplayer object containing new matches.
    */
-  newMultiplayerMatches: [Multiplayer];
+  newMultiplayerMatches: [ApiMultiplayer];
 
   /**
    * Fired when a watcher was successfully activated and is now running.

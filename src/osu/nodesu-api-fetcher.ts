@@ -1,7 +1,7 @@
 import Nodesu = require("nodesu");
 import { IOsuApiFetcher } from "./interfaces/osu-api-fetcher";
 import { Log } from "../utils/Log";
-import { Multiplayer } from "./types/multiplayer";
+import { ApiMultiplayer } from "./types/api-multiplayer";
 import { NodesuApiTransformer } from "./nodesu-api-transformer";
 import Bottleneck from "bottleneck";
 
@@ -97,7 +97,7 @@ export class NodesuApiFetcher implements IOsuApiFetcher {
     }
   }
 
-  async fetchMultiplayerResults(banchoMultiplayerId: string): Promise<Multiplayer> {
+  async fetchMultiplayerResults(banchoMultiplayerId: string): Promise<ApiMultiplayer> {
     try {
       const result = await this.limiter.schedule(() => this.api.multi.getMatch(Number(banchoMultiplayerId)));
       if (result instanceof Nodesu.Multi) {
