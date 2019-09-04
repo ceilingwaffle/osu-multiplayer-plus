@@ -7,8 +7,3 @@ export class MatchReport {
   match: Match;
   teamResults: TeamMatchLine[];
 }
-
-/*
-Colours:
-
-*/
