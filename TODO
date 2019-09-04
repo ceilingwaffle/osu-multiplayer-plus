@@ -212,12 +212,14 @@ TODO:
         Server Management:
             ✘ Add discord command `!obr set-channels-category "OBR Games"` @cancelled(19-08-22 20:14)
                 This should create a new Discord-category (container of text-channels) where all future-created game-channels will be created in for this server.
-
     Multiplayer Matches:
         ☐  Use lobby.startingMapNumber to skip some map results
             osu-lobby-watcher.ts -> refreshAndEmitMultiplayerResults()
-        ☐ Send discord message if it looks like the last match was aborted. 
-            Implement some kind of MatchEvent Observer system? Discord message sender will then observe this event and send a message. Use "!obr include <matchId>" to include scores from the aborted match. 
+        ☐ Handle match aborts
+            I think we can do this by comparing the start time and end time of the match against the beatmap length. If the match started and ended before the map could have possibly completed, assume it was aborted.
+            ☐ Send discord message if it looks like the last match was aborted. 
+                ☐ Use the OsuLobbyScanner to send an "aborted match" event. A Discord message sender will then observe this event and send a message to the game channel.
+                ☐ Use "!obr include <matchId/mapNumber>" to essentially "undo" the abort, and thereby choose to include scores from the aborted match. This is incase the system mistakingly analyzed the match as aborted. @created(19-09-04 15:10)
         ☐ Process match results @created(19-09-03 11:19) @started(19-09-03 11:19)
             ☐ Add OsuUser entity @created(19-09-03 19:37)
             ☐ Add Score entity @created(19-09-03 19:37)
@@ -237,32 +239,35 @@ TODO:
                 e.g. https://i.imgur.com/9Fhz8yJ.png
                 e.g. 
                     Alive (4 maps remain)
-                    ⬆ 01. Team 1 - 🔥 - 🤎🤎🤎 - Score: 123,456 (player1 [SS] | player2 [S])
-                    ⬇ 02. Team 3 -    - 🤎🤍🤍 - Score: 111,111👔 (p5 [S] | player6 [A])
-                      03. Team 2 -    - 🤎🤍🤍 - Score: 111,111👔 (player7 [B] | playerlongername8 [C])
+                    ⬆ 01. Team 1 |🌟| 🤎🤎🤍 | Score: 123,456 | player1 [SS], player2 [S]
+                    ⬇ 02. Team 3 |   | 🤎🤎🤍 | Score: 111,111👔 | p5 [S], player6 [A]
+                      03. Team 2 |   | 🤎🤍🤍 | Score: 111,111👔 | player7 [B], playerlongername8 [C]
                     Eliminated
-                    ⬇ 04. Team 4 - 💀 - 🤍🤍🤍 - Score: 100,000 (player3 [D] | player4 [B])
-                      05. Team 5 -    - 🤍🤍🤍 - Score: 0 (player9 [🚫] | player10 [F])
+                    ⬇ 04. Team 4 |💀| 🤍🤍🤍 | Score: 100,000 | player3 [D], player4 [B]
+                      05. Team 5 |   | 🤍🤍🤍 | Score: 0 | player9 [🚫], player10 [F]
             ☐ Emoji indicators @created(19-09-04 09:44)
                 ☐ Match 
                     ☐ 5⭐ in map title line (5 star map)
                     ☐ Match Summary (may include more than one, listed in order of which is to be written first)
-                        ☐ 🤍 Team X lost 1 life.
-                        ☐ 💀 Team X was eliminated.
-                        ☐ 🛑 Match aborted. No lives were lost.
-                        ☐ 👔 Bottom tied. No lives were lost.
+                        ☐ ⭐ Team X won the match! 
+                        ☐ 🌟 Team X is on a winning streak of N! 
+                        ☐ 🤍 Team X lost a life!
+                        ☐ 💀 Team X was eliminated!
+                        ☐ 🛑 Match aborted! No lives were lost.
+                        ☐ 👔 Bottom tied! No lives were lost.
                             If bottom teams tied (i.e. no loser can be determined)
                         ☐ 🏆 Game over! The winner is Team X!
                 ☐ Team Line
                     ☐ Team Performance Icon (in order of priority)
                         ☐ 🏆 Game champion (final winner) 
                         ☐ 💀 Skull if team was eliminated this match
-                        ✘ 😍 Perfect Score (all team members SS) @cancelled(19-09-04 12:26)
-                        ✘ 🔥 Team is on a 1st-place winning streak (won gte 2 times in a row) @cancelled(19-09-04 12:26)
-                        ✘ 🧯 Team had their 1st-place streak ended by another team @cancelled(19-09-04 12:26)
-                        ✘ 😭 Team score was exactly 0 @cancelled(19-09-04 12:26)
-                        ✘ 😅 Team scored 2nd-last and the score was only 1% more than the last team's score @cancelled(19-09-04 12:26)
-                        ✘ ♿ Team score was less than 5% of the highest team score @cancelled(19-09-04 12:26)
+                        ☐ 🤩 Perfect Score (all team members SS)
+                        ☐ 🌟 Team is on a 1st-place winning streak (won gte 2 times in a row)
+                        ☐ ⭐ Team won the match! star star
+                        ☐ 🧯 Team had their 1st-place streak ended by another team
+                        ☐ 😭 Team score was exactly 0
+                        ☐ 😅 Team scored 2nd-last and the score was only 1% more than the last team's score
+                        ☐ ♿ Team score was less than 5% of the highest team score
                         ☐     Default empty space
                     ☐ Lives 
                         ☐ 🤎 One full-heart for each life remaining
