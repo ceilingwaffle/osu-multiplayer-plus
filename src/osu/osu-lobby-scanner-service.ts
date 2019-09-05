@@ -159,12 +159,14 @@ export class OsuLobbyScannerService extends EventEmitter<OsuLobbyScannerEvents> 
 
       const latestKnownMatch = watcher.latestResults.matches.slice(-1)[0];
       const checkingMatch = multi.matches.slice(-1)[0];
-      const latestST = latestKnownMatch.startTime.getTime();
+      // TODO: More reliable way of determining the answer instead of just not comparing start times at all
+      // const latestST = latestKnownMatch.startTime.getTime();
       const latestET = latestKnownMatch.endTime.getTime();
-      const checkingST = checkingMatch.startTime.getTime();
+      // const checkingST = checkingMatch.startTime.getTime();
       const checkingET = checkingMatch.endTime.getTime();
 
-      const answer = latestST !== checkingST && latestET !== checkingET;
+      // const answer = latestST !== checkingST && latestET !== checkingET;
+      const answer = latestET !== checkingET;
       Log.methodSuccess(this.containsNewMatches, { mpid: multi.multiplayerId, newResults: answer });
       return answer;
     } catch (error) {
