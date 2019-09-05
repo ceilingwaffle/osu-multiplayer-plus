@@ -1,9 +1,9 @@
 import { Lobby } from "../components/lobby";
 import { Match } from "../components/match";
-import { TeamMatchLine } from "../components/team-match-line";
+import { MatchTeamLine } from "../components/match-team-line";
 
 export class MatchReport {
   lobby: Lobby;
   match: Match;
-  teamResults: TeamMatchLine[];
+  teamLines: MatchTeamLine[];
 }
