@@ -6,6 +6,7 @@ import { AbstractEntity } from "../shared/abstract-entity";
 import { WebUser } from "./web-user.entity";
 import { UserGameRole } from "../role/user-game-role.entity";
 import { Team } from "../team/team.entity";
+import { OsuUser } from "./osu-user.entity";
 
 @Entity("users")
 export class User extends AbstractEntity {
@@ -32,4 +33,7 @@ export class User extends AbstractEntity {
 
   @ManyToMany(type => Team, team => team.users)
   teams: Team[];
+
+  @OneToOne(type => OsuUser, osuUser => osuUser.user)
+  osuUser: OsuUser;
 }
