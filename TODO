@@ -77,6 +77,10 @@ TODO:
             Can we abstract and extend these? Keep them more consistent; less method signature copy pasting.
         ☐ Replace lolex with a spy in lobby-create.test.
             Using lolex is just a temp solution for now. The problem is if we use another timer anywhere else within the LobbyController.create method chain, it will replace all those timers with the lolex mock.
+    Logging:
+        ☐ Create more logger levels to make it easier to filter certain events @created(19-09-05 08:17)
+            Like if we didn't care about classes being instantiated, all the instantiation Logger events could be turned off. 
+            Or if we just wanted to see osu API events, we could just enable those.
     Pre-launch checklist:
         ☐ Some way of keeping dependencies secure and up-to-date
             Something like: https://dependabot.com/javascript/
@@ -222,9 +226,9 @@ TODO:
                 ☐ Use "!obr include <matchId/mapNumber>" to essentially "undo" the abort, and thereby choose to include scores from the aborted match. This is incase the system mistakingly analyzed the match as aborted. @created(19-09-04 15:10)
         ☐ Process match results @created(19-09-03 11:19) @started(19-09-03 11:19)
             ☐ Add OsuUser entity @created(19-09-03 19:37)
-            ☐ Add Score entity @created(19-09-03 19:37)
-            ☐ Add Match entity @created(19-09-03 19:38)
-        ☐ A team can continue submitted scores after eliminated, but they won't be counted for anything important - only included with the report to be displayed in the match results message. @created(19-09-04 11:03)
+            ☐ Add TeamScore entity @created(19-09-03 19:37)
+            ☐ Add MultiplayerMatch entity @created(19-09-03 19:38)
+        ☐ A team can continue submitting scores after eliminated, but they won't be counted for anything important - only included with the report to be displayed in the match results message. @created(19-09-04 11:03)
         ☐ Team rank/leaderboard @created(19-09-04 10:08)
             Rank 1...n listed from top to bottom in order of
                 -- time when eliminated (team listed further towards the top if their time eliminated is more recent)
@@ -233,18 +237,56 @@ TODO:
                 -- total of all team scores achieved during this game
                 ^ (algorithm: proceed to continue checking the next condition only if the current condition is equal)
     Match Result Reports:
+        App Design:
+            ☐ Testing osu multiplayer match results API object transformed into a report object @created(19-09-05 08:25)
+                ☐ arrange: ApiMultiplayer object 
+                ☐ act: do the transforming 
+                ☐ assert: MatchResultsReport object 
+            ☐ Create classes: @created(19-09-05 08:26)
+                ☐ User Service 
+                    ☐ Creates User & OsuUser from player scores 
+                ☐ Scoring Service
+                    ☐ Returns team scores from player scores
+                ☐ MultiplayerResultsService @started(19-09-05 11:38)
+                    ☐ Takes API Multiplayer object
+                    ☐ -> UserService
+                        ☐ create/find/update User entities
+                            Update osu username if changed
+                    ☐ -> TeamService
+                        ☐ create/find Team entities from users + MP Object
+                    ☐ -> ScoringService
+                        ☐ create TeamScore entities from Teams + MP Object
+                    ☐ -> (this)
+                        ☐ save the created/updated entities
+                    ☐ -> MatchEventsBuilder to build MatchEvent objects *from stored entities*
+                        e.g. like "⭐ Team X won the match!" and "🛑 Match aborted! No lives were lost."
+                        "from entities" is important - so we can recreate them from the database store in future if needed
+                    ☐ -> MatchLeaderboardBuilder to build MatchTeamLine objects
+                        -- Should NOT include any formatting/design/emoji - only Types and data
+                        -- Independent (I) vs Dependent (D) on other line
+                            (I) leaderboard position lost/gained/same
+                            (I) team number / team name
+                            (I) team performance type (determined from MatchEvents)
+                            (I) lives remaining
+                            (I) lives max
+                            (I) team score
+                            (I) players scores
+                            (I) players map rank achieved
+
+                    ☐ -> MatchReportBuilder to build MatchReport objects from all the entities/objects
         Discord Message Design:
             Test message design with: https://cog-creators.github.io/discord-embed-sandbox/
             ☐ Example 1 @created(19-09-04 10:55)
+                Can each player get their own colour? This would help players locate themselves as the leaderboard shifts around.
                 e.g. https://i.imgur.com/9Fhz8yJ.png
                 e.g. 
                     Alive (4 maps remain)
                     ⬆ 01. Team 1 |🌟| 🤎🤎🤍 | Score: 123,456 | player1 [SS], player2 [S]
-                    ⬇ 02. Team 3 |   | 🤎🤎🤍 | Score: 111,111👔 | p5 [S], player6 [A]
-                      03. Team 2 |   | 🤎🤍🤍 | Score: 111,111👔 | player7 [B], playerlongername8 [C]
+                    ⬇ 02. Team 3 |⬛| 🤎🤎🤍 | Score: 111,111👔 | p5 [S], player6 [A]
+                      03. Team 2 |⬛| 🤎🤍🤍 | Score: 111,111👔 | player7 [B], playerlongername8 [C]
                     Eliminated
                     ⬇ 04. Team 4 |💀| 🤍🤍🤍 | Score: 100,000 | player3 [D], player4 [B]
-                      05. Team 5 |   | 🤍🤍🤍 | Score: 0 | player9 [🚫], player10 [F]
+                      05. Team 5 |⬛| 🤍🤍🤍 | Score: 0 | player9 [🚫], player10 [F]
             ☐ Emoji indicators @created(19-09-04 09:44)
                 ☐ Match 
                     ☐ 5⭐ in map title line (5 star map)
@@ -254,20 +296,23 @@ TODO:
                         ☐ 🤍 Team X lost a life!
                         ☐ 💀 Team X was eliminated!
                         ☐ 🛑 Match aborted! No lives were lost.
-                        ☐ 👔 Bottom tied! No lives were lost.
+                        ☐ 👔 Bottom tied! Teams X,Y(,..N-1) tied! No lives were lost.
                             If bottom teams tied (i.e. no loser can be determined)
                         ☐ 🏆 Game over! The winner is Team X!
+                        ☐     Team X now in leaderboard position N (do not output)
+                        ☐     Team X gained/lost N leaderboard positions (do not output)
                 ☐ Team Line
                     ☐ Team Performance Icon (in order of priority)
                         ☐ 🏆 Game champion (final winner) 
                         ☐ 💀 Skull if team was eliminated this match
-                        ☐ 🤩 Perfect Score (all team members SS)
+                        ✘ 🤩 Perfect Score (all team members SS) @cancelled(19-09-04 15:36)
                         ☐ 🌟 Team is on a 1st-place winning streak (won gte 2 times in a row)
-                        ☐ ⭐ Team won the match! star star
-                        ☐ 🧯 Team had their 1st-place streak ended by another team
+                        ☐ ⭐ Team won the match!
+                        ✘ 🌜 Team had their 1st-place streak ended by another team @cancelled(19-09-04 15:37)
+                            ^ Probably best to leave this one out to avoid confusion
                         ☐ 😭 Team score was exactly 0
-                        ☐ 😅 Team scored 2nd-last and the score was only 1% more than the last team's score
-                        ☐ ♿ Team score was less than 5% of the highest team score
+                        ✘ 😅 Team scored 2nd-last and the score was only 1% more than the last team's score @cancelled(19-09-04 15:36)
+                        ✘ ♿ Team score was less than 5% of the highest team score @cancelled(19-09-04 15:36)
                         ☐     Default empty space
                     ☐ Lives 
                         ☐ 🤎 One full-heart for each life remaining
