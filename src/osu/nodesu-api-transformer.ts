@@ -22,7 +22,7 @@ export class NodesuApiTransformer {
     }
 
     let converted: ApiMultiplayer = {
-      multiplayerId: result.match.matchId,
+      multiplayerId: result.match.matchId.toString(),
       matches: []
     };
 

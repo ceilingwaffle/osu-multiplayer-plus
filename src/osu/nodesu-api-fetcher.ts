@@ -52,13 +52,12 @@ export class NodesuApiFetcher implements IOsuApiFetcher {
   async isValidBanchoMultiplayerId(banchoMultiplayerId: string): Promise<boolean> {
     try {
       Log.debug(`Validating Bancho MP ${banchoMultiplayerId} using osu API...`);
-      const mpid = Number(banchoMultiplayerId);
-      if (isNaN(mpid)) {
-        Log.debug(`Validation failed for Bancho MP: ${mpid} is NaN.`);
+      if (isNaN(Number(banchoMultiplayerId))) {
+        Log.debug(`Validation failed for Bancho MP: ${banchoMultiplayerId} is NaN.`);
         return false;
       }
 
-      const mp = await this.api.multi.getMatch(mpid);
+      const mp = await this.api.multi.getMatch(Number(banchoMultiplayerId));
 
       // Assume that if the response did not resolve into a Multi object, then it was not a valid ID.
       // This will only work if { parseData: true } is set in the Nodesu client options.
@@ -66,7 +65,7 @@ export class NodesuApiFetcher implements IOsuApiFetcher {
         Log.methodFailure(
           this.isValidBanchoMultiplayerId,
           this.constructor.name,
-          `Validation failed for Bancho MPID ${mpid}: mp not instanceof Nodesu.Multi.`
+          `Validation failed for Bancho MPID ${banchoMultiplayerId}: mp not instanceof Nodesu.Multi.`
         );
         return false;
       }
@@ -75,16 +74,16 @@ export class NodesuApiFetcher implements IOsuApiFetcher {
         Log.methodFailure(
           this.isValidBanchoMultiplayerId,
           this.constructor.name,
-          `Validation failed for Bancho MPID ${mpid}: mp.match was undefined.`
+          `Validation failed for Bancho MPID ${banchoMultiplayerId}: mp.match was undefined.`
         );
         return false;
       }
 
-      if (mp.match.matchId !== mpid) {
+      if (mp.match.matchId.toString() !== banchoMultiplayerId) {
         Log.methodFailure(
           this.isValidBanchoMultiplayerId,
           this.constructor.name,
-          `Validation failed for Bancho MPID ${mpid}: mp.match.matchId was not equal to mpid (this could mean the lobby was once valid, but has expired.).`
+          `Validation failed for Bancho MPID ${banchoMultiplayerId}: mp.match.matchId was not equal to mpid (this could mean the lobby was once valid, but has expired.).`
         );
         return false;
       }
