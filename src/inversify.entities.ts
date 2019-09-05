@@ -16,6 +16,10 @@ export { LobbyController } from "./domain/lobby/lobby.controller";
 export { LobbyService } from "./domain/lobby/lobby.service";
 export { LobbyRepository } from "./domain/lobby/lobby.repository";
 
+export { TeamService } from "./domain/team/team.service";
+
+export { ScoreService } from "./domain/score/score.service";
+
 // export { NodesuApiFetcher } from "./osu/nodesu-api-fetcher";
 // export { OsuMultiplayerService } from "./osu/osu-multiplayer-service";
 
