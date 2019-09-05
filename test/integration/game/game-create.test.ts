@@ -1,21 +1,21 @@
-import "../../src/index";
+import "../../../src/index";
 import "mocha";
 import { assert, expect } from "chai";
-import { TestHelpers, TestContextEntities } from "../test-helpers";
-import iocContainer from "../../src/inversify.config";
-import { CreateGameDto } from "../../src/domain/game/dto";
-import { GameController } from "../../src/domain/game/game.controller";
-import { DiscordRequestDto } from "../../src/requests/dto/discord-request.dto";
-import { Game } from "../../src/domain/game/game.entity";
-import { User } from "../../src/domain/user/user.entity";
-import { GameStatus } from "../../src/domain/game/game-status";
-import { ConnectionManager } from "../../src/utils/connection-manager";
-import { DiscordUser } from "../../src/domain/user/discord-user.entity";
-import { UpdateGameReport } from "../../src/domain/game/reports/update-game.report";
-import { DiscordUserReportProperties } from "../../src/domain/shared/reports/discord-user-report-properties";
-import { GameDefaults } from "../../src/domain/game/game-defaults";
-import { GameMessageTarget } from "../../src/domain/game/game-message-target";
-import { UserGameRole } from "../../src/domain/role/user-game-role.entity";
+import { TestHelpers, TestContextEntities } from "../../test-helpers";
+import iocContainer from "../../../src/inversify.config";
+import { CreateGameDto } from "../../../src/domain/game/dto";
+import { GameController } from "../../../src/domain/game/game.controller";
+import { DiscordRequestDto } from "../../../src/requests/dto/discord-request.dto";
+import { Game } from "../../../src/domain/game/game.entity";
+import { User } from "../../../src/domain/user/user.entity";
+import { GameStatus } from "../../../src/domain/game/game-status";
+import { ConnectionManager } from "../../../src/utils/connection-manager";
+import { DiscordUser } from "../../../src/domain/user/discord-user.entity";
+import { UpdateGameReport } from "../../../src/domain/game/reports/update-game.report";
+import { DiscordUserReportProperties } from "../../../src/domain/shared/reports/discord-user-report-properties";
+import { GameDefaults } from "../../../src/domain/game/game-defaults";
+import { GameMessageTarget } from "../../../src/domain/game/game-message-target";
+import { UserGameRole } from "../../../src/domain/role/user-game-role.entity";
 
 async function getEntities(): Promise<TestContextEntities[]> {
   const conn = await ConnectionManager.getInstance();

@@ -1,16 +1,16 @@
-import "../../src/index";
+import "../../../src/index";
 import "mocha";
 import { assert, expect } from "chai";
-import { TestHelpers, TestContextEntities } from "../test-helpers";
-import iocContainer from "../../src/inversify.config";
-import { CreateGameDto } from "../../src/domain/game/dto";
-import { GameController } from "../../src/domain/game/game.controller";
-import { DiscordRequestDto } from "../../src/requests/dto/discord-request.dto";
-import { Game } from "../../src/domain/game/game.entity";
-import { User } from "../../src/domain/user/user.entity";
-import { ConnectionManager } from "../../src/utils/connection-manager";
-import { DiscordUser } from "../../src/domain/user/discord-user.entity";
-import { UpdateGameDto } from "../../src/domain/game/dto/update-game.dto";
+import { TestHelpers, TestContextEntities } from "../../test-helpers";
+import iocContainer from "../../../src/inversify.config";
+import { CreateGameDto } from "../../../src/domain/game/dto";
+import { GameController } from "../../../src/domain/game/game.controller";
+import { DiscordRequestDto } from "../../../src/requests/dto/discord-request.dto";
+import { Game } from "../../../src/domain/game/game.entity";
+import { User } from "../../../src/domain/user/user.entity";
+import { ConnectionManager } from "../../../src/utils/connection-manager";
+import { DiscordUser } from "../../../src/domain/user/discord-user.entity";
+import { UpdateGameDto } from "../../../src/domain/game/dto/update-game.dto";
 
 async function getEntities(): Promise<TestContextEntities[]> {
   const conn = await ConnectionManager.getInstance();
