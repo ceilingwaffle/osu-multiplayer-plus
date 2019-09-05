@@ -209,6 +209,9 @@ TODO:
                         So if a result comes in immediately before they use the command, it doesn't undo that immediate recent result - it should target the result prior to that one instead. 
                 ☐ `!obr redoresult <mapId?/mapName?>` @created(19-09-02 13:43)
                     In case they want to undo the undo.
+            Leaderboard:
+                ☐ `!obr emoji` or `!obr icons` @created(19-09-06 08:19)
+                    Lists every "team performance icon" and explains what each one represents (e.g. 🥄 = Team ended in last place)
         Lobby Management: 
 
         Game Management: 
@@ -247,15 +250,16 @@ TODO:
                     ☐ Creates User & OsuUser from player scores 
                 ☐ Scoring Service
                     ☐ Returns team scores from player scores
-                ☐ MultiplayerResultsService @started(19-09-05 11:38)
+                ☐ MatchResultsProcessor @started(19-09-05 11:38)
                     ☐ Takes API Multiplayer object
                     ☐ -> UserService
                         ☐ create/find/update User entities
                             Update osu username if changed
                     ☐ -> TeamService
                         ☐ create/find Team entities from users + MP Object
-                    ☐ -> ScoringService
-                        ☐ create TeamScore entities from Teams + MP Object
+                    ☐ -> ScoringService -> TeamScoreCalculator
+                        ☐ calclate team scores
+                        ☐ create TeamScore entities from Teams + calulcated scores + MP Object
                     ☐ -> (this)
                         ☐ save the created/updated entities
                     ☐ -> MatchEventsBuilder to build MatchEvent objects *from stored entities*
@@ -303,7 +307,10 @@ TODO:
                         ☐     Team X gained/lost N leaderboard positions (do not output)
                 ☐ Team Line
                     ☐ Team Performance Icon (in order of priority)
-                        ☐ 🏆 Game champion (final winner) 
+                        ☐ 🏆 Game champion (game over) 
+                        ☐ 🥈 2nd place (game over) 
+                        ☐ 🥉 3rd place (game over) 
+                        ☐ 🥄 Last place
                         ☐ 💀 Skull if team was eliminated this match
                         ✘ 🤩 Perfect Score (all team members SS) @cancelled(19-09-04 15:36)
                         ☐ 🌟 Team is on a 1st-place winning streak (won gte 2 times in a row)

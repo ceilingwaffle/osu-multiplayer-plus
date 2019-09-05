@@ -1,11 +1,6 @@
 // arrange: ApiMultiplayer object
-
-// act:
-
+// act: MultiplayerResultsService...
 // assert: MatchResults object
-
-// TeamScoreCalculator
-// MultiplayerResultsService
 
 describe("When processing multiplayer results", function() {
   describe("with a number of results", function() {
