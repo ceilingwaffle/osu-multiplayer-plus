@@ -51,6 +51,11 @@ export class OsuLobbyScannerService extends EventEmitter<OsuLobbyScannerEvents> 
   private async scan(multiplayerId: string): Promise<void> {
     try {
       const watcher = this.watching[multiplayerId];
+      if (!watcher) {
+        // This should never happen, but sometimes the timer may be scanning when we call disposeWatcher()
+        Log.warn(`No watcher defined for multiplayer ${multiplayerId}`);
+        return;
+      }
       // TODO: Update Lobby status to UNKNOWN if connection/API issue
       Log.info(`Scanning mp ${multiplayerId}...`);
       const results = await this.api.fetchMultiplayerResults(multiplayerId);
@@ -123,12 +128,13 @@ export class OsuLobbyScannerService extends EventEmitter<OsuLobbyScannerEvents> 
     }
     if (this.watching[multiplayerId].timer) {
       await clearIntervalAsync(this.watching[multiplayerId].timer);
+      Log.debug(`Cleared timer for mpid ${multiplayerId}`);
     } else {
       Log.warn(`Watcher for multiplayer ${multiplayerId} did not have a timer for some reason.`);
     }
     const deleted = delete this.watching[multiplayerId];
     if (deleted) {
-      Log.info(`Disposed watcher for multiplayer ${multiplayerId}.`);
+      Log.debug(`Disposed watcher for multiplayer ${multiplayerId}.`);
     } else {
       Log.warn(`Failed to dispose watcher for multiplayer ${multiplayerId}.`);
     }
@@ -152,8 +158,6 @@ export class OsuLobbyScannerService extends EventEmitter<OsuLobbyScannerEvents> 
       if (!multi || !multi.multiplayerId) throw new Error(`No multiplayer results provided.`);
       if (!multi.multiplayerId) throw new Error(`No multiplayer ID provided with multiplayer results.`);
       const watcher = this.watching[multi.multiplayerId];
-      if (!watcher) throw new Error(`No watcher for multiplayer ${multi.multiplayerId}`);
-
       if (multi.matches.length < 1) return false; // there are no new matches if there are no matches
       if (!watcher.latestResults) return true;
 

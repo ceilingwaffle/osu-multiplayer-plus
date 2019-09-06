@@ -41,6 +41,9 @@ TODO:
             eg1: https://i.imgur.com/v4GDoRf.png
             eg2: https://i.imgur.com/9A5uA5A.png
     Tests:
+        ☐ Create test for testing the osu lobby scanner timer @created(19-09-06 10:07)
+            ✘ Test that a watcher was disposed correctly while the timer is currently running @created(19-09-06 10:07) @cancelled(19-09-06 10:15)
+                Solved this by just checking if watcher is defined as the first action in the scan() method, and don't continue with the scan if it's undefined.
         ☐ Speed up test execution times @created(19-08-30 23:52)
             ☐ Can we run each group of tests in parallel by using a separate sqlite database for each group? @created(19-08-30 23:52)
         ✔ Finish writing commented-out tests in lobby-create.test.ts @started(19-08-18 20:12) @done(19-08-18 21:25) @lasted(1h13m39s)
