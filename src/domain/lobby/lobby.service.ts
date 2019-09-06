@@ -244,7 +244,7 @@ export class LobbyService {
 
       // Attempt to unwatch the bancho lobby for this game. The OsuLobbyScanner will handle whether or not the lobby will
       // actually really be unwatched, depending on whether or not it still needs to be watched for any other games.
-      this.osuLobbyScanner.unwatch(gameId, targetLobby.banchoMultiplayerId);
+      await this.osuLobbyScanner.unwatch(gameId, targetLobby.banchoMultiplayerId);
 
       // update the lobby status if it's no longer being scanned
       if (!this.osuLobbyScanner.isWatching(targetLobby.banchoMultiplayerId)) {
