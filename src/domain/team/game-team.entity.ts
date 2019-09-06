@@ -40,7 +40,4 @@ export class GameTeam extends AbstractEntity {
 
   @Column({ nullable: true })
   removedAt: number;
-
-  @OneToMany(type => TeamScore, teamScore => teamScore.gameTeam)
-  teamScores: TeamScore[];
 }

@@ -1,9 +1,9 @@
-import { ApiMultiplayer } from "../../osu/types/api-multiplayer";
+import { ApiMultiplayer } from "../osu/types/api-multiplayer";
 import { MatchReport } from "./reports/match.report";
-import { UserService } from "../user/user.service";
-import iocContainer from "../../inversify.config";
-import * as entities from "../../inversify.entities";
-import { TeamService } from "../team/team.service";
+import { UserService } from "../domain/user/user.service";
+import iocContainer from "../inversify.config";
+import * as entities from "../inversify.entities";
+import { TeamService } from "../domain/team/team.service";
 
 export class MultiplayerResultsProcessor {
   protected readonly userService: UserService = iocContainer.get(entities.UserService);
