@@ -31,9 +31,6 @@ export class User extends AbstractEntity {
   @OneToMany(type => UserGameRole, userGameRole => userGameRole.user)
   userGameRoles: UserGameRole[];
 
-  @ManyToMany(type => Team, team => team.users)
-  teams: Team[];
-
   @OneToOne(type => OsuUser, osuUser => osuUser.user)
   osuUser: OsuUser;
 }

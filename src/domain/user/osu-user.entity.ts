@@ -1,7 +1,9 @@
 import { AbstractEntity } from "../shared/abstract-entity";
-import { Entity, PrimaryGeneratedColumn, OneToOne, Column } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, OneToOne, Column, OneToMany, ManyToMany } from "typeorm";
 import { User } from "./user.entity";
 import { IsInt, IsPositive, Length, IsAlpha } from "class-validator";
+import { PlayerScore } from "../score/player-score.entity";
+import { Team } from "../team/team.entity";
 
 @Entity("osu_users")
 export class OsuUser extends AbstractEntity {
@@ -31,4 +33,10 @@ export class OsuUser extends AbstractEntity {
   @IsAlpha()
   @Column({ length: 2 })
   countryCode: string;
+
+  @ManyToMany(type => Team, team => team.users)
+  teams: Team[];
+
+  @OneToMany(type => PlayerScore, playerScore => playerScore.scoredBy)
+  playerScores: PlayerScore[];
 }

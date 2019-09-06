@@ -244,16 +244,26 @@ TODO:
                 ^ (algorithm: proceed to continue checking the next condition only if the current condition is equal)
     Match Result Reports:
         App Design:
-            ☐ Testing osu multiplayer match results API object transformed into a report object @created(19-09-05 08:25)
-                ☐ arrange: ApiMultiplayer object 
-                ☐ act: do the transforming 
-                ☐ assert: MatchResultsReport object 
-            ☐ Create classes: @created(19-09-05 08:26)
-                ☐ User Service 
-                    ☐ Creates User & OsuUser from player scores 
-                ☐ Scoring Service
-                    ☐ Returns team scores from player scores
-                ☐ MatchResultsProcessor @started(19-09-05 11:38)
+            Processing Match Results:
+                ☐ Testing osu multiplayer match results API object transformed into a report object @created(19-09-05 08:25)
+                    ☐ arrange: ApiMultiplayer object 
+                    ☐ act: do the transforming 
+                    ☐ assert: MatchResultsReport object 
+                ☐ Input to output steps (API to Report)  @started(19-09-05 11:38)
+                    ☐ input: ApiMultiplayer
+                    ☐ find Game using ApiMultiplayer.multiplayerId
+                    ☐ find/create OsuUser[] using ApiMultiplayer.ApiMatch.ApiPlayerScore.osuUserId
+                    ☐ find/create Team using OsuUser[] and Game
+                        TeamRepository.findTeamOfOsuUserInGame(osuUser, game)
+                    ☐ create PlayerScore[] from ApiMultiplayer.ApiMatch.ApiPlayerScore
+                    ☐ create TeamScore[] from PlayerScore[] and Game (game rules) and ApiMultiplayer.ApiMatch (e.g. match aborted)
+                        ☐ Determine events based on the state of the entities
+                            entity state -> action -- e.g. lowest TeamScore.score -> Team loses a life
+                        ☐ Do actions based on events (e.g. event game winner -> GameService.endGame())
+                    ☐ build the leaderboard from entities and events
+                    ☐ output: MatchResultsReport
+                    ☐ ...use some kind of templating engine to generate the discord message 
+                ☐ General idea @created(19-09-06 11:02)
                     ☐ Takes API Multiplayer object
                     ☐ -> UserService
                         ☐ create/find/update User entities
@@ -261,7 +271,7 @@ TODO:
                     ☐ -> TeamService
                         ☐ create/find Team entities from users + MP Object
                     ☐ -> ScoringService -> TeamScoreCalculator
-                        ☐ calclate team scores
+                        ☐ calculate team scores
                         ☐ create TeamScore entities from Teams + calulcated scores + MP Object
                     ☐ -> (this)
                         ☐ save the created/updated entities
@@ -279,7 +289,6 @@ TODO:
                             (I) team score
                             (I) players scores
                             (I) players map rank achieved
-
                     ☐ -> MatchReportBuilder to build MatchReport objects from all the entities/objects
         Discord Message Design:
             Test message design with: https://cog-creators.github.io/discord-embed-sandbox/

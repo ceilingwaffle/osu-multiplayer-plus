@@ -3,6 +3,7 @@ import { User } from "../user/user.entity";
 import { AbstractEntity } from "../shared/abstract-entity";
 import { IsAlphanumeric, ValidateIf } from "class-validator";
 import { GameTeam } from "./game-team.entity";
+import { OsuUser } from "../user/osu-user.entity";
 
 @Entity("teams")
 export class Team extends AbstractEntity {
@@ -17,8 +18,8 @@ export class Team extends AbstractEntity {
   @ManyToOne(type => User)
   createdBy: User;
 
-  @ManyToMany(type => User, user => user.teams)
-  users: User[];
+  @ManyToMany(type => OsuUser, osuUser => osuUser.teams)
+  users: OsuUser[];
 
   @OneToMany(type => GameTeam, gameTeam => gameTeam.team)
   gameTeams: GameTeam[];
