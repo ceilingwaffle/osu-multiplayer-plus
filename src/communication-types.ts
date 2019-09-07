@@ -1,3 +1,5 @@
+// Do not rename these or the DB goes out of sync (see RealmType)
+// TODO: Load these from the DB upon app initialization, aswell as for every "type/status" entity
 export type CommunicationClientType = "discord" | "web";
 
 /**
