@@ -5,6 +5,7 @@ import { Type } from "class-transformer";
 import { AbstractEntity } from "../shared/abstract-entity";
 import { IsValidBanchoMultiplayerId } from "../../osu/validators/bancho-multiplayer-id.validator";
 import { GameLobby } from "../game/game-lobby.entity";
+import { Match } from "../match/match.entity";
 
 @Entity("lobbies")
 export class Lobby extends AbstractEntity {
@@ -27,4 +28,7 @@ export class Lobby extends AbstractEntity {
 
   @OneToMany(type => GameLobby, gameLobby => gameLobby.lobby, { cascade: true })
   gameLobbies: GameLobby[];
+
+  @OneToMany(type => Match, match => match.lobby)
+  matches: Match[];
 }
