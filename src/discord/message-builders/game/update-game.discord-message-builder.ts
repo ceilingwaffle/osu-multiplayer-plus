@@ -32,11 +32,19 @@ export class UpdateGameDiscordMessageBuilder extends AbstractDiscordMessageBuild
     const creator = this.response.result.createdBy as DiscordUserReportProperties;
     const refs = this.response.result.refereedBy as DiscordUserReportProperties[];
 
-    const livesCommandExample = DiscordCommandExampleBuilder.getExampleFor(this.command, "lives", {
-      gameId: this.response.result.gameId
+    const livesCommandExample = DiscordCommandExampleBuilder.getExampleFor({
+      command: this.command,
+      arg: "lives",
+      data: {
+        gameId: this.response.result.gameId
+      }
     });
-    const countFailedCommandExample = DiscordCommandExampleBuilder.getExampleFor(this.command, "countFailed", {
-      gameId: this.response.result.gameId
+    const countFailedCommandExample = DiscordCommandExampleBuilder.getExampleFor({
+      command: this.command,
+      arg: "countFailed",
+      data: {
+        gameId: this.response.result.gameId
+      }
     });
 
     // TODO: Write test asserting only one game-channel defined for all message targets for this game

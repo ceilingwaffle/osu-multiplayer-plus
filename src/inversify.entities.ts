@@ -17,6 +17,7 @@ export { LobbyService } from "./domain/lobby/lobby.service";
 export { LobbyRepository } from "./domain/lobby/lobby.repository";
 
 export { TeamService } from "./domain/team/team.service";
+export { TeamController } from "./domain/team/team.controller";
 
 export { ScoreService } from "./domain/score/score.service";
 

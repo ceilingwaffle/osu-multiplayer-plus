@@ -24,5 +24,8 @@
   "userCreateFailed": "user create failed",
 
   "discordChannelCreateSuccess": "discord channel create success",
-  "discordChannelCreateFailed": "discord channel create failed"
+  "discordChannelCreateFailed": "discord channel create failed",
+
+  "teamCreateSuccess": "team added successfully",
+  "teamCreateFailed": "team adding failed"
 }

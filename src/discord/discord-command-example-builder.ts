@@ -5,12 +5,20 @@ export class DiscordCommandExampleBuilder {
   protected static readonly examples: DiscordCommandExample[] = [];
 
   static addExample(example: DiscordCommandExample): void {
-    DiscordCommandExampleBuilder.examples[`${typeof example.command}:${example.argument}`] = example;
+    const key = this.getKey(example.command, example.argument);
+    DiscordCommandExampleBuilder.examples[key] = example;
   }
 
-  static getExampleFor(command: Command, arg: string, data: Object): string {
+  private static getKey(command: Command, argument?: string): string {
+    let key: string;
+    key = `${typeof command}`;
+    if (argument) key += `:${argument}`;
+    return key;
+  }
+
+  static getExampleFor({ command, data, arg }: { command: Command; data: Object; arg?: string }): string {
     // TODO: Unit test this method, asserting the string replacement
-    const example: DiscordCommandExample = DiscordCommandExampleBuilder.examples[`${typeof command}:${arg}`];
+    const example: DiscordCommandExample = DiscordCommandExampleBuilder.examples[this.getKey(command, arg)];
     if (!example) {
       throw new Error(`No command examples have been added for command ${command.name}`);
     }
@@ -18,9 +26,9 @@ export class DiscordCommandExampleBuilder {
     let exampleCommandText: string = example.exampleCommandText;
     const keys = Object.keys(data);
     const values = Object.values(data);
-    // replace <key> in example with data key value (e.g. "<gameId>" becomes "5" when data = {gameId: 5})
     for (const i in keys) {
       const key = keys[i];
+      // Replace <key> in example with data key value (e.g. "<gameId>" becomes "5" when data = {gameId: 5})
       exampleCommandText = exampleCommandText.replace(`<${key}>`, values[i]);
     }
 

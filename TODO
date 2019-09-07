@@ -10,6 +10,11 @@ TODO:
     ☐ Explore the osu! API - we need to know if submitting a map when you're in a multi will display the map in your "recent" played maps. This is mainly for MING MODE where we need to know - if it's displayed in your recent plays with an F (if failed in a multi). Does it only show F if you didn't recover in the multi, or will it show some letter (S,A,B,C,D) when you recover before the end of the map.
     ☐ Take a look at the new osu! API
     ✔ Use test Discord Commando database depending on env context @started(19-08-26 21:40) @done(19-08-27 08:11) @lasted(10h31m25s)
+    Security:
+        ☐ The !addteam command could be abused if a user spams the command with a bunch of osu usernames over and over again, because the addteam process involves validating the osu usernames with the osu API, meaning this is an effective DoS attack. @created(19-09-07 17:42)
+            ☐ We need some kind of rate limiter for the actions the users can do @created(19-09-07 17:43)
+                ☐ To add a rate limiter, we need to record where in the code API requests are originating from, and if the user triggers some process which involves one of these API requests, we add that to the rate limiter.  @created(19-09-07 17:43)
+                ☐ The goal should be to share the API load between users, maybe using some kind of back-off approach, where actions triggered by the spamming user get slower and slower for each additional spam command sent. @created(19-09-07 17:48)
     Functionality:
         Game in Progress:
             Things to Handle:
@@ -71,6 +76,7 @@ TODO:
         ☐ Too many match results being downloaded from the osu API.
             Need some way of limiting the maximum number of matches downloaded per multiplayer (right now we're using 500kb/s for 150+ matches in a single multi when polling every 1s)
     Refactor:
+        ☐ Move out files from src/discord/.. into their respective domain folders @created(19-09-07 18:26)
         ☐ Swap inversify back to typical @injectable() decorators on classes instead of using autoProvide with inversify.entities.ts file @created(19-09-02 09:58)
             This is just so we have one less dependency, and we can do things like mapping interfaces to class implementations. And create singleton instances of classes.
         ☐ Replace strings with Symbols in locale files e.g. en.json @created(19-08-28 19:41)
@@ -124,6 +130,8 @@ TODO:
     Adding Lobbies:
         ✔ Currently, the lobby service is trying to add a new Lobby with the same banchoMultiplayerId rather than create a new Lobby-Game relationship. To fix this, add some code in the lobby service to check for the existing banchoMultiplayerId Lobby, and push the target-Game onto the lobby.games array. @started(19-08-18 17:00) @done(19-08-18 17:31) @lasted(31m15s)
         ✔ Make bancho multiplayer ID unique to lobby. No two lobbies should exist with the same mp ID. @done(19-08-18 19:49)
+        ☐ We need some way to support adding a lobby after a game has already started. @created(19-09-07 18:57)
+            e.g. if it's a game involving hundreds of players, and we want to pause and continue the next day/next week, the original lobby would be closed and re-created later - need to support that lobby re-creation step.
     User Permissions:
         https://github.com/tensult/role-acl
         ✔ Ensure that the user *removing a lobby* is a game ref or game creator @done(19-08-27 00:46)
@@ -195,9 +203,13 @@ TODO:
                 ☐ `!obr removeref @<discordUser>, @<discordUser>, ...` @created(19-08-31 23:41)
                 ☐ `!obr listrefs` @created(19-08-31 23:41)
             Teams:
-                ☐ `!obr addteam <ouid1> <ouid2> ...` @created(19-08-31 23:41)
+                ☐ `!obr addteam <ouid1> <ouid2> ...` @created(19-08-31 23:41) @started(19-09-07 16:48)
                     Adds a team of osu users. See targetgame command.
                     ☐ Allow multiline like `!obr addteams\n<ouid1> <ouid2>\n<ouid3> <ouid4>\n...` @created(19-08-31 14:04)
+                    ☐ If match results are processed before any teams are added @created(19-09-07 16:51)
+                        ☐ osu users from the results are created and added to a new team of 1
+                        ☐ But then if a team is created with 2+ osu users, and one of those osu users is in the team of 1, delete the team of 1 and create a new team with the 2+ osu users
+                            -- How do we handle database integrity if we delete a team?
                 ☐ `!obr removeteam <ouid1> <ouid2> ...` @created(19-08-31 23:41)
                 ☐ `!obr clearteams` DESTRUCTIVE @created(19-08-31 23:41)
             Matches:
