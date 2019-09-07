@@ -7,6 +7,7 @@ import { GameMessageTarget } from "./game-message-target";
 import { UserGameRole } from "../role/user-game-role.entity";
 import { GameLobby } from "./game-lobby.entity";
 import { GameTeam } from "../team/game-team.entity";
+import { Realm } from "../realm/realm.entity";
 
 @Entity("games")
 export class Game extends CreationTimestampedEntity {
@@ -51,4 +52,7 @@ export class Game extends CreationTimestampedEntity {
 
   @OneToMany(type => GameTeam, gameTeam => gameTeam.game)
   gameTeams: GameTeam[];
+
+  @ManyToOne(type => Realm)
+  createdInRealm: Realm;
 }
