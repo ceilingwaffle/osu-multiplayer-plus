@@ -246,9 +246,13 @@ TODO:
         App Design:
             Processing Match Results:
                 ☐ Entity changes @created(19-09-07 10:20)
-                    ☐ Remove TeamScore 
-                    ☐ Remove GameTeamScore 
-                    ☐ Add TeamUser (with addedBy)
+                    State changes over time: https://www.draw.io/#G1MXJR-XSlzcyyxUxMVRZd83pwLTxoGAvP
+                    DB Diagram: https://dbdiagram.io/d/5d1657f5ced98361d6dc2742
+                    ✔ Remove TeamScore @done(19-09-07 15:03)
+                        Calculate team scores from player scores instead
+                    ✔ Remove GameTeamScore @done(19-09-07 15:05)
+                    ✔ Add TeamUser (with addedBy) @done(19-09-07 15:21)
+                        So we can know who added the user to the team
                     ☐ Add Realm (with realmType string as union of "discord_realm" | "web_realm"
                         -- This is to avoid privacy issues, by making it possible to filter results in reports like "show all team scores", where if the same team was also created in another realm, we only include team scores belonging to games created in the realm where the command was sent from.
                         -- See CommunicationClientType, but avoid copying these strings to the db in case we rename the types in the codebase later. 
