@@ -245,6 +245,22 @@ TODO:
     Match Result Reports:
         App Design:
             Processing Match Results:
+                ☐ Entity changes @created(19-09-07 10:20)
+                    ☐ Remove TeamScore 
+                    ☐ Remove GameTeamScore 
+                    ☐ Add TeamUser (with addedBy)
+                    ☐ Add Realm (with realmType string as union of "discord_realm" | "web_realm"
+                        -- This is to avoid privacy issues, by making it possible to filter results in reports like "show all team scores", where if the same team was also created in another realm, we only include team scores belonging to games created in the realm where the command was sent from.
+                        -- See CommunicationClientType, but avoid copying these strings to the db in case we rename the types in the codebase later. 
+                            ☐ Use an _exhaustiveCheck to map the types to a specific entity (e.g. GameStatus) and retrieve them from a function like "getDatabaseRealmType(from: CommunicationClientType): Entity" @created(19-09-07 10:58) @created(19-09-07 10:58)
+                                ☐ This should also be done for any "status" types. @created(19-09-07 10:58)
+                                ☐ Maybe create a TypeToDatabaseEntityMapper class. @created(19-09-07 10:57)
+                                    ☐ Load those database type-entities from the database during app initialization (populate TypeToDatabaseValueMapper static properties with references to the loaded type-entities) @created(19-09-07 10:59)
+                                        This way, we only query the database once at the start of the app. 
+                                    ☐ And then update all entity relationships to reference the SpecificTypeEntity. @created(19-09-07 10:57)
+                    ✘ Consider adding a TeamUserGameTeam entity @cancelled(19-09-07 10:43)
+                        -- To accomodate the scenario where we want the user to be able to apply an optional adjustment to any scores set by a user for a specific team in a specific game (e.g. hadicap score by reducing it by 50%).
+                        -- I think we could just add this later without needing to change any code? We could add in some procedure during the score-calculation/report-creation process to query this table for any adjustments to be made, before reporting the score.
                 ☐ Testing osu multiplayer match results API object transformed into a report object @created(19-09-05 08:25)
                     ☐ arrange: ApiMultiplayer object 
                     ☐ act: do the transforming 
