@@ -1,5 +1,5 @@
 import { Entity, ManyToOne, Column, OneToMany } from "typeorm";
-import { AbstractEntity } from "../shared/abstract-entity";
+import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity";
 import { Game } from "../game/game.entity";
 import { Team } from "./team.entity";
 import { IsPositive, IsInt } from "class-validator";
@@ -12,10 +12,10 @@ import { GameDefaults } from "../game/game-defaults";
  *
  * @export
  * @class GameTeam
- * @extends {AbstractEntity}
+ * @extends {CreationTimestampedEntity}
  */
 @Entity("games_teams")
-export class GameTeam extends AbstractEntity {
+export class GameTeam extends CreationTimestampedEntity {
   @ManyToOne(type => Team, team => team.gameTeams, { primary: true })
   team: Team;
 

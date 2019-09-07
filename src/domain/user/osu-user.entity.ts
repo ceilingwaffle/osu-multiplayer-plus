@@ -1,4 +1,4 @@
-import { AbstractEntity } from "../shared/abstract-entity";
+import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity";
 import { Entity, PrimaryGeneratedColumn, OneToOne, Column, OneToMany, ManyToMany } from "typeorm";
 import { User } from "./user.entity";
 import { IsInt, IsPositive, Length, IsAlpha } from "class-validator";
@@ -6,7 +6,7 @@ import { PlayerScore } from "../score/player-score.entity";
 import { Team } from "../team/team.entity";
 
 @Entity("osu_users")
-export class OsuUser extends AbstractEntity {
+export class OsuUser extends CreationTimestampedEntity {
   @PrimaryGeneratedColumn()
   id: number;
 

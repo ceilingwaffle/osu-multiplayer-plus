@@ -1,12 +1,12 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, ManyToOne, OneToMany, JoinColumn } from "typeorm";
 import { User } from "../user/user.entity";
-import { AbstractEntity } from "../shared/abstract-entity";
+import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity";
 import { IsAlphanumeric, ValidateIf } from "class-validator";
 import { GameTeam } from "./game-team.entity";
 import { OsuUser } from "../user/osu-user.entity";
 
 @Entity("teams")
-export class Team extends AbstractEntity {
+export class Team extends CreationTimestampedEntity {
   @PrimaryGeneratedColumn()
   id: number;
 

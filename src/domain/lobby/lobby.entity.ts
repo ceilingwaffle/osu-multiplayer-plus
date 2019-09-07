@@ -2,13 +2,13 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
 import { IsNumberString } from "class-validator";
 import { LobbyStatus } from "./lobby-status";
 import { Type } from "class-transformer";
-import { AbstractEntity } from "../shared/abstract-entity";
+import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity";
 import { IsValidBanchoMultiplayerId } from "../../osu/validators/bancho-multiplayer-id.validator";
 import { GameLobby } from "../game/game-lobby.entity";
 import { Match } from "../match/match.entity";
 
 @Entity("lobbies")
-export class Lobby extends AbstractEntity {
+export class Lobby extends CreationTimestampedEntity {
   @PrimaryGeneratedColumn()
   id: number;
 

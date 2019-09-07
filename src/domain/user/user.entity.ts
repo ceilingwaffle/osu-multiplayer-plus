@@ -2,14 +2,14 @@ import { Entity, PrimaryGeneratedColumn, Column, OneToMany, OneToOne, JoinColumn
 import { IsInt, IsBoolean } from "class-validator";
 import { Game } from "../game/game.entity";
 import { DiscordUser } from "./discord-user.entity";
-import { AbstractEntity } from "../shared/abstract-entity";
+import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity";
 import { WebUser } from "./web-user.entity";
 import { UserGameRole } from "../role/user-game-role.entity";
 import { Team } from "../team/team.entity";
 import { OsuUser } from "./osu-user.entity";
 
 @Entity("users")
-export class User extends AbstractEntity {
+export class User extends CreationTimestampedEntity {
   @PrimaryGeneratedColumn()
   id: number;
 

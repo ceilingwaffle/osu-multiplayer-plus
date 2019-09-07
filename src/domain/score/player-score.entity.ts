@@ -1,11 +1,11 @@
 import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, JoinColumn } from "typeorm";
-import { AbstractEntity } from "../shared/abstract-entity";
+import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity";
 import { IsInt } from "class-validator";
 import { OsuUser } from "../user/osu-user.entity";
 import { Match } from "../match/match.entity";
 
 @Entity("player_scores")
-export class PlayerScore extends AbstractEntity {
+export class PlayerScore extends CreationTimestampedEntity {
   @PrimaryGeneratedColumn()
   id: number;
 

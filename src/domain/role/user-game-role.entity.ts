@@ -1,5 +1,5 @@
 import { Entity, PrimaryColumn, ManyToOne, Column, PrimaryGeneratedColumn, OneToMany, ManyToMany } from "typeorm";
-import { AbstractEntity } from "../shared/abstract-entity";
+import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity";
 import { User } from "../user/user.entity";
 import { Game } from "../game/game.entity";
 import { Role } from "./role.type";
@@ -10,10 +10,10 @@ import { Role } from "./role.type";
  *
  * @export
  * @class UserGameRole
- * @extends {AbstractEntity}
+ * @extends {CreationTimestampedEntity}
  */
 @Entity("user_game_role")
-export class UserGameRole extends AbstractEntity {
+export class UserGameRole extends CreationTimestampedEntity {
   @ManyToOne(type => User, user => user.userGameRoles, { primary: true })
   user: User;
 

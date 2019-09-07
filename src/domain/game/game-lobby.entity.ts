@@ -1,12 +1,12 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, ManyToMany, JoinTable, OneToMany } from "typeorm";
 import { Lobby } from "../lobby/lobby.entity";
-import { AbstractEntity } from "../shared/abstract-entity";
+import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity";
 import { IsPositive, IsInt } from "class-validator";
 import { User } from "../user/user.entity";
 import { Game } from "./game.entity";
 
 @Entity("game_lobbies")
-export class GameLobby extends AbstractEntity {
+export class GameLobby extends CreationTimestampedEntity {
   @ManyToOne(type => Lobby, lobby => lobby.gameLobbies, { primary: true })
   lobby: Lobby;
 

@@ -1,7 +1,7 @@
 import { BaseEntity, Column, BeforeInsert, BeforeUpdate } from "typeorm";
 import { Helpers } from "../../utils/helpers";
 
-export abstract class AbstractEntity extends BaseEntity {
+export abstract class CreationTimestampedEntity extends BaseEntity {
   @Column({ name: "created_at", nullable: true })
   public createdAt: number;
 

@@ -2,14 +2,14 @@ import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, JoinTabl
 import { IsInt, IsBoolean, IsPositive } from "class-validator";
 import { User } from "../user/user.entity";
 import { GameStatus } from "./game-status";
-import { AbstractEntity } from "../shared/abstract-entity";
+import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity";
 import { GameMessageTarget } from "./game-message-target";
 import { UserGameRole } from "../role/user-game-role.entity";
 import { GameLobby } from "./game-lobby.entity";
 import { GameTeam } from "../team/game-team.entity";
 
 @Entity("games")
-export class Game extends AbstractEntity {
+export class Game extends CreationTimestampedEntity {
   @PrimaryGeneratedColumn()
   id: number;
 

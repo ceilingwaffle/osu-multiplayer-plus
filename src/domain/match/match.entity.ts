@@ -1,11 +1,11 @@
 import { Entity, PrimaryGeneratedColumn, ManyToOne, OneToMany, Column, JoinColumn } from "typeorm";
-import { AbstractEntity } from "../shared/abstract-entity";
+import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity";
 import { Lobby } from "../lobby/lobby.entity";
 import { IsInt, IsPositive } from "class-validator";
 import { PlayerScore } from "../score/player-score.entity";
 
 @Entity("matches")
-export class Match extends AbstractEntity {
+export class Match extends CreationTimestampedEntity {
   @PrimaryGeneratedColumn()
   id: number;
 

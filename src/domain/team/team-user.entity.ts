@@ -1,5 +1,5 @@
 import { Entity, Column, ManyToOne } from "typeorm";
-import { AbstractEntity } from "../shared/abstract-entity";
+import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity";
 import { Team } from "./team.entity";
 import { OsuUser } from "../user/osu-user.entity";
 import { User } from "../user/user.entity";
@@ -11,10 +11,10 @@ import { User } from "../user/user.entity";
  *
  * @export
  * @class TeamOsuUser
- * @extends {AbstractEntity}
+ * @extends {CreationTimestampedEntity}
  */
 @Entity("teams_osu_users")
-export class TeamOsuUser extends AbstractEntity {
+export class TeamOsuUser extends CreationTimestampedEntity {
   @ManyToOne(type => Team)
   team: Team;
 
