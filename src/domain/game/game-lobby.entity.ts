@@ -28,8 +28,10 @@ export class GameLobby extends AbstractEntity {
   removedAt: number;
 
   @ManyToOne(type => User)
+  @JoinColumn({ name: "removed_by_user_id" })
   removedBy: User;
 
   @ManyToOne(type => User)
+  @JoinColumn({ name: "added_by_user_id" })
   addedBy: User;
 }

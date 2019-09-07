@@ -51,14 +51,4 @@ export class Game extends AbstractEntity {
 
   @OneToMany(type => GameTeam, gameTeam => gameTeam.game)
   gameTeams: GameTeam[];
-
-  // @ManyToMany(type => User, user => user.refereeOf)
-  // refereedBy: User[];
-
-  // /**
-  //  * Referees of the game. Initially empty when the game is created. Populated later during the game-creation/update process.
-  //  *
-  //  * @type {User[]}
-  //  */
-  // refereedBy: User[];
 }
