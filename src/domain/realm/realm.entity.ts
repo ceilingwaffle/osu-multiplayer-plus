@@ -1,12 +1,12 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne, Column } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, ManyToOne, Column, OneToMany } from "typeorm";
 import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity";
-import { RealmType } from "./realm-type";
+import { RealmServer } from "./realm-server.entity";
 
-@Entity()
+@Entity("realms")
 export class Realm extends CreationTimestampedEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @Column({ unique: true })
-  realmType: RealmType;
+  @OneToMany(type => RealmServer, server => server.realm)
+  servers: RealmServer[];
 }

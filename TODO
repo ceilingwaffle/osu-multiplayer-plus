@@ -253,7 +253,7 @@ TODO:
                     ✔ Remove GameTeamScore @done(19-09-07 15:05)
                     ✔ Add TeamUser (with addedBy) @done(19-09-07 15:21)
                         So we can know who added the user to the team
-                    ☐ Add Realm (with realmType string as union of "discord_realm" | "web_realm"
+                    ✔ Add Realm (with realmType string as union of "discord_realm" | "web_realm") @done(19-09-07 16:10)
                         -- This is to avoid privacy issues, by making it possible to filter results in reports like "show all team scores", where if the same team was also created in another realm, we only include team scores belonging to games created in the realm where the command was sent from.
                         -- See CommunicationClientType, but avoid copying these strings to the db in case we rename the types in the codebase later. 
                             ☐ Use an _exhaustiveCheck to map the types to a specific entity (e.g. GameStatus) and retrieve them from a function like "getDatabaseRealmType(from: CommunicationClientType): Entity" @created(19-09-07 10:58) @created(19-09-07 10:58)
