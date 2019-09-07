@@ -5,7 +5,6 @@ import { Team } from "./team.entity";
 import { IsPositive, IsInt } from "class-validator";
 import { User } from "../user/user.entity";
 import { GameDefaults } from "../game/game-defaults";
-import { TeamScore } from "../score/team-score.entity";
 
 /**
  * Represents a team assigned to a game.
