@@ -15,10 +15,10 @@ import { User } from "../user/user.entity";
  */
 @Entity("teams_osu_users")
 export class TeamOsuUser extends CreationTimestampedEntity {
-  @ManyToOne(type => Team)
+  @ManyToOne(type => Team, { primary: true })
   team: Team;
 
-  @ManyToOne(type => OsuUser)
+  @ManyToOne(type => OsuUser, { primary: true })
   osuUser: OsuUser;
 
   @ManyToOne(type => User)
