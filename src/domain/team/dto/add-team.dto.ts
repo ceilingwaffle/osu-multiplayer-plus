@@ -1,3 +1,3 @@
 export class AddTeamDto {
-  readonly osuUsernamesOrIds: string[];
+  readonly osuUsernamesOrIdsOrSeparators: string[];
 }

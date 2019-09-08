@@ -8,7 +8,7 @@ import { Log } from "../../utils/Log";
 import { Requester } from "../../requests/requesters/requester";
 import { RequesterFactory } from "../../requests/requester-factory";
 import { RequesterFactoryInitializationError } from "../shared/errors/RequesterFactoryInitializationError";
-import { Message } from "../../utils/message";
+import { Message, FailureMessage } from "../../utils/message";
 
 export class TeamController {
   constructor(@inject(TeamService) protected readonly teamService: TeamService) {}
@@ -21,7 +21,26 @@ export class TeamController {
       const requester: Requester = RequesterFactory.initialize(teamData.requestDto);
       if (!requester) throw new RequesterFactoryInitializationError(this.constructor.name, this.create.name);
 
+      // get/create the user adding the team
+      const creatorResult = await requester.getOrCreateUser();
+      if (creatorResult.failed()) {
+        if (creatorResult.value.error) throw creatorResult.value.error;
+        Log.methodFailure(this.create, this.constructor.name, creatorResult.value.reason);
+        return {
+          success: false,
+          message: FailureMessage.get("teamCreateFailed"),
+          errors: {
+            messages: [creatorResult.value.reason],
+            validation: creatorResult.value.validationErrors
+          }
+        };
+      }
+
       // TODO: Use TeamService to create the team
+      this.teamService.processTeamAdd({
+        osuUsernamesOrIdsOrSeparators: teamData.teamDto.osuUsernamesOrIdsOrSeparators,
+        userId: creatorResult.value.id
+      });
 
       throw new Error("Method not implemented.");
 
