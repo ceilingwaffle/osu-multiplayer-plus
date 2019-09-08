@@ -12,7 +12,7 @@
     "entity:create": "ts-node ./node_modules/typeorm/cli.js entity:create -n",
     "seed": "ts-node ./node_modules/typeorm-seeding/dist/cli.js seed --config ormconfig.json",
     "delgo": "rmdir /S /Q dist & tsc & del .\\src\\database\\app-database.sqlite & npm run seed & npm start",
-    "test": "rmdir /S /Q dist & tsc & xcopy .\\src\\locales .\\dist\\locales\\ /E /C /Q /Y & mocha --require ts-node/register --require test/config/mocha.env.js test/**/*.test.ts --timeout 60000",
+    "test": "rmdir /S /Q dist & tsc & xcopy .\\src\\locales .\\dist\\locales\\ /E /C /Q /Y & mocha --require ts-node/register --require test/config/mocha.env.js test/**/*.test.ts --timeout 60000 --slow 1000",
     "build": "rmdir /S /Q dist & tsc",
     "cli:command": "ts-node ./cli/command.ts"
   },
@@ -24,6 +24,7 @@
     "chai": "^4.2.0",
     "lolex": "^4.2.0",
     "mocha": "^6.1.4",
+    "mocha-parallel-tests": "^2.2.2",
     "nyc": "^14.1.1",
     "ts-node": "^3.3.0",
     "tsconfig-paths": "^3.8.0",
