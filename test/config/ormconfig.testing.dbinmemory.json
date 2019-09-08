@@ -1,0 +1,17 @@
+{
+  "type": "sqlite",
+  "name": "default",
+  "database": ":memory:",
+  "synchronize": true,
+  "logging": "all",
+  "logger": "file",
+  "entities": ["dist/domain/**/*.entity.js", "src/domain/**/*.entity.ts"],
+  "subscribers": ["dist/domain/**/*.subscriber.js", "src/domain/**/*.subscriber.ts"],
+  "migrations": ["src/database/migrations/**/*.ts"],
+  "seeds": ["src/database/seeds/**/*.ts"],
+  "cli": {
+    "entitiesDir": "src/domain/**",
+    "migrationsDir": "src/database/migrations",
+    "subscribersDir": "src/domain/**"
+  }
+}

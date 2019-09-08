@@ -46,11 +46,14 @@ TODO:
             eg1: https://i.imgur.com/v4GDoRf.png
             eg2: https://i.imgur.com/9A5uA5A.png
     Tests:
+        ☐ log4js - Write log to a separate file when running tests @created(19-09-08 09:52)
+        ☐ log4js - Disable logging when running mocha tests in parallel, or log to a separate file for each test @created(19-09-08 09:52)
         ☐ Create test for testing the osu lobby scanner timer @created(19-09-06 10:07)
             ✘ Test that a watcher was disposed correctly while the timer is currently running @created(19-09-06 10:07) @cancelled(19-09-06 10:15)
                 Solved this by just checking if watcher is defined as the first action in the scan() method, and don't continue with the scan if it's undefined.
-        ☐ Speed up test execution times @created(19-08-30 23:52)
-            ☐ Can we run each group of tests in parallel by using a separate sqlite database for each group? @created(19-08-30 23:52)
+        ✔ Speed up test execution times @created(19-08-30 23:52) @done(19-09-08 09:53)
+            ✔ Can we run each group of tests in parallel by using a separate sqlite database for each group? @created(19-08-30 23:52) @done(19-09-08 09:53)
+                ✔ Using an in-memory sqlite database solved this. Tests went from 2 minute exeuction times down to 15 seconds @created(19-09-08 09:53) @done(19-09-08 09:54)
         ✔ Finish writing commented-out tests in lobby-create.test.ts @started(19-08-18 20:12) @done(19-08-18 21:25) @lasted(1h13m39s)
         ✔ Run tests individually @done(19-08-18 22:41)
         ✔ Write tests for asserting lobby status after lobby-removal @started(19-08-20 05:22) @done(19-08-20 05:44) @lasted(22m21s)
@@ -94,6 +97,12 @@ TODO:
         ☐ Some way of keeping dependencies secure and up-to-date
             Something like: https://dependabot.com/javascript/
         ☐ Contact peppy and see if we can get the API ratelimit increased from 60 max within 60 seconds to 1200 within 60 seconds. @created(19-09-04 06:57)
+        ☐ Set typeorm logging settings to log to file only: @created(19-09-08 11:15)
+            ☐ Queries with a long execution time @created(19-09-08 11:15)
+            ☐ Query errors @created(19-09-08 11:15)
+            https://github.com/typeorm/typeorm/blob/master/docs/logging.md
+        ☐ Set log4js to log only warnings and errors to file @created(19-09-08 11:16)
+        ☐ Move sqlite to postgres? Performance may be better (e.g. concurrency) @created(19-09-08 11:22)
     Design:
         What we have access to - maps, mods(SD), modes - team vs, ffa, TAG4, osu API
         ☐ We need a name for this thing

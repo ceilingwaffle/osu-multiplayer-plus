@@ -67,9 +67,9 @@ export class ConnectionManager {
 
   private static async createConnection(): Promise<Connection> {
     if (process.env.NODE_ENV == "test") {
-      return createConnection(require("../../test/config/ormconfig.testing.json"));
+      return createConnection(require("../../test/config/ormconfig.testing.dbinmemory.json"));
     } else if (process.env.NODE_ENV == "development") {
-      return createConnection(require("../../test/config/ormconfig.testing.json"));
+      return createConnection(require("../../test/config/ormconfig.testing.dbinfile.json"));
     } else {
       return createConnection(require("../../ormconfig.json"));
     }

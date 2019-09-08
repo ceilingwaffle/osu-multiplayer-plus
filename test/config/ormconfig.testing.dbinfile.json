@@ -1,5 +1,6 @@
 {
   "type": "sqlite",
+  "name": "default",
   "database": "test/database/test-database.sqlite",
   "synchronize": true,
   "logging": "all",
