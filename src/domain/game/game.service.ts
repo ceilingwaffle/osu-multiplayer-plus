@@ -339,7 +339,7 @@ export class GameService {
     try {
       // validate the game ID
       if (!this.isValidGameId(gameId)) {
-        Log.methodFailure(this.endGame, this.constructor.name, "End-game validation failed.");
+        Log.methodFailure(this.endGame, this.constructor.name, `Game ID ${gameId} is invalid.`);
         return failurePromise(invalidGamePropertiesFailure(this.makeValidationErrorsOfGameId(gameId)));
       }
 

@@ -22,6 +22,8 @@
   "userReadFailed": "user read failed",
   "userCreateSuccess": "user create success",
   "userCreateFailed": "user create failed",
+  "userUpdateSuccess": "user update success",
+  "userUpdateFailed": "user update failed",
 
   "discordChannelCreateSuccess": "discord channel create success",
   "discordChannelCreateFailed": "discord channel create failed",

@@ -15,12 +15,14 @@ import { UserRepository } from "./user.repository";
 import { DiscordUserRepository } from "./discord-user.repository";
 import { getCustomRepository } from "typeorm";
 import { GameFailure } from "../game/game.failure";
+import { GameService } from "../game/game.service";
+import { inject } from "inversify";
 
 export class UserService {
   private readonly userRepository: UserRepository = getCustomRepository(UserRepository);
   private readonly discordUserRepository: DiscordUserRepository = getCustomRepository(DiscordUserRepository);
 
-  constructor() {
+  constructor(@inject(GameService) private readonly gameService: GameService) {
     Log.info("Initialized User Service.");
   }
 
@@ -72,6 +74,7 @@ export class UserService {
   }
 
   async findOne(userData: FindUserDto): Promise<Either<Failure<UserFailure>, User>> {
+    // TODO: Refactor - change whatever uses this method to use UserService.findUserById() instead
     try {
       const user = await this.userRepository.findOne(userData.id, { relations: ["discordUser", "webUser"] });
       if (!user) {
@@ -84,6 +87,56 @@ export class UserService {
     } catch (error) {
       Log.methodError(this.findOne, this.constructor.name, error);
       return failurePromise(userLookupError(error, `An error occurred when trying to find a user with ID '${userData.id}'.`));
+    }
+  }
+
+  async findUserById({
+    userId,
+    returnWithRelations = ["discordUser", "webUser"]
+  }: {
+    userId: number;
+    returnWithRelations: string[];
+  }): Promise<Either<Failure<UserFailure>, User>> {
+    try {
+      // find the user
+      const user = await this.userRepository.findOne({ id: userId }, { relations: returnWithRelations });
+      if (!user) {
+        Log.methodFailure(this.findUserById, this.constructor.name, `User ID ${userId} does not exist.`);
+        return failurePromise(userLookupFailure(userId));
+      }
+      return successPromise(user);
+    } catch (error) {
+      Log.methodError(this.findUserById, this.constructor.name, error);
+      throw error;
+    }
+  }
+
+  async updateUserTargetGame({
+    userId,
+    gameId
+  }: {
+    userId: number;
+    gameId: number;
+  }): Promise<Either<Failure<UserFailure | GameFailure>, User>> {
+    try {
+      // no permissions check needed because the userId should always be the same as the user making the request (e.g. The Discord user using the !targetgame command)
+
+      const user = await this.userRepository.findOne({ id: userId });
+      if (!user) {
+        return failurePromise(userLookupFailure(userId));
+      }
+
+      const gameFindResult = await this.gameService.findGameById(gameId);
+      if (gameFindResult.failed()) {
+        return failurePromise(gameFindResult.value);
+      }
+      const game = gameFindResult.value;
+
+      const updatedUser = await this.userRepository.updateUser({ user: user, updateWith: { targetGame: game } });
+      return successPromise(updatedUser);
+    } catch (error) {
+      Log.methodError(this.updateUserTargetGame, this.constructor.name, error);
+      throw error;
     }
   }
 }

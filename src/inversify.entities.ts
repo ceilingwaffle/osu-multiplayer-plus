@@ -8,6 +8,7 @@ export { GameRepository } from "./domain/game/game.repository";
 // export { WebRequester } from "./requests/requesters/web.requester";
 // export { DiscordRequester } from "./requests/requesters/discord.requester";
 
+export { UserController } from "./domain/user/user.controller";
 export { UserService } from "./domain/user/user.service";
 export { UserRepository } from "./domain/user/user.repository";
 export { DiscordUserRepository } from "./domain/user/discord-user.repository";

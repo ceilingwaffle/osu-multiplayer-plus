@@ -31,4 +31,8 @@ export class User extends CreationTimestampedEntity {
 
   @OneToOne(type => OsuUser, osuUser => osuUser.user)
   osuUser: OsuUser;
+
+  @ManyToOne(type => Game, { nullable: true })
+  @JoinColumn({ name: "user_target_game_id" })
+  targetGame: Game;
 }
