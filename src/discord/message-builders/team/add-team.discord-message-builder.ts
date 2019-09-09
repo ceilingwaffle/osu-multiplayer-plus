@@ -4,10 +4,10 @@ import { AbstractDiscordMessageBuilder } from "../abstract.discord-message-build
 import { Response } from "../../../requests/Response";
 import { DiscordUserReportProperties } from "../../../domain/shared/reports/discord-user-report-properties";
 import { DiscordCommandExampleBuilder } from "../../discord-command-example-builder";
-import { AddTeamReport } from "../../../domain/team/reports/add-team.report";
+import { AddTeamsReport } from "../../../domain/team/reports/add-teams.report";
 
-export class AddTeamDiscordMessageBuilder extends AbstractDiscordMessageBuilder<AddTeamReport> {
-  public from(response: Response<AddTeamReport>, command: Command): this {
+export class AddTeamDiscordMessageBuilder extends AbstractDiscordMessageBuilder<AddTeamsReport> {
+  public from(response: Response<AddTeamsReport>, command: Command): this {
     super.from(response, command);
     this.validateSuccessResponse(response);
 
@@ -22,20 +22,25 @@ export class AddTeamDiscordMessageBuilder extends AbstractDiscordMessageBuilder<
   public buildDiscordMessage(commandMessage: CommandMessage): RichEmbed {
     const message = super.buildDiscordMessage(commandMessage);
     const teamCreator = this.response.result.addedBy as DiscordUserReportProperties;
-    const removeTeamCommandExample = DiscordCommandExampleBuilder.getExampleFor({
-      command: this.command,
-      data: {
-        teamId: this.response.result.teamId
-      }
-    });
 
     message.addField(
-      "Team Properties",
-      `Created team ID: ${this.response.result.teamId}
-      Team Members: ${this.response.result.teamOsuUsernames.join(", ")} (remove team using: \`\`${removeTeamCommandExample}\`\`)
-      Added to game ID: ${this.response.result.gameId}
+      this.response.message,
+      `Added to game ID: ${this.response.result.addedToGameId}
       Added by: <@${teamCreator.discordUserId}> ${this.response.result.addedAgo}`
     );
+
+    for (const team of this.response.result.teams) {
+      const removeTeamCommandExample = DiscordCommandExampleBuilder.getExampleFor({
+        command: this.command,
+        data: { teamId: team.teamId }
+      });
+
+      message.addField(
+        `Team ID: ${team.teamId}`,
+        `Team Members: ${team.teamOsuUsernames.join(", ")} 
+        (remove team using: \`\`${removeTeamCommandExample}\`\`)`
+      );
+    }
 
     return message;
   }

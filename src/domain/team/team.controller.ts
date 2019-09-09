@@ -1,24 +1,24 @@
 import { inject } from "inversify";
 import { TeamService } from "./team.service";
 import { RequestDto } from "../../requests/dto";
-import { AddTeamDto } from "./dto/add-team.dto";
+import { AddTeamsDto } from "./dto/add-team.dto";
 import { Response } from "../../requests/Response";
-import { AddTeamReport } from "./reports/add-team.report";
+import { AddTeamsReport, TeamInTeamReport } from "./reports/add-teams.report";
 import { Log } from "../../utils/Log";
 import { Requester } from "../../requests/requesters/requester";
 import { RequesterFactory } from "../../requests/requester-factory";
 import { RequesterFactoryInitializationError } from "../shared/errors/RequesterFactoryInitializationError";
 import { Message, FailureMessage } from "../../utils/message";
+import { Team } from "./team.entity";
+import { TeamResponseFactory } from "./team-response-factory";
 
 export class TeamController {
   constructor(@inject(TeamService) protected readonly teamService: TeamService) {}
 
-  async create(teamData: { teamDto: AddTeamDto; requestDto: RequestDto }): Promise<Response<AddTeamReport>> {
+  async create(teamsData: { teamDto: AddTeamsDto; requestDto: RequestDto }): Promise<Response<AddTeamsReport>> {
     try {
-      // TODO: Validate the osu usernames/ids
-
       // build the requester
-      const requester: Requester = RequesterFactory.initialize(teamData.requestDto);
+      const requester: Requester = RequesterFactory.initialize(teamsData.requestDto);
       if (!requester) throw new RequesterFactoryInitializationError(this.constructor.name, this.create.name);
 
       // get/create the user adding the team
@@ -36,28 +36,55 @@ export class TeamController {
         };
       }
 
-      // TODO: Use TeamService to create the team
-      this.teamService.processTeamAdd({
-        osuUsernamesOrIdsOrSeparators: teamData.teamDto.osuUsernamesOrIdsOrSeparators,
+      const addTeamsResult = await this.teamService.processAddingNewTeams({
+        osuUsernamesOrIdsOrSeparators: teamsData.teamDto.osuUsernamesOrIdsOrSeparators,
         userId: creatorResult.value.id
       });
+      if (addTeamsResult.failed()) {
+        if (addTeamsResult.value.error) throw addTeamsResult.value.error;
+        Log.methodFailure(this.create, this.constructor.name, addTeamsResult.value.reason);
+        return {
+          success: false,
+          message: FailureMessage.get("teamCreateFailed"),
+          errors: {
+            messages: [addTeamsResult.value.reason],
+            validation: addTeamsResult.value.validationErrors
+          }
+        };
+      }
 
-      throw new Error("Method not implemented.");
+      const savedTeams = addTeamsResult.value;
 
-      // return {
-      //   success: true,
-      //   message: Message.get("teamCreateSuccess"),
-      //   result: {
-      //     teamId: 1,
-      //     gameId: 1,
-      //     teamOsuUsernames: ["Aaron", "Bob"],
-      //     addedBy: { discordUserId: "discordUser1" },
-      //     addedAgo: "moments ago"
-      //   }
-      // };
+      return {
+        success: true,
+        message: Message.get("teamCreateSuccess"),
+        result: ((): AddTeamsReport => {
+          const responseFactory = new TeamResponseFactory(requester, savedTeams, teamsData.requestDto);
+          return {
+            teams: this.generateTeamsInTeamReportFromTeamEntities(savedTeams),
+            addedAgo: responseFactory.getAddedAgoText(),
+            addedBy: responseFactory.getAddedBy(),
+            addedToGameId: responseFactory.getGameId()
+          };
+        })()
+      };
     } catch (error) {
       Log.methodError(this.create, this.constructor.name, error);
-      throw error;
+      return {
+        success: false,
+        message: FailureMessage.get("teamCreateFailed"),
+        errors: {
+          messages: [error]
+        }
+      };
     }
+  }
+
+  private generateTeamsInTeamReportFromTeamEntities(teamEntities: Team[]) {
+    const teamsInReport: TeamInTeamReport[] = [];
+    for (const team of teamEntities) {
+      teamsInReport.push({ teamId: team.id, teamOsuUsernames: team.users.map(osuUser => osuUser.osuUsername) });
+    }
+    return teamsInReport;
   }
 }

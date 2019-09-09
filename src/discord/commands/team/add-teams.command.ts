@@ -43,7 +43,7 @@ export class AddTeamsCommand extends AppBaseCommand {
   public async run(
     message: CommandMessage,
     args: {
-      teams: string[];
+      teams: string[]; // some items in this array may be separators like "|" or newline
     }
   ): Promise<Message | Message[]> {
     const requestDto: DiscordRequestDto = {
@@ -51,8 +51,6 @@ export class AddTeamsCommand extends AppBaseCommand {
       authorId: message.author.id,
       originChannelId: message.channel.id
     };
-
-    // user1 user2 | user3 user4
 
     const createTeamResponse = await this.teamController.create({
       teamDto: {

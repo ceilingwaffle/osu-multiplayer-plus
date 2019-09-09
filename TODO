@@ -294,7 +294,8 @@ TODO:
                     ☐ input: ApiMultiplayer
                     ☐ find Game using ApiMultiplayer.multiplayerId
                     ☐ find/create OsuUser[] using ApiMultiplayer.ApiMatch.ApiPlayerScore.osuUserId
-                    ☐ find/create Team using OsuUser[] and Game
+                        
+                    ☐ find Team using OsuUser[] and Game
                         TeamRepository.findTeamOfOsuUserInGame(osuUser, game)
                     ☐ create PlayerScore[] from ApiMultiplayer.ApiMatch.ApiPlayerScore
                     ☐ create TeamScore[] from PlayerScore[] and Game (game rules) and ApiMultiplayer.ApiMatch (e.g. match aborted)
@@ -358,6 +359,11 @@ TODO:
                         ☐ 🏆 Game over! The winner is Team X!
                         ☐     Team X now in leaderboard position N (do not output)
                         ☐     Team X gained/lost N leaderboard positions (do not output)
+                        ☐     Team X scored N (do not output)
+                        ☐     Player P scored N (do not output)
+                        ☐     Player P achieved rank SS/S/A... (do not output)
+                        ☐     Player P quit (do not output)
+                        These events will be processed to determine the leaderboard output
                 ☐ Team Line
                     ☐ Team Performance Icon (in order of priority)
                         ☐ 🏆 Game champion (game over) 
@@ -365,12 +371,13 @@ TODO:
                         ☐ 🥉 3rd place (game over) 
                         ☐ 🥄 Last place
                         ☐ 💀 Skull if team was eliminated this match
+                        ☐ 💔 Broken heart if team lost a life
                         ✘ 🤩 Perfect Score (all team members SS) @cancelled(19-09-04 15:36)
                         ☐ 🌟 Team is on a 1st-place winning streak (won gte 2 times in a row)
                         ☐ ⭐ Team won the match!
                         ✘ 🌜 Team had their 1st-place streak ended by another team @cancelled(19-09-04 15:37)
                             ^ Probably best to leave this one out to avoid confusion
-                        ☐ 😭 Team score was exactly 0
+                        ✘ 😭 Team score was exactly 0 @cancelled(19-09-09 08:33)
                         ✘ 😅 Team scored 2nd-last and the score was only 1% more than the last team's score @cancelled(19-09-04 15:36)
                         ✘ ♿ Team score was less than 5% of the highest team score @cancelled(19-09-04 15:36)
                         ☐     Default empty space
