@@ -14,6 +14,7 @@ import {
 import { UserRepository } from "./user.repository";
 import { DiscordUserRepository } from "./discord-user.repository";
 import { getCustomRepository } from "typeorm";
+import { GameFailure } from "../game/game.failure";
 
 export class UserService {
   private readonly userRepository: UserRepository = getCustomRepository(UserRepository);
@@ -74,9 +75,9 @@ export class UserService {
     try {
       const user = await this.userRepository.findOne(userData.id, { relations: ["discordUser", "webUser"] });
       if (!user) {
-        const msg = `A user with ID '${user.id}' does not exist.`;
-        Log.methodFailure(this.findOne, this.constructor.name, msg);
-        return failurePromise(userLookupFailure(msg));
+        const failure = userLookupFailure(userData.id);
+        Log.methodFailure(this.findOne, this.constructor.name, failure.reason);
+        return failurePromise(failure);
       }
       Log.methodSuccess(this.findOne, this.constructor.name);
       return successPromise(user);

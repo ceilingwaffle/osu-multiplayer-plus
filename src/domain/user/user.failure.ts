@@ -24,9 +24,9 @@ export enum WebUserFailure {}
 
 export type UserFailureTypes = UserFailure | DiscordUserFailure | OsuUserFailure | WebUserFailure;
 
-export const userLookupFailure = (reason?: string): Failure<UserFailure.UserLookupFailure> => ({
+export const userLookupFailure = (userId?: number): Failure<UserFailure.UserLookupFailure> => ({
   type: UserFailure.UserLookupFailure,
-  reason: reason || "Something went wrong when we tried to find a user."
+  reason: userId ? `A user matching user ID ${userId} does not exist.` : `User does not exist.`
 });
 
 export const userLookupError = (error: Error, reason?: string): Failure<UserFailure.UserLookupError> => ({
