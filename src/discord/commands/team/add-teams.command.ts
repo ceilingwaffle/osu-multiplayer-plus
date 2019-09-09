@@ -1,15 +1,17 @@
+import { TYPES } from "../../../types";
+import getDecorators from "inversify-inject-decorators";
 import iocContainer from "../../../inversify.config";
+const { lazyInject } = getDecorators(iocContainer);
 import { CommandoClient, CommandMessage } from "discord.js-commando";
 import { Message, RichEmbed } from "discord.js";
 import { ErrorDiscordMessageBuilder } from "../../message-builders/error.discord-message-builder";
-import * as entities from "../../../inversify.entities";
 import { DiscordRequestDto } from "../../../requests/dto";
 import { AppBaseCommand } from "../app-base-command";
 import { TeamController } from "../../../domain/team/team.controller";
 import { AddTeamDiscordMessageBuilder } from "../../message-builders/team/add-team.discord-message-builder";
 
 export class AddTeamsCommand extends AppBaseCommand {
-  protected readonly teamController: TeamController = iocContainer.get(entities.TeamController);
+  @lazyInject(TYPES.TeamController) private teamController: TeamController;
 
   constructor(commando: CommandoClient) {
     super(commando, {

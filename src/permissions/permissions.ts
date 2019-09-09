@@ -5,7 +5,9 @@ import { Failure } from "../utils/Failure";
 import { Either, success, failure } from "../utils/Either";
 import { User } from "../domain/user/user.entity";
 import { Log } from "../utils/Log";
+import { injectable } from "inversify";
 
+@injectable()
 export class Permissions {
   private _ac: AccessControl;
 

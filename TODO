@@ -79,6 +79,8 @@ TODO:
         ☐ Too many match results being downloaded from the osu API.
             Need some way of limiting the maximum number of matches downloaded per multiplayer (right now we're using 500kb/s for 150+ matches in a single multi when polling every 1s)
     Refactor:
+        ☐ Look into using LazyServiceIdentifier instead of lazyInject @created(19-09-09 23:15)
+            ☐ The reason for this is so we can move the injections into constructor arguments. Then we'd have the option to overide these upon class initialization. @created(19-09-09 23:15)
         ☐ Move out files from src/discord/.. into their respective domain folders @created(19-09-07 18:26)
         ☐ Swap inversify back to typical @injectable() decorators on classes instead of using autoProvide with inversify.entities.ts file @created(19-09-02 09:58)
             This is just so we have one less dependency, and we can do things like mapping interfaces to class implementations. And create singleton instances of classes.
@@ -106,7 +108,7 @@ TODO:
     Design:
         What we have access to - maps, mods(SD), modes - team vs, ffa, TAG4, osu API
         ☐ We need a name for this thing
-            Last Man Standing = LMS, so maybe lmsu -> lemonsu (good lord this is terrible; need more coffee) 
+            ☐ Last Man Standing = LMS, so maybe lmsu -> lemonsu (good lord this is terrible; need more coffee)
         Progression/Level-up Server System:
             Encourage people to use the bot more.
             ☐ Prestige Badges

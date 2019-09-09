@@ -1,17 +1,18 @@
+import { TYPES } from "../types";
+import getDecorators from "inversify-inject-decorators";
 import iocContainer from "../inversify.config";
+const { lazyInject } = getDecorators(iocContainer);
 import { RequestDtoType } from "./dto/request.dto";
 import { Requester } from "./requesters/requester";
-import * as entities from "../inversify.entities";
 import { DiscordRequester } from "./requesters/discord.requester";
 import { WebRequester } from "./requesters/web.requester";
-import { Log } from "../utils/Log";
-import { Either } from "../utils/Either";
-import { Failure } from "../utils/Failure";
-import { UserFailureTypes } from "../domain/user/user.failure";
-import { User } from "../domain/user/user.entity";
-import { Response } from "./Response";
+import { UserService } from "../domain/user/user.service";
+import { injectable, inject } from "inversify";
 
+@injectable()
 export class RequesterFactory {
+  constructor(@inject(TYPES.UserService) protected readonly userService: UserService) {}
+
   /**
    * Returns an instance of a specific Requester type depending on the given DTO type.
    *
@@ -19,11 +20,11 @@ export class RequesterFactory {
    * @param {RequestDtoType} requestDto
    * @returns {Requester}
    */
-  public static initialize(requestDto: RequestDtoType): Requester {
+  public create(requestDto: RequestDtoType): Requester {
     if (requestDto.commType === "discord") {
-      return new DiscordRequester(requestDto, iocContainer.get(entities.UserService));
+      return new DiscordRequester(requestDto, this.userService);
     } else if (requestDto.commType === "web") {
-      return new WebRequester(requestDto, iocContainer.get(entities.UserService));
+      return new WebRequester(requestDto, this.userService);
     } else {
       const _exhaustiveCheck: never = requestDto;
       return _exhaustiveCheck;

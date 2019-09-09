@@ -1,3 +1,8 @@
+import { TYPES } from "../../types";
+import getDecorators from "inversify-inject-decorators";
+import iocContainer from "../../inversify.config";
+const { lazyInject } = getDecorators(iocContainer);
+import { GameService } from "../game/game.service";
 import { User } from "./user.entity";
 import { Either, failurePromise, successPromise } from "../../utils/Either";
 import { Failure } from "../../utils/Failure";
@@ -15,14 +20,13 @@ import { UserRepository } from "./user.repository";
 import { DiscordUserRepository } from "./discord-user.repository";
 import { getCustomRepository } from "typeorm";
 import { GameFailure } from "../game/game.failure";
-import { GameService } from "../game/game.service";
-import { inject } from "inversify";
 
 export class UserService {
   private readonly userRepository: UserRepository = getCustomRepository(UserRepository);
   private readonly discordUserRepository: DiscordUserRepository = getCustomRepository(DiscordUserRepository);
+  @lazyInject(TYPES.GameService) private gameService: GameService;
 
-  constructor(@inject(GameService) private readonly gameService: GameService) {
+  constructor() {
     Log.info("Initialized User Service.");
   }
 

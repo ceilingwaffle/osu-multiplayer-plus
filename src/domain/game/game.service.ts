@@ -1,4 +1,8 @@
-import { inject, LazyServiceIdentifer } from "inversify";
+import { TYPES } from "../../types";
+import getDecorators from "inversify-inject-decorators";
+import iocContainer from "../../inversify.config";
+const { lazyInject } = getDecorators(iocContainer);
+import { inject, injectable } from "inversify";
 import { getCustomRepository } from "typeorm";
 import { Game } from "./game.entity";
 import { CreateGameDto } from "./dto/create-game.dto";
@@ -26,21 +30,20 @@ import { UpdateGameDto } from "./dto/update-game.dto";
 import { GameMessageTargetAction } from "./game-message-target-action";
 import { UserGameRoleRepository } from "../role/user-game-role.repository";
 import { getLowestUserRole } from "../role/role.type";
-import { TYPES } from "../../types";
 import { IOsuLobbyScanner } from "../../osu/interfaces/osu-lobby-scanner";
-import { Permissions } from "../../inversify.entities";
 import { CommunicationClientType } from "../../communication-types";
 import { PermissionsFailure } from "../../permissions/permissions.failure";
+import { Permissions } from "../../permissions/permissions";
 
+@injectable()
 export class GameService {
   private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
   private readonly userGameRoleRepository: UserGameRoleRepository = getCustomRepository(UserGameRoleRepository);
+  @lazyInject(TYPES.UserService) private userService: UserService;
+  @lazyInject(TYPES.Permissions) private permissions: Permissions;
+  @inject(TYPES.IOsuLobbyScanner) private readonly osuLobbyScanner: IOsuLobbyScanner;
 
-  constructor(
-    @inject(UserService) private readonly userService: UserService,
-    @inject(TYPES.IOsuLobbyScanner) private readonly osuLobbyScanner: IOsuLobbyScanner,
-    @inject(new LazyServiceIdentifer(() => Permissions)) private readonly permissions: Permissions
-  ) {
+  constructor() {
     Log.info("Initialized Game Service.");
   }
 

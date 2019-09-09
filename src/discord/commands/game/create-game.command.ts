@@ -1,16 +1,18 @@
+import { TYPES } from "../../../types";
+import getDecorators from "inversify-inject-decorators";
 import iocContainer from "../../../inversify.config";
+const { lazyInject } = getDecorators(iocContainer);
 import { CommandoClient, CommandMessage } from "discord.js-commando";
-import { GameController } from "../../../domain/game/game.controller";
 import { Message, RichEmbed, TextChannel } from "discord.js";
 import { ErrorDiscordMessageBuilder } from "../../message-builders/error.discord-message-builder";
 import { UpdateGameDiscordMessageBuilder } from "../../message-builders/game/update-game.discord-message-builder";
-import * as entities from "../../../inversify.entities";
 import { DiscordChannelManager } from "../../discord-channel-manager";
 import { DiscordRequestDto } from "../../../requests/dto";
 import { AppBaseCommand } from "../app-base-command";
+import { GameController } from "../../../domain/game/game.controller";
 
 export class CreateGameCommand extends AppBaseCommand {
-  protected readonly gameController: GameController = iocContainer.get(entities.GameController);
+  @lazyInject(TYPES.GameController) private gameController: GameController;
 
   constructor(commando: CommandoClient) {
     super(commando, {

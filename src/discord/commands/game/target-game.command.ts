@@ -1,10 +1,16 @@
+import { TYPES } from "../../../types";
+import getDecorators from "inversify-inject-decorators";
 import iocContainer from "../../../inversify.config";
-import * as entities from "../../../inversify.entities";
-import { Command, CommandoClient } from "discord.js-commando";
+const { lazyInject } = getDecorators(iocContainer);
+import { Command, CommandoClient, CommandMessage } from "discord.js-commando";
 import { UserController } from "../../../domain/user/user.controller";
+import { Message, RichEmbed } from "discord.js";
+import { DiscordRequestDto } from "../../../requests/dto";
+import { ErrorDiscordMessageBuilder } from "../../message-builders/error.discord-message-builder";
+import { TargetGameDiscordMessageBuilder } from "../../message-builders/user/target-game.discord-message-builder";
 
 export class TargetGameCommand extends Command {
-  protected readonly userController: UserController = iocContainer.get(entities.UserController);
+  @lazyInject(TYPES.UserController) private userController: UserController;
 
   constructor(commando: CommandoClient) {
     super(commando, {
@@ -15,6 +21,7 @@ export class TargetGameCommand extends Command {
       examples: ["!obr targetgame 1"],
       guildOnly: true,
       argsPromptLimit: 0,
+      aliases: ["gametarget", "setgame", "gameset"],
       args: [
         {
           key: "gameId",
@@ -23,5 +30,33 @@ export class TargetGameCommand extends Command {
         }
       ]
     });
+  }
+
+  public async run(
+    message: CommandMessage,
+    args: {
+      gameId: number;
+    }
+  ): Promise<Message | Message[]> {
+    const requestDto: DiscordRequestDto = {
+      commType: "discord",
+      authorId: message.author.id,
+      originChannelId: message.channel.id
+    };
+
+    const updateGameResponse = await this.userController.update({
+      userDto: { targetGameId: args.gameId },
+      requestDto: requestDto
+    });
+
+    let toBeSent: RichEmbed;
+    if (!updateGameResponse || !updateGameResponse.success) {
+      // game was not created
+      toBeSent = new ErrorDiscordMessageBuilder().from(updateGameResponse, this).buildDiscordMessage(message);
+      return message.embed(toBeSent);
+    }
+
+    toBeSent = new TargetGameDiscordMessageBuilder().from(updateGameResponse, this).buildDiscordMessage(message);
+    return message.embed(toBeSent);
   }
 }

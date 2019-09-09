@@ -11,4 +11,11 @@ export class UserResponseFactory extends AbstractResponseFactory<User> {
   getUpdatedAgoText(): string {
     return this.getTimeAgoTextForTime(this.subject.updatedAt);
   }
+
+  getTargetGameId(): number {
+    if (!this.subject || !this.subject.targetGame) {
+      return null;
+    }
+    return this.subject.targetGame.id;
+  }
 }

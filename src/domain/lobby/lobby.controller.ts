@@ -1,13 +1,14 @@
+import { TYPES } from "../../types";
+import getDecorators from "inversify-inject-decorators";
+import iocContainer from "../../inversify.config";
+const { lazyInject } = getDecorators(iocContainer);
 import { AddLobbyDto } from "./dto/add-lobby.dto";
 import { RequestDtoType } from "../../requests/dto/request.dto";
 import { Response } from "../../requests/Response";
 import { Lobby } from "./lobby.entity";
 import { LobbyService } from "./lobby.service";
-import { inject } from "inversify";
 import { Log } from "../../utils/Log";
-import { Requester } from "../../requests/requesters/requester";
 import { RequesterFactory } from "../../requests/requester-factory";
-import { RequesterFactoryInitializationError } from "../shared/errors/RequesterFactoryInitializationError";
 import { User } from "../user/user.entity";
 import { FailureMessage, Message } from "../../utils/message";
 import { AddLobbyReport } from "./reports/add-lobby.report";
@@ -19,7 +20,10 @@ import { RemovedLobbyResult } from "./removed-lobby-result";
 import { RemovedLobbyResponseFactory } from "./removed-lobby-response-factory";
 
 export class LobbyController {
-  constructor(@inject(LobbyService) private readonly lobbyService: LobbyService) {
+  @lazyInject(TYPES.LobbyService) private lobbyService: LobbyService;
+  @lazyInject(TYPES.RequesterFactory) private requesterFactory: RequesterFactory;
+
+  constructor() {
     Log.info("Initialized Lobby Controller.");
   }
 
@@ -36,9 +40,7 @@ export class LobbyController {
    */
   public async create(lobbyData: { lobbyDto: AddLobbyDto; requestDto: RequestDtoType }): Promise<Response<AddLobbyReport>> {
     try {
-      // build the requester
-      const requester: Requester = RequesterFactory.initialize(lobbyData.requestDto);
-      if (!requester) throw new RequesterFactoryInitializationError(this.constructor.name, this.create.name);
+      const requester = this.requesterFactory.create(lobbyData.requestDto);
 
       // get/create the user adding the lobby
       const creatorResult = await requester.getOrCreateUser();
@@ -106,9 +108,7 @@ export class LobbyController {
 
   public async remove(lobbyData: { lobbyDto: RemoveLobbyDto; requestDto: RequestDtoType }): Promise<Response<RemoveLobbyReport>> {
     try {
-      // build the requester
-      const requester: Requester = RequesterFactory.initialize(lobbyData.requestDto);
-      if (!requester) throw new RequesterFactoryInitializationError(this.constructor.name, this.create.name);
+      const requester = this.requesterFactory.create(lobbyData.requestDto);
 
       // get/create the user removing the lobby
       const requesterUserResult = await requester.getOrCreateUser();

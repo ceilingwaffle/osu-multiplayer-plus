@@ -1,4 +1,8 @@
-import { inject, LazyServiceIdentifer } from "inversify";
+import { TYPES } from "../../types";
+import getDecorators from "inversify-inject-decorators";
+import iocContainer from "../../inversify.config";
+const { lazyInject } = getDecorators(iocContainer);
+import { inject, injectable } from "inversify";
 import { GameService } from "./game.service";
 import { CreateGameDto } from "./dto/index";
 import { RequesterFactory } from "../../requests/requester-factory";
@@ -6,9 +10,7 @@ import { Response } from "../../requests/Response";
 import { Game } from "./game.entity";
 import { Message, FailureMessage } from "../../utils/message";
 import { RequestDtoType } from "../../requests/dto/request.dto";
-import { Requester } from "../../requests/requesters/requester";
 import { Log } from "../../utils/Log";
-import { RequesterFactoryInitializationError } from "../shared/errors/RequesterFactoryInitializationError";
 import { UpdateGameReport } from "./reports/update-game.report";
 import { GameResponseFactory } from "./game-response-factory";
 import { GameStatus } from "./game-status";
@@ -16,11 +18,16 @@ import { EndGameDto } from "./dto/end-game.dto";
 import { EndGameReport } from "./reports/end-game.report";
 import { UpdateGameDto } from "./dto/update-game.dto";
 import { Permissions } from "../../permissions/permissions";
-
+@injectable()
 export class GameController {
+  // @lazyInject(TYPES.GameService) private gameService: GameService;
+  // @lazyInject(TYPES.Permissions) private permissions: Permissions;
+  // @lazyInject(TYPES.RequesterFactory) private requesterFactory: RequesterFactory;
+
   constructor(
-    @inject(GameService) private readonly gameService: GameService,
-    @inject(new LazyServiceIdentifer(() => Permissions)) private readonly permissions: Permissions
+    @inject(TYPES.GameService) private gameService: GameService,
+    @inject(TYPES.Permissions) private permissions: Permissions,
+    @inject(TYPES.RequesterFactory) private requesterFactory: RequesterFactory
   ) {
     Log.info(`Initialized ${this.constructor.name}.`);
   }
@@ -33,9 +40,7 @@ export class GameController {
    */
   public async create(gameData: { gameDto: CreateGameDto; requestDto: RequestDtoType }): Promise<Response<UpdateGameReport>> {
     try {
-      // build the requester
-      const requester: Requester = RequesterFactory.initialize(gameData.requestDto);
-      if (!requester) throw new RequesterFactoryInitializationError(this.constructor.name, this.create.name);
+      const requester = this.requesterFactory.create(gameData.requestDto);
 
       // get/create the user creating the game
       const creatorResult = await requester.getOrCreateUser();
@@ -103,9 +108,7 @@ export class GameController {
 
   public async endGame(gameData: { endGameDto: EndGameDto; requestDto: RequestDtoType }): Promise<Response<EndGameReport>> {
     try {
-      // build the requester
-      const requester = RequesterFactory.initialize(gameData.requestDto);
-      if (!requester) throw new RequesterFactoryInitializationError(this.constructor.name, this.endGame.name);
+      const requester = this.requesterFactory.create(gameData.requestDto);
 
       // get/create the user ending the game
       const userResult = await requester.getOrCreateUser();
@@ -205,9 +208,7 @@ export class GameController {
 
   public async update(gameData: { updateGameDto: UpdateGameDto; requestDto: RequestDtoType }): Promise<Response<UpdateGameReport>> {
     try {
-      // build the requester
-      const requester: Requester = RequesterFactory.initialize(gameData.requestDto);
-      if (!requester) throw new RequesterFactoryInitializationError(this.constructor.name, this.create.name);
+      const requester = this.requesterFactory.create(gameData.requestDto);
 
       // get/create the user updating the game
       const requestingUserResult = await requester.getOrCreateUser();

@@ -1,18 +1,20 @@
-import { Command, CommandoClient, CommandMessage, ArgumentCollector, Argument } from "discord.js-commando";
-import { GameController } from "../../../inversify.entities";
+import { TYPES } from "../../../types";
+import getDecorators from "inversify-inject-decorators";
+import iocContainer from "../../../inversify.config";
+const { lazyInject } = getDecorators(iocContainer);
+import { Command, CommandoClient, CommandMessage } from "discord.js-commando";
 import { Message, RichEmbed } from "discord.js";
 import { DiscordRequestDto } from "../../../requests/dto";
 import { ErrorDiscordMessageBuilder } from "../../message-builders/error.discord-message-builder";
 import { UpdateGameDto } from "../../../domain/game/dto";
-import iocContainer from "../../../inversify.config";
-import * as entities from "../../../inversify.entities";
 import { UpdateGameDiscordMessageBuilder } from "../../message-builders/game/update-game.discord-message-builder";
+import { GameController } from "../../../domain/game/game.controller";
 
 type PropertyNames = "lives" | "countFailed";
 const AllowedPropertyNames: PropertyNames[] = ["lives", "countFailed"];
 
 export class EditGameCommand extends Command {
-  protected readonly gameController: GameController = iocContainer.get(entities.GameController);
+  @lazyInject(TYPES.GameController) private gameController: GameController;
 
   constructor(commando: CommandoClient) {
     super(commando, {

@@ -1,18 +1,22 @@
+import { TYPES } from "../../types";
+import getDecorators from "inversify-inject-decorators";
+import iocContainer from "../../inversify.config";
+const { lazyInject } = getDecorators(iocContainer);
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { RequestDto } from "../../requests/dto";
 import { Response } from "../../requests/Response";
 import { UpdateUserReport } from "./reports/update-user.report";
-import { inject } from "inversify";
 import { UserService } from "./user.service";
-import { Requester } from "../../requests/requesters/requester";
 import { RequesterFactory } from "../../requests/requester-factory";
-import { RequesterFactoryInitializationError } from "../shared/errors/RequesterFactoryInitializationError";
 import { Log } from "../../utils/Log";
 import { FailureMessage, Message } from "../../utils/message";
 import { UserResponseFactory } from "./user-response-factory";
 
 export class UserController {
-  constructor(@inject(UserService) private readonly userService: UserService) {}
+  @lazyInject(TYPES.UserService) private userService: UserService;
+  @lazyInject(TYPES.RequesterFactory) private requesterFactory: RequesterFactory;
+
+  constructor() {}
 
   async update(userData: { userDto: UpdateUserDto; requestDto: RequestDto }): Promise<Response<UpdateUserReport>> {
     try {
@@ -23,9 +27,7 @@ export class UserController {
         );
       }
 
-      // build the requester
-      const requester: Requester = RequesterFactory.initialize(userData.requestDto);
-      if (!requester) throw new RequesterFactoryInitializationError(this.constructor.name, this.update.name);
+      const requester = this.requesterFactory.create(userData.requestDto);
 
       // get/create the user updating the user
       const updaterResult = await requester.getOrCreateUser();
@@ -73,7 +75,8 @@ export class UserController {
           return {
             userId: updatedUser.id,
             updatedBy: responseFactory.getUpdatedBy(),
-            updatedAgo: responseFactory.getUpdatedAgoText()
+            updatedAgo: responseFactory.getUpdatedAgoText(),
+            targettingGameId: responseFactory.getTargetGameId()
           };
         })()
       };
