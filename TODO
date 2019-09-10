@@ -121,6 +121,7 @@ TODO:
             https://github.com/typeorm/typeorm/blob/master/docs/logging.md
         ☐ Set log4js to log only warnings and errors to file @created(19-09-08 11:16)
         ☐ Move sqlite to postgres? Performance may be better (e.g. concurrency) @created(19-09-08 11:22)
+        ☐ Prevent the app from launching multiple instances @created(19-09-10 13:05)
     Design:
         What we have access to - maps, mods(SD), modes - team vs, ffa, TAG4, osu API
         ☐ We need a name for this thing
@@ -211,6 +212,7 @@ TODO:
                         "Looks like the last game you created is still active (game id x). Are you sure you want to start a new game? Reply with "yes" if so. Otherwise do nothing and this message will expire in t seconds." 
                     ☐ Alias `!obr creategame` -> `!obr newgame` @created(19-08-31 08:05)
                 ✔ `!obr endgame <gameId?>` DESTRUCTIVE @created(19-09-01 22:48) @done(19-09-01 22:56)
+                    ☐ Post final game results (if any) @created(19-09-10 13:37)
                 ✔ `!obr editgame <prop> <propValue>` @created(19-08-31 23:41) @started(19-09-01 23:11) @done(19-09-02 12:36) @lasted(13h25m58s)
                 ☐ `!obr startgame <gameId?>` @created(19-09-01 22:57)
                 ☐ `!obr gameinfo <gameId?>` @created(19-08-31 23:41)

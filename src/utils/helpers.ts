@@ -14,4 +14,15 @@ export class Helpers {
       return path.join(__dirname, "../database/commando-database.sqlite");
     }
   }
+
+  static determineCountFailedScoresValue(countFailedScoresString: string) {
+    if (countFailedScoresString === "true") {
+      return true;
+    } else if (countFailedScoresString === "false") {
+      return false;
+    } else {
+      // this should force the validator to generate validation errors
+      return null;
+    }
+  }
 }

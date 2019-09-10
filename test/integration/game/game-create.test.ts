@@ -67,7 +67,7 @@ describe("When creating a game", function() {
         assert.isNotNull(gameReport.teamLives, "Expected some default value for game team lives.");
         assert.strictEqual(gameReport.teamLives, GameDefaults.teamLives);
         assert.isNotNull(gameReport.countFailedScores, "Expected some default value for game count failed scores.");
-        assert.strictEqual(gameReport.countFailedScores, GameDefaults.countFailedScores);
+        assert.strictEqual(gameReport.countFailedScores, GameDefaults.countFailedScores === "true");
         assert.isNotEmpty(gameReport.createdAgo);
 
         return resolve();
@@ -82,7 +82,7 @@ describe("When creating a game", function() {
       try {
         const gameDto: CreateGameDto = {
           teamLives: 55,
-          countFailedScores: false
+          countFailedScores: "false"
         };
         const requestDto: DiscordRequestDto = {
           commType: "discord",
@@ -101,7 +101,7 @@ describe("When creating a game", function() {
         expect(gameReport.status).to.equal(GameStatus.IDLE_NEWGAME.getText(), "New games should have an initial game status of idle.").but
           .not.be.null;
         expect(gameReport.teamLives).to.equal(gameDto.teamLives).but.not.be.null;
-        expect(gameReport.countFailedScores).to.equal(gameDto.countFailedScores).but.not.be.null;
+        expect(gameReport.countFailedScores).to.equal(gameDto.countFailedScores === "true").but.not.be.null;
         assert.isNotEmpty(gameReport.createdAgo);
         /* #endregion */
 
@@ -176,7 +176,7 @@ describe("When creating a game", function() {
       try {
         const gameDto: CreateGameDto = {
           teamLives: 66,
-          countFailedScores: false
+          countFailedScores: "false"
         };
         const requestDto: DiscordRequestDto = {
           commType: "discord",
@@ -202,7 +202,7 @@ describe("When creating a game", function() {
         // user 2 creates game 2
         const game2Dto: CreateGameDto = {
           teamLives: 123,
-          countFailedScores: false
+          countFailedScores: "false"
         };
         const request2Dto: DiscordRequestDto = {
           commType: "discord",

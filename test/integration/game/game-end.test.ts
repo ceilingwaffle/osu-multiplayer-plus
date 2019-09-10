@@ -47,7 +47,7 @@ async function getEntities(): Promise<TestContextEntities[]> {
 
 // user 1 creates game 1
 const game1: CreateGameDto = {
-  countFailedScores: true,
+  countFailedScores: "true",
   teamLives: 11
 };
 const createGame1DiscordRequest: DiscordRequestDto = {
@@ -57,7 +57,7 @@ const createGame1DiscordRequest: DiscordRequestDto = {
 };
 // user 2 creates game 2
 const game2: CreateGameDto = {
-  countFailedScores: false,
+  countFailedScores: "false",
   teamLives: 22
 };
 const createGame2DiscordRequest: DiscordRequestDto = {
@@ -67,7 +67,7 @@ const createGame2DiscordRequest: DiscordRequestDto = {
 };
 // user 1 creates game 3
 const game3: CreateGameDto = {
-  countFailedScores: true,
+  countFailedScores: "true",
   teamLives: 33
 };
 const createGame3DiscordRequest: DiscordRequestDto = {

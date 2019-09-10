@@ -10,8 +10,8 @@ import { UpdateGameDto } from "../../../domain/game/dto";
 import { UpdateGameDiscordMessageBuilder } from "../../message-builders/game/update-game.discord-message-builder";
 import { GameController } from "../../../domain/game/game.controller";
 
-type PropertyNames = "lives" | "countFailed";
-const AllowedPropertyNames: PropertyNames[] = ["lives", "countFailed"];
+type PropertyNames = "lives" | "countfailed";
+const AllowedPropertyNames: PropertyNames[] = ["lives", "countfailed"];
 
 export class EditGameCommand extends Command {
   @lazyInject(TYPES.GameController) private gameController: GameController;
@@ -23,7 +23,7 @@ export class EditGameCommand extends Command {
       memberName: "editgame",
       description: "Edits the properties of a game.",
       details: "Use !obr targetgame <gameId> to set properties on that game, otherwise your most recently created game will be used.",
-      examples: ["!obr editgame lives 5", "!obr editgame countFailed true", "!obr editgame countFailed false"],
+      examples: ["!obr editgame lives 5", "!obr editgame countfailed true", "!obr editgame countfailed false"],
       guildOnly: true,
       argsPromptLimit: 0,
       args: [
@@ -43,11 +43,11 @@ export class EditGameCommand extends Command {
           validate: (text: number | string, message: CommandMessage) => {
             const parts = message.content.split(" ");
             if (parts.length < 4) return "Unexpected number of arguments.";
-            const prop = parts[2] as PropertyNames;
+            const prop = parts[2].toLowerCase() as PropertyNames;
             const value = parts[3];
             if (prop === "lives") {
               return !(Number.parseInt(value) && Number.parseInt(value) > 0) ? "Value of 'lives' should be a positive whole number." : true;
-            } else if (prop === "countFailed") {
+            } else if (prop === "countfailed") {
               return value !== "true" && value !== "false" ? "Value of 'countFailed' should be true or false." : true;
             } else {
               // if the compiler complains here, you forgot to handle validating a property name you probably just added
@@ -67,7 +67,7 @@ export class EditGameCommand extends Command {
       value: number | "true" | "false";
     }
   ): Promise<Message | Message[]> {
-    const property = args.property as PropertyNames;
+    const property = args.property.toLowerCase() as PropertyNames;
     if (!property || !AllowedPropertyNames.includes(property)) {
       throw new Error(
         `${args.property} was not an expected property name. Should be one of: ${Object.values(AllowedPropertyNames).join(", ")}`
@@ -81,7 +81,7 @@ export class EditGameCommand extends Command {
     };
 
     const updateGameDto: UpdateGameDto = {
-      countFailedScores: (property as PropertyNames) === "countFailed" ? ((args.value as unknown) as boolean) : null,
+      countFailedScores: (property as PropertyNames) === "countfailed" ? (args.value as string) : null,
       teamLives: (property as PropertyNames) === "lives" && (args.value as number) ? (args.value as number) : null
     };
 

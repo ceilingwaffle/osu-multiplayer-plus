@@ -48,14 +48,14 @@ describe("When updating a game", function() {
       try {
         const gameController = iocContainer.get<GameController>(TYPES.GameController);
         const createGameDto1: CreateGameDto = {
-          countFailedScores: true
+          countFailedScores: "true"
         };
         const createGameDto2: CreateGameDto = {
-          countFailedScores: false
+          countFailedScores: "false"
         };
         // don't include a gameId target in the update request so that the user's most-recently created game is used
         const updateGameDto: UpdateGameDto = {
-          countFailedScores: true
+          countFailedScores: "true"
         };
         const requestDto: DiscordRequestDto = {
           commType: "discord",
@@ -77,7 +77,7 @@ describe("When updating a game", function() {
         // assert created-game values
         assert.strictEqual(createGameReport1.gameId, 1, "The first game ID should equal 1");
         assert.strictEqual(createGameReport2.gameId, 2, "The second game ID should equal 2");
-        assert.strictEqual(createGameReport2.countFailedScores, createGameDto2.countFailedScores);
+        assert.strictEqual(createGameReport2.countFailedScores, createGameDto2.countFailedScores === "true");
         assert.notStrictEqual(
           createGameReport1.countFailedScores,
           createGameReport2.countFailedScores,
@@ -91,7 +91,7 @@ describe("When updating a game", function() {
 
         // assert expected updated-game values
         assert.strictEqual(updateGameReport.gameId, 2, "The user's most recently created game should have been the target of the update.");
-        assert.strictEqual(updateGameReport.countFailedScores, updateGameDto.countFailedScores);
+        assert.strictEqual(updateGameReport.countFailedScores, updateGameDto.countFailedScores === "true");
 
         return resolve();
       } catch (error) {
@@ -106,7 +106,7 @@ describe("When updating a game", function() {
         const gameController = iocContainer.get<GameController>(TYPES.GameController);
         const createGameDto: CreateGameDto = {
           teamLives: 1234,
-          countFailedScores: false
+          countFailedScores: "false"
         };
         const updateGameDto: UpdateGameDto = {
           teamLives: 5678,
@@ -141,7 +141,7 @@ describe("When updating a game", function() {
         assert.isNotNull(updateGameReport.countFailedScores, "Expected some default value for game count failed scores.");
         assert.strictEqual(
           updateGameReport.countFailedScores,
-          createGameDto.countFailedScores,
+          createGameDto.countFailedScores === "true",
           "Game countFailedScores value was updated when it shouldn't have been"
         );
         assert.isNotEmpty(updateGameReport.createdAgo);

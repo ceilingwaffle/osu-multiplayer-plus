@@ -19,8 +19,8 @@ export class UpdateGameDiscordMessageBuilder extends AbstractDiscordMessageBuild
 
     DiscordCommandExampleBuilder.addExample({
       command: command,
-      argument: "countFailed",
-      exampleCommandText: "!obr editgame countFailed <true/false>"
+      argument: "countfailed",
+      exampleCommandText: "!obr editgame countfailed <true/false>"
     });
 
     return this;
@@ -41,7 +41,7 @@ export class UpdateGameDiscordMessageBuilder extends AbstractDiscordMessageBuild
     });
     const countFailedCommandExample = DiscordCommandExampleBuilder.getExampleFor({
       command: this.command,
-      arg: "countFailed",
+      arg: "countfailed",
       data: {
         gameId: this.response.result.gameId
       }

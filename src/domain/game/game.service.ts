@@ -89,7 +89,9 @@ export class GameService {
       // create the game
       const game = this.gameRepository.create({
         teamLives: gameData.teamLives != null ? gameData.teamLives : GameDefaults.teamLives,
-        countFailedScores: gameData.countFailedScores != null ? gameData.countFailedScores : GameDefaults.countFailedScores,
+        countFailedScores: Helpers.determineCountFailedScoresValue(
+          gameData.countFailedScores != null ? gameData.countFailedScores : GameDefaults.countFailedScores
+        ),
         createdBy: gameCreator, // createdBy: gameCreator.userGameRoles.filter(ugr => ugr.user.id === gameCreator.id),
         status: GameStatus.IDLE_NEWGAME.getKey(),
         messageTargets: [
@@ -258,7 +260,9 @@ export class GameService {
       // update the game object
       if (gameDto.gameMessageTargetAction) this.updateGameWithGameMessageTargetAction(game, gameDto.gameMessageTargetAction);
       if (gameDto.teamLives != null) game.teamLives = gameDto.teamLives;
-      if (gameDto.countFailedScores != null) game.countFailedScores = gameDto.countFailedScores;
+      if (gameDto.countFailedScores != null) {
+        game.countFailedScores = Helpers.determineCountFailedScoresValue(gameDto.countFailedScores);
+      }
 
       // validate the game
       const errors = await validate(game);

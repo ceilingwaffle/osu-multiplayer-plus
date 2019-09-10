@@ -34,7 +34,7 @@ export class CreateGameCommand extends AppBaseCommand {
           default: 2
         },
         {
-          key: "countFailed",
+          key: "countfailed",
           prompt: "Should failed scores be counted in the team score calculations?",
           type: "string",
           default: "true"
@@ -48,7 +48,7 @@ export class CreateGameCommand extends AppBaseCommand {
     message: CommandMessage,
     args: {
       lives: number;
-      countFailed: "true" | "false";
+      countfailed: "true" | "false";
     }
   ): Promise<Message | Message[]> {
     const requestDto: DiscordRequestDto = {
@@ -60,7 +60,7 @@ export class CreateGameCommand extends AppBaseCommand {
     const createGameResponse = await this.gameController.create({
       gameDto: {
         teamLives: args.lives,
-        countFailedScores: args.countFailed === "true"
+        countFailedScores: args.countfailed
       },
       requestDto: requestDto
     });
