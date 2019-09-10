@@ -3,7 +3,7 @@ import { inject, injectable } from "inversify";
 import { getCustomRepository } from "typeorm";
 import { Game } from "./game.entity";
 import { CreateGameDto } from "./dto/create-game.dto";
-import { Either, failurePromise, successPromise } from "../../utils/Either";
+import { Either, failurePromise, successPromise, success } from "../../utils/Either";
 import { Failure } from "../../utils/Failure";
 import {
   GameFailure,
@@ -32,28 +32,13 @@ import { CommunicationClientType } from "../../communication-types";
 import { PermissionsFailure } from "../../permissions/permissions.failure";
 import { Permissions } from "../../permissions/permissions";
 import { provide } from "inversify-binding-decorators";
+import { UserRepository } from "../user/user.repository";
 
-// @provide(TYPES.GameService)
 @injectable()
 export class GameService {
   private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
   private readonly userGameRoleRepository: UserGameRoleRepository = getCustomRepository(UserGameRoleRepository);
-
-  // @lazyInject(TYPES.UserService) private userService: UserService;
-  // @lazyInject(TYPES.Permissions) private permissions: Permissions;
-  // @lazyInject(TYPES.IOsuLobbyScanner) private readonly osuLobbyScanner: IOsuLobbyScanner;
-
-  // private userService: UserService = iocContainer.get<UserService>(TYPES.UserService);
-  // private permissions: Permissions = iocContainer.get<Permissions>(TYPES.Permissions);
-  // private osuLobbyScanner: IOsuLobbyScanner = iocContainer.get<IOsuLobbyScanner>(TYPES.IOsuLobbyScanner);
-
-  // @inject(new LazyServiceIdentifer(() => TYPES.UserService)) protected userService: UserService,
-  // @inject(new LazyServiceIdentifer(() => TYPES.IOsuLobbyScanner)) protected osuLobbyScanner: IOsuLobbyScanner,
-  // @inject(new LazyServiceIdentifer(() => TYPES.Permissions)) protected permissions: Permissions // @inject(TYPES.UserService) private userService: UserService, // @inject(TYPES.Permissions) private permissions: Permissions, // @inject(TYPES.IOsuLobbyScanner) private readonly osuLobbyScanner: IOsuLobbyScanner
-
-  // @inject(TYPES.UserService) protected userService: UserService,
-  // @inject(TYPES.IOsuLobbyScanner) protected osuLobbyScanner: IOsuLobbyScanner,
-  // @inject(TYPES.Permissions) protected permissions: Permissions
+  private readonly userRepository: UserRepository = getCustomRepository(UserRepository);
 
   constructor(
     @inject(TYPES.UserService) protected userService: UserService,
@@ -433,17 +418,27 @@ export class GameService {
     }
   }
 
-  async getRequestingUserTargetGame({ userId, gameId }: { userId: number; gameId?: number }) {
+  /**
+   * If a game ID is provided, we return that game (if it exists).
+   * If no game ID is provided, we attempt to return the game targetted by the user if they used the !targetgame command.
+   * If the user did not use the !targetgame command, we return their most recent game created.
+   * Game ID should be provided as undefined (or "-1" if none was given by the user at the boundary).
+   *
+   * @param {{ userId: number; gameId?: number }} { userId, gameId }
+   * @returns {Promise<Either<Failure<GameFailure>, Game>>}
+   * @memberof GameService
+   */
+  async getRequestingUserTargetGame({ userId, gameId }: { userId: number; gameId?: number }): Promise<Either<Failure<GameFailure>, Game>> {
     // Game ID will be provided as "-1" if none was given by the user at the boundary.
-    let foundGameResult: Either<Failure<GameFailure>, Game>;
-    if (!gameId || gameId < 1) {
-      // If a game ID was not provided, get the most recent game created by the user ID (lobby creator).
-      foundGameResult = await this.findMostRecentGameCreatedByUser(userId);
-    } else {
-      // Get the game targetted by the game ID provided in the request.
-      foundGameResult = await this.findGameById(gameId);
-    }
-    return foundGameResult;
+    // Get the game targetted by the game ID provided in the request.
+    if (gameId && gameId > 0) return this.findGameById(gameId);
+
+    // check if the user used the !targetgame command
+    const user = await this.userRepository.findOne({ id: userId }, { relations: ["targetGame"] });
+    if (user.targetGame) return successPromise(user.targetGame);
+
+    // If a game ID was not provided, get the most recent game created by the user ID (lobby creator).
+    return this.findMostRecentGameCreatedByUser(userId);
   }
 
   private async saveAndReloadGame(

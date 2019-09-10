@@ -8,4 +8,23 @@
 //       }
 //     });
 //   });
+//   it("should apply a game update on the game targetted by the user's target game", function() {
+//     return new Promise(async (resolve, reject) => {
+//       try {
+//         return resolve();
+//       } catch (error) {
+//         return reject(error);
+//       }
+//     });
+//   });
+
+//   it("should apply a game update on the user's most recent game if the user has not used the target-game command", function() {
+//     return new Promise(async (resolve, reject) => {
+//       try {
+//         return resolve();
+//       } catch (error) {
+//         return reject(error);
+//       }
+//     });
+//   });
 // });

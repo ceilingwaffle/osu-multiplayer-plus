@@ -22,7 +22,7 @@ export class UserController {
 
   async update(userData: { userDto: UpdateUserDto; requestDto: RequestDto }): Promise<Response<UpdateUserReport>> {
     try {
-      if (!userData.userDto.targetGameId) {
+      if (userData.userDto.targetGameId == undefined) {
         // TODO: Finish update user method
         throw new Error(
           "At the present time, this method is only implemented to update the user's target game ID. Will do more in future."

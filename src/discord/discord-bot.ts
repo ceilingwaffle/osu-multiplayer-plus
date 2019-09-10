@@ -9,6 +9,7 @@ import { AddLobbyCommand } from "./commands/lobby/add-lobby.command";
 import { RemoveLobbyCommand } from "./commands/lobby/remove-lobby.command";
 import { EditGameCommand } from "./commands/game/edit-game.command";
 import { AddTeamsCommand } from "./commands/team/add-teams.command";
+import { TargetGameCommand } from "./commands/game/target-game.command";
 const sqlite = require("sqlite");
 
 export class DiscordBot {
@@ -57,7 +58,8 @@ export class DiscordBot {
         .registerCommand(new EndGameCommand(this.commando))
         .registerCommand(new AddLobbyCommand(this.commando))
         .registerCommand(new RemoveLobbyCommand(this.commando))
-        .registerCommand(new AddTeamsCommand(this.commando));
+        .registerCommand(new AddTeamsCommand(this.commando))
+        .registerCommand(new TargetGameCommand(this.commando));
 
       await sqlite.open(Helpers.getCommandoDatabasePath()).then((db: Database) => {
         this.commando.setProvider(new SQLiteProvider(db));

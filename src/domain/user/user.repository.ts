@@ -1,20 +1,29 @@
 import { Repository, EntityRepository } from "typeorm";
 import { User } from "./user.entity";
 import { Game } from "../game/game.entity";
+import { Log } from "../../utils/Log";
 
 @EntityRepository(User)
 export class UserRepository extends Repository<User> {
-  updateUser({
+  async updateUser({
     user,
-    updateWith
+    updateWith,
+    relations = ["targetGame", "discordUser", "webUser"]
   }: {
     user: User;
     updateWith: {
       targetGame?: Game;
     };
+    relations?: string[];
   }): Promise<User> {
-    // TODO: Add more User props to be updated
-    if (updateWith.targetGame) user.targetGame = updateWith.targetGame;
-    return user.save();
+    try {
+      // TODO: Add more User props to be updated
+      if (updateWith.targetGame) user.targetGame = updateWith.targetGame;
+      const savedUser = await user.save();
+      return this.findOne({ id: savedUser.id }, { relations: relations });
+    } catch (error) {
+      Log.methodError(this.updateUser, this.constructor.name, error);
+      throw error;
+    }
   }
 }
