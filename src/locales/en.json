@@ -29,5 +29,5 @@
   "discordChannelCreateFailed": "discord channel create failed",
 
   "teamCreateSuccess": "team added successfully",
-  "teamCreateFailed": "team adding failed"
+  "teamCreateFailed": "team add failed"
 }
