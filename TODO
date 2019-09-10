@@ -127,6 +127,13 @@ TODO:
         ☐ We need a name for this thing
             ☐ Last Man Standing = LMS, so maybe lmsu -> lemonsu (good lord this is terrible; need more coffee)
             ☐ Multiplayer Plus / osu!MP+ / osu!MPP Bot
+        ☐ Would be cool to run a single Discord server where everyone goes to create matches @created(19-09-10 13:45)
+            ☐ And the server runs some official matches where users can sign up and earn prestige 
+                ☐ With higher prestige getting higher roles, shown higher in the server list
+            ☐ The bot should auto-create/schedule games and auto-select a random map pool
+                e.g. DigitalHypno's tournament pool spreadsheet - https://docs.google.com/spreadsheets/d/1Pm1ihvelNLk5hyAxDir5o8UgPuqE9CEsJ00jBv3OLs4/edit#gid=1437326481
+                    -- Average player rank should determine pool difficulty
+            ☐ Users can create their own games, but no rewards will be granted (since this could be abused for farming prestige)
         Progression/Level-up Server System:
             Encourage people to use the bot more.
             ☐ Prestige Badges
@@ -194,15 +201,15 @@ TODO:
                     Only admin, game-creator, and game ref are allowed to write messages in channel #obr-game-5.
         Commands:
             Discord:
-                ☐ `!obr setchannel #<discordTextChannelName>` @created(19-09-01 23:50)
+                ✘ `!obr setchannel #<discordTextChannelName>` @created(19-09-01 23:50) @cancelled(19-09-10 19:27)
                     Sets the channel where match results and game-related messages will be delivered to.
             General:
-                ☐ `!obr undo` @created(19-09-01 22:36)
+                ✘ `!obr undo` @created(19-09-01 22:36) @cancelled(19-09-10 19:27)
                     Undoes the last command of the user. We won't need to confirm command actions with "yes" after this is implemented.
                     If this command is fired multiple times, it keeps undoing the command preceeding the previous undone one.
-                ☐ `!obr redo` @created(19-09-01 22:36)
+                ✘ `!obr redo` @created(19-09-01 22:36) @cancelled(19-09-10 19:27)
                     Redoes the last command of the user.
-                ☐ `!obr targetgame <gameId>` @created(19-09-01 22:37)
+                ✔ `!obr targetgame <gameId>` @created(19-09-01 22:37) @done(19-09-10 19:27)
                     Sets the gameId as the target of the user's commands. If not used, the user's most recent game is the target.
             Game:
                 ✔ `!obr creategame` @done(19-09-01 22:56)
@@ -284,8 +291,53 @@ TODO:
                 -- cumulative number of positions achieved (e.g. Team A has positioned higher than Team B on average during this game => list Team A above Team B)
                 -- total of all team scores achieved during this game
                 ^ (algorithm: proceed to continue checking the next condition only if the current condition is equal)
-    Match Result Reports:
-        App Design:
+    App Design:
+        Displaying info about the game state in OBS:
+            Links:
+                -- BR Clip: https://clips.twitch.tv/BoringSingleTildeTriHard
+                -- Number of scenes needed in OBS: https://docs.google.com/spreadsheets/d/1rPxYmPPBAcL4kxhcIbevoca_3wkXkN-4CEdIrAR4TWE/edit#gid=0
+                -- obs-websockets - https://theomynomy.s-ul.eu/aBlcIPhu
+                -- IPC
+                    -- https://github.com/ppy/osu/blob/master/osu.Game.Tournament/IPC/FileBasedIPC.cs
+                    -- https://github.com/NotAdam/osu-ipc/blob/master/osu!meme/osu/Interprocess.cs
+                -- tourney client setup: https://osu.ppy.sh/help/wiki/osu!tourney/Setup/
+            ☐ MVP Requirements @created(19-09-10 19:31)
+                ☐ Show lives remaining per team
+                ☐ Show leadboard position per team
+                ☐ Show team scores
+                    TO do this, we need to memory scan the tournament client osu! instances
+                    ☐ We need scores from each of the tournament client windows 
+                    ☐ Need to output these to a text file, or transmit over TCP, or IPC, or websockets 
+                    ☐ The local bot generates team-scores from memory scanning:
+                        9:38 TheOmyNomy: I just output files based on team size.
+                        9:38 TheOmyNomy: If it's a team size of 3, there will be a file for slots-1-2-3.txt and slots-4-5-6.txt.
+                        ☐ Needs to know the team size - this can just be entered manually by the streamer for now.
+            ☐ Ideally, OBS should auto-change scenes based on the number of teams remaining. If a team gets eliminated, they are also eliminated from the overlay. See https://github.com/Palakis/obs-websocket
+            ☐ The BR bot should move players around in slots in the lobby, so the team with the most lives remaining is always in the top slots.
+            ☐ The BR bot should be transmitting lives-remaining and leaderboard positions, and team-player compositions, and slot positions to an OBS browser source, and to a local bot listening for those events.
+                Are we sure we can transmit slot positions for each player, and can we do this in realmtime to keep it as in-sync as possible?
+            ☐ The local bot can also listen for the BR-bot websocket events, 
+                ☐ and have a real-time record of which osu players are in which slots, @created(19-09-10 21:41)
+                ✘ which players are in which teams, @created(19-09-10 21:41) @cancelled(19-09-10 21:42)
+                ☐ and then reads the osu-clients to get player scores, @created(19-09-10 21:41)
+                ✘ and then use that to generate team-score txt files for each team. @created(19-09-10 21:41) @cancelled(19-09-10 21:42)
+                    ☐ for each group of slots, not for each team @created(19-09-10 21:42)
+            ☐ The local bot has: team scores, and which client the scores were calculated from, 
+            ☐ The BR bot has team lives remaining, and which players are in which lobby slots.
+            ☐ The stream would need to have a new scene for each combination of team-size and teams-remaining situation
+                (assumption is that teams are always of equal sizes, e.g. not 1v2v3 or 1v15)
+            ☐ If players ina team swap slots with players in another team, the team-score and lives-remaining should also "swap" those positions, but this is depoendent on the local memory reading bot being able to correlate the osu-client position with the player username (i.e. we need to read the player's name from the tournament client memory).
+            ☐ To show the lives remaining in each OBS scene in the correct position for the team corresponding to the client-slots, the BR bot will generate a unique URL 
+            ☐ Restrictions for players to abide by: 
+                ☐ Players in teams always need to be in slots next to each other 
+                ☐ As teams are elminated, any teams in slots below the eliminated team should move up, so there should be no gaps in slots between players, and only the bottom slots should be empty 
+            ☐ Showing team lives in OBS scenes: @created(19-09-10 22:03)
+                https://waffle.bot/game/1/lobby/1/team-lives/slots/1/2
+                -- gets the number of lives remaining for the team positioned in slots 1 and 2 in lobby 1 of game 1
+                -- browser source can then be added in a static-position in a scene in OBS, and the number of lives will stay in-sync with whatever team is in slots 1 and 2.
+                -- websockets client running on this URL
+                -- e.g. when a player moves from slot 3 to slot 1, an in-memory DB (e.g. redis) records the new lives of the team of that player in that slot, and the app sends a websockets message to the client which updates the number of lives displayed for that slot-group.
+        Match Result Reports:
             Processing Match Results:
                 ☐ Entity changes @created(19-09-07 10:20)
                     State changes over time: https://www.draw.io/#G1MXJR-XSlzcyyxUxMVRZd83pwLTxoGAvP
