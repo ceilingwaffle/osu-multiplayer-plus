@@ -1,7 +1,4 @@
 import { TYPES } from "../../types";
-import getDecorators from "inversify-inject-decorators";
-import iocContainer from "../../inversify.config";
-const { lazyInject } = getDecorators(iocContainer);
 import { inject, injectable } from "inversify";
 import { getCustomRepository } from "typeorm";
 import { Game } from "./game.entity";
@@ -34,17 +31,36 @@ import { IOsuLobbyScanner } from "../../osu/interfaces/osu-lobby-scanner";
 import { CommunicationClientType } from "../../communication-types";
 import { PermissionsFailure } from "../../permissions/permissions.failure";
 import { Permissions } from "../../permissions/permissions";
+import { provide } from "inversify-binding-decorators";
 
+// @provide(TYPES.GameService)
 @injectable()
 export class GameService {
   private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
   private readonly userGameRoleRepository: UserGameRoleRepository = getCustomRepository(UserGameRoleRepository);
-  @lazyInject(TYPES.UserService) private userService: UserService;
-  @lazyInject(TYPES.Permissions) private permissions: Permissions;
-  @inject(TYPES.IOsuLobbyScanner) private readonly osuLobbyScanner: IOsuLobbyScanner;
 
-  constructor() {
-    Log.info("Initialized Game Service.");
+  // @lazyInject(TYPES.UserService) private userService: UserService;
+  // @lazyInject(TYPES.Permissions) private permissions: Permissions;
+  // @lazyInject(TYPES.IOsuLobbyScanner) private readonly osuLobbyScanner: IOsuLobbyScanner;
+
+  // private userService: UserService = iocContainer.get<UserService>(TYPES.UserService);
+  // private permissions: Permissions = iocContainer.get<Permissions>(TYPES.Permissions);
+  // private osuLobbyScanner: IOsuLobbyScanner = iocContainer.get<IOsuLobbyScanner>(TYPES.IOsuLobbyScanner);
+
+  // @inject(new LazyServiceIdentifer(() => TYPES.UserService)) protected userService: UserService,
+  // @inject(new LazyServiceIdentifer(() => TYPES.IOsuLobbyScanner)) protected osuLobbyScanner: IOsuLobbyScanner,
+  // @inject(new LazyServiceIdentifer(() => TYPES.Permissions)) protected permissions: Permissions // @inject(TYPES.UserService) private userService: UserService, // @inject(TYPES.Permissions) private permissions: Permissions, // @inject(TYPES.IOsuLobbyScanner) private readonly osuLobbyScanner: IOsuLobbyScanner
+
+  // @inject(TYPES.UserService) protected userService: UserService,
+  // @inject(TYPES.IOsuLobbyScanner) protected osuLobbyScanner: IOsuLobbyScanner,
+  // @inject(TYPES.Permissions) protected permissions: Permissions
+
+  constructor(
+    @inject(TYPES.UserService) protected userService: UserService,
+    @inject(TYPES.IOsuLobbyScanner) protected osuLobbyScanner: IOsuLobbyScanner,
+    @inject(TYPES.Permissions) protected permissions: Permissions
+  ) {
+    Log.info(`Initialized ${this.constructor.name}.`);
   }
 
   /**

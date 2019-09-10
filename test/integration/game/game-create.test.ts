@@ -16,6 +16,7 @@ import { DiscordUserReportProperties } from "../../../src/domain/shared/reports/
 import { GameDefaults } from "../../../src/domain/game/game-defaults";
 import { GameMessageTarget } from "../../../src/domain/game/game-message-target";
 import { UserGameRole } from "../../../src/domain/role/user-game-role.entity";
+import TYPES from "../../../src/types";
 
 async function getEntities(): Promise<TestContextEntities[]> {
   const conn = await ConnectionManager.getInstance();
@@ -57,7 +58,7 @@ describe("When creating a game", function() {
           originChannelId: "tester's amazing channel"
         };
 
-        const gameController = iocContainer.get(GameController);
+        const gameController = iocContainer.get<GameController>(TYPES.GameController);
         const gameCreateResponse = await gameController.create({ gameDto: gameDto, requestDto: requestDto });
         assert.isNotNull(gameCreateResponse);
         assert.isTrue(gameCreateResponse.success);
@@ -90,7 +91,7 @@ describe("When creating a game", function() {
         };
 
         /* #region  game properties */
-        const gameController = iocContainer.get(GameController);
+        const gameController = iocContainer.get<GameController>(TYPES.GameController);
         const gameCreateResponse = await gameController.create({ gameDto: gameDto, requestDto: requestDto });
         assert.isDefined(gameCreateResponse);
         assert.isTrue(gameCreateResponse.success);
@@ -154,7 +155,7 @@ describe("When creating a game", function() {
           originChannelId: "tester's amazing channel"
         };
 
-        const gameController = iocContainer.get(GameController);
+        const gameController = iocContainer.get<GameController>(TYPES.GameController);
         const gameCreateResponse = await gameController.create({ gameDto: gameDto, requestDto: requestDto });
 
         assert.isFalse(gameCreateResponse.success, "The response should indicate that the create game request did not succeed.");
@@ -185,7 +186,7 @@ describe("When creating a game", function() {
 
         /* #region  game properties */
         // user 1 creates game 1
-        const gameController = iocContainer.get(GameController);
+        const gameController = iocContainer.get<GameController>(TYPES.GameController);
         const game1CreateResponse = await gameController.create({ gameDto: gameDto, requestDto: requestDto });
         assert.isDefined(game1CreateResponse);
         assert.isTrue(game1CreateResponse.success);

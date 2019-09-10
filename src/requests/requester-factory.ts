@@ -1,7 +1,4 @@
 import { TYPES } from "../types";
-import getDecorators from "inversify-inject-decorators";
-import iocContainer from "../inversify.config";
-const { lazyInject } = getDecorators(iocContainer);
 import { RequestDtoType } from "./dto/request.dto";
 import { Requester } from "./requesters/requester";
 import { DiscordRequester } from "./requesters/discord.requester";
@@ -11,13 +8,13 @@ import { injectable, inject } from "inversify";
 
 @injectable()
 export class RequesterFactory {
-  constructor(@inject(TYPES.UserService) protected readonly userService: UserService) {}
+  constructor(@inject(TYPES.UserService) protected userService: UserService) {}
 
   /**
    * Returns an instance of a specific Requester type depending on the given DTO type.
    *
    * @static
-   * @param {RequestDtoType} requestDto
+   * @param {RequestDto} requestDto
    * @returns {Requester}
    */
   public create(requestDto: RequestDtoType): Requester {

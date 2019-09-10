@@ -1,7 +1,4 @@
 import { TYPES } from "../../types";
-import getDecorators from "inversify-inject-decorators";
-import iocContainer from "../../inversify.config";
-const { lazyInject } = getDecorators(iocContainer);
 import { IOsuLobbyScanner } from "../../osu/interfaces/osu-lobby-scanner";
 import { LobbyRepository } from "./lobby.repository";
 import { getCustomRepository } from "typeorm";
@@ -23,7 +20,7 @@ import {
   lobbyRemovalFailure
 } from "./lobby.failure";
 import { GameService } from "../game/game.service";
-import { inject } from "inversify";
+import { inject, injectable } from "inversify";
 import { Log } from "../../utils/Log";
 import { failurePromise, successPromise } from "../../utils/either";
 import { UserService } from "../user/user.service";
@@ -35,15 +32,17 @@ import { Helpers } from "../../utils/helpers";
 import { RemovedLobbyResult } from "./removed-lobby-result";
 import { GameLobby } from "../game/game-lobby.entity";
 
+@injectable()
 export class LobbyService {
   private readonly lobbyRepository: LobbyRepository = getCustomRepository(LobbyRepository);
   private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
 
-  @lazyInject(TYPES.GameService) private gameService: GameService;
-  @lazyInject(TYPES.UserService) private userService: UserService;
-
-  constructor(@inject(TYPES.IOsuLobbyScanner) private readonly osuLobbyScanner: IOsuLobbyScanner) {
-    Log.info("Initialized Lobby Service.");
+  constructor(
+    @inject(TYPES.GameService) private gameService: GameService,
+    @inject(TYPES.UserService) private userService: UserService,
+    @inject(TYPES.IOsuLobbyScanner) private readonly osuLobbyScanner: IOsuLobbyScanner
+  ) {
+    Log.info(`Initialized ${this.constructor.name}.`);
   }
 
   /**

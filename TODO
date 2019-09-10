@@ -91,6 +91,22 @@ TODO:
             Can we abstract and extend these? Keep them more consistent; less method signature copy pasting.
         ☐ Replace lolex with a spy in lobby-create.test.
             Using lolex is just a temp solution for now. The problem is if we use another timer anywhere else within the LobbyController.create method chain, it will replace all those timers with the lolex mock.
+    Inversify/ioc/dic/injectables dump:
+        // @lazyInject(TYPES.GameService) private gameService: GameService;
+        // @lazyInject(TYPES.Permissions) private permissions: Permissions;
+        // @lazyInject(TYPES.RequesterFactory) private requesterFactory: RequesterFactory;
+    
+        // private gameService: GameService = iocContainer.get<GameService>(TYPES.GameService);
+        // private permissions: Permissions = iocContainer.get<Permissions>(TYPES.Permissions);
+        // private requesterFactory: RequesterFactory = iocContainer.get<RequesterFactory>(TYPES.RequesterFactory);
+    
+        // @inject(new LazyServiceIdentifer(() => TYPES.GameService)) protected gameService: GameService,
+        // @inject(new LazyServiceIdentifer(() => TYPES.Permissions)) protected permissions: Permissions,
+        // @inject(new LazyServiceIdentifer(() => TYPES.RequesterFactory)) protected requesterFactory: RequesterFactory
+    
+        // @inject(TYPES.GameService) protected gameService: GameService,
+        // @inject(TYPES.Permissions) protected permissions: Permissions,
+        // @inject(TYPES.RequesterFactory) protected requesterFactory: RequesterFactory
     Logging:
         ☐ Create more logger levels to make it easier to filter certain events @created(19-09-05 08:17)
             Like if we didn't care about classes being instantiated, all the instantiation Logger events could be turned off. 
@@ -109,6 +125,7 @@ TODO:
         What we have access to - maps, mods(SD), modes - team vs, ffa, TAG4, osu API
         ☐ We need a name for this thing
             ☐ Last Man Standing = LMS, so maybe lmsu -> lemonsu (good lord this is terrible; need more coffee)
+            ☐ Multiplayer Plus / osu!MP+ / osu!MPP Bot
         Progression/Level-up Server System:
             Encourage people to use the bot more.
             ☐ Prestige Badges

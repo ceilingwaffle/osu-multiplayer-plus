@@ -1,7 +1,5 @@
-import { TYPES } from "../../types";
-import getDecorators from "inversify-inject-decorators";
 import iocContainer from "../../inversify.config";
-const { lazyInject } = getDecorators(iocContainer);
+import { TYPES } from "../../types";
 import { AddLobbyDto } from "./dto/add-lobby.dto";
 import { RequestDtoType } from "../../requests/dto/request.dto";
 import { Response } from "../../requests/Response";
@@ -18,13 +16,15 @@ import { RemoveLobbyDto } from "./dto/remove-lobby.dto";
 import { RemoveLobbyReport } from "./reports/remove-lobby.report";
 import { RemovedLobbyResult } from "./removed-lobby-result";
 import { RemovedLobbyResponseFactory } from "./removed-lobby-response-factory";
+import { injectable, inject } from "inversify";
 
+@injectable()
 export class LobbyController {
-  @lazyInject(TYPES.LobbyService) private lobbyService: LobbyService;
-  @lazyInject(TYPES.RequesterFactory) private requesterFactory: RequesterFactory;
-
-  constructor() {
-    Log.info("Initialized Lobby Controller.");
+  constructor(
+    @inject(TYPES.LobbyService) private lobbyService: LobbyService,
+    @inject(TYPES.RequesterFactory) private requesterFactory: RequesterFactory
+  ) {
+    Log.info(`Initialized ${this.constructor.name}.`);
   }
 
   /**

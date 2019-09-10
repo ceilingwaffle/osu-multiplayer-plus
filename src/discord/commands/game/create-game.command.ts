@@ -1,6 +1,6 @@
-import { TYPES } from "../../../types";
-import getDecorators from "inversify-inject-decorators";
 import iocContainer from "../../../inversify.config";
+import getDecorators from "inversify-inject-decorators";
+import { TYPES } from "../../../types";
 const { lazyInject } = getDecorators(iocContainer);
 import { CommandoClient, CommandMessage } from "discord.js-commando";
 import { Message, RichEmbed, TextChannel } from "discord.js";
@@ -10,6 +10,7 @@ import { DiscordChannelManager } from "../../discord-channel-manager";
 import { DiscordRequestDto } from "../../../requests/dto";
 import { AppBaseCommand } from "../app-base-command";
 import { GameController } from "../../../domain/game/game.controller";
+import { Log } from "../../../utils/Log";
 
 export class CreateGameCommand extends AppBaseCommand {
   @lazyInject(TYPES.GameController) private gameController: GameController;
@@ -40,6 +41,7 @@ export class CreateGameCommand extends AppBaseCommand {
         }
       ]
     });
+    Log.debug(`Initialized ${this.constructor.name}`);
   }
 
   public async run(

@@ -1,8 +1,3 @@
-import { TYPES } from "../../types";
-import getDecorators from "inversify-inject-decorators";
-import iocContainer from "../../inversify.config";
-const { lazyInject } = getDecorators(iocContainer);
-import { GameService } from "../game/game.service";
 import { User } from "./user.entity";
 import { Either, failurePromise, successPromise } from "../../utils/Either";
 import { Failure } from "../../utils/Failure";
@@ -19,15 +14,19 @@ import {
 import { UserRepository } from "./user.repository";
 import { DiscordUserRepository } from "./discord-user.repository";
 import { getCustomRepository } from "typeorm";
-import { GameFailure } from "../game/game.failure";
+import { GameFailure, gameDoesNotExistFailure } from "../game/game.failure";
+import { injectable } from "inversify";
+import { GameRepository } from "../game/game.repository";
+import { userCreationFailure, userUpdateFailure } from "./user.failure";
 
+@injectable()
 export class UserService {
   private readonly userRepository: UserRepository = getCustomRepository(UserRepository);
   private readonly discordUserRepository: DiscordUserRepository = getCustomRepository(DiscordUserRepository);
-  @lazyInject(TYPES.GameService) private gameService: GameService;
+  private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
 
   constructor() {
-    Log.info("Initialized User Service.");
+    Log.info(`Initialized ${this.constructor.name}.`);
   }
 
   async getOrCreateUserForDiscordUserId(discordUserId: string): Promise<Either<Failure<UserFailure | DiscordUserFailure>, User>> {
@@ -124,19 +123,12 @@ export class UserService {
   }): Promise<Either<Failure<UserFailure | GameFailure>, User>> {
     try {
       // no permissions check needed because the userId should always be the same as the user making the request (e.g. The Discord user using the !targetgame command)
-
       const user = await this.userRepository.findOne({ id: userId });
-      if (!user) {
-        return failurePromise(userLookupFailure(userId));
-      }
-
-      const gameFindResult = await this.gameService.findGameById(gameId);
-      if (gameFindResult.failed()) {
-        return failurePromise(gameFindResult.value);
-      }
-      const game = gameFindResult.value;
-
+      if (!user) return failurePromise(userLookupFailure(userId));
+      const game = await this.gameRepository.findOne({ id: gameId });
+      if (!game) return failurePromise(gameDoesNotExistFailure(gameId));
       const updatedUser = await this.userRepository.updateUser({ user: user, updateWith: { targetGame: game } });
+      if (!updatedUser) return failurePromise(userUpdateFailure({ userId }));
       return successPromise(updatedUser);
     } catch (error) {
       Log.methodError(this.updateUserTargetGame, this.constructor.name, error);

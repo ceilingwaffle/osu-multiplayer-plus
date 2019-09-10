@@ -22,6 +22,7 @@ import { success } from "../../../src/utils/either";
 import { fail } from "assert";
 import { GameRepository } from "../../../src/domain/game/game.repository";
 import { Message } from "../../../src/utils/message";
+import TYPES from "../../../src/types";
 
 async function getEntities(): Promise<TestContextEntities[]> {
   const conn = await ConnectionManager.getInstance();
@@ -82,7 +83,7 @@ describe("When ending a game", function() {
         await TestHelpers.reloadEntities(getEntities());
 
         /* #region  Setup */
-        const gameController = iocContainer.get(GameController);
+        const gameController = iocContainer.get<GameController>(TYPES.GameController);
 
         // user 1 creates game 1
         const createGame1Response = await gameController.create({
@@ -133,7 +134,7 @@ describe("When ending a game", function() {
   it("should receive an accurate end-game report after ending a game", function() {
     return new Promise(async (resolve, reject) => {
       try {
-        const gameController = iocContainer.get(GameController);
+        const gameController = iocContainer.get<GameController>(TYPES.GameController);
         const endGameDto: EndGameDto = { gameId: 1 };
         const endGameResponse = await gameController.endGame({ endGameDto: endGameDto, requestDto: createGame1DiscordRequest });
 
@@ -163,8 +164,8 @@ describe("When ending a game", function() {
   it("should end a game and ensure it was changed from an active-state to an ended-state", function() {
     return new Promise(async (resolve, reject) => {
       try {
-        const gameController = iocContainer.get(GameController);
-        const gameService = iocContainer.get(GameService);
+        const gameController = iocContainer.get<GameController>(TYPES.GameController);
+        const gameService = iocContainer.get<GameService>(TYPES.GameService);
         const endGameDto: EndGameDto = { gameId: 1 };
 
         // ensure the game is in a ready/active/non-ended state
@@ -197,8 +198,8 @@ describe("When ending a game", function() {
   it("should end a game and ensure it is now in a 'manually_ended' state", function() {
     return new Promise(async (resolve, reject) => {
       try {
-        const gameController = iocContainer.get(GameController);
-        const gameService = iocContainer.get(GameService);
+        const gameController = iocContainer.get<GameController>(TYPES.GameController);
+        const gameService = iocContainer.get<GameService>(TYPES.GameService);
         const endGameDto: EndGameDto = { gameId: 1 };
 
         // user 1 ends the game
@@ -232,8 +233,8 @@ describe("When ending a game", function() {
   it("should fail to end a game that has already ended", function() {
     return new Promise(async (resolve, reject) => {
       try {
-        const gameController = iocContainer.get(GameController);
-        const gameService = iocContainer.get(GameService);
+        const gameController = iocContainer.get<GameController>(TYPES.GameController);
+        const gameService = iocContainer.get<GameService>(TYPES.GameService);
         const endGameDto: EndGameDto = { gameId: 1 };
 
         // user 1 ends the game
@@ -260,7 +261,7 @@ describe("When ending a game", function() {
   it("should fail to end a game by a user lacking sufficient permission", function() {
     return new Promise(async (resolve, reject) => {
       try {
-        const gameController = iocContainer.get(GameController);
+        const gameController = iocContainer.get<GameController>(TYPES.GameController);
         const endGameDto: EndGameDto = { gameId: 1 };
 
         // user 2 attempts to end game 1 created by user 1
@@ -284,7 +285,7 @@ describe("When ending a game", function() {
   it("should fail to end a game that does not exist", function() {
     return new Promise(async (resolve, reject) => {
       try {
-        const gameController = iocContainer.get(GameController);
+        const gameController = iocContainer.get<GameController>(TYPES.GameController);
         const endGameDto: EndGameDto = { gameId: 99999999 };
 
         const endGameResponse1 = await gameController.endGame({ endGameDto: endGameDto, requestDto: createGame1DiscordRequest });
@@ -302,7 +303,7 @@ describe("When ending a game", function() {
   it("should fail to end a game with validation errors", function() {
     return new Promise(async (resolve, reject) => {
       try {
-        const gameController = iocContainer.get(GameController);
+        const gameController = iocContainer.get<GameController>(TYPES.GameController);
         const endGameDto: EndGameDto = { gameId: 1.5 };
 
         const endGameResponse1 = await gameController.endGame({ endGameDto: endGameDto, requestDto: createGame1DiscordRequest });

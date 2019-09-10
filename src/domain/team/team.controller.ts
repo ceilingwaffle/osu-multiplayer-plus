@@ -1,29 +1,29 @@
 import { TYPES } from "../../types";
-import getDecorators from "inversify-inject-decorators";
-import iocContainer from "../../inversify.config";
-const { lazyInject } = getDecorators(iocContainer);
 import { TeamService } from "./team.service";
 import { RequestDto } from "../../requests/dto";
 import { AddTeamsDto } from "./dto/add-team.dto";
 import { Response } from "../../requests/Response";
 import { AddTeamsReport, TeamInTeamReport } from "./reports/add-teams.report";
 import { Log } from "../../utils/Log";
-import { Requester } from "../../requests/requesters/requester";
 import { RequesterFactory } from "../../requests/requester-factory";
-import { RequesterFactoryInitializationError } from "../shared/errors/RequesterFactoryInitializationError";
 import { Message, FailureMessage } from "../../utils/message";
 import { Team } from "./team.entity";
 import { TeamResponseFactory } from "./team-response-factory";
+import { RequestDtoType } from "../../requests/dto/request.dto";
+import { inject, injectable } from "inversify";
 
+@injectable()
 export class TeamController {
-  @lazyInject(TYPES.TeamService) private teamService: TeamService;
-  @lazyInject(TYPES.RequesterFactory) private requesterFactory: RequesterFactory;
-
-  constructor() {}
+  constructor(
+    @inject(TYPES.RequesterFactory) private requesterFactory: RequesterFactory,
+    @inject(TYPES.TeamService) private teamService: TeamService
+  ) {
+    Log.info(`Initialized ${this.constructor.name}.`);
+  }
 
   async create(teamsData: { teamDto: AddTeamsDto; requestDto: RequestDto }): Promise<Response<AddTeamsReport>> {
     try {
-      const requester = this.requesterFactory.create(teamsData.requestDto);
+      const requester = this.requesterFactory.create(teamsData.requestDto as RequestDtoType);
 
       // get/create the user adding the team
       const creatorResult = await requester.getOrCreateUser();

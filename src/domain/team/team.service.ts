@@ -5,7 +5,9 @@ import { GameFailure } from "../game/game.failure";
 import { TeamFailure } from "./team.failure";
 import { Team } from "./team.entity";
 import { PermissionsFailure } from "../../permissions/permissions.failure";
+import { injectable } from "inversify";
 
+@injectable()
 export class TeamService {
   /**
    * Attempts to add a new team to a game after creating all osu user entities that make up the teams.
@@ -33,6 +35,6 @@ export class TeamService {
     // validate the team structure (e.g. does the game require teams to be of a certain size)
     // create the osu users
     // add the teams to the game
-    throw new Error("Method not implemented.");
+    throw new Error("TODO: Implement method of TeamService.");
   }
 }

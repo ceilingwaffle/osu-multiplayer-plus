@@ -1,9 +1,6 @@
 import "reflect-metadata";
-import { buildProviderModule } from "inversify-binding-decorators";
-import { Container } from "inversify";
 import { IOsuLobbyScanner } from "./osu/interfaces/osu-lobby-scanner";
 import { OsuLobbyScannerService } from "./osu/osu-lobby-scanner-service";
-import { TYPES } from "./types";
 import { GameService } from "./domain/game/game.service";
 import { GameController } from "./domain/game/game.controller";
 import { UserService } from "./domain/user/user.service";
@@ -11,6 +8,11 @@ import { LobbyController } from "./domain/lobby/lobby.controller";
 import { TeamController } from "./domain/team/team.controller";
 import { UserController } from "./domain/user/user.controller";
 import { RequesterFactory } from "./requests/requester-factory";
+import { Permissions } from "./permissions/permissions";
+import { Container } from "inversify";
+import { TYPES } from "./types";
+import { LobbyService } from "./domain/lobby/lobby.service";
+import { TeamService } from "./domain/team/team.service";
 
 // const iocContainer = new Container();
 // autoProvide(iocContainer, entities);
@@ -25,34 +27,26 @@ export class IOCKernel extends Container {
 
   private init() {
     this.declareDependencies();
-    this.load(buildProviderModule());
+    // this.load(buildProviderModule());
   }
 
   private declareDependencies() {
-    this.bind<GameController>(TYPES.GameController)
-      .to(GameController)
-      .inSingletonScope();
-    this.bind<GameService>(TYPES.GameService)
-      .to(GameService)
-      .inSingletonScope();
-    this.bind<UserController>(TYPES.UserController)
-      .to(UserController)
-      .inSingletonScope();
-    this.bind<UserService>(TYPES.UserService)
-      .to(UserService)
-      .inSingletonScope();
-    this.bind<LobbyController>(TYPES.LobbyController)
-      .to(LobbyController)
-      .inSingletonScope();
-    this.bind<TeamController>(TYPES.TeamController)
-      .to(TeamController)
-      .inSingletonScope();
-    this.bind<IOsuLobbyScanner>(TYPES.IOsuLobbyScanner)
-      .to(OsuLobbyScannerService)
-      .inSingletonScope();
-    this.bind<RequesterFactory>(TYPES.RequesterFactory)
-      .to(RequesterFactory)
-      .inSingletonScope();
+    // game
+    this.bind<GameController>(TYPES.GameController).to(GameController).inSingletonScope(); // prettier-ignore
+    this.bind<GameService>(TYPES.GameService).to(GameService).inSingletonScope(); // prettier-ignore
+    // user
+    this.bind<UserController>(TYPES.UserController).to(UserController).inSingletonScope(); // prettier-ignore
+    this.bind<UserService>(TYPES.UserService).to(UserService).inSingletonScope(); // prettier-ignore
+    // lobby
+    this.bind<LobbyController>(TYPES.LobbyController).to(LobbyController).inSingletonScope(); // prettier-ignore
+    this.bind<LobbyService>(TYPES.LobbyService).to(LobbyService).inSingletonScope(); // prettier-ignore
+    this.bind<IOsuLobbyScanner>(TYPES.IOsuLobbyScanner).to(OsuLobbyScannerService).inSingletonScope(); // prettier-ignore
+    // team
+    this.bind<TeamService>(TYPES.TeamService).to(TeamService).inSingletonScope(); // prettier-ignore
+    this.bind<TeamController>(TYPES.TeamController).to(TeamController).inSingletonScope(); // prettier-ignore
+    // ...
+    this.bind<RequesterFactory>(TYPES.RequesterFactory).to(RequesterFactory).inSingletonScope(); // prettier-ignore
+    this.bind<Permissions>(TYPES.Permissions).to(Permissions).inSingletonScope(); // prettier-ignore
   }
 }
 

@@ -1,7 +1,4 @@
 import { TYPES } from "../../types";
-import getDecorators from "inversify-inject-decorators";
-import iocContainer from "../../inversify.config";
-const { lazyInject } = getDecorators(iocContainer);
 import { inject, injectable } from "inversify";
 import { GameService } from "./game.service";
 import { CreateGameDto } from "./dto/index";
@@ -18,16 +15,13 @@ import { EndGameDto } from "./dto/end-game.dto";
 import { EndGameReport } from "./reports/end-game.report";
 import { UpdateGameDto } from "./dto/update-game.dto";
 import { Permissions } from "../../permissions/permissions";
+
 @injectable()
 export class GameController {
-  // @lazyInject(TYPES.GameService) private gameService: GameService;
-  // @lazyInject(TYPES.Permissions) private permissions: Permissions;
-  // @lazyInject(TYPES.RequesterFactory) private requesterFactory: RequesterFactory;
-
   constructor(
-    @inject(TYPES.GameService) private gameService: GameService,
-    @inject(TYPES.Permissions) private permissions: Permissions,
-    @inject(TYPES.RequesterFactory) private requesterFactory: RequesterFactory
+    @inject(TYPES.GameService) protected gameService: GameService,
+    @inject(TYPES.Permissions) protected permissions: Permissions,
+    @inject(TYPES.RequesterFactory) protected requesterFactory: RequesterFactory
   ) {
     Log.info(`Initialized ${this.constructor.name}.`);
   }

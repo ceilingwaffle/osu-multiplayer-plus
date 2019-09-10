@@ -1,7 +1,4 @@
 import { TYPES } from "../../types";
-import getDecorators from "inversify-inject-decorators";
-import iocContainer from "../../inversify.config";
-const { lazyInject } = getDecorators(iocContainer);
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { RequestDto } from "../../requests/dto";
 import { Response } from "../../requests/Response";
@@ -11,12 +8,17 @@ import { RequesterFactory } from "../../requests/requester-factory";
 import { Log } from "../../utils/Log";
 import { FailureMessage, Message } from "../../utils/message";
 import { UserResponseFactory } from "./user-response-factory";
+import { injectable, inject } from "inversify";
+import { DiscordRequestDto } from "../../requests/dto/discord-request.dto";
 
+@injectable()
 export class UserController {
-  @lazyInject(TYPES.UserService) private userService: UserService;
-  @lazyInject(TYPES.RequesterFactory) private requesterFactory: RequesterFactory;
-
-  constructor() {}
+  constructor(
+    @inject(TYPES.UserService) private userService: UserService,
+    @inject(TYPES.RequesterFactory) private requesterFactory: RequesterFactory
+  ) {
+    Log.info(`Initialized ${this.constructor.name}.`);
+  }
 
   async update(userData: { userDto: UpdateUserDto; requestDto: RequestDto }): Promise<Response<UpdateUserReport>> {
     try {
@@ -27,7 +29,8 @@ export class UserController {
         );
       }
 
-      const requester = this.requesterFactory.create(userData.requestDto);
+      // TODO: The controller shouldn't care about what type of request it was (web, discord, etc). Need some way of passing a union type into the request factory here.
+      const requester = this.requesterFactory.create(userData.requestDto as DiscordRequestDto);
 
       // get/create the user updating the user
       const updaterResult = await requester.getOrCreateUser();

@@ -24,7 +24,7 @@ String.prototype.toSentenceCase = function(): string {
   return sentence;
 };
 
-// import iocContainer from "./inversify.config";
+import iocContainer from "./inversify.config";
 import { Message } from "./utils/message";
 import { ConnectionManager } from "./utils/connection-manager";
 import { DiscordBot } from "./discord/discord-bot";
@@ -37,23 +37,6 @@ if (process.env.NODE_ENV !== "test")
   (() => {
     setTimeout(async () => {
       try {
-        // // create typeorm connection
-        // await ConnectionManager.getInstance();
-
-        // const gameController = iocContainer.get(entities.GameController);
-        // const response = await gameController.create({
-        //   gameDto: { teamLives: 2, countFailedScores: true },
-        //   requestDto: { type: "discord", authorId: "waffle", originChannel: "waffle's amazing channel" }
-        // });
-        // var game = response;
-
-        // if (game.success) {
-        //   const gameId = game.result.gameId;
-
-        //   const watcher = new OsuLobbyWatcher();
-        //   watcher.watch({ banchoMultiplayerId: "53933822", gameId: gameId });
-        // }
-
         const discordBot = new DiscordBot();
         discordBot.start(process.env.DISCORD_BOT_TOKEN);
       } catch (e) {

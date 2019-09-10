@@ -5,7 +5,9 @@ export enum UserFailure {
   UserLookupFailure,
   UserLookupError,
   UserCreationFailure,
-  UserCreationError
+  UserCreationError,
+  UserUpdateFailure,
+  UserUpdateError
 }
 
 export enum OsuUserFailure {
@@ -43,6 +45,25 @@ export const userCreationFailure = (reason?: string): Failure<UserFailure.UserCr
 export const userCreationError = (error: Error, reason?: string): Failure<UserFailure.UserLookupError> => ({
   type: UserFailure.UserLookupError,
   reason: reason || "Something went wrong when we tried to create a user.",
+  error: error
+});
+
+export const userUpdateFailure = ({ userId, reason }: { userId: number; reason?: string }): Failure<UserFailure.UserUpdateFailure> => ({
+  type: UserFailure.UserUpdateFailure,
+  reason: reason || "Something went wrong when we tried to update a user."
+});
+
+export const userUpdateError = ({
+  userId,
+  error,
+  reason
+}: {
+  userId: number;
+  error: Error;
+  reason?: string;
+}): Failure<UserFailure.UserUpdateError> => ({
+  type: UserFailure.UserUpdateError,
+  reason: reason || "Something went wrong when we tried to update a user.",
   error: error
 });
 

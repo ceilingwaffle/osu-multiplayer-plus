@@ -6,7 +6,7 @@ import { EventEmitter } from "eventemitter3";
 import { OsuLobbyScannerEvents } from "./interfaces/osu-lobby-scanner-events";
 import { ApiMultiplayer } from "./types/api-multiplayer";
 import { dynamic, SetIntervalAsyncTimer, clearIntervalAsync } from "set-interval-async";
-import { injectable } from "inversify";
+import { injectable, decorate } from "inversify";
 
 interface Watcher {
   multiplayerId: string;
@@ -17,6 +17,7 @@ interface Watcher {
   isScanning?: boolean;
 }
 
+decorate(injectable(), EventEmitter);
 @injectable()
 export class OsuLobbyScannerService extends EventEmitter<OsuLobbyScannerEvents> implements IOsuLobbyScanner {
   protected readonly api: IOsuApiFetcher = NodesuApiFetcher.getInstance();

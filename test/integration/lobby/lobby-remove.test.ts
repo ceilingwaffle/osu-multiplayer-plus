@@ -19,6 +19,7 @@ import { InstalledClock, LolexWithContext } from "lolex";
 import { LobbyRepository } from "../../../src/domain/lobby/lobby.repository";
 import { RemoveLobbyDto } from "../../../src/domain/lobby/dto/remove-lobby.dto";
 import { LobbyStatus } from "../../../src/domain/lobby/lobby-status";
+import TYPES from "../../../src/types";
 
 var lolex: LolexWithContext = require("lolex");
 
@@ -96,7 +97,7 @@ describe("When removing a lobby", function() {
         await TestHelpers.reloadEntities(getEntities());
 
         /* #region  Setup */
-        const gameController = iocContainer.get(GameController);
+        const gameController = iocContainer.get<GameController>(TYPES.GameController);
 
         // user 1 creates game 1
         const createGame1Response = await gameController.create({
@@ -144,7 +145,7 @@ describe("When removing a lobby", function() {
   it("should add a lobby to a game then remove the lobby from the game", function() {
     return new Promise(async (resolve, reject) => {
       try {
-        const lobbyController = iocContainer.get(LobbyController);
+        const lobbyController = iocContainer.get<LobbyController>(TYPES.LobbyController);
 
         const lobbyDto1: AddLobbyDto = {
           banchoMultiplayerId: "54078930", // replace this with a valid mp id if it expires
@@ -178,7 +179,7 @@ describe("When removing a lobby", function() {
   it("should add the same lobby to three games then remove the lobby from one game", function() {
     return new Promise(async (resolve, reject) => {
       try {
-        const lobbyController = iocContainer.get(LobbyController);
+        const lobbyController = iocContainer.get<LobbyController>(TYPES.LobbyController);
         // create 3 games (created during the beforeEach)
 
         // add the same bancho mp id to all 3 games
@@ -285,7 +286,7 @@ describe("When removing a lobby", function() {
   it("should remove two lobbies from one game", function() {
     return new Promise(async (resolve, reject) => {
       try {
-        const lobbyController = iocContainer.get(LobbyController);
+        const lobbyController = iocContainer.get<LobbyController>(TYPES.LobbyController);
         const lobbyRepository = getCustomRepository(LobbyRepository);
         const gameRepository = getCustomRepository(GameRepository);
         // const osuLobbyWatcher: IOsuLobbyScanner = iocContainer.get(TYPES.IOsuLobbyScanner);
@@ -434,7 +435,7 @@ describe("When removing a lobby", function() {
           gameId: 1
         };
         const clock: InstalledClock = lolex.install();
-        const lobbyController = iocContainer.get(LobbyController);
+        const lobbyController = iocContainer.get<LobbyController>(TYPES.LobbyController);
         const lobbyAddResponse1 = await lobbyController.create({
           lobbyDto: lobbyDto1,
           requestDto: createGame1DiscordRequest
@@ -475,7 +476,7 @@ describe("When removing a lobby", function() {
           gameId: 2
         };
         const clock: InstalledClock = lolex.install();
-        const lobbyController = iocContainer.get(LobbyController);
+        const lobbyController = iocContainer.get<LobbyController>(TYPES.LobbyController);
         const lobbyAddResponse1 = await lobbyController.create({
           lobbyDto: lobbyDto1,
           requestDto: createGame1DiscordRequest
@@ -517,7 +518,7 @@ describe("When removing a lobby", function() {
   it("should remove and re-add a lobby with the same Bancho multiplayer ID", function() {
     return new Promise(async (resolve, reject) => {
       try {
-        const lobbyController = iocContainer.get(LobbyController);
+        const lobbyController = iocContainer.get<LobbyController>(TYPES.LobbyController);
         const lobbyRepository = getCustomRepository(LobbyRepository);
 
         const lobbyDto1: AddLobbyDto = {

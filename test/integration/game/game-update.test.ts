@@ -11,6 +11,7 @@ import { User } from "../../../src/domain/user/user.entity";
 import { ConnectionManager } from "../../../src/utils/connection-manager";
 import { DiscordUser } from "../../../src/domain/user/discord-user.entity";
 import { UpdateGameDto } from "../../../src/domain/game/dto/update-game.dto";
+import TYPES from "../../../src/types";
 
 async function getEntities(): Promise<TestContextEntities[]> {
   const conn = await ConnectionManager.getInstance();
@@ -45,7 +46,7 @@ describe("When updating a game", function() {
   it("should update the countFailedScores property to true of the most-recently created game of a user when no game ID is specified", function() {
     return new Promise(async (resolve, reject) => {
       try {
-        const gameController = iocContainer.get(GameController);
+        const gameController = iocContainer.get<GameController>(TYPES.GameController);
         const createGameDto1: CreateGameDto = {
           countFailedScores: true
         };
@@ -102,7 +103,7 @@ describe("When updating a game", function() {
   it("should update the lives of a specific game ID", function() {
     return new Promise(async (resolve, reject) => {
       try {
-        const gameController = iocContainer.get(GameController);
+        const gameController = iocContainer.get<GameController>(TYPES.GameController);
         const createGameDto: CreateGameDto = {
           teamLives: 1234,
           countFailedScores: false
@@ -159,7 +160,7 @@ describe("When updating a game", function() {
   it("should fail to update a game with validation errors", function() {
     return new Promise(async (resolve, reject) => {
       try {
-        const gameController = iocContainer.get(GameController);
+        const gameController = iocContainer.get<GameController>(TYPES.GameController);
         const createGameDto: CreateGameDto = {};
         const updateGameDto: UpdateGameDto = {
           gameId: 1,
