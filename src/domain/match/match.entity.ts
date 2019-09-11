@@ -19,6 +19,9 @@ export class Match extends CreationTimestampedEntity {
   @Column()
   beatmapId: string;
 
+  @Column()
+  aborted: boolean;
+
   @ManyToOne(type => Lobby, lobby => lobby.matches)
   @JoinColumn()
   lobby: Lobby;
