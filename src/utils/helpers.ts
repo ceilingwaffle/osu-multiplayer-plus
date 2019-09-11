@@ -25,4 +25,13 @@ export class Helpers {
       return null;
     }
   }
+
+  static looksLikeAnOsuApiUserId(usernameOrId: string): boolean {
+    return /^[0-9]+$/.test(usernameOrId);
+  }
+
+  static isAddTeamCommandSeparator(character: string): boolean {
+    const separators = ["|"];
+    return separators.includes(character);
+  }
 }

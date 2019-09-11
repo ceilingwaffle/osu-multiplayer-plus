@@ -13,7 +13,9 @@ export enum UserFailure {
 export enum OsuUserFailure {
   InvalidCreationArguments,
   OsuUserLookupError,
-  OsuUserCreationError
+  OsuUserCreationError,
+  BanchoOsuUserIdIsInvalid,
+  BanchoOsuUsernameIsInvalid
 }
 
 export enum DiscordUserFailure {
@@ -35,6 +37,16 @@ export const userLookupError = (error: Error, reason?: string): Failure<UserFail
   type: UserFailure.UserLookupError,
   reason: reason || "Something went wrong when we tried to find a user.",
   error: error
+});
+
+export const banchoOsuUserIdIsInvalidFailure = (userId?: string): Failure<OsuUserFailure.BanchoOsuUserIdIsInvalid> => ({
+  type: OsuUserFailure.BanchoOsuUserIdIsInvalid,
+  reason: userId ? `No osu! player could be found matching a user ID of ${userId}.` : `No osu! player found for osu! user ID.`
+});
+
+export const banchoOsuUsernameIsInvalidFailure = (username?: string): Failure<OsuUserFailure.BanchoOsuUsernameIsInvalid> => ({
+  type: OsuUserFailure.BanchoOsuUsernameIsInvalid,
+  reason: username ? `No osu! player could be found matching a username of ${username}.` : `No osu! player found for osu! username.`
 });
 
 export const userCreationFailure = (reason?: string): Failure<UserFailure.UserCreationFailure> => ({

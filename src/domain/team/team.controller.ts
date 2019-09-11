@@ -26,23 +26,25 @@ export class TeamController {
       const requester = this.requesterFactory.create(teamsData.requestDto as RequestDtoType);
 
       // get/create the user adding the team
-      const creatorResult = await requester.getOrCreateUser();
-      if (creatorResult.failed()) {
-        if (creatorResult.value.error) throw creatorResult.value.error;
-        Log.methodFailure(this.create, this.constructor.name, creatorResult.value.reason);
+      const requestingUserResult = await requester.getOrCreateUser();
+      if (requestingUserResult.failed()) {
+        if (requestingUserResult.value.error) throw requestingUserResult.value.error;
+        Log.methodFailure(this.create, this.constructor.name, requestingUserResult.value.reason);
         return {
           success: false,
           message: FailureMessage.get("teamCreateFailed"),
           errors: {
-            messages: [creatorResult.value.reason],
-            validation: creatorResult.value.validationErrors
+            messages: [requestingUserResult.value.reason],
+            validation: requestingUserResult.value.validationErrors
           }
         };
       }
+      const requestingUser = requestingUserResult.value;
 
       const addTeamsResult = await this.teamService.processAddingNewTeams({
         osuUsernamesOrIdsOrSeparators: teamsData.teamDto.osuUsernamesOrIdsOrSeparators,
-        userId: creatorResult.value.id
+        requestingUser: requestingUser,
+        requestDto: teamsData.requestDto
       });
       if (addTeamsResult.failed()) {
         if (addTeamsResult.value.error) throw addTeamsResult.value.error;

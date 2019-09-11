@@ -4,6 +4,7 @@ import { Log } from "../utils/Log";
 import { ApiMultiplayer } from "./types/api-multiplayer";
 import { NodesuApiTransformer } from "./nodesu-api-transformer";
 import Bottleneck from "bottleneck";
+import { Helpers } from "../utils/helpers";
 
 /**
  * Singleton
@@ -113,6 +114,85 @@ export class NodesuApiFetcher implements IOsuApiFetcher {
       }
     } catch (error) {
       Log.methodFailure(this.fetchMultiplayerResults, this.constructor.name, error);
+      throw error;
+    }
+  }
+
+  async isValidOsuUsername(username: string): Promise<boolean> {
+    try {
+      Log.debug(`Validating osu username ${username} using osu API...`);
+
+      const user: object | Nodesu.User = await this.api.user.get(username, null, null, Nodesu.LookupType.string);
+      // Assume that if the response did not resolve into a Nodesu User object, then it was not a valid user ID.
+      // This will only work if { parseData: true } is set in the Nodesu client options.
+      if (!user || !(user instanceof Nodesu.User)) {
+        Log.methodFailure(
+          this.isValidOsuUsername,
+          this.constructor.name,
+          `Validation failed for Bancho osu! username ${username}: User object not instanceof Nodesu.User`
+        );
+        return false;
+      }
+
+      if (!user.username) {
+        Log.methodFailure(
+          this.isValidOsuUsername,
+          this.constructor.name,
+          `Validation failed for Bancho osu! username ${username}: User object has no username. This should never happen.`
+        );
+        return false;
+      }
+
+      Log.methodSuccess(this.isValidOsuUsername, this.constructor.name);
+      return true;
+    } catch (error) {
+      Log.methodError(this.isValidOsuUsername, this.constructor.name, error);
+      throw error;
+    }
+  }
+
+  async isValidOsuUserId(banchoUserId: string): Promise<boolean> {
+    try {
+      Log.debug(`Validating osu user ID ${banchoUserId} using osu API...`);
+      if (isNaN(Number(banchoUserId))) {
+        Log.warn(`Validation failed - osu user ID ${banchoUserId} is NaN.`);
+        return false;
+      }
+
+      if (!Helpers.looksLikeAnOsuApiUserId(banchoUserId)) {
+        Log.methodFailure(
+          this.isValidOsuUserId,
+          this.constructor.name,
+          `osu! user ID ${banchoUserId} doesn't look like a valid osu! user ID.`
+        );
+        return false;
+      }
+
+      const user: object | Nodesu.User = await this.api.user.get(banchoUserId, null, null, Nodesu.LookupType.id);
+      // Assume that if the response did not resolve into a Nodesu User object, then it was not a valid user ID.
+      // This will only work if { parseData: true } is set in the Nodesu client options.
+      if (!user || !(user instanceof Nodesu.User)) {
+        Log.methodFailure(
+          this.isValidOsuUserId,
+          this.constructor.name,
+          `Validation failed for Bancho osu! user ID ${banchoUserId}: user not instanceof Nodesu.User`
+        );
+        return false;
+      }
+
+      if (!user.username) {
+        Log.methodFailure(
+          this.isValidOsuUserId,
+          this.constructor.name,
+          `Validation failed for Bancho osu user ID ${banchoUserId}: user has no username. This should never happen.`
+        );
+        return false;
+      }
+
+      Log.methodSuccess(this.isValidOsuUserId, this.constructor.name);
+      return true;
+    } catch (error) {
+      Log.methodError(this.isValidOsuUserId, this.constructor.name, error);
       throw error;
     }
   }

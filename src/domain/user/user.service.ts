@@ -17,13 +17,17 @@ import { getCustomRepository } from "typeorm";
 import { GameFailure, gameDoesNotExistFailure } from "../game/game.failure";
 import { injectable } from "inversify";
 import { GameRepository } from "../game/game.repository";
-import { userCreationFailure, userUpdateFailure } from "./user.failure";
+import { userUpdateFailure } from "./user.failure";
+import { IOsuApiFetcher } from "../../osu/interfaces/osu-api-fetcher";
+import { NodesuApiFetcher } from "../../osu/nodesu-api-fetcher";
+import { Helpers } from "../../utils/helpers";
 
 @injectable()
 export class UserService {
   private readonly userRepository: UserRepository = getCustomRepository(UserRepository);
   private readonly discordUserRepository: DiscordUserRepository = getCustomRepository(DiscordUserRepository);
   private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
+  private readonly osuApi: IOsuApiFetcher = NodesuApiFetcher.getInstance();
 
   constructor() {
     Log.info(`Initialized ${this.constructor.name}.`);
@@ -132,6 +136,27 @@ export class UserService {
       return successPromise(updatedUser);
     } catch (error) {
       Log.methodError(this.updateUserTargetGame, this.constructor.name, error);
+      throw error;
+    }
+  }
+
+  /**
+   * Returns true if the given value is a valid osu user ID or username, determined by the osu API.
+   *
+   * @param {string} usernameOrId
+   * @returns {Promise<boolean>}
+   */
+  async isValidBanchoOsuUserIdOrUsername(usernameOrId: string): Promise<boolean> {
+    try {
+      if (!usernameOrId.length) {
+        return false;
+      } else if (Helpers.looksLikeAnOsuApiUserId(usernameOrId)) {
+        return await this.osuApi.isValidOsuUserId(usernameOrId);
+      } else {
+        return await this.osuApi.isValidOsuUsername(usernameOrId);
+      }
+    } catch (error) {
+      Log.methodError(this.isValidBanchoOsuUserIdOrUsername, this.constructor.name, error);
       throw error;
     }
   }
