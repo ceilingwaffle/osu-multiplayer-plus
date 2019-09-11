@@ -2,7 +2,7 @@ import { Entity, ManyToOne, Column, OneToMany } from "typeorm";
 import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity";
 import { Game } from "../game/game.entity";
 import { Team } from "./team.entity";
-import { IsPositive, IsInt } from "class-validator";
+import { IsPositive, IsInt, IsHexColor, IsString } from "class-validator";
 import { User } from "../user/user.entity";
 import { GameDefaults } from "../game/game-defaults";
 
@@ -30,6 +30,14 @@ export class GameTeam extends CreationTimestampedEntity {
   @IsInt()
   @Column({ default: GameDefaults.teamLives })
   currentLives: number;
+
+  @IsString()
+  @Column({ unique: true })
+  colorName: string;
+
+  @IsHexColor()
+  @Column({ unique: true })
+  colorValue: string;
 
   @ManyToOne(type => User)
   addedBy: User;

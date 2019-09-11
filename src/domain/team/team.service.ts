@@ -6,6 +6,7 @@ import { TeamFailure } from "./team.failure";
 import { Team } from "./team.entity";
 import { PermissionsFailure } from "../../permissions/permissions.failure";
 import { injectable } from "inversify";
+import { ColorPicker } from "../../utils/color-picker";
 
 @injectable()
 export class TeamService {
@@ -34,6 +35,9 @@ export class TeamService {
     // validate the osu users are not already in a team for this game
     // validate the team structure (e.g. does the game require teams to be of a certain size)
     // create the osu users
+    // create the team
+    // assign a color to the team using ColorPicker
+
     // add the teams to the game
     throw new Error("TODO: Implement method of TeamService.");
   }
