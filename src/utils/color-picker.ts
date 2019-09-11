@@ -129,7 +129,7 @@ export class ColorPicker {
    * @returns {string}
    */
   private static generateUnlistedHex(alsoNotThisHex?: string): string {
-    const random = ("000000" + Math.random().toString(16).slice(2, 8).toUpperCase()).slice(-6); // prettier-ignore
+    const random = (Math.random().toString(16) + "000000").slice(2, 8);
     // get another color if this one is already in the list of colors
     if (ColorPicker.colors.find(c => c.value === `#${random}`) || random === alsoNotThisHex) {
       return ColorPicker.generateUnlistedHex(alsoNotThisHex);
