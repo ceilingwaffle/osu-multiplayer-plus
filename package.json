@@ -32,6 +32,7 @@
   },
   "dependencies": {
     "@types/fs-extra": "^7.0.0",
+    "@types/lodash": "^4.14.138",
     "@types/lolex": "^3.1.1",
     "async-eventemitter": "^0.2.4",
     "bancho.js": "^0.9.5",
@@ -48,6 +49,7 @@
     "inversify": "^5.0.1",
     "inversify-binding-decorators": "^4.0.0",
     "inversify-inject-decorators": "^3.1.0",
+    "lodash": "^4.17.15",
     "log4js": "^4.3.1",
     "module-alias": "^2.2.1",
     "moment": "^2.24.0",

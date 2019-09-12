@@ -22,10 +22,15 @@ import { IOsuApiFetcher } from "../../osu/interfaces/osu-api-fetcher";
 import { NodesuApiFetcher } from "../../osu/nodesu-api-fetcher";
 import { Helpers } from "../../utils/helpers";
 import { OsuUserValidationResult } from "../../osu/types/osu-user-validation-result";
+import { ApiOsuUser } from "../../osu/types/api-osu-user";
+import { OsuUser } from "./osu-user.entity";
+import { OsuUserRepository } from "./osu-user.repository";
+import union = require("lodash/union");
 
 @injectable()
 export class UserService {
   private readonly userRepository: UserRepository = getCustomRepository(UserRepository);
+  private readonly osuUserRepository: OsuUserRepository = getCustomRepository(OsuUserRepository);
   private readonly discordUserRepository: DiscordUserRepository = getCustomRepository(DiscordUserRepository);
   private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
   private readonly osuApi: IOsuApiFetcher = NodesuApiFetcher.getInstance();
@@ -160,5 +165,66 @@ export class UserService {
       Log.methodError(this.isValidBanchoOsuUserIdOrUsername, this.constructor.name, error);
       throw error;
     }
+  }
+
+  async getOrCreateAndSaveOsuUsersFromApiResults(
+    teamsOfApiOsuUsers: ApiOsuUser[][],
+    returnWithRelations: string[] = [
+      "user",
+      "user.discordUser",
+      "user.webUser",
+      "teamOsuUsers",
+      "teamOsuUsers.team",
+      "teamOsuUsers.team.gameTeams",
+      "teamOsuUsers.team.gameTeams.addedBy"
+    ]
+  ): Promise<OsuUser[]> {
+    try {
+      //    get the existing osu users (Q1)
+      const apiOsuUsers: ApiOsuUser[] = Array<ApiOsuUser>().concat(...teamsOfApiOsuUsers); // flattens the 2D array
+      const banchoUserIds: number[] = apiOsuUsers.map(u => u.userId);
+      const existingOsuUsers: OsuUser[] = await this.osuUserRepository.findByBanchoUserIds(banchoUserIds);
+      //    create the osu users that don't exist
+      const newUnsavedOsuUsers: OsuUser[] = this.createOsuUsersNotInList({ createThese: apiOsuUsers, notInThese: existingOsuUsers });
+      //    save the created osu users (Q2)
+      const savedOsuUsers: OsuUser[] = await this.osuUserRepository.save(newUnsavedOsuUsers);
+      //    select all from db (Q3)
+      const allOsuUserIds = union(existingOsuUsers.map(u => u.id), savedOsuUsers.map(u => u.id));
+      const reloadedOsuUsers: OsuUser[] = await this.osuUserRepository.findByIds(allOsuUserIds, {
+        relations: returnWithRelations
+      });
+      Log.methodSuccess(this.getOrCreateAndSaveOsuUsersFromApiResults, this.constructor.name);
+      return reloadedOsuUsers;
+    } catch (error) {
+      Log.methodError(this.getOrCreateAndSaveOsuUsersFromApiResults, this.constructor.name, error);
+      throw error;
+    }
+  }
+
+  private createOsuUsersNotInList({ createThese, notInThese }: { createThese: ApiOsuUser[]; notInThese: OsuUser[] }): OsuUser[] {
+    const toBeCreated: ApiOsuUser[] = createThese.filter(
+      apiOsuUser => !notInThese.find(osuUser => osuUser.osuUserId === apiOsuUser.userId.toString())
+    );
+    const createdOsuUsers: OsuUser[] = toBeCreated.map(apiOsuUser =>
+      this.createOsuUser({ username: apiOsuUser.username, userId: apiOsuUser.userId, countryCode: apiOsuUser.country })
+    );
+    const withNewUsersAdded: OsuUser[] = createdOsuUsers.map(osuUser => {
+      osuUser.user = this.createUser({});
+      return osuUser;
+    });
+    return withNewUsersAdded;
+  }
+
+  private createOsuUser(props: { username: string; userId: number; countryCode: number }): OsuUser {
+    const osuUser = new OsuUser();
+    osuUser.osuUserId = props.userId.toString();
+    osuUser.osuUsername = props.username;
+    osuUser.countryCode = props.countryCode.toString();
+    return osuUser;
+  }
+
+  private createUser(props: {}): User {
+    const user = new User();
+    return user;
   }
 }

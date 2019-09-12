@@ -1,16 +1,17 @@
 import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity";
-import { Entity, PrimaryGeneratedColumn, OneToOne, Column, OneToMany, ManyToMany } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, OneToOne, Column, OneToMany, ManyToMany, JoinColumn } from "typeorm";
 import { User } from "./user.entity";
-import { IsInt, IsPositive, Length, IsAlpha } from "class-validator";
+import { IsInt, IsPositive, Length, IsAlpha, ValidateIf } from "class-validator";
 import { PlayerScore } from "../score/player-score.entity";
-import { Team } from "../team/team.entity";
+import { TeamOsuUser } from "../team/team-osu-user.entity";
 
 @Entity("osu_users")
 export class OsuUser extends CreationTimestampedEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne(type => User, user => user.osuUser)
+  @OneToOne(type => User, user => user.osuUser, { cascade: ["insert"] })
+  @JoinColumn()
   user: User;
 
   @IsInt()
@@ -31,13 +32,14 @@ export class OsuUser extends CreationTimestampedEntity {
    * @type string
    * @memberof OsuUser
    */
+  @ValidateIf(osuUser => osuUser.countryCode)
   @Length(2)
   @IsAlpha()
-  @Column({ length: 2 })
+  @Column({ length: 2, nullable: true })
   countryCode: string;
 
-  @ManyToMany(type => Team, team => team.users)
-  teams: Team[];
+  @OneToMany(type => TeamOsuUser, teamOsuUser => teamOsuUser.osuUser)
+  teamOsuUsers: TeamOsuUser[];
 
   @OneToMany(type => PlayerScore, playerScore => playerScore.scoredBy)
   playerScores: PlayerScore[];

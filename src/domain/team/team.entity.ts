@@ -1,9 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToMany, ManyToOne, OneToMany, JoinColumn } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, OneToMany, JoinColumn } from "typeorm";
 import { User } from "../user/user.entity";
 import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity";
 import { IsAlphanumeric, ValidateIf } from "class-validator";
 import { GameTeam } from "./game-team.entity";
-import { OsuUser } from "../user/osu-user.entity";
+import { TeamOsuUser } from "./team-osu-user.entity";
 
 @Entity("teams")
 export class Team extends CreationTimestampedEntity {
@@ -19,8 +19,8 @@ export class Team extends CreationTimestampedEntity {
   @JoinColumn({ name: "created_by_user_id" })
   createdBy: User;
 
-  @ManyToMany(type => OsuUser, osuUser => osuUser.teams)
-  users: OsuUser[];
+  @OneToMany(type => TeamOsuUser, teamOsuUser => teamOsuUser.team)
+  teamOsuUsers: TeamOsuUser[];
 
   @OneToMany(type => GameTeam, gameTeam => gameTeam.team)
   gameTeams: GameTeam[];

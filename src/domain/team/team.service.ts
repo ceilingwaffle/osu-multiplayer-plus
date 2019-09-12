@@ -16,6 +16,8 @@ import { User } from "../user/user.entity";
 import { RequestDto } from "../../requests/dto/request.dto";
 import { Helpers } from "../../utils/helpers";
 import { OsuUserValidationResult } from "../../osu/types/osu-user-validation-result";
+import { ApiOsuUser } from "../../osu/types/api-osu-user";
+import { OsuUser } from "../user/osu-user.entity";
 
 @injectable()
 export class TeamService {
@@ -77,22 +79,23 @@ export class TeamService {
       }
 
       // validate the osu usernames with bancho
+      const apiOsuUsers: (ApiOsuUser | String)[] = [];
       for (const item of osuUsernamesOrIdsOrSeparators) {
-        if (Helpers.isAddTeamCommandSeparator(item)) continue;
-        const valid: OsuUserValidationResult = await this.userService.isValidBanchoOsuUserIdOrUsername(item);
-        if (!valid) {
-          return failurePromise(banchoOsuUserIdIsInvalidFailure(item));
+        if (Helpers.isAddTeamCommandSeparator(item)) {
+          apiOsuUsers.push(item);
+          continue;
         }
+        const valid: OsuUserValidationResult = await this.userService.isValidBanchoOsuUserIdOrUsername(item);
+        if (!valid) return failurePromise(banchoOsuUserIdIsInvalidFailure(item));
+        apiOsuUsers.push(valid.osuUser);
       }
 
       // validate the osu users are not already in a team for this game
-      const teamOsuUsernamesOrIds = this.extractGroupsAroundsSeparators(osuUsernamesOrIdsOrSeparators);
+      const teamsOfApiOsuUsers = this.extractApiOsuUserTeamsBetweenSeparators(apiOsuUsers);
 
       // ! validate the team structure (e.g. does the game require teams to be of a certain size)
       // get/create the osu users
-      //    create the ones that don't exist (Q1)
-      //    save the created ones (Q2)
-      //    select all from db (Q3)
+      const osuUsers: OsuUser[] = await this.userService.getOrCreateAndSaveOsuUsersFromApiResults(teamsOfApiOsuUsers);
 
       // create the team
       // assign a color to the team using ColorPicker
@@ -108,21 +111,21 @@ export class TeamService {
    * e.g. [a,b,|,c,d,|,e,f] --> [[a,b],[c,d],[e,f]]
    *
    * @private
-   * @param {string[]} from
-   * @returns {string[][]}
+   * @param {(ApiOsuUser | String)[]} from
+   * @returns {ApiOsuUser[][]}
    */
-  private extractGroupsAroundsSeparators(from: string[]): string[][] {
+  private extractApiOsuUserTeamsBetweenSeparators(from: (ApiOsuUser | String)[]): ApiOsuUser[][] {
     // TODO: unit test
     const separators: string[] = ["|"];
-    const groups: string[][] = [];
+    const groups: ApiOsuUser[][] = [];
     var i = from.length;
     const copy = from.slice();
     copy.push(separators[0]); // somewhat hacky solution to just add a separator to the beginning to make this work
     const items = copy.reverse();
     while (i--) {
       const item = items[i];
-      if (separators.includes(item) || i === 0) {
-        const team = items.splice(i + 1, items.length - 1 - i).reverse();
+      if ((typeof item === "string" && separators.includes(item)) || i === 0) {
+        const team = items.splice(i + 1, items.length - 1 - i).reverse() as ApiOsuUser[];
         groups.push(team);
         items.splice(i, 1);
       }

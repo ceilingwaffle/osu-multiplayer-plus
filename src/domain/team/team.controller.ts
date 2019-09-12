@@ -89,7 +89,7 @@ export class TeamController {
   private generateTeamsInTeamReportFromTeamEntities(teamEntities: Team[]) {
     const teamsInReport: TeamInTeamReport[] = [];
     for (const team of teamEntities) {
-      teamsInReport.push({ teamId: team.id, teamOsuUsernames: team.users.map(osuUser => osuUser.osuUsername) });
+      teamsInReport.push({ teamId: team.id, teamOsuUsernames: team.teamOsuUsers.map(teamOsuUser => teamOsuUser.osuUser.osuUsername) });
     }
     return teamsInReport;
   }

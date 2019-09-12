@@ -370,9 +370,9 @@ TODO:
                     ☐ act: do the transforming 
                     ☐ assert: MatchResultsReport object 
                 ☐ Input to output steps (API to Report)  @started(19-09-05 11:38)
-                    ☐ input: ApiMultiplayer
-                    ☐ find Game using ApiMultiplayer.multiplayerId
-                    ☐ find/create OsuUser[] using ApiMultiplayer.ApiMatch.ApiPlayerScore.osuUserId
+                    ✔ input: ApiMultiplayer @done(19-09-12 20:08)
+                    ✔ find Game using ApiMultiplayer.multiplayerId @done(19-09-12 20:08)
+                    ✔ find/create OsuUser[] using ApiMultiplayer.ApiMatch.ApiPlayerScore.osuUserId @done(19-09-12 20:08)
                         
                     ☐ find Team using OsuUser[] and Game
                         TeamRepository.findTeamOfOsuUserInGame(osuUser, game)
@@ -387,8 +387,8 @@ TODO:
                 ☐ General idea @created(19-09-06 11:02)
                     ☐ Takes API Multiplayer object
                     ☐ -> UserService
-                        ☐ create/find/update User entities
-                            Update osu username if changed
+                        ✔ create/find/update User entities @done(19-09-12 20:08)
+                        ☐ Update osu username if changed @created(19-09-12 20:08)
                     ☐ -> TeamService
                         ☐ create/find Team entities from users + MP Object
                     ☐ -> ScoringService -> TeamScoreCalculator
