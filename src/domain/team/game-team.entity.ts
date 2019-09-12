@@ -1,4 +1,4 @@
-import { Entity, ManyToOne, Column, OneToMany } from "typeorm";
+import { Entity, ManyToOne, Column, OneToMany, JoinColumn } from "typeorm";
 import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity";
 import { Game } from "../game/game.entity";
 import { Team } from "./team.entity";
@@ -17,9 +17,11 @@ import { GameDefaults } from "../game/game-defaults";
 @Entity("games_teams")
 export class GameTeam extends CreationTimestampedEntity {
   @ManyToOne(type => Team, team => team.gameTeams, { primary: true })
+  @JoinColumn()
   team: Team;
 
   @ManyToOne(type => Game, game => game.gameTeams, { primary: true })
+  @JoinColumn()
   game: Game;
 
   @IsInt()

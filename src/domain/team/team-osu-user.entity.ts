@@ -1,4 +1,4 @@
-import { Entity, Column, ManyToOne } from "typeorm";
+import { Entity, Column, ManyToOne, JoinColumn } from "typeorm";
 import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity";
 import { Team } from "./team.entity";
 import { OsuUser } from "../user/osu-user.entity";
@@ -16,15 +16,19 @@ import { User } from "../user/user.entity";
 @Entity("teams_osu_users")
 export class TeamOsuUser extends CreationTimestampedEntity {
   @ManyToOne(type => Team, { primary: true })
+  @JoinColumn()
   team: Team;
 
   @ManyToOne(type => OsuUser, { primary: true })
+  @JoinColumn()
   osuUser: OsuUser;
 
   @ManyToOne(type => User)
+  @JoinColumn()
   addedBy: User;
 
   @ManyToOne(type => User)
+  @JoinColumn()
   removedBy: User;
 
   @Column()
