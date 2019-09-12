@@ -113,6 +113,8 @@ TODO:
         ☐ Create more logger levels to make it easier to filter certain events @created(19-09-05 08:17)
             Like if we didn't care about classes being instantiated, all the instantiation Logger events could be turned off. 
             Or if we just wanted to see osu API events, we could just enable those.
+        ☐ Can we create a separate log file for each game? @created(19-09-12 13:54)
+            To make it easier to find and analyze the events of indivudual games.
     Pre-launch checklist:
         ☐ Some way of keeping dependencies secure and up-to-date
             Something like: https://dependabot.com/javascript/

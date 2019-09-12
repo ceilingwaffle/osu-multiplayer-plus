@@ -47,49 +47,53 @@ export class TeamService {
     requestingUser: User;
     requestDto: RequestDto;
   }): Promise<Either<Failure<TeamFailure | OsuUserFailure | GameFailure | PermissionsFailure>, Team[]>> {
-    // find the user's most recent game created, or !targetgame
-    const targetGameResult = await this.gameService.getRequestingUserTargetGame({ userId: requestingUser.id });
-    if (targetGameResult.failed()) {
-      Log.methodFailure(this.processAddingNewTeams, this.constructor.name);
-      return failurePromise(targetGameResult.value);
-    }
-    const game = targetGameResult.value;
-
-    // ensure the requesting-user has permission to add a team to the target game
-    const userRole = await this.gameService.getUserRoleForGame(requestingUser.id, game.id);
-    const userPermittedResult = await this.permissions.checkUserPermission({
-      user: requestingUser,
-      userRole: userRole,
-      action: "addteam",
-      resource: "game",
-      entityId: game.id,
-      requesterClientType: requestDto.commType
-    });
-    if (userPermittedResult.failed()) {
-      Log.methodFailure(
-        this.processAddingNewTeams,
-        this.constructor.name,
-        `User ${requestingUser.id} does not have permission to add a team to game ${game.id}.`
-      );
-      return failurePromise(userPermittedResult.value);
-    }
-
-    // validate the osu usernames with bancho
-    for (const item of osuUsernamesOrIdsOrSeparators) {
-      if (Helpers.isAddTeamCommandSeparator(item)) continue;
-      const valid: boolean = await this.userService.isValidBanchoOsuUserIdOrUsername(item);
-      if (!valid) {
-        return failurePromise(banchoOsuUserIdIsInvalidFailure(item));
+    try {
+      // find the user's most recent game created, or !targetgame
+      const targetGameResult = await this.gameService.getRequestingUserTargetGame({ userId: requestingUser.id });
+      if (targetGameResult.failed()) {
+        Log.methodFailure(this.processAddingNewTeams, this.constructor.name);
+        return failurePromise(targetGameResult.value);
       }
+      const game = targetGameResult.value;
+
+      // ensure the requesting-user has permission to add a team to the target game
+      const userRole = await this.gameService.getUserRoleForGame(requestingUser.id, game.id);
+      const userPermittedResult = await this.permissions.checkUserPermission({
+        user: requestingUser,
+        userRole: userRole,
+        action: "addteam",
+        resource: "game",
+        entityId: game.id,
+        requesterClientType: requestDto.commType
+      });
+      if (userPermittedResult.failed()) {
+        Log.methodFailure(
+          this.processAddingNewTeams,
+          this.constructor.name,
+          `User ${requestingUser.id} does not have permission to add a team to game ${game.id}.`
+        );
+        return failurePromise(userPermittedResult.value);
+      }
+
+      // validate the osu usernames with bancho
+      for (const item of osuUsernamesOrIdsOrSeparators) {
+        if (Helpers.isAddTeamCommandSeparator(item)) continue;
+        const valid: boolean = await this.userService.isValidBanchoOsuUserIdOrUsername(item);
+        if (!valid) {
+          return failurePromise(banchoOsuUserIdIsInvalidFailure(item));
+        }
+      }
+
+      // validate the osu users are not already in a team for this game
+      // validate the team structure (e.g. does the game require teams to be of a certain size)
+      // create the osu users
+      // create the team
+      // assign a color to the team using ColorPicker
+      // add the teams to the game
+      throw new Error("TODO: Implement method of TeamService.");
+    } catch (error) {
+      Log.methodError(this.processAddingNewTeams, this.constructor.name, error);
+      throw error;
     }
-
-    // validate the osu users are not already in a team for this game
-    // validate the team structure (e.g. does the game require teams to be of a certain size)
-    // create the osu users
-    // create the team
-    // assign a color to the team using ColorPicker
-
-    // add the teams to the game
-    throw new Error("TODO: Implement method of TeamService.");
   }
 }

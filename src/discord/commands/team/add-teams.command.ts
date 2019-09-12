@@ -9,6 +9,7 @@ import { DiscordRequestDto } from "../../../requests/dto";
 import { AppBaseCommand } from "../app-base-command";
 import { TeamController } from "../../../domain/team/team.controller";
 import { AddTeamDiscordMessageBuilder } from "../../message-builders/team/add-team.discord-message-builder";
+import { CommandHelpers } from "../command-helpers";
 
 export class AddTeamsCommand extends AppBaseCommand {
   @lazyInject(TYPES.TeamController) private teamController: TeamController;
@@ -42,33 +43,37 @@ export class AddTeamsCommand extends AppBaseCommand {
     });
   }
 
-  public async run(
-    message: CommandMessage,
-    args: {
-      teams: string[]; // some items in this array may be separators like "|" or newline
+  public async run(message: CommandMessage): Promise<Message | Message[]> {
+    const { loadingTimer, loadingMessage } = await CommandHelpers.initLoadingMessage("Adding teams...", message);
+
+    try {
+      const requestDto: DiscordRequestDto = {
+        commType: "discord",
+        authorId: message.author.id,
+        originChannelId: message.channel.id
+      };
+
+      const createTeamResponse = await this.teamController.create({
+        teamDto: {
+          osuUsernamesOrIdsOrSeparators: CommandHelpers.createArgsArrayWithSeparators(message.argString, "|")
+        },
+        requestDto: requestDto
+      });
+
+      let toBeSent: RichEmbed;
+      if (!createTeamResponse || !createTeamResponse.success) {
+        // game was not created
+        toBeSent = new ErrorDiscordMessageBuilder().from(createTeamResponse, this).buildDiscordMessage(message);
+        return await message.embed(toBeSent);
+      }
+
+      toBeSent = new AddTeamDiscordMessageBuilder().from(createTeamResponse, this).buildDiscordMessage(message);
+      return await message.embed(toBeSent);
+    } catch (error) {
+      throw error;
+    } finally {
+      await CommandHelpers.clearLoadingTimer(loadingTimer);
+      loadingMessage instanceof Message ? loadingMessage.delete() : loadingMessage.forEach(m => m.delete());
     }
-  ): Promise<Message | Message[]> {
-    const requestDto: DiscordRequestDto = {
-      commType: "discord",
-      authorId: message.author.id,
-      originChannelId: message.channel.id
-    };
-
-    const createTeamResponse = await this.teamController.create({
-      teamDto: {
-        osuUsernamesOrIdsOrSeparators: args.teams
-      },
-      requestDto: requestDto
-    });
-
-    let toBeSent: RichEmbed;
-    if (!createTeamResponse || !createTeamResponse.success) {
-      // game was not created
-      toBeSent = new ErrorDiscordMessageBuilder().from(createTeamResponse, this).buildDiscordMessage(message);
-      return message.embed(toBeSent);
-    }
-
-    toBeSent = new AddTeamDiscordMessageBuilder().from(createTeamResponse, this).buildDiscordMessage(message);
-    return message.embed(toBeSent);
   }
 }
