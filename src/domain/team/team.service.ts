@@ -15,6 +15,7 @@ import { ColorPicker } from "../../utils/color-picker";
 import { User } from "../user/user.entity";
 import { RequestDto } from "../../requests/dto/request.dto";
 import { Helpers } from "../../utils/helpers";
+import { OsuUserValidationResult } from "../../osu/types/osu-user-validation-result";
 
 @injectable()
 export class TeamService {
@@ -78,7 +79,7 @@ export class TeamService {
       // validate the osu usernames with bancho
       for (const item of osuUsernamesOrIdsOrSeparators) {
         if (Helpers.isAddTeamCommandSeparator(item)) continue;
-        const valid: boolean = await this.userService.isValidBanchoOsuUserIdOrUsername(item);
+        const valid: OsuUserValidationResult = await this.userService.isValidBanchoOsuUserIdOrUsername(item);
         if (!valid) {
           return failurePromise(banchoOsuUserIdIsInvalidFailure(item));
         }
@@ -87,8 +88,12 @@ export class TeamService {
       // validate the osu users are not already in a team for this game
       const teamOsuUsernamesOrIds = this.extractGroupsAroundsSeparators(osuUsernamesOrIdsOrSeparators);
 
-      // validate the team structure (e.g. does the game require teams to be of a certain size)
-      // create the osu users
+      // ! validate the team structure (e.g. does the game require teams to be of a certain size)
+      // get/create the osu users
+      //    create the ones that don't exist (Q1)
+      //    save the created ones (Q2)
+      //    select all from db (Q3)
+
       // create the team
       // assign a color to the team using ColorPicker
       // add the teams to the game

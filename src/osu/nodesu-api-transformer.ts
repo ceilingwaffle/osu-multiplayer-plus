@@ -1,12 +1,26 @@
-import { Multi as NodesuMulti, MultiTeamTypeType as NodesuMultiTeamTypeType, MultiTeamType as NodesuMultiTeamType } from "nodesu";
+import {
+  User as NodesuUser,
+  Multi as NodesuMulti,
+  MultiTeamTypeType as NodesuMultiTeamTypeType,
+  MultiTeamType as NodesuMultiTeamType
+} from "nodesu";
 import { Log } from "../utils/Log";
 import { ApiMultiplayer } from "./types/api-multiplayer";
 import { ApiMatch } from "./types/api-match";
 import { ApiPlayerScore } from "./types/api-player-score";
 import { ApiTeamMode } from "./types/api-team-mode";
 import { ApiMatchEvent } from "./types/api-match-event";
+import { ApiOsuUser } from "./types/api-osu-user";
 
 export class NodesuApiTransformer {
+  static transformOsuUser(result: NodesuUser): ApiOsuUser {
+    return {
+      userId: result.userId,
+      username: result.username,
+      country: result.country
+    };
+  }
+
   /**
    * Transforms a Nodesu Multi object into our own custom type.
    *

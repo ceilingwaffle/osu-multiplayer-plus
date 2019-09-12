@@ -5,6 +5,7 @@ import { ApiMultiplayer } from "./types/api-multiplayer";
 import { NodesuApiTransformer } from "./nodesu-api-transformer";
 import Bottleneck from "bottleneck";
 import { Helpers } from "../utils/helpers";
+import { OsuUserValidationResult } from "./types/osu-user-validation-result";
 
 /**
  * Singleton
@@ -118,7 +119,7 @@ export class NodesuApiFetcher implements IOsuApiFetcher {
     }
   }
 
-  async isValidOsuUsername(username: string): Promise<boolean> {
+  async isValidOsuUsername(username: string): Promise<OsuUserValidationResult> {
     try {
       Log.debug(`Validating osu username ${username} using osu API...`);
 
@@ -131,7 +132,7 @@ export class NodesuApiFetcher implements IOsuApiFetcher {
           this.constructor.name,
           `Validation failed for Bancho osu! username ${username}: User object not instanceof Nodesu.User`
         );
-        return false;
+        return { isValid: false };
       }
 
       if (!user.username) {
@@ -140,23 +141,26 @@ export class NodesuApiFetcher implements IOsuApiFetcher {
           this.constructor.name,
           `Validation failed for Bancho osu! username ${username}: User object has no username. This should never happen.`
         );
-        return false;
+        return { isValid: false };
       }
 
       Log.methodSuccess(this.isValidOsuUsername, this.constructor.name);
-      return true;
+      return {
+        isValid: true,
+        osuUser: NodesuApiTransformer.transformOsuUser(user)
+      };
     } catch (error) {
       Log.methodError(this.isValidOsuUsername, this.constructor.name, error);
       throw error;
     }
   }
 
-  async isValidOsuUserId(banchoUserId: string): Promise<boolean> {
+  async isValidOsuUserId(banchoUserId: string): Promise<OsuUserValidationResult> {
     try {
       Log.debug(`Validating osu user ID ${banchoUserId} using osu API...`);
       if (isNaN(Number(banchoUserId))) {
         Log.warn(`Validation failed - osu user ID ${banchoUserId} is NaN.`);
-        return false;
+        return { isValid: false };
       }
 
       if (!Helpers.looksLikeAnOsuApiUserId(banchoUserId)) {
@@ -165,7 +169,7 @@ export class NodesuApiFetcher implements IOsuApiFetcher {
           this.constructor.name,
           `osu! user ID ${banchoUserId} doesn't look like a valid osu! user ID.`
         );
-        return false;
+        return { isValid: false };
       }
 
       const user: object | Nodesu.User = await this.api.user.get(banchoUserId, null, null, Nodesu.LookupType.id);
@@ -177,7 +181,7 @@ export class NodesuApiFetcher implements IOsuApiFetcher {
           this.constructor.name,
           `Validation failed for Bancho osu! user ID ${banchoUserId}: user not instanceof Nodesu.User`
         );
-        return false;
+        return { isValid: false };
       }
 
       if (!user.username) {
@@ -186,11 +190,14 @@ export class NodesuApiFetcher implements IOsuApiFetcher {
           this.constructor.name,
           `Validation failed for Bancho osu user ID ${banchoUserId}: user has no username. This should never happen.`
         );
-        return false;
+        return { isValid: false };
       }
 
       Log.methodSuccess(this.isValidOsuUserId, this.constructor.name);
-      return true;
+      return {
+        isValid: true,
+        osuUser: NodesuApiTransformer.transformOsuUser(user)
+      };
     } catch (error) {
       Log.methodError(this.isValidOsuUserId, this.constructor.name, error);
       throw error;

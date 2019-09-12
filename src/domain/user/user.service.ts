@@ -21,6 +21,7 @@ import { userUpdateFailure } from "./user.failure";
 import { IOsuApiFetcher } from "../../osu/interfaces/osu-api-fetcher";
 import { NodesuApiFetcher } from "../../osu/nodesu-api-fetcher";
 import { Helpers } from "../../utils/helpers";
+import { OsuUserValidationResult } from "../../osu/types/osu-user-validation-result";
 
 @injectable()
 export class UserService {
@@ -146,10 +147,10 @@ export class UserService {
    * @param {string} usernameOrId
    * @returns {Promise<boolean>}
    */
-  async isValidBanchoOsuUserIdOrUsername(usernameOrId: string): Promise<boolean> {
+  async isValidBanchoOsuUserIdOrUsername(usernameOrId: string): Promise<OsuUserValidationResult> {
     try {
       if (!usernameOrId.length) {
-        return false;
+        return { isValid: false };
       } else if (Helpers.looksLikeAnOsuApiUserId(usernameOrId)) {
         return await this.osuApi.isValidOsuUserId(usernameOrId);
       } else {
