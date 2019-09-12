@@ -85,6 +85,8 @@ export class TeamService {
       }
 
       // validate the osu users are not already in a team for this game
+      const teamOsuUsernamesOrIds = this.extractGroupsAroundsSeparators(osuUsernamesOrIdsOrSeparators);
+
       // validate the team structure (e.g. does the game require teams to be of a certain size)
       // create the osu users
       // create the team
@@ -95,5 +97,31 @@ export class TeamService {
       Log.methodError(this.processAddingNewTeams, this.constructor.name, error);
       throw error;
     }
+  }
+
+  /**
+   * e.g. [a,b,|,c,d,|,e,f] --> [[a,b],[c,d],[e,f]]
+   *
+   * @private
+   * @param {string[]} from
+   * @returns {string[][]}
+   */
+  private extractGroupsAroundsSeparators(from: string[]): string[][] {
+    // TODO: unit test
+    const separators: string[] = ["|"];
+    const groups: string[][] = [];
+    var i = from.length;
+    const copy = from.slice();
+    copy.push(separators[0]); // somewhat hacky solution to just add a separator to the beginning to make this work
+    const items = copy.reverse();
+    while (i--) {
+      const item = items[i];
+      if (separators.includes(item) || i === 0) {
+        const team = items.splice(i + 1, items.length - 1 - i).reverse();
+        groups.push(team);
+        items.splice(i, 1);
+      }
+    }
+    return groups;
   }
 }
