@@ -34,4 +34,8 @@ export class Helpers {
     const separators = ["|"];
     return separators.includes(character);
   }
+
+  static flatten2Dto1D<T>(array: T[][]): T[] {
+    return Array<T>().concat(...array);
+  }
 }

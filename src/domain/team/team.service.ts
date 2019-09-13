@@ -2,7 +2,7 @@ import { Either, failurePromise } from "../../utils/Either";
 import { Failure } from "../../utils/Failure";
 import { OsuUserFailure, banchoOsuUserIdIsInvalidFailure } from "../user/user.failure";
 import { GameFailure } from "../game/game.failure";
-import { TeamFailure } from "./team.failure";
+import { TeamFailure, osuUsersAlreadyInTeamForThisGameFailure } from "./team.failure";
 import { Team } from "./team.entity";
 import { PermissionsFailure } from "../../permissions/permissions.failure";
 import { injectable, inject } from "inversify";
@@ -18,9 +18,17 @@ import { Helpers } from "../../utils/helpers";
 import { OsuUserValidationResult } from "../../osu/types/osu-user-validation-result";
 import { ApiOsuUser } from "../../osu/types/api-osu-user";
 import { OsuUser } from "../user/osu-user.entity";
+import { Game } from "../game/game.entity";
+import { OsuUserRepository } from "../user/osu-user.repository";
+import { getCustomRepository } from "typeorm";
+import { TeamOsuUser } from "./team-osu-user.entity";
+import { TeamRepository } from "./team.repository";
 
 @injectable()
 export class TeamService {
+  private readonly osuUserRepository: OsuUserRepository = getCustomRepository(OsuUserRepository);
+  private readonly teamRepository: TeamRepository = getCustomRepository(TeamRepository);
+
   constructor(
     @inject(TYPES.UserService) protected userService: UserService,
     @inject(TYPES.GameService) protected gameService: GameService,
@@ -57,7 +65,7 @@ export class TeamService {
         Log.methodFailure(this.processAddingNewTeams, this.constructor.name);
         return failurePromise(targetGameResult.value);
       }
-      const game = targetGameResult.value;
+      const game: Game = targetGameResult.value;
 
       // ensure the requesting-user has permission to add a team to the target game
       const userRole = await this.gameService.getUserRoleForGame(requestingUser.id, game.id);
@@ -85,26 +93,78 @@ export class TeamService {
           apiOsuUsers.push(item);
           continue;
         }
+        // TODO: Find solution to potential DoS if a malicious user is trying to add teams too fast.
+        // Unfortunately, osu API v1 only supports requesting users one at a time, so we have to fire this multiple times.
+        // And since the osu user may have changed their username, and because the add-team request may contain usernames,
+        // we need to check these with the osu API (fetching the osu user ids of those usernames)
+        // instead of querying our own database for previously-added users.
         const valid: OsuUserValidationResult = await this.userService.isValidBanchoOsuUserIdOrUsername(item);
         if (!valid) return failurePromise(banchoOsuUserIdIsInvalidFailure(item));
         apiOsuUsers.push(valid.osuUser);
       }
 
-      // validate the osu users are not already in a team for this game
-      const teamsOfApiOsuUsers = this.extractApiOsuUserTeamsBetweenSeparators(apiOsuUsers);
-
       // ! validate the team structure (e.g. does the game require teams to be of a certain size)
+
+      const teamsOfApiOsuUsers = this.extractApiOsuUserTeamsBetweenSeparators(apiOsuUsers);
+      // ensure no osu users have already been added to a team for this game
+      const osuUsersInGame = await this.getOsuUsersInGameFromApiUserResults(game, Helpers.flatten2Dto1D<ApiOsuUser>(teamsOfApiOsuUsers));
+      if (osuUsersInGame.length) {
+        const osuUsernames = osuUsersInGame.map(osuUser => osuUser.osuUsername);
+        return failurePromise(osuUsersAlreadyInTeamForThisGameFailure({ osuUsernames, gameId: game.id }));
+      }
+
       // get/create the osu users
       const osuUsers: OsuUser[] = await this.userService.getOrCreateAndSaveOsuUsersFromApiResults(teamsOfApiOsuUsers);
 
-      // create the team
-      // assign a color to the team using ColorPicker
+      // create the teams
+      const osuBanchoUserIdsGroupedInTeams: number[][] = teamsOfApiOsuUsers.map(t => t.map(u => u.userId));
+      const unsavedTeams: Team[] = this.createTeams(osuUsers, osuBanchoUserIdsGroupedInTeams);
+      // save the teams
+      const savedTeams = await this.teamRepository.save(unsavedTeams);
+      // reload the teams
+      const reloadedTeams = await this.teamRepository.findByIds(savedTeams.map(savedTeam => savedTeam.id), {
+        // relations: ["teamOsuUsers", "gameTeams"]
+      });
+
       // add the teams to the game
+      //    assign a color to the team using ColorPicker
+
       throw new Error("TODO: Implement method of TeamService.");
     } catch (error) {
       Log.methodError(this.processAddingNewTeams, this.constructor.name, error);
       throw error;
     }
+  }
+
+  private createTeams(osuUsers: OsuUser[], osuBanchoUserIdsGroupedInTeams: number[][]): Team[] {
+    const unsavedTeams: Team[] = [];
+    for (const userIdGroup of osuBanchoUserIdsGroupedInTeams) {
+      const team = new Team();
+      for (const userId of userIdGroup) {
+        const teamOsuUser = new TeamOsuUser();
+        teamOsuUser.osuUser = osuUsers.find(osuUser => osuUser.osuUserId === userId.toString());
+        if (!teamOsuUser.osuUser) Log.warn(`No OsuUser created for bancho osu user id ${userId}. This should never happen.`);
+        if (!team.teamOsuUsers) team.teamOsuUsers = [];
+        team.teamOsuUsers.push(teamOsuUser);
+      }
+      unsavedTeams.push(team);
+    }
+    return unsavedTeams;
+  }
+
+  /**
+   * Returns a list of OsuUsers in the list of API Osu Users added to a team in the given game.
+   *
+   * @private
+   * @param {Game} game
+   * @param {ApiOsuUser[]} apiOsuUsers
+   * @returns {Promise<OsuUser[]>}
+   */
+  private async getOsuUsersInGameFromApiUserResults(game: Game, apiOsuUsers: ApiOsuUser[]): Promise<OsuUser[]> {
+    const osuUsersInGame = await this.osuUserRepository.findOsuUsersInGame(game.id);
+    // compare by Bancho osu user ID
+    const results = osuUsersInGame.filter(osuUser => apiOsuUsers.filter(apiOsuUser => apiOsuUser.userId.toString() === osuUser.osuUserId));
+    return results;
   }
 
   /**

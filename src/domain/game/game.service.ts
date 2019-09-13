@@ -31,7 +31,6 @@ import { IOsuLobbyScanner } from "../../osu/interfaces/osu-lobby-scanner";
 import { CommunicationClientType } from "../../communication-types";
 import { PermissionsFailure } from "../../permissions/permissions.failure";
 import { Permissions } from "../../permissions/permissions";
-import { provide } from "inversify-binding-decorators";
 import { UserRepository } from "../user/user.repository";
 
 @injectable()

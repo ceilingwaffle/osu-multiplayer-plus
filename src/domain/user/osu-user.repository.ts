@@ -21,4 +21,21 @@ export class OsuUserRepository extends Repository<OsuUser> {
       throw error;
     }
   }
+
+  findOsuUsersInGame(gameId: number): Promise<OsuUser[]> {
+    return this.createQueryBuilder("osuUser")
+      .leftJoinAndSelect("osuUser.teamOsuUsers", "teamOsuUsers")
+      .leftJoinAndSelect("teamOsuUsers.team", "team")
+      .leftJoinAndSelect("team.gameTeams", "gameTeams")
+      .leftJoinAndSelect("gameTeams.game", "game")
+      .where("game.id = :gameId", { gameId: gameId })
+      .getMany();
+    // return this.createQueryBuilder("game")
+    //   .leftJoinAndSelect("game.gameTeams", "gameTeams")
+    //   .leftJoinAndSelect("gameTeams.team", "team")
+    //   .leftJoinAndSelect("team.teamOsuUsers", "teamOsuUsers")
+    //   .leftJoinAndSelect("teamOsuUsers.osuUser", "osuUser")
+    //   .where("game.id := gameId", { gameId: gameId })
+    //   .getMany();
+  }
 }

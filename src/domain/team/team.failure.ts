@@ -12,9 +12,19 @@ export const invalidTeamSizeFailure = (validationErrors: ValidationError[], reas
   reason: reason || "One or more teams does not contain the required number of players for this game."
 });
 
-export const osuUsersAlreadyInTeamForThisGameFailure = (
-  osuUsernamesOrIds: string[]
-): Failure<TeamFailure.OsuUsersAlreadyInTeamForThisGame> => ({
+export const osuUsersAlreadyInTeamForThisGameFailure = ({
+  osuUsernames,
+  gameId
+}: {
+  osuUsernames: string[];
+  gameId: number;
+}): Failure<TeamFailure.OsuUsersAlreadyInTeamForThisGame> => ({
   type: TeamFailure.OsuUsersAlreadyInTeamForThisGame,
-  reason: `osu! users ${osuUsernamesOrIds.join(", ")} have already been added to a team for this game.`
+  reason: (() => {
+    if (osuUsernames.length === 1) {
+      return `osu! user ${osuUsernames[0]} has already been added to a team in game ${gameId}.`;
+    } else {
+      return `osu! users ${osuUsernames.join(", ")} have already been added to a team in game ${gameId}.`;
+    }
+  })()
 });

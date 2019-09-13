@@ -2,6 +2,7 @@ import { Repository, EntityRepository } from "typeorm";
 import { User } from "./user.entity";
 import { Game } from "../game/game.entity";
 import { Log } from "../../utils/Log";
+import { OsuUser } from "./osu-user.entity";
 
 @EntityRepository(User)
 export class UserRepository extends Repository<User> {

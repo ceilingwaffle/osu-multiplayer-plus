@@ -181,7 +181,7 @@ export class UserService {
   ): Promise<OsuUser[]> {
     try {
       //    get the existing osu users (Q1)
-      const apiOsuUsers: ApiOsuUser[] = Array<ApiOsuUser>().concat(...teamsOfApiOsuUsers); // flattens the 2D array
+      const apiOsuUsers: ApiOsuUser[] = Helpers.flatten2Dto1D<ApiOsuUser>(teamsOfApiOsuUsers); // flattens the 2D array
       const banchoUserIds: number[] = apiOsuUsers.map(u => u.userId);
       const existingOsuUsers: OsuUser[] = await this.osuUserRepository.findByBanchoUserIds(banchoUserIds);
       //    create the osu users that don't exist
@@ -189,6 +189,7 @@ export class UserService {
       //    save the created osu users (Q2)
       const savedOsuUsers: OsuUser[] = await this.osuUserRepository.save(newUnsavedOsuUsers);
       //    select all from db (Q3)
+      // TODO: Test to see if we actually need union here. SQL might just ignore duplicate ids.
       const allOsuUserIds = union(existingOsuUsers.map(u => u.id), savedOsuUsers.map(u => u.id));
       const reloadedOsuUsers: OsuUser[] = await this.osuUserRepository.findByIds(allOsuUserIds, {
         relations: returnWithRelations
