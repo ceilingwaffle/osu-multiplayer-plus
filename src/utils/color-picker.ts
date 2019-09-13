@@ -115,7 +115,7 @@ export class ColorPicker {
     // If color not found in list, or if the color is the last color in the list
     if (colorIndex === -1 || nextIndex > ColorPicker.colors.length - 1) {
       // If all colors have been used, generate a random one. Potential for collisions, but only when huge numbers of teams in a game.
-      const hex = ColorPicker.generateUnlistedHex(after);
+      const hex = ColorPicker.generateUnlistedHex(ColorPicker.colors[colorIndex].value.substring(1));
       return { name: hex, value: `#${hex}` };
     }
 
