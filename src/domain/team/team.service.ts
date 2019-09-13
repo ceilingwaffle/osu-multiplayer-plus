@@ -128,7 +128,7 @@ export class TeamService {
       });
       if (unsavedNewTeams.length) {
         const savedNewTeams = await this.teamRepository.save(unsavedNewTeams);
-        const reloadedNewTeams = await this.teamRepository.findByIds(savedNewTeams.map(savedTeam => savedTeam.id));
+        const reloadedNewTeams = await this.teamRepository.findByIdsWithRelations(savedNewTeams.map(savedTeam => savedTeam.id));
         teamsToBeAddedToGame = teamsToBeAddedToGame.concat(reloadedNewTeams);
       }
 
