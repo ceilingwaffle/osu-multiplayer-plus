@@ -38,4 +38,10 @@ export class Helpers {
   static flatten2Dto1D<T>(array: T[][]): T[] {
     return Array<T>().concat(...array);
   }
+
+  static alphaSort(a: string, b: string) {
+    if (a.toLowerCase() < b.toLowerCase()) return -1;
+    if (a.toLowerCase() > b.toLowerCase()) return 1;
+    return 0;
+  }
 }

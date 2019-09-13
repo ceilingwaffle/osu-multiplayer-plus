@@ -115,18 +115,24 @@ export class TeamService {
 
       // get/create the osu users
       const osuUsers: OsuUser[] = await this.userService.getOrCreateAndSaveOsuUsersFromApiResults(teamsOfApiOsuUsers);
-
+      // get any existing teams made up of exactly the same group of users
+      let osuBanchoUserIdsGroupedInTeams: number[][] = teamsOfApiOsuUsers.map(t => t.map(u => u.userId));
+      const existingTeams: Team[] = await this.teamRepository.findTeamsOfBanchoOsuUserIdGroups(osuBanchoUserIdsGroupedInTeams);
       // create the teams
-      const osuBanchoUserIdsGroupedInTeams: number[][] = teamsOfApiOsuUsers.map(t => t.map(u => u.userId));
-      const unsavedTeams: Team[] = this.createTeams(osuUsers, osuBanchoUserIdsGroupedInTeams);
-      // save the teams
-      const savedTeams = await this.teamRepository.save(unsavedTeams);
-      // reload the teams
-      const reloadedTeams = await this.teamRepository.findByIds(savedTeams.map(savedTeam => savedTeam.id), {
-        // relations: ["teamOsuUsers", "gameTeams"]
+      let teamsToBeAddedToGame: Team[] = [].concat(existingTeams);
+      const unsavedNewTeams: Team[] = this.createTeamsIfNew({
+        osuUsers,
+        osuBanchoUserIdsGroupedInTeams,
+        existingTeams,
+        addedBy: requestingUser
       });
+      if (unsavedNewTeams.length) {
+        const savedNewTeams = await this.teamRepository.save(unsavedNewTeams);
+        const reloadedNewTeams = await this.teamRepository.findByIds(savedNewTeams.map(savedTeam => savedTeam.id));
+        teamsToBeAddedToGame = teamsToBeAddedToGame.concat(reloadedNewTeams);
+      }
 
-      // add the teams to the game
+      // add the teams to the game (if not already added)
       //    assign a color to the team using ColorPicker
 
       throw new Error("TODO: Implement method of TeamService.");
@@ -134,22 +140,6 @@ export class TeamService {
       Log.methodError(this.processAddingNewTeams, this.constructor.name, error);
       throw error;
     }
-  }
-
-  private createTeams(osuUsers: OsuUser[], osuBanchoUserIdsGroupedInTeams: number[][]): Team[] {
-    const unsavedTeams: Team[] = [];
-    for (const userIdGroup of osuBanchoUserIdsGroupedInTeams) {
-      const team = new Team();
-      for (const userId of userIdGroup) {
-        const teamOsuUser = new TeamOsuUser();
-        teamOsuUser.osuUser = osuUsers.find(osuUser => osuUser.osuUserId === userId.toString());
-        if (!teamOsuUser.osuUser) Log.warn(`No OsuUser created for bancho osu user id ${userId}. This should never happen.`);
-        if (!team.teamOsuUsers) team.teamOsuUsers = [];
-        team.teamOsuUsers.push(teamOsuUser);
-      }
-      unsavedTeams.push(team);
-    }
-    return unsavedTeams;
   }
 
   /**
@@ -191,5 +181,108 @@ export class TeamService {
       }
     }
     return groups;
+  }
+
+  private createTeamsIfNew({
+    osuUsers,
+    osuBanchoUserIdsGroupedInTeams,
+    existingTeams,
+    addedBy
+  }: {
+    osuUsers: OsuUser[];
+    osuBanchoUserIdsGroupedInTeams: number[][];
+    existingTeams: Team[];
+    addedBy: User;
+  }): Team[] {
+    const createdTeams: Team[] = [];
+    for (let i = 0; i < osuBanchoUserIdsGroupedInTeams.length; i++) {
+      const userIdGroup = osuBanchoUserIdsGroupedInTeams[i];
+      const userIdGroupSorted = userIdGroup.sort((a, b) => Helpers.alphaSort(a.toString(), b.toString()));
+      const newTeam = this.createTeamIfNew({
+        userIdGroupSorted,
+        osuUsers,
+        doNotCreateIfInTeams: [].concat(existingTeams, createdTeams),
+        addedBy
+      });
+      if (newTeam) createdTeams.push(newTeam);
+    }
+    return createdTeams;
+  }
+
+  /**
+   * Create and add team to unsavedTeams if it doesn't already exist in unsavedTeams.
+   *
+   * @private
+   * @param {number[]} userIdGroupSorted
+   * @param {OsuUser[]} osuUsers
+   * @param {Team[]} doNotCreateIfInTeams
+   * @param {User} addedBy
+   */
+  private createTeamIfNew({
+    userIdGroupSorted,
+    osuUsers,
+    doNotCreateIfInTeams,
+    addedBy
+  }: {
+    userIdGroupSorted: number[];
+    osuUsers: OsuUser[];
+    doNotCreateIfInTeams: Team[];
+    addedBy: User;
+  }) {
+    // search for teams matching the user ID group
+    let teamFound = false;
+    ustLoop: for (const ti of doNotCreateIfInTeams) {
+      const thisTeamUidsSorted = ti.teamOsuUsers.map(tou => tou.osuUser.osuUserId).sort(Helpers.alphaSort);
+      if (thisTeamUidsSorted.length !== userIdGroupSorted.length) {
+        continue ustLoop;
+      }
+      let idsMatchingThisTeam = 0;
+      for (let i = 0; i < thisTeamUidsSorted.length; i++) {
+        const teamUid = thisTeamUidsSorted[i];
+        const groupUid = userIdGroupSorted[i];
+        if (teamUid === groupUid.toString()) {
+          idsMatchingThisTeam++;
+        }
+        if (idsMatchingThisTeam === thisTeamUidsSorted.length) {
+          teamFound = true;
+          break ustLoop;
+        }
+      }
+    }
+    if (!teamFound) {
+      const newTeam = this.createTeamFromOsuUsers({ banchoOsuUserIdGroup: userIdGroupSorted, osuUsers, addedBy });
+      return newTeam;
+    }
+  }
+
+  /**
+   * Creates and returns a team consisting of OsuUsers matching the bancho osu user ids in banchoOsuUserIdGroup.
+   *
+   * @private
+   * @param {number[]} banchoOsuUserIdGroup
+   * @param {OsuUser[]} osuUsers
+   * @param {User} addedBy
+   * @returns
+   */
+  private createTeamFromOsuUsers({
+    banchoOsuUserIdGroup,
+    osuUsers,
+    addedBy
+  }: {
+    banchoOsuUserIdGroup: number[];
+    osuUsers: OsuUser[];
+    addedBy: User;
+  }) {
+    const team = new Team();
+    for (const userId of banchoOsuUserIdGroup) {
+      const teamOsuUser = new TeamOsuUser();
+      teamOsuUser.osuUser = osuUsers.find(osuUser => osuUser.osuUserId === userId.toString());
+      teamOsuUser.team = team;
+      teamOsuUser.addedBy = addedBy;
+      if (!teamOsuUser.osuUser) Log.warn(`No OsuUser created for bancho osu user id ${userId}. This should never happen.`);
+      if (!team.teamOsuUsers) team.teamOsuUsers = [];
+      team.teamOsuUsers.push(teamOsuUser);
+    }
+    return team;
   }
 }

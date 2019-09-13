@@ -27,10 +27,10 @@ export class TeamOsuUser extends CreationTimestampedEntity {
   @JoinColumn()
   addedBy: User;
 
+  @Column({ nullable: true })
+  removedAt: number;
+
   @ManyToOne(type => User)
   @JoinColumn()
   removedBy: User;
-
-  @Column()
-  removedAt: number;
 }
