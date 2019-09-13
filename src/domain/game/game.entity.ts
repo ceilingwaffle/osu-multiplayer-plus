@@ -50,7 +50,7 @@ export class Game extends CreationTimestampedEntity {
   @OneToMany(type => UserGameRole, userGameRole => userGameRole.game, { nullable: true })
   userGameRoles: UserGameRole[];
 
-  @OneToMany(type => GameTeam, gameTeam => gameTeam.game)
+  @OneToMany(type => GameTeam, gameTeam => gameTeam.game, { cascade: ["insert"] })
   gameTeams: GameTeam[];
 
   @ManyToOne(type => Realm)

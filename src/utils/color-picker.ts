@@ -103,14 +103,14 @@ export class ColorPicker {
    * or a new randomly generated color if the "after" color is the last color, or if the "after" color does not exist in the list of colors.
    *
    * @static
-   * @param {string} after Color name (e.g. "red")
+   * @param {number} afterColorNumber Color number, starting at 1 (the first color in the colors array)
    * @returns {Color} The color in the colors list, listed after the given "after" color, or a new randomly generate color.
    */
-  static getNext(after?: string): Color {
+  static getNext(afterColorNumber?: number): Color {
     // TODO: unit test
-    if (!after) return ColorPicker.colors[0];
+    if (!afterColorNumber || afterColorNumber < 1) return ColorPicker.colors[0];
     // Find "after" color in list
-    const colorIndex = ColorPicker.colors.findIndex(c => c.name === after);
+    const colorIndex = afterColorNumber - 1;
     const nextIndex = colorIndex + 1;
     // If color not found in list, or if the color is the last color in the list
     if (colorIndex === -1 || nextIndex > ColorPicker.colors.length - 1) {

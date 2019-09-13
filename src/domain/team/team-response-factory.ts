@@ -15,11 +15,12 @@ export class TeamResponseFactory extends AbstractResponseFactory<Team[]> {
   }
 
   getAddedBy(): UserReportProperties {
-    return this.getUserReportPropertiesForUser(this.subject[0].createdBy);
+    // TODO: The subject should probably be GameTeam, not Team, since we want info about the team being added to the latest game
+    return this.getUserReportPropertiesForUser(this.subject[0].gameTeams[0].addedBy);
   }
 
   getAddedAgoText(): string {
-    return this.getTimeAgoTextForTime(this.subject[0].createdAt);
+    return this.getTimeAgoTextForTime(this.subject[0].gameTeams[0].createdAt);
   }
 
   getGameId(): number {

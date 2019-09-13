@@ -1,4 +1,4 @@
-import { Entity, ManyToOne, Column, OneToMany, JoinColumn } from "typeorm";
+import { Entity, ManyToOne, Column, OneToMany, JoinColumn, PrimaryGeneratedColumn, Generated } from "typeorm";
 import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity";
 import { Game } from "../game/game.entity";
 import { Team } from "./team.entity";
@@ -16,13 +16,21 @@ import { GameDefaults } from "../game/game-defaults";
  */
 @Entity("games_teams")
 export class GameTeam extends CreationTimestampedEntity {
-  @ManyToOne(type => Team, team => team.gameTeams, { primary: true })
+  @Generated()
+  id: number;
+
+  @ManyToOne(type => Team, team => team.gameTeams, { primary: true, cascade: ["insert"] })
   @JoinColumn()
   team: Team;
 
   @ManyToOne(type => Game, game => game.gameTeams, { primary: true })
   @JoinColumn()
   game: Game;
+
+  @IsInt()
+  @IsPositive()
+  @Column()
+  teamNumber: number;
 
   @IsInt()
   @IsPositive()
@@ -34,11 +42,11 @@ export class GameTeam extends CreationTimestampedEntity {
   currentLives: number;
 
   @IsString()
-  @Column({ unique: true })
+  @Column()
   colorName: string;
 
   @IsHexColor()
-  @Column({ unique: true })
+  @Column()
   colorValue: string;
 
   @ManyToOne(type => User)

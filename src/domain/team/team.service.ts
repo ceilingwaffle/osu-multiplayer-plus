@@ -23,11 +23,15 @@ import { OsuUserRepository } from "../user/osu-user.repository";
 import { getCustomRepository } from "typeorm";
 import { TeamOsuUser } from "./team-osu-user.entity";
 import { TeamRepository } from "./team.repository";
+import { GameRepository } from "../game/game.repository";
+import { GameTeam } from "./game-team.entity";
+import { successPromise } from "../../utils/either";
 
 @injectable()
 export class TeamService {
   private readonly osuUserRepository: OsuUserRepository = getCustomRepository(OsuUserRepository);
   private readonly teamRepository: TeamRepository = getCustomRepository(TeamRepository);
+  private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
 
   constructor(
     @inject(TYPES.UserService) protected userService: UserService,
@@ -60,12 +64,19 @@ export class TeamService {
   }): Promise<Either<Failure<TeamFailure | OsuUserFailure | GameFailure | PermissionsFailure>, Team[]>> {
     try {
       // find the user's most recent game created, or !targetgame
-      const targetGameResult = await this.gameService.getRequestingUserTargetGame({ userId: requestingUser.id });
+      const targetGameResult = await this.gameService.getRequestingUserTargetGame({
+        userId: requestingUser.id
+      });
       if (targetGameResult.failed()) {
         Log.methodFailure(this.processAddingNewTeams, this.constructor.name);
         return failurePromise(targetGameResult.value);
       }
-      const game: Game = targetGameResult.value;
+      // reload the game with the required relationships
+      const game: Game = await this.gameRepository.findOne(
+        { id: targetGameResult.value.id },
+        { relations: ["gameTeams", "gameTeams.team"] }
+      );
+      game.gameTeams = game.gameTeams.filter(gt => gt.team);
 
       // ensure the requesting-user has permission to add a team to the target game
       const userRole = await this.gameService.getUserRoleForGame(requestingUser.id, game.id);
@@ -98,9 +109,9 @@ export class TeamService {
         // And since the osu user may have changed their username, and because the add-team request may contain usernames,
         // we need to check these with the osu API (fetching the osu user ids of those usernames)
         // instead of querying our own database for previously-added users.
-        const valid: OsuUserValidationResult = await this.userService.isValidBanchoOsuUserIdOrUsername(item);
-        if (!valid) return failurePromise(banchoOsuUserIdIsInvalidFailure(item));
-        apiOsuUsers.push(valid.osuUser);
+        const validatedResult: OsuUserValidationResult = await this.userService.isValidBanchoOsuUserIdOrUsername(item);
+        if (!validatedResult.isValid) return failurePromise(banchoOsuUserIdIsInvalidFailure(item));
+        apiOsuUsers.push(validatedResult.osuUser);
       }
 
       // ! validate the team structure (e.g. does the game require teams to be of a certain size)
@@ -115,20 +126,61 @@ export class TeamService {
 
       // get/create the osu users
       const osuUsers: OsuUser[] = await this.userService.getOrCreateAndSaveOsuUsersFromApiResults(teamsOfApiOsuUsers);
-      // get/create the teams
-      const teamsToBeAddedToGame: Team[] = await this.createTeamsToBeAddedToGames({ teamsOfApiOsuUsers, osuUsers, requestingUser });
+      // get/create the teams (some may have already been added to the game)
+      const teams: Team[] = await this.getOrCreateTeamsToBeAddedToGames({ teamsOfApiOsuUsers, osuUsers, requestingUser });
+      // filter only teams not already added to this game
+      const teamsToBeAdded = teams.filter(t => !game.gameTeams.find(gt => gt.team && gt.team.id === t.id));
+      // create the game-teams
+      const gameTeams: GameTeam[] = this.createGameTeams(game, teamsToBeAdded);
+      // add the game-teams to the game
+      game.gameTeams = game.gameTeams.concat(gameTeams);
+      // save the game (cascade game->gameteams->teams)
+      const savedGame = await this.gameRepository.save(game);
+      const reloadedGame = await this.gameRepository.findOne({ id: savedGame.id }, { relations: ["gameTeams", "gameTeams.team"] });
 
-      // add the teams to the game (if not already added)
-      //    assign a color to the team using ColorPicker
-
-      throw new Error("TODO: Implement method of TeamService.");
+      const finalTeams: Team[] = reloadedGame.gameTeams.map(gt => gt.team);
+      Log.methodSuccess(this.processAddingNewTeams, this.constructor.name);
+      return successPromise(finalTeams);
     } catch (error) {
       Log.methodError(this.processAddingNewTeams, this.constructor.name, error);
       throw error;
     }
   }
 
-  private async createTeamsToBeAddedToGames({
+  private createGameTeams(game: Game, teamsToBeAdded: Team[]): GameTeam[] {
+    let lastGameTeamAdded: GameTeam = this.getLastGameTeamAdded(game);
+    let teamNumber = lastGameTeamAdded && lastGameTeamAdded.teamNumber ? lastGameTeamAdded.teamNumber : 0;
+    const gameTeams: GameTeam[] = [];
+    for (const team of teamsToBeAdded) {
+      const gameTeam = new GameTeam();
+      gameTeam.game = game;
+      gameTeam.team = team;
+      gameTeam.startingLives = game.teamLives;
+      gameTeam.currentLives = game.teamLives;
+      // assign a color to each game-team using ColorPicker
+      this.assignColorToGameTeam(teamNumber, gameTeam);
+      gameTeam.teamNumber = ++teamNumber;
+      gameTeams.push(gameTeam);
+    }
+    return gameTeams;
+  }
+
+  private assignColorToGameTeam(teamNumber: number, gameTeam: GameTeam) {
+    const color = ColorPicker.getNext(teamNumber);
+    gameTeam.colorName = color.name;
+    gameTeam.colorValue = color.value;
+  }
+
+  private getLastGameTeamAdded(game: Game) {
+    let lastGameTeamAdded: GameTeam;
+    // sort in descending order of ids (order added)
+    const s = game.gameTeams.sort((a, b) => b.id - a.id);
+    // get the last one if it exists
+    if (s.length) lastGameTeamAdded = s[0];
+    return lastGameTeamAdded;
+  }
+
+  private async getOrCreateTeamsToBeAddedToGames({
     teamsOfApiOsuUsers,
     osuUsers,
     requestingUser
@@ -167,7 +219,7 @@ export class TeamService {
   private async getOsuUsersInGameFromApiUserResults(game: Game, apiOsuUsers: ApiOsuUser[]): Promise<OsuUser[]> {
     const osuUsersInGame = await this.osuUserRepository.findOsuUsersInGame(game.id);
     // compare by Bancho osu user ID
-    const results = osuUsersInGame.filter(osuUser => apiOsuUsers.filter(apiOsuUser => apiOsuUser.userId.toString() === osuUser.osuUserId));
+    const results = osuUsersInGame.filter(osuUser => apiOsuUsers.find(apiOsuUser => apiOsuUser.userId.toString() === osuUser.osuUserId));
     return results;
   }
 
