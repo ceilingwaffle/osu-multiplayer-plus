@@ -115,22 +115,8 @@ export class TeamService {
 
       // get/create the osu users
       const osuUsers: OsuUser[] = await this.userService.getOrCreateAndSaveOsuUsersFromApiResults(teamsOfApiOsuUsers);
-      // get any existing teams made up of exactly the same group of users
-      let osuBanchoUserIdsGroupedInTeams: number[][] = teamsOfApiOsuUsers.map(t => t.map(u => u.userId));
-      const existingTeams: Team[] = await this.teamRepository.findTeamsOfBanchoOsuUserIdGroups(osuBanchoUserIdsGroupedInTeams);
-      // create the teams
-      let teamsToBeAddedToGame: Team[] = [].concat(existingTeams);
-      const unsavedNewTeams: Team[] = this.createTeamsIfNew({
-        osuUsers,
-        osuBanchoUserIdsGroupedInTeams,
-        existingTeams,
-        addedBy: requestingUser
-      });
-      if (unsavedNewTeams.length) {
-        const savedNewTeams = await this.teamRepository.save(unsavedNewTeams);
-        const reloadedNewTeams = await this.teamRepository.findByIdsWithRelations(savedNewTeams.map(savedTeam => savedTeam.id));
-        teamsToBeAddedToGame = teamsToBeAddedToGame.concat(reloadedNewTeams);
-      }
+      // get/create the teams
+      const teamsToBeAddedToGame: Team[] = await this.createTeamsToBeAddedToGames({ teamsOfApiOsuUsers, osuUsers, requestingUser });
 
       // add the teams to the game (if not already added)
       //    assign a color to the team using ColorPicker
@@ -140,6 +126,34 @@ export class TeamService {
       Log.methodError(this.processAddingNewTeams, this.constructor.name, error);
       throw error;
     }
+  }
+
+  private async createTeamsToBeAddedToGames({
+    teamsOfApiOsuUsers,
+    osuUsers,
+    requestingUser
+  }: {
+    teamsOfApiOsuUsers: ApiOsuUser[][];
+    osuUsers: OsuUser[];
+    requestingUser: User;
+  }): Promise<Team[]> {
+    // get any existing teams made up of exactly the same group of users
+    let osuBanchoUserIdsGroupedInTeams: number[][] = teamsOfApiOsuUsers.map(t => t.map(u => u.userId));
+    const existingTeams: Team[] = await this.teamRepository.findTeamsOfBanchoOsuUserIdGroups(osuBanchoUserIdsGroupedInTeams);
+    // create the teams
+    let teamsToBeAddedToGame: Team[] = [].concat(existingTeams);
+    const unsavedNewTeams: Team[] = this.createTeamsIfNew({
+      osuUsers,
+      osuBanchoUserIdsGroupedInTeams,
+      existingTeams,
+      addedBy: requestingUser
+    });
+    if (unsavedNewTeams.length) {
+      const savedNewTeams = await this.teamRepository.save(unsavedNewTeams);
+      const reloadedNewTeams = await this.teamRepository.findByIdsWithRelations(savedNewTeams.map(savedTeam => savedTeam.id));
+      teamsToBeAddedToGame = teamsToBeAddedToGame.concat(reloadedNewTeams);
+    }
+    return teamsToBeAddedToGame;
   }
 
   /**
