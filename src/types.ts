@@ -10,7 +10,8 @@ export const TYPES = {
   TeamService: Symbol.for("TeamService"),
   Permissions: Symbol.for("Permissions"),
   RequesterFactory: Symbol.for("RequesterFactory"),
-  CreateGameCommand: Symbol.for("CreateGameCommand")
+  CreateGameCommand: Symbol.for("CreateGameCommand"),
+  IOsuApiFetcher: Symbol.for("IOsuApiFetcher")
 };
 
 export default TYPES;

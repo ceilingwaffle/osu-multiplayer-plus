@@ -45,7 +45,11 @@ TODO:
         ☐ Handle internet disconnections by auto-reconnecting  @created(19-09-02 10:01)
             eg1: https://i.imgur.com/v4GDoRf.png
             eg2: https://i.imgur.com/9A5uA5A.png
-    Tests:
+    Testing:
+        ☐ Improve the Osu API Fetcher test (mock) class @created(19-09-14 23:27)
+            ☐ Potential issue with the validation methods where they may incorrectly fail or succeed with the validation but the mocked class is just assuming they always succeed @created(19-09-14 23:27)
+                ☐ One solution is just to unit test every line within the validation method, but if we add more lines in future we need to remember the unit test those aswell @created(19-09-14 23:28)
+                ☐ Another solution is to mock the Nodesu API itself, instead of mocking the OsuAPIFetcher class @created(19-09-14 23:29)
         ☐ Write unit tests for ColorPicker class @created(19-09-11 13:45)
         ☐ Write tests for validating osu users (mock osu API?) @created(19-09-14 02:30)
             ☐ Assert that an invalid user generates a banchoOsuUserIdIsInvalidFailure from the TeamController (controller calling TeamService) @created(19-09-14 02:30)
@@ -88,7 +92,7 @@ TODO:
         ☐ Too many match results being downloaded from the osu API.
             Need some way of limiting the maximum number of matches downloaded per multiplayer (right now we're using 500kb/s for 150+ matches in a single multi when polling every 1s)
     Refactor:
-        ☐ Replace all uses of "NodesuApiFetcher.getInstance()" with a singleton instance of IOsuApiFetcher resolved from the inversify DIC @created(19-09-11 15:13)
+        ✔ Replace all uses of "NodesuApiFetcher.getInstance()" with a singleton instance of IOsuApiFetcher resolved from the inversify DIC @created(19-09-11 15:13) @done(19-09-14 22:41)
         ☐ Look into using LazyServiceIdentifier instead of lazyInject @created(19-09-09 23:15)
             ☐ The reason for this is so we can move the injections into constructor arguments. Then we'd have the option to overide these upon class initialization. @created(19-09-09 23:15)
         ☐ Move out files from src/discord/.. into their respective domain folders @created(19-09-07 18:26)

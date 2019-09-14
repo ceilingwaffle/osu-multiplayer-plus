@@ -15,17 +15,17 @@ import { UserRepository } from "./user.repository";
 import { DiscordUserRepository } from "./discord-user.repository";
 import { getCustomRepository } from "typeorm";
 import { GameFailure, gameDoesNotExistFailure } from "../game/game.failure";
-import { injectable } from "inversify";
+import { injectable, inject } from "inversify";
 import { GameRepository } from "../game/game.repository";
 import { userUpdateFailure } from "./user.failure";
 import { IOsuApiFetcher } from "../../osu/interfaces/osu-api-fetcher";
-import { NodesuApiFetcher } from "../../osu/nodesu-api-fetcher";
 import { Helpers } from "../../utils/helpers";
 import { OsuUserValidationResult } from "../../osu/types/osu-user-validation-result";
 import { ApiOsuUser } from "../../osu/types/api-osu-user";
 import { OsuUser } from "./osu-user.entity";
 import { OsuUserRepository } from "./osu-user.repository";
 import union = require("lodash/union");
+import TYPES from "../../types";
 
 @injectable()
 export class UserService {
@@ -33,9 +33,8 @@ export class UserService {
   private readonly osuUserRepository: OsuUserRepository = getCustomRepository(OsuUserRepository);
   private readonly discordUserRepository: DiscordUserRepository = getCustomRepository(DiscordUserRepository);
   private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
-  private readonly osuApi: IOsuApiFetcher = NodesuApiFetcher.getInstance();
 
-  constructor() {
+  constructor(@inject(TYPES.IOsuApiFetcher) private readonly osuApi: IOsuApiFetcher) {
     Log.info(`Initialized ${this.constructor.name}.`);
   }
 

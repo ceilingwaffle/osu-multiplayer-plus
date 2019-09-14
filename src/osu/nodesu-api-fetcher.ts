@@ -6,6 +6,7 @@ import { NodesuApiTransformer } from "./nodesu-api-transformer";
 import Bottleneck from "bottleneck";
 import { Helpers } from "../utils/helpers";
 import { OsuUserValidationResult } from "./types/osu-user-validation-result";
+import { injectable } from "inversify";
 
 /**
  * Singleton
@@ -14,8 +15,9 @@ import { OsuUserValidationResult } from "./types/osu-user-validation-result";
  * @class NodesuApiFetcher
  * @implements {IOsuApiFetcher}
  */
+@injectable()
 export class NodesuApiFetcher implements IOsuApiFetcher {
-  private static instance: IOsuApiFetcher;
+  // TODO: Some way to not allow this class to be accessed directly - only via the DIC.
   protected readonly api: Nodesu.Client = new Nodesu.Client(process.env.OSU_API_KEY, { parseData: true });
   protected readonly limiter: Bottleneck = new Bottleneck({
     // NOTE: 50ms = 1000ms/20 (where 20 is the max requests per second allowed by the osu API).
@@ -32,7 +34,8 @@ export class NodesuApiFetcher implements IOsuApiFetcher {
     // strategy: Bottleneck.strategy.LEAK,
   });
 
-  private constructor() {
+  constructor() {
+    Log.debug(`Initialized ${this.constructor.name}`);
     this.registerEventListeners();
   }
 
@@ -42,13 +45,6 @@ export class NodesuApiFetcher implements IOsuApiFetcher {
       // The `empty` (boolean) argument indicates whether `limiter.empty()` is currently true.
       Log.warn(`Bottleneck reservoir depleted in ${this.constructor.name}.`);
     });
-  }
-
-  public static getInstance(): IOsuApiFetcher {
-    if (!NodesuApiFetcher.instance) {
-      NodesuApiFetcher.instance = new NodesuApiFetcher();
-    }
-    return NodesuApiFetcher.instance;
   }
 
   async isValidBanchoMultiplayerId(banchoMultiplayerId: string): Promise<boolean> {

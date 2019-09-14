@@ -24,7 +24,7 @@ String.prototype.toSentenceCase = function(): string {
   return sentence;
 };
 
-import iocContainer from "./inversify.config";
+// import iocContainer from "./inversify.config";
 import { Message } from "./utils/message";
 import { ConnectionManager } from "./utils/connection-manager";
 import { DiscordBot } from "./discord/discord-bot";

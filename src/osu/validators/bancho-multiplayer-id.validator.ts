@@ -5,14 +5,15 @@ import {
   ValidatorConstraintInterface,
   ValidationArguments
 } from "class-validator";
-import { NodesuApiFetcher } from "../nodesu-api-fetcher";
 import { IOsuApiFetcher } from "../interfaces/osu-api-fetcher";
 import { Lobby } from "../../domain/lobby/lobby.entity";
 import { Log } from "../../utils/Log";
+import { inject } from "inversify";
+import TYPES from "../../types";
 
 @ValidatorConstraint({ async: true })
 export class IsValidBanchoMultiplayerIdConstraint implements ValidatorConstraintInterface {
-  protected osuApi: IOsuApiFetcher = NodesuApiFetcher.getInstance();
+  constructor(@inject(TYPES.IOsuApiFetcher) private readonly osuApi: IOsuApiFetcher) {}
 
   async validate(banchoMultiplayerId: string, args: ValidationArguments): Promise<boolean> {
     // Check if the multiplayer id was previously-added to a lobby (and was therefore previously validated).

@@ -13,6 +13,9 @@ import { Container } from "inversify";
 import { TYPES } from "./types";
 import { LobbyService } from "./domain/lobby/lobby.service";
 import { TeamService } from "./domain/team/team.service";
+import { NodesuApiFetcher } from "./osu/nodesu-api-fetcher";
+import { IOsuApiFetcher } from "./osu/interfaces/osu-api-fetcher";
+import { TestOsuApiFetcher } from "../test/classes/test-osu-api-fetcher";
 
 // const iocContainer = new Container();
 // autoProvide(iocContainer, entities);
@@ -47,6 +50,12 @@ export class IOCKernel extends Container {
     // ...
     this.bind<RequesterFactory>(TYPES.RequesterFactory).to(RequesterFactory).inSingletonScope(); // prettier-ignore
     this.bind<Permissions>(TYPES.Permissions).to(Permissions).inSingletonScope(); // prettier-ignore
+
+    if (process.env.NODE_ENV === "test") {
+      this.bind<IOsuApiFetcher>(TYPES.IOsuApiFetcher).to(TestOsuApiFetcher).inSingletonScope(); // prettier-ignore
+    } else {
+      this.bind<IOsuApiFetcher>(TYPES.IOsuApiFetcher).to(NodesuApiFetcher).inSingletonScope(); // prettier-ignore
+    }
   }
 }
 

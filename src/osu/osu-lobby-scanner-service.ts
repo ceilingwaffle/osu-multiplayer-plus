@@ -1,12 +1,12 @@
 import { IOsuLobbyScanner } from "./interfaces/osu-lobby-scanner";
-import { NodesuApiFetcher } from "./nodesu-api-fetcher";
 import { IOsuApiFetcher } from "./interfaces/osu-api-fetcher";
 import { Log } from "../utils/Log";
 import { EventEmitter } from "eventemitter3";
 import { OsuLobbyScannerEvents } from "./interfaces/osu-lobby-scanner-events";
 import { ApiMultiplayer } from "./types/api-multiplayer";
 import { dynamic, SetIntervalAsyncTimer, clearIntervalAsync } from "set-interval-async";
-import { injectable, decorate } from "inversify";
+import { injectable, decorate, inject } from "inversify";
+import TYPES from "../types";
 
 interface Watcher {
   multiplayerId: string;
@@ -20,11 +20,10 @@ interface Watcher {
 decorate(injectable(), EventEmitter);
 @injectable()
 export class OsuLobbyScannerService extends EventEmitter<OsuLobbyScannerEvents> implements IOsuLobbyScanner {
-  protected readonly api: IOsuApiFetcher = NodesuApiFetcher.getInstance();
   protected readonly interval: number = 1000;
   protected readonly watching: { [multiplayerId: string]: Watcher } = {};
 
-  constructor() {
+  constructor(@inject(TYPES.IOsuApiFetcher) private readonly osuApi: IOsuApiFetcher) {
     super();
     Log.info(`Initialized ${this.constructor.name}.`);
     this.registerEventListeners();
@@ -61,7 +60,7 @@ export class OsuLobbyScannerService extends EventEmitter<OsuLobbyScannerEvents> 
       }
       // TODO: Update Lobby status to UNKNOWN if connection/API issue
       Log.info(`Scanning mp ${multiplayerId}...`);
-      const results = await this.api.fetchMultiplayerResults(multiplayerId);
+      const results = await this.osuApi.fetchMultiplayerResults(multiplayerId);
       if (this.containsNewMatches(results)) {
         watcher.latestResults = results;
         this.emit("newMultiplayerMatches", results);
