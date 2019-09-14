@@ -10,8 +10,8 @@ export const TYPES = {
   TeamService: Symbol.for("TeamService"),
   Permissions: Symbol.for("Permissions"),
   RequesterFactory: Symbol.for("RequesterFactory"),
-  CreateGameCommand: Symbol.for("CreateGameCommand"),
   IOsuApiFetcher: Symbol.for("IOsuApiFetcher")
+  // IsValidBanchoMultiplayerIdConstraint: Symbol.for("IsValidBanchoMultiplayerIdConstraint")
 };
 
 export default TYPES;

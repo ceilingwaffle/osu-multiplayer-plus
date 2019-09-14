@@ -1,3 +1,4 @@
+import iocContainer from "../../inversify.config";
 import {
   registerDecorator,
   ValidationOptions,
@@ -8,12 +9,13 @@ import {
 import { IOsuApiFetcher } from "../interfaces/osu-api-fetcher";
 import { Lobby } from "../../domain/lobby/lobby.entity";
 import { Log } from "../../utils/Log";
-import { inject } from "inversify";
 import TYPES from "../../types";
 
 @ValidatorConstraint({ async: true })
 export class IsValidBanchoMultiplayerIdConstraint implements ValidatorConstraintInterface {
-  constructor(@inject(TYPES.IOsuApiFetcher) private readonly osuApi: IOsuApiFetcher) {}
+  // @inject(TYPES.IOsuApiFetcher) private readonly osuApi: IOsuApiFetcher
+  private readonly osuApi: IOsuApiFetcher = iocContainer.get<IOsuApiFetcher>(TYPES.IOsuApiFetcher);
+  constructor() {}
 
   async validate(banchoMultiplayerId: string, args: ValidationArguments): Promise<boolean> {
     // Check if the multiplayer id was previously-added to a lobby (and was therefore previously validated).

@@ -16,6 +16,7 @@ import { TeamService } from "./domain/team/team.service";
 import { NodesuApiFetcher } from "./osu/nodesu-api-fetcher";
 import { IOsuApiFetcher } from "./osu/interfaces/osu-api-fetcher";
 import { TestOsuApiFetcher } from "../test/classes/test-osu-api-fetcher";
+import { IsValidBanchoMultiplayerIdConstraint } from "./osu/validators/bancho-multiplayer-id.validator";
 
 // const iocContainer = new Container();
 // autoProvide(iocContainer, entities);
@@ -50,6 +51,7 @@ export class IOCKernel extends Container {
     // ...
     this.bind<RequesterFactory>(TYPES.RequesterFactory).to(RequesterFactory).inSingletonScope(); // prettier-ignore
     this.bind<Permissions>(TYPES.Permissions).to(Permissions).inSingletonScope(); // prettier-ignore
+    // this.bind<IsValidBanchoMultiplayerIdConstraint>(TYPES.IsValidBanchoMultiplayerIdConstraint).to(IsValidBanchoMultiplayerIdConstraint); // prettier-ignore
 
     if (process.env.NODE_ENV === "test") {
       this.bind<IOsuApiFetcher>(TYPES.IOsuApiFetcher).to(TestOsuApiFetcher).inSingletonScope(); // prettier-ignore

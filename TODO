@@ -105,6 +105,11 @@ TODO:
             Can we abstract and extend these? Keep them more consistent; less method signature copy pasting.
         ☐ Replace lolex with a spy in lobby-create.test.
             Using lolex is just a temp solution for now. The problem is if we use another timer anywhere else within the LobbyController.create method chain, it will replace all those timers with the lolex mock.
+        ☐ Inject IOsuApiFetcher instead of getting directly from the DIC
+            [12:00] bossqone: then you're hiding dependencies of your class, because you're passing whole container, not individual dependencies
+            [12:07] bossqone: no problem at all, it will work anyway :) It's just tip to make your code more testable (e.g. you want to test that class. Now you need to construct whole DI container, bind correct instances, etc.., instead of passing mocked/correct instance directly to your class via constructor)
+            
+        @created(19-09-15 00:17)
     Inversify/ioc/dic/injectables dump:
         // @lazyInject(TYPES.GameService) private gameService: GameService;
         // @lazyInject(TYPES.Permissions) private permissions: Permissions;
