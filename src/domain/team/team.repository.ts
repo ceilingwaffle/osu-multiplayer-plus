@@ -47,10 +47,10 @@ export class TeamRepository extends Repository<Team> {
   private async findTeamIdsOfBanchoOsuUserIdGroups(userIdGroups: number[][]): Promise<number[]> {
     const params = [];
     let query =
-      "SELECT t.id\
+      "SELECT teams.id\
     FROM teams_osu_users tou1\
     INNER JOIN osu_users ou ON tou1.osuUserId = ou.id\
-    INNER JOIN teams t ON t.id = tou1.teamId\
+    INNER JOIN teams ON teams.id = tou1.teamId\
     WHERE 1 != 1 ";
     for (const userIdGroup of userIdGroups) {
       query += "OR ou.osuUserId IN (?,?) ";
