@@ -98,10 +98,10 @@ export class TeamService {
       }
 
       // validate the osu usernames with bancho
-      const apiOsuUsers: (ApiOsuUser | String)[] = [];
+      const apiOsuUsersAndTeamSeparators: (ApiOsuUser | String)[] = [];
       for (const item of osuUsernamesOrIdsOrSeparators) {
         if (Helpers.isAddTeamCommandSeparator(item)) {
-          apiOsuUsers.push(item);
+          apiOsuUsersAndTeamSeparators.push(item);
           continue;
         }
         // TODO: Find solution to potential DoS if a malicious user is trying to add teams too fast.
@@ -111,12 +111,12 @@ export class TeamService {
         // instead of querying our own database for previously-added users.
         const validatedResult: OsuUserValidationResult = await this.userService.isValidBanchoOsuUserIdOrUsername(item);
         if (!validatedResult.isValid) return failurePromise(banchoOsuUserIdIsInvalidFailure(item));
-        apiOsuUsers.push(validatedResult.osuUser);
+        apiOsuUsersAndTeamSeparators.push(validatedResult.osuUser);
       }
 
       // ! validate the team structure (e.g. does the game require teams to be of a certain size)
 
-      const teamsOfApiOsuUsers = this.extractApiOsuUserTeamsBetweenSeparators(apiOsuUsers);
+      const teamsOfApiOsuUsers = this.extractApiOsuUserTeamsBetweenSeparators(apiOsuUsersAndTeamSeparators);
       // ensure no osu users have already been added to a team for this game
       const osuUsersInGame = await this.getOsuUsersInGameFromApiUserResults(game, Helpers.flatten2Dto1D<ApiOsuUser>(teamsOfApiOsuUsers));
       if (osuUsersInGame.length) {
@@ -131,10 +131,10 @@ export class TeamService {
       // filter only teams not already added to this game
       const teamsToBeAdded = teams.filter(t => !game.gameTeams.find(gt => gt.team && gt.team.id === t.id));
       // create the game-teams
-      const gameTeams: GameTeam[] = this.createGameTeams(game, teamsToBeAdded);
+      const createdGameTeams: GameTeam[] = this.createGameTeams(game, teamsToBeAdded);
       // add the game-teams to the game
-      game.gameTeams = game.gameTeams.concat(gameTeams);
-      // save the game (cascade game->gameteams->teams)
+      game.gameTeams = game.gameTeams.concat(createdGameTeams);
+      // save the game and game-teams (cascade game->gameteams->teams)
       const savedGame = await this.gameRepository.save(game);
       const reloadedGame = await this.gameRepository.findOne({ id: savedGame.id }, { relations: ["gameTeams", "gameTeams.team"] });
 
