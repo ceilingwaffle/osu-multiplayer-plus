@@ -74,7 +74,19 @@ export class TeamService {
       // reload the game with the required relationships
       const game: Game = await this.gameRepository.findOne(
         { id: targetGameResult.value.id },
-        { relations: ["gameTeams", "gameTeams.team"] }
+        {
+          relations: [
+            "gameTeams",
+            "gameTeams.team",
+            "gameTeams.team.teamOsuUsers",
+            "gameTeams.team.teamOsuUsers.osuUser",
+            "gameTeams.team.gameTeams",
+            "gameTeams.team.gameTeams.game",
+            "gameTeams.team.gameTeams.addedBy",
+            "gameTeams.team.gameTeams.addedBy.discordUser",
+            "gameTeams.team.gameTeams.addedBy.webUser"
+          ]
+        }
       );
       game.gameTeams = game.gameTeams.filter(gt => gt.team);
 
@@ -131,12 +143,27 @@ export class TeamService {
       // filter only teams not already added to this game
       const teamsToBeAdded = teams.filter(t => !game.gameTeams.find(gt => gt.team && gt.team.id === t.id));
       // create the game-teams
-      const createdGameTeams: GameTeam[] = this.createGameTeams(game, teamsToBeAdded);
+      const createdGameTeams: GameTeam[] = this.createGameTeams(game, teamsToBeAdded, requestingUser);
       // add the game-teams to the game
       game.gameTeams = game.gameTeams.concat(createdGameTeams);
-      // save the game and game-teams (cascade game->gameteams->teams)
+      // save the game and game-teams (cascade game->gametenpmams->teams)
       const savedGame = await this.gameRepository.save(game);
-      const reloadedGame = await this.gameRepository.findOne({ id: savedGame.id }, { relations: ["gameTeams", "gameTeams.team"] });
+      const reloadedGame = await this.gameRepository.findOne(
+        { id: savedGame.id },
+        {
+          relations: [
+            "gameTeams",
+            "gameTeams.team",
+            "gameTeams.team.teamOsuUsers",
+            "gameTeams.team.teamOsuUsers.osuUser",
+            "gameTeams.team.gameTeams",
+            "gameTeams.team.gameTeams.game",
+            "gameTeams.team.gameTeams.addedBy",
+            "gameTeams.team.gameTeams.addedBy.discordUser",
+            "gameTeams.team.gameTeams.addedBy.webUser"
+          ]
+        }
+      );
 
       const finalTeams: Team[] = reloadedGame.gameTeams.map(gt => gt.team);
       Log.methodSuccess(this.processAddingNewTeams, this.constructor.name);
@@ -147,7 +174,7 @@ export class TeamService {
     }
   }
 
-  private createGameTeams(game: Game, teamsToBeAdded: Team[]): GameTeam[] {
+  private createGameTeams(game: Game, teamsToBeAdded: Team[], creator: User): GameTeam[] {
     let lastGameTeamAdded: GameTeam = this.getLastGameTeamAdded(game);
     let teamNumber = lastGameTeamAdded && lastGameTeamAdded.teamNumber ? lastGameTeamAdded.teamNumber : 0;
     const gameTeams: GameTeam[] = [];
@@ -155,6 +182,7 @@ export class TeamService {
       const gameTeam = new GameTeam();
       gameTeam.game = game;
       gameTeam.team = team;
+      gameTeam.addedBy = creator;
       gameTeam.startingLives = game.teamLives;
       gameTeam.currentLives = game.teamLives;
       // assign a color to each game-team using ColorPicker
