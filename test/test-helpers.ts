@@ -132,6 +132,10 @@ export class TestHelpers {
       throw new Error(`ERROR: Cleaning test DB: ${error}`);
     }
   }
+
+  static logFakeImplementationWarning(methodName: string): void {
+    Log.warn(`FAKING RESPONSE FROM ${this.constructor.name}.${methodName}`);
+  }
 }
 
 export interface TestContextEntities {
