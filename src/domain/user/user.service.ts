@@ -13,7 +13,7 @@ import {
 } from "./user.failure";
 import { UserRepository } from "./user.repository";
 import { DiscordUserRepository } from "./discord-user.repository";
-import { getCustomRepository } from "typeorm";
+import { getCustomRepository, getManager, getRepository } from "typeorm";
 import { GameFailure, gameDoesNotExistFailure } from "../game/game.failure";
 import { injectable, inject } from "inversify";
 import { GameRepository } from "../game/game.repository";
@@ -185,11 +185,19 @@ export class UserService {
       const existingOsuUsers: OsuUser[] = await this.osuUserRepository.findByBanchoUserIds(banchoUserIds);
       //    create the osu users that don't exist
       const newUnsavedOsuUsers: OsuUser[] = this.createOsuUsersNotInList({ createThese: apiOsuUsers, notInThese: existingOsuUsers });
-      //    save the created osu users (Q2)
-      const savedOsuUsers: OsuUser[] = await this.osuUserRepository.save(newUnsavedOsuUsers);
-      //    select all from db (Q3)
+      const newUnsavedUsers: User[] = this.createUsers({ times: newUnsavedOsuUsers.length });
+      //    save the created users (Q2)
+      const savedUserIds: number[] = await this.userRepository.chunkSave({ values: newUnsavedUsers, entityType: User, tableName: "users" });
+      this.updateOsuUsersWithUserIds(newUnsavedOsuUsers, savedUserIds);
+      //    save the created osu users (Q3)
+      const savedOsuUserIds: number[] = await this.osuUserRepository.chunkSave({
+        values: newUnsavedOsuUsers,
+        entityType: OsuUser,
+        tableName: "osu_users"
+      });
+      //    select all from db (Q4)
       // TODO: Test to see if we actually need union here. SQL might just ignore duplicate ids.
-      const allOsuUserIds = union(existingOsuUsers.map(u => u.id), savedOsuUsers.map(u => u.id));
+      const allOsuUserIds = union(existingOsuUsers.map(u => u.id), savedOsuUserIds);
       const reloadedOsuUsers: OsuUser[] = await this.osuUserRepository.findByIds(allOsuUserIds, {
         relations: returnWithRelations
       });
@@ -201,6 +209,21 @@ export class UserService {
     }
   }
 
+  private updateOsuUsersWithUserIds(newUnsavedOsuUsers: OsuUser[], savedUserIds: number[]) {
+    for (const i in newUnsavedOsuUsers) {
+      newUnsavedOsuUsers[i].user = new User();
+      newUnsavedOsuUsers[i].user.id = savedUserIds[i];
+    }
+  }
+
+  private createUsers({ times }: { times: number }): User[] {
+    const users: User[] = [];
+    for (let i = 0; i < times; i++) {
+      users.push(User.create());
+    }
+    return users;
+  }
+
   private createOsuUsersNotInList({ createThese, notInThese }: { createThese: ApiOsuUser[]; notInThese: OsuUser[] }): OsuUser[] {
     const toBeCreated: ApiOsuUser[] = createThese.filter(
       apiOsuUser => !notInThese.find(osuUser => osuUser.osuUserId === apiOsuUser.userId.toString())
@@ -208,11 +231,12 @@ export class UserService {
     const createdOsuUsers: OsuUser[] = toBeCreated.map(apiOsuUser =>
       this.createOsuUser({ username: apiOsuUser.username, userId: apiOsuUser.userId, countryCode: apiOsuUser.country })
     );
-    const withNewUsersAdded: OsuUser[] = createdOsuUsers.map(osuUser => {
-      osuUser.user = this.createUser({});
-      return osuUser;
-    });
-    return withNewUsersAdded;
+    // const withNewUsersAdded: OsuUser[] = createdOsuUsers.map(osuUser => {
+    //   osuUser.user = this.createUser({});
+    //   return osuUser;
+    // });
+    // return withNewUsersAdded;
+    return createdOsuUsers;
   }
 
   private createOsuUser(props: { username: string; userId: number; countryCode: number }): OsuUser {

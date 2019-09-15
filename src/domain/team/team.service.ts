@@ -141,7 +141,7 @@ export class TeamService {
 
       // get/create the osu users
       const osuUsers: OsuUser[] = await this.userService.getOrCreateAndSaveOsuUsersFromApiResults(teamsOfApiOsuUsers);
-      // get/create the teams (some may have already been added to the game)
+      // get/create the naked teams (no relations) (some may have already been added to the game)
       const teams: Team[] = await this.getOrCreateTeamsToBeAddedToGames({ teamsOfApiOsuUsers, osuUsers, requestingUser });
       // filter only teams not already added to this game
       const teamsToBeAdded = teams.filter(t => !game.gameTeams.find(gt => gt.team && gt.team.id === t.id));
@@ -149,7 +149,7 @@ export class TeamService {
       const createdGameTeams: GameTeam[] = this.createGameTeams(game, teamsToBeAdded, requestingUser);
       // add the game-teams to the game
       game.gameTeams = game.gameTeams.concat(createdGameTeams);
-      // save the game and game-teams (cascade game->gametenpmams->teams)
+      // save the game and game-teams (cascade game->gameteams->teams)
       const savedGame = await this.gameRepository.save(game);
       const reloadedGame = await this.gameRepository.findOne(
         { id: savedGame.id },
@@ -235,8 +235,12 @@ export class TeamService {
       addedBy: requestingUser
     });
     if (unsavedNewTeams.length) {
-      const savedNewTeams = await this.teamRepository.save(unsavedNewTeams);
-      const reloadedNewTeams = await this.teamRepository.findByIdsWithRelations(savedNewTeams.map(savedTeam => savedTeam.id));
+      const savedNewTeamIds: number[] = await this.teamRepository.chunkSave({
+        values: unsavedNewTeams,
+        entityType: Team,
+        tableName: "teams"
+      });
+      const reloadedNewTeams = await this.teamRepository.findByIdsWithRelations({ ids: savedNewTeamIds, returnWithRelations: [] });
       teamsToBeAddedToGame = teamsToBeAddedToGame.concat(reloadedNewTeams);
     }
     return teamsToBeAddedToGame;

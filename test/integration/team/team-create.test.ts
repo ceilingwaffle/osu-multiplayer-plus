@@ -307,12 +307,59 @@ describe("When adding teams to a game", function() {
     });
   });
 
-  it("should add a team to the correct game", function() {
+  it("should add a team to the game most recently created by the requesting user", function() {
     return new Promise(async (resolve, reject) => {
       try {
-        // create game DTO with startLives = some random big number
-        // assert team.gameTeam.game.startingLives === the same random big number
-        return reject();
+        // arrange
+        const inTeams: string[][] = [["3336000", "3336001"]];
+        const allUserIds = Helpers.flatten2Dto1D(inTeams);
+        const createGame1Dto: CreateGameDto = { teamLives: 186 };
+        const createGame2Dto: CreateGameDto = { teamLives: 581 };
+        const addTeams1Dto: AddTeamsDto = {
+          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(inTeams)
+        };
+        const requestDto: DiscordRequestDto = {
+          commType: "discord",
+          authorId: "tester",
+          originChannelId: "tester's amazing channel"
+        };
+
+        // act
+        const gameController = iocContainer.get<GameController>(TYPES.GameController);
+        const teamController = iocContainer.get<TeamController>(TYPES.TeamController);
+        const createGame1Response = await gameController.create({ gameDto: createGame1Dto, requestDto: requestDto });
+        expect(createGame1Response.success).to.be.true;
+        const createGame2Response = await gameController.create({ gameDto: createGame2Dto, requestDto: requestDto });
+        expect(createGame2Response.success).to.be.true;
+        const addTeamsResponse = await teamController.create({ teamDto: addTeams1Dto, requestDto: requestDto });
+        expect(addTeamsResponse.success).to.be.true;
+        const addTeamsReport = addTeamsResponse.result;
+        expect(addTeamsReport.teams).to.have.lengthOf(1);
+        expect(addTeamsReport.teams[0].teamOsuUsernames).to.have.lengthOf(2);
+
+        // assert state of database
+        const teamRepository = getCustomRepository(TeamRepository);
+        const [teamResults, totalTeams]: [Team[], number] = await teamRepository.findAndCount({
+          relations: [
+            "createdBy",
+            "createdBy.discordUser",
+            "teamOsuUsers",
+            "teamOsuUsers.osuUser",
+            "gameTeams",
+            "gameTeams.game",
+            "gameTeams.addedBy",
+            "gameTeams.addedBy.discordUser"
+          ]
+        });
+        expect(totalTeams).to.equal(1);
+        const team1 = teamResults[0];
+        expect(team1.createdBy.discordUser.discordUserId).to.equal(requestDto.authorId);
+        expect(team1.gameTeams).to.have.lengthOf(1, "The team should only be added to one game.");
+        expect(team1.gameTeams[0].game.teamLives).to.equal(
+          createGame2Dto.teamLives,
+          "The team was not added to the user's most-recently created game (game 2)."
+        );
+
         return resolve();
       } catch (error) {
         return reject(error);
@@ -320,13 +367,53 @@ describe("When adding teams to a game", function() {
     });
   });
 
-  it("should add a team and ensure the team was created by the requesting user", function() {
+  it("should add the same team from game 1 to game 2 without creating a duplicate team", function() {
     return new Promise(async (resolve, reject) => {
       try {
-        // create multiple teams
-        // team.createdBy.discordUser.discordUserId === requestingUserId
-        // team.gameTeams[0].addedBy.discordUser.discordUserId === requestUserId
-        return reject();
+        // arrange
+        const teams: string[][] = [["3336000", "3336001"]];
+        const game1BanchoIds = Helpers.flatten2Dto1D(teams);
+        const createGame1Dto: CreateGameDto = {};
+        const createGame2Dto: CreateGameDto = {};
+        const addTeamsDto: AddTeamsDto = {
+          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(teams)
+        };
+        const requestDto: DiscordRequestDto = {
+          commType: "discord",
+          authorId: "tester",
+          originChannelId: "tester's amazing channel"
+        };
+
+        // act
+        const gameController = iocContainer.get<GameController>(TYPES.GameController);
+        const teamController = iocContainer.get<TeamController>(TYPES.TeamController);
+        // create game 1 and add team 1 to it
+        const createGame1Response = await gameController.create({ gameDto: createGame1Dto, requestDto: requestDto });
+        expect(createGame1Response.success).to.be.true;
+        const addTeamsResponse1 = await teamController.create({ teamDto: addTeamsDto, requestDto: requestDto });
+        expect(addTeamsResponse1.success).to.be.true;
+        // get the id of the team just created
+        const teamRepository = getCustomRepository(TeamRepository);
+        const [teamResults, totalTeams]: [Team[], number] = await teamRepository.findAndCount({
+          relations: ["gameTeams"]
+        });
+        expect(totalTeams).to.equal(1);
+        const team1 = teamResults[0];
+        expect(team1.gameTeams).to.have.lengthOf(1, "Team should be added to one game.");
+        // create game 2 and add team 1 to it
+        const createGame2Response = await gameController.create({ gameDto: createGame2Dto, requestDto: requestDto });
+        expect(createGame2Response.success).to.be.true;
+        const addTeamsResponse2 = await teamController.create({ teamDto: addTeamsDto, requestDto: requestDto });
+        expect(addTeamsResponse2.success).to.be.true;
+        // get the id of the team just created
+        const [teamResultsAgain, totalTeamsAgain]: [Team[], number] = await teamRepository.findAndCount({
+          relations: ["gameTeams"]
+        });
+        expect(totalTeamsAgain).to.equal(1);
+        const team1Again = teamResultsAgain[0];
+        expect(team1Again.gameTeams).to.have.lengthOf(2, "Team should be added to two games now.");
+        expect(team1Again.id).to.equal(team1.id, "The same team should have been used.");
+
         return resolve();
       } catch (error) {
         return reject(error);
@@ -334,16 +421,6 @@ describe("When adding teams to a game", function() {
     });
   });
 
-  it("should add the same team from game 1 to game 2", function() {
-    return new Promise(async (resolve, reject) => {
-      try {
-        return reject();
-        return resolve();
-      } catch (error) {
-        return reject(error);
-      }
-    });
-  });
   it("should add two teams of different sizes to a game", function() {
     return new Promise(async (resolve, reject) => {
       try {
@@ -354,10 +431,37 @@ describe("When adding teams to a game", function() {
       }
     });
   });
-  it("should add a large team to a game (50 players)", function() {
+
+  it("should add a large team to a game (500 players)", function() {
     return new Promise(async (resolve, reject) => {
       try {
-        return reject();
+        // arrange
+        const teams: string[][] = [[]];
+        let startingUserId = 3336000;
+        const teamPlayerCount = 503;
+        for (let i = 0; i < teamPlayerCount; i++) {
+          teams[0].push((startingUserId++).toString());
+        }
+
+        const createGame1Dto: CreateGameDto = {};
+        const addTeamsDto: AddTeamsDto = {
+          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(teams)
+        };
+        const requestDto: DiscordRequestDto = {
+          commType: "discord",
+          authorId: "tester",
+          originChannelId: "tester's amazing channel"
+        };
+
+        // act
+        const gameController = iocContainer.get<GameController>(TYPES.GameController);
+        const teamController = iocContainer.get<TeamController>(TYPES.TeamController);
+        // create game 1 and add team 1 to it
+        const createGame1Response = await gameController.create({ gameDto: createGame1Dto, requestDto: requestDto });
+        expect(createGame1Response.success).to.be.true;
+        const addTeamsResponse1 = await teamController.create({ teamDto: addTeamsDto, requestDto: requestDto });
+        expect(addTeamsResponse1.success).to.be.true;
+
         return resolve();
       } catch (error) {
         return reject(error);
@@ -395,7 +499,7 @@ describe("When adding teams to a game", function() {
       }
     });
   });
-  it("should fail to create a team if a player of that team is already in a team for the game", function() {
+  it("should fail to create a team if a player on that team is already in a team for the game", function() {
     return new Promise(async (resolve, reject) => {
       try {
         return reject();
@@ -418,6 +522,20 @@ describe("When adding teams to a game", function() {
   it("should fail to create any teams when attempting to add two identical teams", function() {
     return new Promise(async (resolve, reject) => {
       try {
+        return reject();
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
+
+  it("should allow a game ref to add a team", function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // create multiple teams
+        // team.createdBy.discordUser.discordUserId === requestingUserId
+        // team.gameTeams[0].addedBy.discordUser.discordUserId === requestUserId
         return reject();
         return resolve();
       } catch (error) {

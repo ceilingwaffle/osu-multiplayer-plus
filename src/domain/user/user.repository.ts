@@ -1,10 +1,11 @@
-import { Repository, EntityRepository } from "typeorm";
+import { Repository, EntityRepository, getRepository } from "typeorm";
 import { User } from "./user.entity";
 import { Game } from "../game/game.entity";
 import { Log } from "../../utils/Log";
+import { AppBaseRepository } from "../shared/app-base-repository";
 
 @EntityRepository(User)
-export class UserRepository extends Repository<User> {
+export class UserRepository extends AppBaseRepository<User> {
   async updateUser({
     user,
     updateWith,

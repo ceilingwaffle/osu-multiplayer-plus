@@ -1,8 +1,9 @@
 import { Repository, EntityRepository } from "typeorm";
 import { Team } from "./team.entity";
+import { AppBaseRepository } from "../shared/app-base-repository";
 
 @EntityRepository(Team)
-export class TeamRepository extends Repository<Team> {
+export class TeamRepository extends AppBaseRepository<Team> {
   /**
    * Returns teams where a team exists comprised of the exact specific users in one of the userIdGroups.
    *
@@ -14,7 +15,7 @@ export class TeamRepository extends Repository<Team> {
     //        an array of Team entities with all relationships included as nested properties, so for now we just get the team ids (query 1),
     //        then reload them using a normal TypeORM query (query 2).
     const teamIds: number[] = await this.findTeamIdsOfBanchoOsuUserIdGroups(userIdGroups);
-    const teams: Team[] = await this.findByIdsWithRelations(teamIds);
+    const teams: Team[] = await this.findByIdsWithRelations({ ids: teamIds });
     return teams;
   }
 
@@ -25,16 +26,13 @@ export class TeamRepository extends Repository<Team> {
    * @param {string[]} [returnWithRelations]
    * @returns {Promise<Team[]>}
    */
-  findByIdsWithRelations(
-    ids: number[],
-    returnWithRelations: string[] = [
-      "teamOsuUsers",
-      "teamOsuUsers.team",
-      "teamOsuUsers.osuUser",
-      "teamOsuUsers.addedBy",
-      "teamOsuUsers.removedBy"
-    ]
-  ): Promise<Team[]> {
+  findByIdsWithRelations({
+    ids,
+    returnWithRelations = ["teamOsuUsers", "teamOsuUsers.team", "teamOsuUsers.osuUser", "teamOsuUsers.addedBy", "teamOsuUsers.removedBy"]
+  }: {
+    ids: number[];
+    returnWithRelations?: string[];
+  }): Promise<Team[]> {
     return this.findByIds(ids, { relations: returnWithRelations });
   }
 
@@ -45,6 +43,7 @@ export class TeamRepository extends Repository<Team> {
    * @returns {(Promise<number[]>)}
    */
   private async findTeamIdsOfBanchoOsuUserIdGroups(userIdGroups: number[][]): Promise<number[]> {
+    // TODO: Chunk this to avoid SQL column index out of range error
     const params = [];
     let query =
       "SELECT teams.id\
@@ -53,7 +52,7 @@ export class TeamRepository extends Repository<Team> {
     INNER JOIN teams ON teams.id = tou1.teamId\
     WHERE 1 != 1 ";
     for (const userIdGroup of userIdGroups) {
-      query += "OR ou.osuUserId IN (?,?) ";
+      query = query.concat(`OR ou.osuUserId IN (${buildParameterHolders(userIdGroup)}) `);
       for (const userId of userIdGroup) params.push(userId.toString());
     }
     query +=
@@ -69,4 +68,7 @@ export class TeamRepository extends Repository<Team> {
     const result = await this.query(query, params);
     return result;
   }
+}
+function buildParameterHolders(userIdGroup: number[]) {
+  return userIdGroup.map(uid => "?").join(", ");
 }

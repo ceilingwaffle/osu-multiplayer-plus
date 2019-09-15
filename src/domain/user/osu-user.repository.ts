@@ -1,9 +1,10 @@
 import { Repository, EntityRepository } from "typeorm";
 import { OsuUser } from "./osu-user.entity";
 import { Log } from "../../utils/Log";
+import { AppBaseRepository } from "../shared/app-base-repository";
 
 @EntityRepository(OsuUser)
-export class OsuUserRepository extends Repository<OsuUser> {
+export class OsuUserRepository extends AppBaseRepository<OsuUser> {
   findByBanchoUserIds(banchoUserIds: number[]): Promise<OsuUser[]> {
     try {
       return (
