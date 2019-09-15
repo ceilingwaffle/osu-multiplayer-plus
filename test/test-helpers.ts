@@ -136,6 +136,10 @@ export class TestHelpers {
   static logFakeImplementationWarning(methodName: string): void {
     Log.warn(`FAKING RESPONSE FROM ${this.constructor.name}.${methodName}`);
   }
+
+  static convertToTeamDtoArgFormat(inTeams: string[][]) {
+    return [].concat(...inTeams.map(teamGroup => teamGroup.map(uid => uid).concat("|"))).slice(0, -1);
+  }
 }
 
 export interface TestContextEntities {
