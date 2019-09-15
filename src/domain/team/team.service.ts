@@ -78,6 +78,9 @@ export class TeamService {
           relations: [
             "gameTeams",
             "gameTeams.team",
+            "gameTeams.team.createdBy",
+            "gameTeams.team.createdBy.discordUser",
+            "gameTeams.team.createdBy.webUser",
             "gameTeams.team.teamOsuUsers",
             "gameTeams.team.teamOsuUsers.osuUser",
             "gameTeams.team.gameTeams",
@@ -154,6 +157,9 @@ export class TeamService {
           relations: [
             "gameTeams",
             "gameTeams.team",
+            "gameTeams.team.createdBy",
+            "gameTeams.team.createdBy.discordUser",
+            "gameTeams.team.createdBy.webUser",
             "gameTeams.team.teamOsuUsers",
             "gameTeams.team.teamOsuUsers.osuUser",
             "gameTeams.team.gameTeams",
@@ -368,6 +374,7 @@ export class TeamService {
     addedBy: User;
   }) {
     const team = new Team();
+    team.createdBy = addedBy;
     for (const userId of banchoOsuUserIdGroup) {
       const teamOsuUser = new TeamOsuUser();
       teamOsuUser.osuUser = osuUsers.find(osuUser => osuUser.osuUserId === userId.toString());
