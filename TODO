@@ -462,10 +462,11 @@ TODO:
                         These events will be processed to determine the leaderboard output
                 ☐ Team Line
                     ☐ Team Performance Icon (in order of priority)
-                        ☐ 🏆 Game champion (game over) 
+                        ✘ 🏆 Tournament winner @cancelled(19-09-15 13:21)
+                        ☐ 🥇 1st place (game over) 
                         ☐ 🥈 2nd place (game over) 
-                        ☐ 🥉 3rd place (game over) 
-                        ☐ 🥄 Last place
+                        ☐ 🥉 3rd place (game over)
+                        ☐ 🏅 4th place (game over) 
                         ☐ 💀 Skull if team was eliminated this match
                         ☐ 💔 Broken heart if team lost a life
                         ✘ 🤩 Perfect Score (all team members SS) @cancelled(19-09-04 15:36)
