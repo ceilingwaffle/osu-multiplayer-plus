@@ -3,7 +3,8 @@ import { ValidationError } from "class-validator";
 
 export enum TeamFailure {
   InvalidTeamSize,
-  OsuUsersAlreadyInTeamForThisGame
+  OsuUsersAlreadyInTeamForThisGame,
+  TooManyUsersInAddTeamsRequest
 }
 
 export const invalidTeamSizeFailure = (validationErrors: ValidationError[], reason?: string): Failure<TeamFailure.InvalidTeamSize> => ({
@@ -26,5 +27,17 @@ export const osuUsersAlreadyInTeamForThisGameFailure = ({
     } else {
       return `osu! users ${osuUsernames.join(", ")} have already been added to a team in game ${gameId}.`;
     }
+  })()
+});
+
+export const tooManyUsersInAddTeamsRequestFailure = ({
+  maxAllowed
+}: {
+  maxAllowed: number;
+}): Failure<TeamFailure.TooManyUsersInAddTeamsRequest> => ({
+  type: TeamFailure.TooManyUsersInAddTeamsRequest,
+  reason: (() => {
+    return `You are adding too many users at once! The maximum number of users allowed in this request is ${maxAllowed}. \ 
+            Try splitting the action up into several smaller commands.`;
   })()
 });

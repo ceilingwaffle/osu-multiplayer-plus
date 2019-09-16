@@ -11,6 +11,8 @@ import { Team } from "./team.entity";
 import { TeamResponseFactory } from "./team-response-factory";
 import { RequestDtoType } from "../../requests/dto/request.dto";
 import { inject, injectable } from "inversify";
+import { Helpers } from "../../utils/helpers";
+import { tooManyUsersInAddTeamsRequestFailure } from "./team.failure";
 
 @injectable()
 export class TeamController {
@@ -23,6 +25,21 @@ export class TeamController {
 
   async create(teamsData: { teamDto: AddTeamsDto; requestDto: RequestDto }): Promise<Response<AddTeamsReport>> {
     try {
+      // validate request
+      const { isValid, maxAllowed } = this.isValidAddTeamsRequest({
+        osuUsernamesOrIdsOrSeparators: teamsData.teamDto.osuUsernamesOrIdsOrSeparators
+      });
+      if (!isValid) {
+        const failure = tooManyUsersInAddTeamsRequestFailure({ maxAllowed });
+        return {
+          success: false,
+          message: FailureMessage.get("teamCreateFailed"),
+          errors: {
+            messages: [failure.reason]
+          }
+        };
+      }
+
       const requester = this.requesterFactory.create(teamsData.requestDto as RequestDtoType);
 
       // get/create the user adding the team
@@ -92,5 +109,24 @@ export class TeamController {
       teamsInReport.push({ teamId: team.id, teamOsuUsernames: team.teamOsuUsers.map(teamOsuUser => teamOsuUser.osuUser.osuUsername) });
     }
     return teamsInReport;
+  }
+
+  private isValidAddTeamsRequest({
+    osuUsernamesOrIdsOrSeparators
+  }: {
+    osuUsernamesOrIdsOrSeparators: string[];
+  }): { isValid: boolean; maxAllowed: number } {
+    // TODO
+    const v = Number(process.env.MAX_VARS_ALLOWED_IN_REQUEST);
+    if (!v || v < 1) throw new Error("Value for MAX_VARS_ALLOWED_IN_REQUEST in .env is invalid.");
+    const maxAllowed = v < 900 ? v : 900;
+    let userCount = 0;
+    for (const item of osuUsernamesOrIdsOrSeparators) {
+      if (!Helpers.isAddTeamCommandSeparator(item)) {
+        userCount++;
+      }
+    }
+    const isValid = userCount <= maxAllowed;
+    return { isValid, maxAllowed };
   }
 }

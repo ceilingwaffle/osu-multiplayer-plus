@@ -449,6 +449,7 @@ describe("When adding teams to a game", function() {
         const createGame1Response = await gameController.create({ gameDto: createGame1Dto, requestDto: requestDto });
         expect(createGame1Response.success).to.be.true;
         const addTeamsResponse1 = await teamController.create({ teamDto: addTeamsDto, requestDto: requestDto });
+        // assert that the request succeeded
         expect(addTeamsResponse1.success).to.be.true;
 
         return resolve();
@@ -458,13 +459,13 @@ describe("When adding teams to a game", function() {
     });
   });
 
-  it("should add an even larger team to a game (5555 players)", function() {
+  it("should fail to complete a request containing a total player count higher than the maximum allowed", function() {
     return new Promise(async (resolve, reject) => {
       try {
         // arrange
         const teams: string[][] = [[]];
         let startingUserId = 3336000;
-        const teamPlayerCount = 5555;
+        const teamPlayerCount = 2000; // This value should be greater than the .env value "MAX_VARS_ALLOWED_IN_REQUEST"
         for (let i = 0; i < teamPlayerCount; i++) {
           teams[0].push((startingUserId++).toString());
         }
@@ -482,11 +483,17 @@ describe("When adding teams to a game", function() {
         // act
         const gameController = iocContainer.get<GameController>(TYPES.GameController);
         const teamController = iocContainer.get<TeamController>(TYPES.TeamController);
-        // create game 1 and add team 1 to it
         const createGame1Response = await gameController.create({ gameDto: createGame1Dto, requestDto: requestDto });
         expect(createGame1Response.success).to.be.true;
         const addTeamsResponse1 = await teamController.create({ teamDto: addTeamsDto, requestDto: requestDto });
-        expect(addTeamsResponse1.success).to.be.true;
+        expect(addTeamsResponse1.success).to.be.false;
+
+        // assert
+        expect(addTeamsResponse1.result).to.be.undefined;
+        expect(addTeamsResponse1.message).lengthOf.to.be.greaterThan(0);
+        expect(addTeamsResponse1.errors).to.be.not.null;
+        expect(addTeamsResponse1.errors.messages).to.not.be.undefined;
+        expect(addTeamsResponse1.errors.messages.join()).to.include("You are adding too many users at once");
 
         return resolve();
       } catch (error) {
