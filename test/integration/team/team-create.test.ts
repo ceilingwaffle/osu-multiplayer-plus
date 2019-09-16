@@ -421,24 +421,13 @@ describe("When adding teams to a game", function() {
     });
   });
 
-  it("should add two teams of different sizes to a game", function() {
-    return new Promise(async (resolve, reject) => {
-      try {
-        return reject();
-        return resolve();
-      } catch (error) {
-        return reject(error);
-      }
-    });
-  });
-
-  it("should add a large team to a game (500 players)", function() {
+  it("should add a large team to a game (555 players)", function() {
     return new Promise(async (resolve, reject) => {
       try {
         // arrange
         const teams: string[][] = [[]];
         let startingUserId = 3336000;
-        const teamPlayerCount = 503;
+        const teamPlayerCount = 555;
         for (let i = 0; i < teamPlayerCount; i++) {
           teams[0].push((startingUserId++).toString());
         }
@@ -462,6 +451,54 @@ describe("When adding teams to a game", function() {
         const addTeamsResponse1 = await teamController.create({ teamDto: addTeamsDto, requestDto: requestDto });
         expect(addTeamsResponse1.success).to.be.true;
 
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
+
+  it("should add an even larger team to a game (5555 players)", function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // arrange
+        const teams: string[][] = [[]];
+        let startingUserId = 3336000;
+        const teamPlayerCount = 5555;
+        for (let i = 0; i < teamPlayerCount; i++) {
+          teams[0].push((startingUserId++).toString());
+        }
+
+        const createGame1Dto: CreateGameDto = {};
+        const addTeamsDto: AddTeamsDto = {
+          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(teams)
+        };
+        const requestDto: DiscordRequestDto = {
+          commType: "discord",
+          authorId: "tester",
+          originChannelId: "tester's amazing channel"
+        };
+
+        // act
+        const gameController = iocContainer.get<GameController>(TYPES.GameController);
+        const teamController = iocContainer.get<TeamController>(TYPES.TeamController);
+        // create game 1 and add team 1 to it
+        const createGame1Response = await gameController.create({ gameDto: createGame1Dto, requestDto: requestDto });
+        expect(createGame1Response.success).to.be.true;
+        const addTeamsResponse1 = await teamController.create({ teamDto: addTeamsDto, requestDto: requestDto });
+        expect(addTeamsResponse1.success).to.be.true;
+
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
+
+  it("should add two teams of different sizes to a game", function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        return reject();
         return resolve();
       } catch (error) {
         return reject(error);

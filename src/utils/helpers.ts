@@ -44,4 +44,20 @@ export class Helpers {
     if (a.toLowerCase() > b.toLowerCase()) return 1;
     return 0;
   }
+
+  static unique(fromArray: any[]): any[] {
+    return [...new Set(fromArray)];
+  }
+
+  /**
+   * https://stackoverflow.com/a/40283265
+   *
+   * @static
+   * @param {any[]} arr
+   * @returns {any[]}
+   * @memberof Helpers
+   */
+  static deepClone(arr: any[]): any[] {
+    return arr.map(a => ({ ...a }));
+  }
 }

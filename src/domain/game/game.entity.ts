@@ -41,7 +41,7 @@ export class Game extends CreationTimestampedEntity {
   gameLobbies: GameLobby[];
 
   @ManyToOne(type => User, user => user.gamesCreated)
-  @JoinColumn({ name: "created_by_user_id" })
+  @JoinColumn() //{ name: "created_by_user_id" }
   createdBy: User;
 
   // Must be x-to-MANY.
@@ -50,7 +50,7 @@ export class Game extends CreationTimestampedEntity {
   @OneToMany(type => UserGameRole, userGameRole => userGameRole.game, { nullable: true })
   userGameRoles: UserGameRole[];
 
-  @OneToMany(type => GameTeam, gameTeam => gameTeam.game, { cascade: ["insert"] })
+  @OneToMany(type => GameTeam, gameTeam => gameTeam.game)
   gameTeams: GameTeam[];
 
   @ManyToOne(type => Realm)

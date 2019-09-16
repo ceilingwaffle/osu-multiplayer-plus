@@ -26,11 +26,13 @@ import { TeamRepository } from "./team.repository";
 import { GameRepository } from "../game/game.repository";
 import { GameTeam } from "./game-team.entity";
 import { successPromise } from "../../utils/either";
+import { TeamOsuUserRepository } from "./team-osu-user.repository";
 
 @injectable()
 export class TeamService {
   private readonly osuUserRepository: OsuUserRepository = getCustomRepository(OsuUserRepository);
   private readonly teamRepository: TeamRepository = getCustomRepository(TeamRepository);
+  private readonly teamOsuUserRepository: TeamOsuUserRepository = getCustomRepository(TeamOsuUserRepository);
   private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
 
   constructor(
@@ -141,15 +143,19 @@ export class TeamService {
 
       // get/create the osu users
       const osuUsers: OsuUser[] = await this.userService.getOrCreateAndSaveOsuUsersFromApiResults(teamsOfApiOsuUsers);
-      // get/create the naked teams (no relations) (some may have already been added to the game)
-      const teams: Team[] = await this.getOrCreateTeamsToBeAddedToGames({ teamsOfApiOsuUsers, osuUsers, requestingUser });
+      // get/create/save the naked teams (no relations) (some may have already been added to the game)
+      const teams: Team[] = await this.getOrCreateAndSaveTeams({ teamsOfApiOsuUsers, osuUsers, requestingUser });
       // filter only teams not already added to this game
       const teamsToBeAdded = teams.filter(t => !game.gameTeams.find(gt => gt.team && gt.team.id === t.id));
       // create the game-teams
       const createdGameTeams: GameTeam[] = this.createGameTeams(game, teamsToBeAdded, requestingUser);
       // add the game-teams to the game
       game.gameTeams = game.gameTeams.concat(createdGameTeams);
-      // save the game and game-teams (cascade game->gameteams->teams)
+      // save the game and game-teams
+      // TODO: Optimize - chunk save the game teams
+      for (const gt of game.gameTeams) {
+        await gt.save();
+      }
       const savedGame = await this.gameRepository.save(game);
       const reloadedGame = await this.gameRepository.findOne(
         { id: savedGame.id },
@@ -161,7 +167,7 @@ export class TeamService {
             "gameTeams.team.createdBy.discordUser",
             "gameTeams.team.createdBy.webUser",
             "gameTeams.team.teamOsuUsers",
-            "gameTeams.team.teamOsuUsers.osuUser",
+            "gameTeams.team.teamOsuUsers.osuUser", // <---------- is null for some reason
             "gameTeams.team.gameTeams",
             "gameTeams.team.gameTeams.game",
             "gameTeams.team.gameTeams.addedBy",
@@ -214,7 +220,7 @@ export class TeamService {
     return lastGameTeamAdded;
   }
 
-  private async getOrCreateTeamsToBeAddedToGames({
+  private async getOrCreateAndSaveTeams({
     teamsOfApiOsuUsers,
     osuUsers,
     requestingUser
@@ -235,14 +241,36 @@ export class TeamService {
       addedBy: requestingUser
     });
     if (unsavedNewTeams.length) {
+      // save the teams
+      // (osu users already saved/fetched and existing as properties within "unsavedNewTeams")
       const savedNewTeamIds: number[] = await this.teamRepository.chunkSave({
         values: unsavedNewTeams,
-        entityType: Team,
-        tableName: "teams"
+        entityType: Team
       });
-      const reloadedNewTeams = await this.teamRepository.findByIdsWithRelations({ ids: savedNewTeamIds, returnWithRelations: [] });
+      let teamOsuUsers = [];
+      for (const t in unsavedNewTeams) {
+        const team = unsavedNewTeams[t];
+        teamOsuUsers.push(
+          // ...team.teamOsuUsers.map(tou => ({ teamId: savedNewTeamIds[t], osuUserId: tou.osuUser.id, addedById: team.createdBy.id }))
+          ...team.teamOsuUsers.map(tou => ({ team: team, osuUser: tou.osuUser, addedBy: team.createdBy }))
+        ); // ...tou within {},
+      }
+      // save teamOsuUsers
+      const savedTeamOsuUserIds = await this.teamOsuUserRepository.chunkSave({
+        values: teamOsuUsers,
+        entityType: TeamOsuUser
+      });
+
+      // const reloadedNewTeams = await this.teamRepository.findByIdsWithRelations({
+      //   ids: savedNewTeamIds,
+      //   returnWithRelations: ["teamOsuUsers", "teamOsuUsers.osuUser"]
+      // });
+      const reloadedNewTeams = await this.teamRepository.findByIds(savedNewTeamIds, {
+        relations: ["teamOsuUsers", "teamOsuUsers.osuUser"]
+      });
       teamsToBeAddedToGame = teamsToBeAddedToGame.concat(reloadedNewTeams);
     }
+
     return teamsToBeAddedToGame;
   }
 

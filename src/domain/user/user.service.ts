@@ -171,11 +171,12 @@ export class UserService {
     returnWithRelations: string[] = [
       "user",
       "user.discordUser",
-      "user.webUser",
-      "teamOsuUsers",
-      "teamOsuUsers.team",
-      "teamOsuUsers.team.gameTeams",
-      "teamOsuUsers.team.gameTeams.addedBy"
+      "user.webUser"
+      // "teamOsuUsers",
+      // "teamOsuUsers.team",
+      // "teamOsuUsers.osuUser",
+      // "teamOsuUsers.team.gameTeams",
+      // "teamOsuUsers.team.gameTeams.addedBy"
     ]
   ): Promise<OsuUser[]> {
     try {
@@ -187,13 +188,12 @@ export class UserService {
       const newUnsavedOsuUsers: OsuUser[] = this.createOsuUsersNotInList({ createThese: apiOsuUsers, notInThese: existingOsuUsers });
       const newUnsavedUsers: User[] = this.createUsers({ times: newUnsavedOsuUsers.length });
       //    save the created users (Q2)
-      const savedUserIds: number[] = await this.userRepository.chunkSave({ values: newUnsavedUsers, entityType: User, tableName: "users" });
+      const savedUserIds: number[] = await this.userRepository.chunkSave({ values: newUnsavedUsers, entityType: User });
       this.updateOsuUsersWithUserIds(newUnsavedOsuUsers, savedUserIds);
       //    save the created osu users (Q3)
       const savedOsuUserIds: number[] = await this.osuUserRepository.chunkSave({
         values: newUnsavedOsuUsers,
-        entityType: OsuUser,
-        tableName: "osu_users"
+        entityType: OsuUser
       });
       //    select all from db (Q4)
       // TODO: Test to see if we actually need union here. SQL might just ignore duplicate ids.

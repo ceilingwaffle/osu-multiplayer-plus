@@ -19,7 +19,7 @@ export class GameTeam extends CreationTimestampedEntity {
   @Generated()
   id: number;
 
-  @ManyToOne(type => Team, team => team.gameTeams, { primary: true, cascade: ["insert"] })
+  @ManyToOne(type => Team, team => team.gameTeams, { primary: true })
   @JoinColumn()
   team: Team;
 

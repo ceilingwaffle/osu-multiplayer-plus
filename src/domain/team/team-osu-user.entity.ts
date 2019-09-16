@@ -15,25 +15,25 @@ import { User } from "../user/user.entity";
  */
 @Entity("teams_osu_users")
 export class TeamOsuUser extends CreationTimestampedEntity {
-  @Generated()
+  @Column({ nullable: false })
   id: number;
 
-  @ManyToOne(type => Team, { primary: true })
+  @ManyToOne(type => Team, team => team.teamOsuUsers, { primary: true })
   @JoinColumn()
   team: Team;
 
-  @ManyToOne(type => OsuUser, { primary: true })
+  @ManyToOne(type => OsuUser, osuUser => osuUser.teamOsuUsers, { primary: true })
   @JoinColumn()
   osuUser: OsuUser;
 
-  @ManyToOne(type => User)
+  @ManyToOne(type => User, { nullable: false })
   @JoinColumn()
   addedBy: User;
 
   @Column({ nullable: true })
   removedAt: number;
 
-  @ManyToOne(type => User)
+  @ManyToOne(type => User, { nullable: true })
   @JoinColumn()
   removedBy: User;
 }
