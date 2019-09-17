@@ -27,6 +27,9 @@ export class TestOsuApiFetcher implements IOsuApiFetcher {
 
   isValidOsuUserId(userId: string): Promise<OsuUserValidationResult> {
     TestHelpers.logFakeImplementationWarning(this.isValidOsuUserId.name);
-    return Promise.resolve({ isValid: true, osuUser: { username: "testUser", userId: Number(userId), country: 1 } });
+    return Promise.resolve({
+      isValid: true,
+      osuUser: { username: `fakeBanchoUsernameForBanchoUserId${userId} `, userId: Number(userId), country: 1 }
+    });
   }
 }
