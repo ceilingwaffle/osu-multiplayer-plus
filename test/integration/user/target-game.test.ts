@@ -27,4 +27,13 @@
 //       }
 //     });
 //   });
+//   it("should fail to update the target game if the game ID is invalid", function() {
+//     return new Promise(async (resolve, reject) => {
+//       try {
+//         return resolve();
+//       } catch (error) {
+//         return reject(error);
+//       }
+//     });
+//   });
 // });

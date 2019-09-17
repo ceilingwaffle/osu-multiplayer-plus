@@ -133,7 +133,7 @@ export class TeamService {
 
       // ! validate the team structure (e.g. does the game require teams to be of a certain size)
 
-      const teamsOfApiOsuUsers = this.extractApiOsuUserTeamsBetweenSeparators(apiOsuUsersAndTeamSeparators);
+      const teamsOfApiOsuUsers = Helpers.extractApiOsuUserTeamsBetweenSeparators(apiOsuUsersAndTeamSeparators);
       // ensure no osu users have already been added to a team for this game
       const osuUsersInGame = await this.getOsuUsersInGameFromApiUserResults(game, Helpers.flatten2Dto1D<ApiOsuUser>(teamsOfApiOsuUsers));
       if (osuUsersInGame.length) {
@@ -287,32 +287,6 @@ export class TeamService {
     // compare by Bancho osu user ID
     const results = osuUsersInGame.filter(osuUser => apiOsuUsers.find(apiOsuUser => apiOsuUser.userId.toString() === osuUser.osuUserId));
     return results;
-  }
-
-  /**
-   * e.g. [a,b,|,c,d,|,e,f] --> [[a,b],[c,d],[e,f]]
-   *
-   * @private
-   * @param {(ApiOsuUser | String)[]} from
-   * @returns {ApiOsuUser[][]}
-   */
-  private extractApiOsuUserTeamsBetweenSeparators(from: (ApiOsuUser | String)[]): ApiOsuUser[][] {
-    // TODO: unit test
-    const separators: string[] = ["|"];
-    const groups: ApiOsuUser[][] = [];
-    var i = from.length;
-    const copy = from.slice();
-    copy.push(separators[0]); // somewhat hacky solution to just add a separator to the beginning to make this work
-    const items = copy.reverse();
-    while (i--) {
-      const item = items[i];
-      if ((typeof item === "string" && separators.includes(item)) || i === 0) {
-        const team = items.splice(i + 1, items.length - 1 - i).reverse() as ApiOsuUser[];
-        groups.push(team);
-        items.splice(i, 1);
-      }
-    }
-    return groups;
   }
 
   private createTeamsIfNew({

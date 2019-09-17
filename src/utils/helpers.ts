@@ -1,4 +1,5 @@
 import * as path from "path";
+import { ApiOsuUser } from "../osu/types/api-osu-user";
 
 export class Helpers {
   static getNow() {
@@ -59,5 +60,32 @@ export class Helpers {
    */
   static deepClone(arr: any[]): any[] {
     return arr.map(a => ({ ...a }));
+  }
+
+  /**
+   * [a,b,|,c,d,|,e,f] --> [[a,b],[c,d],[e,f]]
+   *
+   * @static
+   * @param {((ApiOsuUser | String)[])} from
+   * @returns {ApiOsuUser[][]}
+   * @memberof Helpers
+   */
+  static extractApiOsuUserTeamsBetweenSeparators(from: (ApiOsuUser | String)[]): ApiOsuUser[][] {
+    // TODO: unit test
+    const separators: string[] = ["|"];
+    const groups: ApiOsuUser[][] = [];
+    var i = from.length;
+    const copy = from.slice();
+    copy.push(separators[0]); // somewhat hacky solution to just add a separator to the beginning to make this work
+    const items = copy.reverse();
+    while (i--) {
+      const item = items[i];
+      if ((typeof item === "string" && separators.includes(item)) || i === 0) {
+        const team = items.splice(i + 1, items.length - 1 - i).reverse() as ApiOsuUser[];
+        groups.push(team);
+        items.splice(i, 1);
+      }
+    }
+    return groups;
   }
 }

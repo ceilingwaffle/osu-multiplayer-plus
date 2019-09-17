@@ -12,7 +12,10 @@ import { TeamResponseFactory } from "./team-response-factory";
 import { RequestDtoType } from "../../requests/dto/request.dto";
 import { inject, injectable } from "inversify";
 import { Helpers } from "../../utils/helpers";
-import { tooManyUsersInAddTeamsRequestFailure } from "./team.failure";
+import { tooManyUsersInAddTeamsRequestFailure, TeamFailure, samePlayerExistsInMultipleTeamsInAddTeamsRequestFailure } from "./team.failure";
+import { ApiOsuUser } from "../../osu/types/api-osu-user";
+import { Failure } from "../../utils/Failure";
+import { Either, failurePromise, failure, success } from "../../utils/Either";
 
 @injectable()
 export class TeamController {
@@ -26,23 +29,19 @@ export class TeamController {
   async create(teamsData: { teamDto: AddTeamsDto; requestDto: RequestDto }): Promise<Response<AddTeamsReport>> {
     try {
       // validate request
-      const { isValid, maxAllowed } = this.isValidAddTeamsRequest({
-        osuUsernamesOrIdsOrSeparators: teamsData.teamDto.osuUsernamesOrIdsOrSeparators
-      });
-      if (!isValid) {
-        const failure = tooManyUsersInAddTeamsRequestFailure({ maxAllowed });
+      const validationOutcome = this.isValidAddTeamsRequest(teamsData);
+      if (validationOutcome.failed()) {
         return {
           success: false,
           message: FailureMessage.get("teamCreateFailed"),
           errors: {
-            messages: [failure.reason]
+            messages: [validationOutcome.value.reason]
           }
         };
       }
 
-      const requester = this.requesterFactory.create(teamsData.requestDto as RequestDtoType);
-
       // get/create the user adding the team
+      const requester = this.requesterFactory.create(teamsData.requestDto as RequestDtoType);
       const requestingUserResult = await requester.getOrCreateUser();
       if (requestingUserResult.failed()) {
         if (requestingUserResult.value.error) throw requestingUserResult.value.error;
@@ -111,11 +110,28 @@ export class TeamController {
     return teamsInReport;
   }
 
-  private isValidAddTeamsRequest({
+  private isValidAddTeamsRequest(teamsData: { teamDto: AddTeamsDto; requestDto: RequestDto }): Either<Failure<TeamFailure>, null> {
+    // TODO: Can we extract this out to some validator class, so we don't need to reference Either in a controller class. Also some kind of pipeline pattern or chain of repsonsiblity, or just use some existing library for this?
+    const { isValidMaxVarsAllowed, maxAllowed } = this.isValidMaxVarsAllowed({
+      osuUsernamesOrIdsOrSeparators: teamsData.teamDto.osuUsernamesOrIdsOrSeparators
+    });
+    if (!isValidMaxVarsAllowed) {
+      return failure(tooManyUsersInAddTeamsRequestFailure({ maxAllowed }));
+    }
+    const { isValidNoDuplicatePlayersInTeams, problemItems } = this.isValidNoDuplicatePlayersInTeams({
+      osuUsernamesOrIdsOrSeparators: teamsData.teamDto.osuUsernamesOrIdsOrSeparators
+    });
+    if (!isValidNoDuplicatePlayersInTeams) {
+      return failure(samePlayerExistsInMultipleTeamsInAddTeamsRequestFailure({ problemItems }));
+    }
+    return success(null);
+  }
+
+  private isValidMaxVarsAllowed({
     osuUsernamesOrIdsOrSeparators
   }: {
     osuUsernamesOrIdsOrSeparators: string[];
-  }): { isValid: boolean; maxAllowed: number } {
+  }): { isValidMaxVarsAllowed: boolean; maxAllowed: number } {
     // TODO
     const v = Number(process.env.MAX_VARS_ALLOWED_IN_REQUEST);
     if (!v || v < 1) throw new Error("Value for MAX_VARS_ALLOWED_IN_REQUEST in .env is invalid.");
@@ -126,7 +142,26 @@ export class TeamController {
         userCount++;
       }
     }
-    const isValid = userCount <= maxAllowed;
-    return { isValid, maxAllowed };
+    const isValidMaxVarsAllowed = userCount <= maxAllowed;
+    return { isValidMaxVarsAllowed, maxAllowed };
+  }
+
+  private isValidNoDuplicatePlayersInTeams({
+    osuUsernamesOrIdsOrSeparators
+  }: {
+    osuUsernamesOrIdsOrSeparators: string[];
+  }): { isValidNoDuplicatePlayersInTeams: boolean; problemItems: string[] } {
+    // TODO - rewrite without using extractApiOsuUserTeamsBetweenSeparators to avoid casting to unknown[][]
+    const groups: string[][] = (Helpers.extractApiOsuUserTeamsBetweenSeparators(osuUsernamesOrIdsOrSeparators) as unknown[][]) as string[][]; // prettier-ignore
+    // [["a", "b"], ["a", "c"]] -> ["a": 2, "b": 1, "c": 1]
+    const players = new Array<string>();
+    groups.forEach(g => g.forEach(p => players.push(p)));
+    const playerCounts = {};
+    players.forEach(p => (Object.keys(playerCounts).includes(p) ? playerCounts[p]++ : (playerCounts[p] = 1)));
+    const problemItems = Object.keys(playerCounts).filter(p => playerCounts[p] > 1);
+    return {
+      isValidNoDuplicatePlayersInTeams: !problemItems.length,
+      problemItems: problemItems
+    };
   }
 }

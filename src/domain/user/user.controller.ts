@@ -22,6 +22,8 @@ export class UserController {
 
   async update(userData: { userDto: UpdateUserDto; requestDto: RequestDto }): Promise<Response<UpdateUserReport>> {
     try {
+      // TODO: Validate the target game ID in the DTO
+
       if (userData.userDto.targetGameId == undefined) {
         // TODO: Finish update user method
         throw new Error(

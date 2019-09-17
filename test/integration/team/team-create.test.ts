@@ -309,6 +309,111 @@ describe("When adding teams to a game", function() {
     });
   });
 
+  it("should fail to add a team consisting of one new player and one previously-added", function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // arrange
+        const teamGroups1: string[][] = [["3336000", "3336001"]];
+        const teamGroups2: string[][] = [["3336000", "3336002"]];
+        const createGameDto: CreateGameDto = {};
+        const addTeamsDto1: AddTeamsDto = {
+          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(teamGroups1)
+        };
+        const addTeamsDto2: AddTeamsDto = {
+          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(teamGroups2)
+        };
+        const requestDto: DiscordRequestDto = {
+          commType: "discord",
+          authorId: "tester",
+          originChannelId: "tester's amazing channel"
+        };
+
+        // act
+        const gameController = iocContainer.get<GameController>(TYPES.GameController);
+        const teamController = iocContainer.get<TeamController>(TYPES.TeamController);
+        const createGameResponse = await gameController.create({ gameDto: createGameDto, requestDto: requestDto });
+        expect(createGameResponse.success).to.be.true;
+        //  add team 1 (new player 1, new player 2)
+        const addTeams1Response = await teamController.create({ teamDto: addTeamsDto1, requestDto: requestDto });
+        expect(addTeams1Response.success).to.be.true;
+        // fail to add team 2 (existing player 1, new player 3) - because player 1 is already in a team for this game
+        const addTeams2Response = await teamController.create({ teamDto: addTeamsDto2, requestDto: requestDto });
+        expect(addTeams2Response.success).to.be.false;
+
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
+
+  it("should add a team then add another team", function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // arrange
+        const teamGroups1: string[][] = [["alice", "bob"]];
+        const teamGroups2: string[][] = [["Mark", "Tony"]];
+        const createGameDto: CreateGameDto = {};
+        const addTeamsDto1: AddTeamsDto = {
+          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(teamGroups1)
+        };
+        const addTeamsDto2: AddTeamsDto = {
+          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(teamGroups2)
+        };
+        const requestDto: DiscordRequestDto = {
+          commType: "discord",
+          authorId: "tester",
+          originChannelId: "tester's amazing channel"
+        };
+
+        // act
+        const gameController = iocContainer.get<GameController>(TYPES.GameController);
+        const teamController = iocContainer.get<TeamController>(TYPES.TeamController);
+        const createGameResponse = await gameController.create({ gameDto: createGameDto, requestDto: requestDto });
+        expect(createGameResponse.success).to.be.true;
+        //  add team 1 (new player 1, new player 2)
+        const addTeams1Response = await teamController.create({ teamDto: addTeamsDto1, requestDto: requestDto });
+        expect(addTeams1Response.success).to.be.true;
+        // add team 2 (new player 3, new player 4)
+        const addTeams2Response = await teamController.create({ teamDto: addTeamsDto2, requestDto: requestDto });
+        expect(addTeams2Response.success).to.be.true;
+
+        // assert state of database
+        const teamRepository = getCustomRepository(TeamRepository);
+        const [teamResults, totalTeams]: [Team[], number] = await teamRepository.findAndCount({
+          relations: [
+            "createdBy",
+            "createdBy.discordUser",
+            "teamOsuUsers",
+            "teamOsuUsers.osuUser",
+            "gameTeams",
+            "gameTeams.addedBy",
+            "gameTeams.addedBy.discordUser"
+          ]
+        });
+        expect(totalTeams).to.equal(2);
+        const team1 = teamResults[0];
+        expect(team1.createdBy.discordUser.discordUserId).to.equal(requestDto.authorId);
+        expect(team1.gameTeams).to.have.lengthOf(1);
+        expect(team1.gameTeams[0].addedBy.discordUser.discordUserId).to.equal(requestDto.authorId);
+        expect(team1.gameTeams[0].teamNumber).to.equal(1);
+        expect(team1.teamOsuUsers).to.have.lengthOf(2);
+        expect(team1.teamOsuUsers.map(t => t.osuUser.osuUserId)).to.eql(teamGroups1[0]);
+        const team2 = teamResults[1];
+        expect(team2.createdBy.discordUser.discordUserId).to.equal(requestDto.authorId);
+        expect(team2.gameTeams).to.have.lengthOf(1);
+        expect(team2.gameTeams[0].addedBy.discordUser.discordUserId).to.equal(requestDto.authorId);
+        expect(team2.gameTeams[0].teamNumber).to.equal(2);
+        expect(team2.teamOsuUsers).to.have.lengthOf(2);
+        expect(team2.teamOsuUsers.map(t => t.osuUser.osuUserId)).to.eql(teamGroups2[0]);
+
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
+
   it("should add a team to the game most recently created by the requesting user", function() {
     return new Promise(async (resolve, reject) => {
       try {
@@ -495,7 +600,7 @@ describe("When adding teams to a game", function() {
         expect(addTeamsResponse1.message).lengthOf.to.be.greaterThan(0);
         expect(addTeamsResponse1.errors).to.be.not.null;
         expect(addTeamsResponse1.errors.messages).to.not.be.undefined;
-        expect(addTeamsResponse1.errors.messages.join()).to.include("You are adding too many users at once");
+        expect(addTeamsResponse1.errors.messages.join()).to.include("You are adding too many players at once");
 
         return resolve();
       } catch (error) {
@@ -613,7 +718,7 @@ describe("When adding teams to a game", function() {
     });
   });
 
-  it("should fail to create any teams if the requesting user has no target game", function() {
+  it("should fail to add any teams if the requesting user has no target game", function() {
     // The target game is the game set using the !targetgame command, or if not set, then the user's most recent game created.
     return new Promise(async (resolve, reject) => {
       try {
@@ -645,7 +750,7 @@ describe("When adding teams to a game", function() {
     });
   });
 
-  it("should fail to create a team if the requesting user has not created a game and has not targetted a game using the !targetgame command", function() {
+  it("should fail to add a team if the requesting user has not created a game and has not targetted a game using the !targetgame command", function() {
     return new Promise(async (resolve, reject) => {
       try {
         // arrange
@@ -693,7 +798,7 @@ describe("When adding teams to a game", function() {
     });
   });
 
-  it("should fail to create a team if the requesting user has targeted a game they do not have permission for", function() {
+  it("should fail to add a team if the requesting user has targeted a game they do not have permission for", function() {
     return new Promise(async (resolve, reject) => {
       try {
         // arrange
@@ -749,7 +854,7 @@ describe("When adding teams to a game", function() {
     });
   });
 
-  it("should fail to create a team if a player on that team is already in a team for the game", function() {
+  it("should fail to add a team if a player on that team is already in a team for the game", function() {
     return new Promise(async (resolve, reject) => {
       try {
         // arrange
@@ -777,7 +882,7 @@ describe("When adding teams to a game", function() {
         // User 1 adds team 1 (players 1 and 2)
         const addTeams1Response = await teamController.create({ teamDto: addTeam1Request, requestDto: user1Request });
         expect(addTeams1Response.success).to.be.true;
-        // User 1 fails to add team 2 (players 1 and 3) because player 1 was already added to a team in the previous request
+        // User 1 fails to add team 2 (players 1 and 3) because player 1 was already added to another team in the previous request
         const addTeams2Response = await teamController.create({ teamDto: addTeam2Request, requestDto: user1Request });
         expect(addTeams2Response.success).to.be.false;
         expect(addTeams2Response.result).to.be.undefined;
@@ -800,7 +905,7 @@ describe("When adding teams to a game", function() {
     });
   });
 
-  it("should fail to create any teams if any player exists in more than one of the requested teams", function() {
+  it("should fail to add any teams if any player exists in more than one of the requested teams", function() {
     return new Promise(async (resolve, reject) => {
       try {
         // arrange
@@ -830,15 +935,13 @@ describe("When adding teams to a game", function() {
         expect(addTeamsResponse.message).lengthOf.to.be.greaterThan(0);
         expect(addTeamsResponse.errors).to.be.not.null;
         expect(addTeamsResponse.errors.messages).to.not.be.undefined;
-        expect(addTeamsResponse.errors.messages.join()).to.include("fakeBanchoUsernameForBanchoUserId3336000");
-        expect(addTeamsResponse.errors.messages.join()).to.include("added more than once");
+        expect(addTeamsResponse.errors.messages.join()).to.include("You tried adding this player to multiple teams: 3336000");
 
         // assert state of database
         const teamRepository = getCustomRepository(TeamRepository);
         const [teamResults, totalTeams]: [Team[], number] = await teamRepository.findAndCount({ relations: [] });
         expect(totalTeams).to.equal(0);
 
-        return reject();
         return resolve();
       } catch (error) {
         return reject(error);

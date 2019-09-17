@@ -4,7 +4,8 @@ import { ValidationError } from "class-validator";
 export enum TeamFailure {
   InvalidTeamSize,
   OsuUsersAlreadyInTeamForThisGame,
-  TooManyUsersInAddTeamsRequest
+  TooManyUsersInAddTeamsRequest,
+  SamePlayerExistsInMultipleTeamsInAddTeamsRequest
 }
 
 export const invalidTeamSizeFailure = (validationErrors: ValidationError[], reason?: string): Failure<TeamFailure.InvalidTeamSize> => ({
@@ -37,7 +38,20 @@ export const tooManyUsersInAddTeamsRequestFailure = ({
 }): Failure<TeamFailure.TooManyUsersInAddTeamsRequest> => ({
   type: TeamFailure.TooManyUsersInAddTeamsRequest,
   reason: (() => {
-    return `You are adding too many users at once! The maximum number of users allowed in this request is ${maxAllowed}. \ 
+    return `You are adding too many players at once! The maximum number of players allowed in this request is ${maxAllowed}. \ 
             Try splitting the action up into several smaller commands.`;
+  })()
+});
+
+export const samePlayerExistsInMultipleTeamsInAddTeamsRequestFailure = ({
+  problemItems
+}: {
+  problemItems: string[];
+}): Failure<TeamFailure.SamePlayerExistsInMultipleTeamsInAddTeamsRequest> => ({
+  type: TeamFailure.SamePlayerExistsInMultipleTeamsInAddTeamsRequest,
+  reason: (() => {
+    const grammaticalNumberOfTheseUsers = problemItems.length === 1 ? "this player" : "these players";
+    return `Players can only be added to one team per game. \
+            You tried adding ${grammaticalNumberOfTheseUsers} to multiple teams: ${problemItems.join(", ")}`;
   })()
 });
