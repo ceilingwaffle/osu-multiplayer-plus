@@ -7,7 +7,7 @@ import { Log } from "../../src/utils/Log";
 import { Helpers } from "../../src/utils/helpers";
 
 @injectable()
-export class TestOsuApiFetcher implements IOsuApiFetcher {
+export class FakeOsuApiFetcher implements IOsuApiFetcher {
   constructor() {
     Log.debug(`Initialized ${this.constructor.name}`);
   }
