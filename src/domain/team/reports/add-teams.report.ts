@@ -9,5 +9,8 @@ export class AddTeamsReport {
 
 export interface TeamInTeamReport {
   teamId: number;
+  teamNumber: number;
+  teamColorName: string;
+  teamColorValue: string;
   teamOsuUsernames: string[];
 }

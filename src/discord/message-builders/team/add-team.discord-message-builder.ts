@@ -5,6 +5,7 @@ import { Response } from "../../../requests/Response";
 import { DiscordUserReportProperties } from "../../../domain/shared/reports/discord-user-report-properties";
 import { DiscordCommandExampleBuilder } from "../../discord-command-example-builder";
 import { AddTeamsReport } from "../../../domain/team/reports/add-teams.report";
+import { Helpers } from "../../../utils/helpers";
 
 export class AddTeamDiscordMessageBuilder extends AbstractDiscordMessageBuilder<AddTeamsReport> {
   public from(response: Response<AddTeamsReport>, command: Command): this {
@@ -13,7 +14,7 @@ export class AddTeamDiscordMessageBuilder extends AbstractDiscordMessageBuilder<
 
     DiscordCommandExampleBuilder.addExample({
       command: command,
-      exampleCommandText: "!obr removeteam <teamId>"
+      exampleCommandText: "!obr removeteam <teamNumber>"
     });
 
     return this;
@@ -32,13 +33,13 @@ export class AddTeamDiscordMessageBuilder extends AbstractDiscordMessageBuilder<
     for (const team of this.response.result.teams) {
       const removeTeamCommandExample = DiscordCommandExampleBuilder.getExampleFor({
         command: this.command,
-        data: { teamId: team.teamId }
+        data: { teamNumber: team.teamNumber }
       });
 
       message.addField(
-        `Team ID: ${team.teamId}`,
+        `Team #${team.teamNumber} (${team.teamColorName} team)`,
         `Team Members: ${team.teamOsuUsernames.join(", ")} 
-        (remove team using: \`\`${removeTeamCommandExample}\`\`)`
+        (remove team from game using: \`\`${removeTeamCommandExample}\`\`)`
       );
     }
 

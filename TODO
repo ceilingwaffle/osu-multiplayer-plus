@@ -269,7 +269,10 @@ TODO:
                     ☐ If match results are processed before any teams are added @created(19-09-07 16:51)
                         ☐ osu users from the results are created and added to a new team of 1
                         ☐ But then if a team is created with 2+ osu users, and one of those osu users is in the team of 1, delete the team of 1 and create a new team with the 2+ osu users
-                            -- How do we handle database integrity if we delete a team?
+                    ☐ How do we handle database integrity if we delete a team? @created(19-09-19 00:34)
+                    ✔ In TeamResponseFactory - Make subject GameTeam instead of Team @created(19-09-19 00:34) @done(19-09-19 00:35)
+                    ✔ In AddTeamDiscordMessageBuilder - Replace "Team ID x"  with "Team Number y (color)" @created(19-09-19 00:34) @done(19-09-19 00:35)
+                    ✔ In AddTeamDiscordMessageBuilder - Replace command example with -- remove team using !obr removeteam <teamNumber> (instead of <teamId>) @created(19-09-19 00:34) @done(19-09-19 00:35)
                 ☐ `!obr removeteam <ouid1> <ouid2> ...` @created(19-08-31 23:41)
                 ☐ `!obr clearteams` DESTRUCTIVE @created(19-08-31 23:41)
             Matches:

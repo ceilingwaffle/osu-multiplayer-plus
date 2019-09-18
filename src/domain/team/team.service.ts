@@ -63,7 +63,7 @@ export class TeamService {
     osuUsernamesOrIdsOrSeparators: string[];
     requestingUser: User;
     requestDto: RequestDto;
-  }): Promise<Either<Failure<TeamFailure | OsuUserFailure | GameFailure | PermissionsFailure>, Team[]>> {
+  }): Promise<Either<Failure<TeamFailure | OsuUserFailure | GameFailure | PermissionsFailure>, GameTeam[]>> {
     try {
       // find the user's most recent game created, or !targetgame
       const targetGameResult = await this.gameService.getRequestingUserTargetGame({
@@ -84,16 +84,16 @@ export class TeamService {
             "gameTeams.addedBy.discordUser",
             "gameTeams.addedBy.webUser",
             "gameTeams.team",
-            "gameTeams.team.createdBy",
-            "gameTeams.team.createdBy.discordUser",
-            "gameTeams.team.createdBy.webUser",
             "gameTeams.team.teamOsuUsers",
-            "gameTeams.team.teamOsuUsers.osuUser",
-            "gameTeams.team.gameTeams",
-            "gameTeams.team.gameTeams.game",
-            "gameTeams.team.gameTeams.addedBy",
-            "gameTeams.team.gameTeams.addedBy.discordUser",
-            "gameTeams.team.gameTeams.addedBy.webUser"
+            "gameTeams.team.teamOsuUsers.osuUser"
+            // "gameTeams.team.createdBy",
+            // "gameTeams.team.createdBy.discordUser",
+            // "gameTeams.team.createdBy.webUser",
+            // "gameTeams.team.gameTeams",
+            // "gameTeams.team.gameTeams.game",
+            // "gameTeams.team.gameTeams.addedBy",
+            // "gameTeams.team.gameTeams.addedBy.discordUser",
+            // "gameTeams.team.gameTeams.addedBy.webUser"
           ]
         }
       );
@@ -150,7 +150,7 @@ export class TeamService {
       // get/create/save the naked teams (no relations) (some may have already been added to the game)
       const teams: Team[] = await this.getOrCreateAndSaveTeams({ teamsOfApiOsuUsers, osuUsers, requestingUser });
       // filter only teams not already added to this game
-      const teamsToBeAdded = teams.filter(t => !game.gameTeams.find(gt => gt.team && gt.team.id === t.id));
+      const teamsToBeAdded: Team[] = teams.filter(t => !game.gameTeams.find(gt => gt.team && gt.team.id === t.id));
       // create the game-teams
       const createdGameTeams: GameTeam[] = this.createGameTeams(game, teamsToBeAdded, requestingUser);
       // add the game-teams to the game
@@ -166,24 +166,37 @@ export class TeamService {
         {
           relations: [
             "gameTeams",
+            "gameTeams.addedBy",
+            "gameTeams.addedBy.discordUser",
+            "gameTeams.addedBy.webUser",
+            "gameTeams.game",
             "gameTeams.team",
-            "gameTeams.team.createdBy",
-            "gameTeams.team.createdBy.discordUser",
-            "gameTeams.team.createdBy.webUser",
             "gameTeams.team.teamOsuUsers",
-            "gameTeams.team.teamOsuUsers.osuUser", // <---------- is null for some reason
-            "gameTeams.team.gameTeams",
-            "gameTeams.team.gameTeams.game",
-            "gameTeams.team.gameTeams.addedBy",
-            "gameTeams.team.gameTeams.addedBy.discordUser",
-            "gameTeams.team.gameTeams.addedBy.webUser"
+            "gameTeams.team.teamOsuUsers.osuUser"
+            // "gameTeams.team.createdBy",
+            // "gameTeams.team.createdBy.discordUser",
+            // "gameTeams.team.createdBy.webUser",
+            // "gameTeams.team.gameTeams",
+            // "gameTeams.team.gameTeams.game",
+            // "gameTeams.team.gameTeams.addedBy",
+            // "gameTeams.team.gameTeams.addedBy.discordUser",
+            // "gameTeams.team.gameTeams.addedBy.webUser"
           ]
         }
       );
 
-      const finalTeamsAdded: Team[] = reloadedGame.gameTeams
-        .map(gt => gt.team)
-        .filter(t => teamsToBeAdded.map(ttba => ttba.id).includes(t.id));
+      const finalTeamsAdded: GameTeam[] = reloadedGame.gameTeams.filter(
+        ggt =>
+          createdGameTeams.map(cgt => cgt.team.id).includes(ggt.team.id) && createdGameTeams.map(cgt => cgt.game.id).includes(ggt.game.id)
+      );
+
+      // const finalTeamsAdded: Team[] = reloadedGame.gameTeams
+      //   .map(gt => gt.team)
+      //   .filter(t => teamsToBeAdded.map(ttba => ttba.id).includes(t.id));
+
+      // const finalTeamsAdded: GameTeam[] = reloadedGame.gameTeams.filter(gt =>
+      //   teamsToBeAdded.map(t => t.gameTeams.map(tgt => tgt.id).includes(gt.id))
+      // );
 
       Log.methodSuccess(this.processAddingNewTeams, this.constructor.name);
       return successPromise(finalTeamsAdded);
@@ -273,7 +286,7 @@ export class TeamService {
       //   returnWithRelations: ["teamOsuUsers", "teamOsuUsers.osuUser"]
       // });
       const reloadedNewTeams = await this.teamRepository.findByIds(savedNewTeamIds, {
-        relations: ["teamOsuUsers", "teamOsuUsers.osuUser"]
+        relations: ["teamOsuUsers", "teamOsuUsers.osuUser", "gameTeams"]
       });
       teamsToBeAddedToGame = teamsToBeAddedToGame.concat(reloadedNewTeams);
     }

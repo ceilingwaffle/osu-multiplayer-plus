@@ -16,6 +16,7 @@ import { tooManyUsersInAddTeamsRequestFailure, TeamFailure, samePlayerExistsInMu
 import { ApiOsuUser } from "../../osu/types/api-osu-user";
 import { Failure } from "../../utils/Failure";
 import { Either, failurePromise, failure, success } from "../../utils/Either";
+import { GameTeam } from "./game-team.entity";
 
 @injectable()
 export class TeamController {
@@ -75,7 +76,7 @@ export class TeamController {
         };
       }
 
-      const savedTeams = addTeamsResult.value;
+      const savedTeams: GameTeam[] = addTeamsResult.value;
 
       return {
         success: true,
@@ -102,10 +103,16 @@ export class TeamController {
     }
   }
 
-  private generateTeamsInTeamReportFromTeamEntities(teamEntities: Team[]) {
+  private generateTeamsInTeamReportFromTeamEntities(teamEntities: GameTeam[]) {
     const teamsInReport: TeamInTeamReport[] = [];
-    for (const team of teamEntities) {
-      teamsInReport.push({ teamId: team.id, teamOsuUsernames: team.teamOsuUsers.map(teamOsuUser => teamOsuUser.osuUser.osuUsername) });
+    for (const gameTeam of teamEntities) {
+      teamsInReport.push({
+        teamId: gameTeam.team.id,
+        teamColorName: gameTeam.colorName,
+        teamColorValue: gameTeam.colorValue,
+        teamNumber: gameTeam.teamNumber,
+        teamOsuUsernames: gameTeam.team.teamOsuUsers.map(teamOsuUser => teamOsuUser.osuUser.osuUsername)
+      });
     }
     return teamsInReport;
   }
