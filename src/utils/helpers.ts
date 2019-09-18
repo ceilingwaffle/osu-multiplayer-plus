@@ -88,4 +88,8 @@ export class Helpers {
     }
     return groups;
   }
+
+  static stringToCharCodeNumbers(s: string): number {
+    return parseInt([...s].map((c, i) => c.charCodeAt(0)).join(""));
+  }
 }

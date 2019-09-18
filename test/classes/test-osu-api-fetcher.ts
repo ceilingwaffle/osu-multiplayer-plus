@@ -4,6 +4,7 @@ import { OsuUserValidationResult } from "../../src/osu/types/osu-user-validation
 import { TestHelpers } from "../test-helpers";
 import { injectable } from "inversify";
 import { Log } from "../../src/utils/Log";
+import { Helpers } from "../../src/utils/helpers";
 
 @injectable()
 export class TestOsuApiFetcher implements IOsuApiFetcher {
@@ -22,7 +23,10 @@ export class TestOsuApiFetcher implements IOsuApiFetcher {
 
   isValidOsuUsername(username: string): Promise<OsuUserValidationResult> {
     TestHelpers.logFakeImplementationWarning(this.isValidOsuUsername.name);
-    return Promise.resolve({ isValid: true, osuUser: { username: username, userId: 1, country: 1 } });
+    return Promise.resolve({
+      isValid: true,
+      osuUser: { username: username, userId: Helpers.stringToCharCodeNumbers(username), country: 1 }
+    });
   }
 
   isValidOsuUserId(userId: string): Promise<OsuUserValidationResult> {

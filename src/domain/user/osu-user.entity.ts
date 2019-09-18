@@ -17,7 +17,7 @@ export class OsuUser extends CreationTimestampedEntity {
   @IsInt()
   @IsPositive()
   // TODO: @IsValidOsuUserId()
-  @Column()
+  @Column({ unique: true })
   osuUserId: string;
 
   // TODO: @IsValidOsuUsername()

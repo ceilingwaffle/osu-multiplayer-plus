@@ -398,14 +398,14 @@ describe("When adding teams to a game", function() {
         expect(team1.gameTeams[0].addedBy.discordUser.discordUserId).to.equal(requestDto.authorId);
         expect(team1.gameTeams[0].teamNumber).to.equal(1);
         expect(team1.teamOsuUsers).to.have.lengthOf(2);
-        expect(team1.teamOsuUsers.map(t => t.osuUser.osuUserId)).to.eql(teamGroups1[0]);
+        expect(team1.teamOsuUsers.map(t => t.osuUser.osuUsername)).to.eql(teamGroups1[0]);
         const team2 = teamResults[1];
         expect(team2.createdBy.discordUser.discordUserId).to.equal(requestDto.authorId);
         expect(team2.gameTeams).to.have.lengthOf(1);
         expect(team2.gameTeams[0].addedBy.discordUser.discordUserId).to.equal(requestDto.authorId);
         expect(team2.gameTeams[0].teamNumber).to.equal(2);
         expect(team2.teamOsuUsers).to.have.lengthOf(2);
-        expect(team2.teamOsuUsers.map(t => t.osuUser.osuUserId)).to.eql(teamGroups2[0]);
+        expect(team2.teamOsuUsers.map(t => t.osuUser.osuUsername)).to.eql(teamGroups2[0]);
 
         return resolve();
       } catch (error) {

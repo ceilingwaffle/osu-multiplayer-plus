@@ -79,6 +79,10 @@ export class TeamService {
         {
           relations: [
             "gameTeams",
+            "gameTeams.game",
+            "gameTeams.addedBy",
+            "gameTeams.addedBy.discordUser",
+            "gameTeams.addedBy.webUser",
             "gameTeams.team",
             "gameTeams.team.createdBy",
             "gameTeams.team.createdBy.discordUser",
