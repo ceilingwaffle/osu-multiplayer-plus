@@ -181,9 +181,12 @@ export class TeamService {
         }
       );
 
-      const finalTeams: Team[] = reloadedGame.gameTeams.map(gt => gt.team);
+      const finalTeamsAdded: Team[] = reloadedGame.gameTeams
+        .map(gt => gt.team)
+        .filter(t => teamsToBeAdded.map(ttba => ttba.id).includes(t.id));
+
       Log.methodSuccess(this.processAddingNewTeams, this.constructor.name);
-      return successPromise(finalTeams);
+      return successPromise(finalTeamsAdded);
     } catch (error) {
       Log.methodError(this.processAddingNewTeams, this.constructor.name, error);
       throw error;

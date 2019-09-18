@@ -6,6 +6,11 @@ import { Requester } from "../../requests/requesters/requester";
 import { RequestDto } from "../../requests/dto";
 
 export class TeamResponseFactory extends AbstractResponseFactory<Team[]> {
+  // TODO: Make subject GameTeam instead of Team
+  // TODO: replace "Team ID x"  with "Team Number y"
+  // TODO: replace command example with -- remove team using !obr removeteam <gameTeamId> (instead of <teamId>)
+  // TODO: add command !listteams <gameId> -- returns team numbers for user's targetted game
+
   constructor(protected readonly requester: Requester, protected readonly subject: Team[], protected readonly requestData: RequestDto) {
     super(requester, subject, requestData);
     if (!this.subject[0]) {
@@ -24,9 +29,10 @@ export class TeamResponseFactory extends AbstractResponseFactory<Team[]> {
   }
 
   getGameId(): number {
-    if (!this.subject[0].gameTeams[0] || !this.subject[0].gameTeams[0].game) {
+    const lastGameTeam = this.subject[0].gameTeams.slice(-1)[0];
+    if (!lastGameTeam || !lastGameTeam.game) {
       throw new Error("Team was not added to any game? This should never happen.");
     }
-    return this.subject[0].gameTeams[0].game.id;
+    return lastGameTeam.game.id;
   }
 }
