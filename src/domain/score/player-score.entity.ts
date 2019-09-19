@@ -20,4 +20,7 @@ export class PlayerScore extends CreationTimestampedEntity {
   @ManyToOne(type => Match)
   @JoinColumn({ name: "scored_in_match_id" })
   scoredInMatch: Match;
+
+  @Column({ default: false })
+  ignored: boolean;
 }
