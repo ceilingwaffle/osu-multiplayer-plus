@@ -52,7 +52,7 @@ export class NodesuApiTransformer {
 
       for (const apiScore of apiMatch.scores) {
         scores.push({
-          osuUserId: apiScore.userId,
+          osuUserId: apiScore.userId.toString(),
           score: apiScore.score,
           passed: apiScore.pass
         });

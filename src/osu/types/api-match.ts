@@ -9,7 +9,6 @@ export type ApiMatch = {
   startTime: Date;
   endTime: Date;
   teamMode: ApiTeamMode;
-  scores: ApiPlayerScore[];
-  ignored?: boolean;
   event: ApiMatchEvent;
+  scores: ApiPlayerScore[];
 };

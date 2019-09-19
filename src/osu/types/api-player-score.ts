@@ -1,5 +1,5 @@
 export type ApiPlayerScore = {
-  osuUserId: number;
+  osuUserId: string;
   score: number;
   passed: boolean;
   ignored?: boolean;

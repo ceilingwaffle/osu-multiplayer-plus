@@ -1,6 +1,6 @@
 export interface Player {
-  osuUsername: string;
   osuUserId: string;
+  osuUsername: string;
   countryCode: string;
   countryEmoji: string;
 }
