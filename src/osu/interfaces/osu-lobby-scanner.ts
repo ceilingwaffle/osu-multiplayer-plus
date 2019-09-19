@@ -1,3 +1,5 @@
+import { OsuLobbyScannerEvents } from "./osu-lobby-scanner-events";
+
 export interface IOsuLobbyScanner {
   /**
    * Starts a watcher to poll for and emit match results for a Bancho multiplayer lobby.

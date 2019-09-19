@@ -10,6 +10,12 @@ TODO:
     ☐ Explore the osu! API - we need to know if submitting a map when you're in a multi will display the map in your "recent" played maps. This is mainly for MING MODE where we need to know - if it's displayed in your recent plays with an F (if failed in a multi). Does it only show F if you didn't recover in the multi, or will it show some letter (S,A,B,C,D) when you recover before the end of the map.
     ☐ Take a look at the new osu! API
     ✔ Use test Discord Commando database depending on env context @started(19-08-26 21:40) @done(19-08-27 08:11) @lasted(10h31m25s)
+    Bugs:
+        Critical:
+        Important:
+            ☐ !creategame should change the target game of the requesting user to that game. @created(19-09-19 13:00)
+        Optimize:
+            ☐ Lobby scanner should start scanning immediately when a lobby is added. Right now, it waits the interval time before doing the first scan. @created(19-09-19 13:13)
     Security:
         ☐ The !addteam command could be abused if a user spams the command with a bunch of osu usernames over and over again, because the addteam process involves validating the osu usernames with the osu API, meaning this is an effective DoS attack. @created(19-09-07 17:42)
             ☐ We need some kind of rate limiter for the actions the users can do @created(19-09-07 17:43)
@@ -368,12 +374,12 @@ TODO:
         Match Result Reports:
             Processing Match Results:
                 ☐ Entity changes @created(19-09-07 10:20)
-                    State changes over time: https://www.draw.io/#G1MXJR-XSlzcyyxUxMVRZd83pwLTxoGAvP
+                    State changes over time: https://drive.google.com/file/d/1MXJR-XSlzcyyxUxMVRZd83pwLTxoGAvP/view?usp=sharing
                     DB Diagram: https://dbdiagram.io/d/5d1657f5ced98361d6dc2742
                     ✔ Remove TeamScore @done(19-09-07 15:03)
                         Calculate team scores from player scores instead
                     ✔ Remove GameTeamScore @done(19-09-07 15:05)
-                    ✔ Add TeamUser (with addedBy) @done(19-09-07 15:21)
+                    ✔ Add TeamOsuUser (with addedBy) @done(19-09-07 15:21)
                         So we can know who added the user to the team
                     ✔ Add Realm (with realmType string as union of "discord_realm" | "web_realm") @done(19-09-07 16:10)
                         -- This is to avoid privacy issues, by making it possible to filter results in reports like "show all team scores", where if the same team was also created in another realm, we only include team scores belonging to games created in the realm where the command was sent from.

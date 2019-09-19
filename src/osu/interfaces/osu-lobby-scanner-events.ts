@@ -1,5 +1,12 @@
 import { ApiMultiplayer } from "../types/api-multiplayer";
 
+export type OsuLobbyScannerEventDataMap = {
+  newMultiplayerMatches: ApiMultiplayer;
+  watcherStarted: string;
+  watcherStopped: string;
+  watcherFailed: string;
+};
+
 export interface OsuLobbyScannerEvents {
   /**
    * *New* multiplayer matches were fetched (not previously fetched).

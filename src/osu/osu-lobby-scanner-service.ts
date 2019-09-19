@@ -1,12 +1,14 @@
 import { IOsuLobbyScanner } from "./interfaces/osu-lobby-scanner";
 import { IOsuApiFetcher } from "./interfaces/osu-api-fetcher";
 import { Log } from "../utils/Log";
-import { EventEmitter } from "eventemitter3";
-import { OsuLobbyScannerEvents } from "./interfaces/osu-lobby-scanner-events";
+// import { EventEmitter } from "eventemitter3";
+import { OsuLobbyScannerEvents, OsuLobbyScannerEventDataMap } from "./interfaces/osu-lobby-scanner-events";
 import { ApiMultiplayer } from "./types/api-multiplayer";
 import { dynamic, SetIntervalAsyncTimer, clearIntervalAsync } from "set-interval-async";
 import { injectable, decorate, inject } from "inversify";
 import TYPES from "../types";
+import Emittery = require("emittery");
+import { MultiplayerResultsListener } from "../multiplayer/multiplayer-results-listener";
 
 interface Watcher {
   multiplayerId: string;
@@ -17,11 +19,14 @@ interface Watcher {
   isScanning?: boolean;
 }
 
-decorate(injectable(), EventEmitter);
+// decorate(injectable(), EventEmitter);
+decorate(injectable(), Emittery);
+// decorate(injectable(), Emittery.Typed);
 @injectable()
-export class OsuLobbyScannerService extends EventEmitter<OsuLobbyScannerEvents> implements IOsuLobbyScanner {
-  protected readonly interval: number = 1000;
+export class OsuLobbyScannerService extends Emittery.Typed<OsuLobbyScannerEventDataMap> implements IOsuLobbyScanner {
+  protected readonly interval: number = 5000;
   protected readonly watching: { [multiplayerId: string]: Watcher } = {};
+  protected readonly mpResultsListener: MultiplayerResultsListener = new MultiplayerResultsListener(this);
 
   constructor(@inject(TYPES.IOsuApiFetcher) private readonly osuApi: IOsuApiFetcher) {
     super();
@@ -30,10 +35,6 @@ export class OsuLobbyScannerService extends EventEmitter<OsuLobbyScannerEvents> 
   }
 
   private registerEventListeners() {
-    this.on("newMultiplayerMatches", results => {
-      Log.warn("Event newMultiplayerMatches", { mpid: results.multiplayerId, matches: results.matches.length });
-    });
-
     this.on("watcherFailed", mpid => {
       // TODO: Fire event for the Lobby class to update its status indicating that an error occurred while it was being scanned for results
       Log.warn("Event watcherFailed", `Watcher failed for mp ${mpid}`);
@@ -63,6 +64,8 @@ export class OsuLobbyScannerService extends EventEmitter<OsuLobbyScannerEvents> 
       const results = await this.osuApi.fetchMultiplayerResults(multiplayerId);
       if (this.containsNewMatches(results)) {
         watcher.latestResults = results;
+        this.emit("newMultiplayerMatches", results);
+        this.emit("newMultiplayerMatches", results);
         this.emit("newMultiplayerMatches", results);
       }
     } catch (error) {
@@ -157,6 +160,7 @@ export class OsuLobbyScannerService extends EventEmitter<OsuLobbyScannerEvents> 
   private containsNewMatches(multi: ApiMultiplayer): boolean {
     // TODO: unit test containsNewMatches
     try {
+      return true;
       if (!multi || !multi.multiplayerId) throw new Error(`No multiplayer results provided.`);
       if (!multi.multiplayerId) throw new Error(`No multiplayer ID provided with multiplayer results.`);
       const watcher = this.watching[multi.multiplayerId];
