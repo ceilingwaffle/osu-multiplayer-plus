@@ -17,6 +17,6 @@ export class MultiplayerResultsProcessor {
   }
 
   async process(): Promise<MatchReport[]> {
-    throw new Error("Method not implemented.");
+    throw new Error("TODO: Implement method of MultiplayerResultsProcessor.");
   }
 }
