@@ -54,7 +54,7 @@ describe("When processing multiplayer results", function() {
                   }
                 ]
               }
-            ]]
+            ]
           };
 
           const expectedReports: MatchReport[] = [
