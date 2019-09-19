@@ -8,6 +8,7 @@ temp/
 logs/
 notes/
 coverage/
+design/
 .nyc_output/
 .env
 .DS_Store
