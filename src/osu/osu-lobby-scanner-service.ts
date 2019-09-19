@@ -1,8 +1,7 @@
 import { IOsuLobbyScanner } from "./interfaces/osu-lobby-scanner";
 import { IOsuApiFetcher } from "./interfaces/osu-api-fetcher";
 import { Log } from "../utils/Log";
-// import { EventEmitter } from "eventemitter3";
-import { OsuLobbyScannerEvents, OsuLobbyScannerEventDataMap } from "./interfaces/osu-lobby-scanner-events";
+import { OsuLobbyScannerEventDataMap } from "./interfaces/osu-lobby-scanner-events";
 import { ApiMultiplayer } from "./types/api-multiplayer";
 import { dynamic, SetIntervalAsyncTimer, clearIntervalAsync } from "set-interval-async";
 import { injectable, decorate, inject } from "inversify";
