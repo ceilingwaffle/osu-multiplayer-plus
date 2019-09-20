@@ -22,6 +22,7 @@
     "@types/mocha": "^5.2.7",
     "@types/node": "^8.0.29",
     "chai": "^4.2.0",
+    "chai-exclude": "^2.0.2",
     "lolex": "^4.2.0",
     "mocha": "^6.2.0",
     "mocha-parallel-tests": "^2.2.2",

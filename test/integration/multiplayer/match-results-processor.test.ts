@@ -1,14 +1,28 @@
 import "../../../src/index";
 import "mocha";
+import * as chai from "chai";
 import { assert, expect } from "chai";
 import { MultiplayerResultsProcessor } from "../../../src/multiplayer/multiplayer-results-processor";
 import { ApiMultiplayer } from "../../../src/osu/types/api-multiplayer";
-import { ApiTeamMode } from "../../../src/osu/types/api-team-mode";
+import { TeamMode } from "../../../src/multiplayer/components/enums/team-mode";
 import { MatchReport } from "../../../src/multiplayer/reports/match.report";
-import { MatchStatus } from "../../../src/multiplayer/components/match-status";
+import { MatchStatus } from "../../../src/multiplayer/components/types/match-status";
 import { LeaderboardLine } from "../../../src/multiplayer/components/leaderboard-line";
 import { AssertionError } from "assert";
 import { TestHelpers } from "../../test-helpers";
+import { Lobby } from "../../../src/domain/lobby/lobby.entity";
+import { LobbyStatus } from "../../../src/domain/lobby/lobby-status";
+import { FakeOsuApiFetcher } from "../../classes/fake-osu-api-fetcher";
+import { Mods } from "../../../src/multiplayer/components/enums/mods";
+import { PlayMode } from "../../../src/multiplayer/components/enums/play-mode";
+import { ScoringType } from "../../../src/multiplayer/components/enums/scoring-type";
+import { Match } from "../../../src/domain/match/match.entity";
+import { PlayerScore } from "../../../src/domain/score/player-score.entity";
+import { OsuUser } from "../../../src/domain/user/osu-user.entity";
+import chaiExclude from "chai-exclude";
+import { User } from "../../../src/domain/user/user.entity";
+
+chai.use(chaiExclude);
 
 // // arrange: ApiMultiplayer object
 // // act: MultiplayerResultsService...
@@ -51,7 +65,7 @@ describe("When processing multiplayer results", function() {
                 mapId: 4178, // Match.beatmapId
                 startTime: new Date(new Date().getTime() - 300), // Match.startTime
                 endTime: new Date(), // Match.endTime
-                teamMode: ApiTeamMode.HeadToHead, // Match.teamMode
+                teamMode: TeamMode.HeadToHead, // Match.teamMode
                 event: "match_end",
                 scores: [
                   {
@@ -69,6 +83,57 @@ describe("When processing multiplayer results", function() {
             ]
           };
 
+          const expectedOsuUser1 = new OsuUser();
+          expectedOsuUser1.id = 1;
+          expectedOsuUser1.osuUserId = "3336000";
+          expectedOsuUser1.osuUsername = FakeOsuApiFetcher.getFakeBanchoUsername("3336000");
+          expectedOsuUser1.user = new User();
+          expectedOsuUser1.user.id = 1;
+
+          const expectedOsuUser2 = new OsuUser();
+          expectedOsuUser2.id = 2;
+          expectedOsuUser2.osuUserId = "3336001";
+          expectedOsuUser2.osuUsername = FakeOsuApiFetcher.getFakeBanchoUsername("3336001");
+          expectedOsuUser2.user = new User();
+          expectedOsuUser2.user.id = 2;
+
+          const expectedScore1 = new PlayerScore();
+          expectedScore1.id = 1;
+          expectedScore1.ignored = false;
+          expectedScore1.passed = true;
+          expectedScore1.score = 100000;
+          expectedScore1.scoredBy = expectedOsuUser1;
+
+          const expectedScore2 = new PlayerScore();
+          expectedScore2.id = 2;
+          expectedScore2.ignored = false;
+          expectedScore2.passed = true;
+          expectedScore2.score = 100001;
+          expectedScore2.scoredBy = expectedOsuUser2;
+
+          const expectedMatch = new Match();
+          expectedMatch.id = 1;
+          expectedMatch.mapNumber = 1;
+          expectedMatch.beatmapId = "4178";
+          expectedMatch.startTime = inputMultiResults.matches[0].startTime.getTime();
+          expectedMatch.endTime = inputMultiResults.matches[0].endTime.getTime();
+          expectedMatch.aborted = false;
+          expectedMatch.ignored = false;
+          expectedMatch.teamMode = TeamMode.HeadToHead;
+          expectedMatch.playerScores = [expectedScore1, expectedScore2];
+
+          const expectedLobby: Lobby = new Lobby();
+          expectedLobby.id = 1;
+          expectedLobby.banchoMultiplayerId = "1234";
+          expectedLobby.status = LobbyStatus.AWAITING_FIRST_SCAN.getKey();
+          expectedLobby.gameLobbies = [];
+          expectedLobby.matches = [expectedMatch];
+
+          const processor = new MultiplayerResultsProcessor(inputMultiResults);
+          const actualLobby = await processor.process();
+
+          expect(actualLobby).excludingEvery(["createdAt", "updatedAt", "scoredInMatch", "lobby"]).to.deep.equal(expectedLobby); // prettier-ignore
+
           const expectedReports: MatchReport[] = [
             {
               lobby: {
@@ -79,11 +144,11 @@ describe("When processing multiplayer results", function() {
               match: {
                 startTime: inputMultiResults.matches[0].startTime,
                 endTime: inputMultiResults.matches[0].endTime,
-                playMode: null,
-                scoringType: null,
-                teamType: null,
-                forcedMods: null,
-                beatmap: null,
+                playMode: PlayMode.Standard,
+                scoringType: ScoringType.score,
+                teamType: TeamMode.HeadToHead,
+                forcedMods: Mods.None,
+                beatmap: { mapId: null, mapUrl: null, mapString: "" },
                 status: "completed"
               },
               leaderboardLines: [
@@ -97,9 +162,9 @@ describe("When processing multiplayer results", function() {
                     members: [
                       {
                         osuUserId: "3336000",
-                        osuUsername: "",
-                        countryCode: "",
-                        countryEmoji: ""
+                        osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336000"),
+                        countryCode: "AU",
+                        countryEmoji: "🇦🇺"
                       }
                     ]
                   },
@@ -115,7 +180,7 @@ describe("When processing multiplayer results", function() {
                         osuUserId: "3336000",
                         passed: true,
                         score: 100000,
-                        mods: ""
+                        mods: null
                       }
                     ]
                   }
@@ -130,9 +195,9 @@ describe("When processing multiplayer results", function() {
                     members: [
                       {
                         osuUserId: "3336001",
-                        osuUsername: "",
-                        countryCode: "",
-                        countryEmoji: ""
+                        osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336001"),
+                        countryCode: "AU",
+                        countryEmoji: "🇦🇺"
                       }
                     ]
                   },
@@ -148,7 +213,7 @@ describe("When processing multiplayer results", function() {
                         osuUserId: "3336001",
                         passed: true,
                         score: 100001,
-                        mods: ""
+                        mods: null
                       }
                     ]
                   }
@@ -157,11 +222,9 @@ describe("When processing multiplayer results", function() {
             }
           ];
 
-          const processor = new MultiplayerResultsProcessor(inputMultiResults);
-          const lobby = await processor.process();
-          const actualReports: MatchReport[] = await processor.buildReport();
+          // const actualReports: MatchReport[] = await processor.buildReport();
 
-          expect(actualReports).to.deep.equal(expectedReports);
+          // expect(actualReports).to.deep.equal(expectedReports);
 
           // // lobby
           // expect(actualReports[0].lobby.banchoLobbyId).to.equal(inputMultiResults.matches[0].multiplayerId);
