@@ -64,8 +64,6 @@ export class OsuLobbyScannerService extends Emittery.Typed<OsuLobbyScannerEventD
       if (this.containsNewMatches(results)) {
         watcher.latestResults = results;
         this.emit("newMultiplayerMatches", results);
-        this.emit("newMultiplayerMatches", results);
-        this.emit("newMultiplayerMatches", results);
       }
     } catch (error) {
       Log.methodError(this.scan, this.constructor.name, error);
