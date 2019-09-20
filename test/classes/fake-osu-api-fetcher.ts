@@ -26,7 +26,7 @@ export class FakeOsuApiFetcher implements IOsuApiFetcher {
     TestHelpers.logFakeImplementationWarning(this.isValidOsuUsername.name);
     return Promise.resolve({
       isValid: true,
-      osuUser: { username: username, userId: Helpers.stringToCharCodeNumbers(username), country: this.getFakeCountryCode() }
+      osuUser: { username: username, userId: Helpers.stringToCharCodeNumbers(username), country: FakeOsuApiFetcher.getFakeCountryNumber() }
     });
   }
 
@@ -34,23 +34,27 @@ export class FakeOsuApiFetcher implements IOsuApiFetcher {
     TestHelpers.logFakeImplementationWarning(this.isValidOsuUserId.name);
     return Promise.resolve({
       isValid: true,
-      osuUser: { username: `${this.getFakeBanchoUsername(userId)} `, userId: Number(userId), country: this.getFakeCountryCode() }
+      osuUser: {
+        username: `${FakeOsuApiFetcher.getFakeBanchoUsername(userId)} `,
+        userId: Number(userId),
+        country: FakeOsuApiFetcher.getFakeCountryNumber()
+      }
     });
   }
 
   getUserDataForUserId(userId: string): Promise<ApiOsuUser> {
     return Promise.resolve({
       userId: Number(userId),
-      username: this.getFakeBanchoUsername(userId),
-      country: this.getFakeCountryCode()
+      username: FakeOsuApiFetcher.getFakeBanchoUsername(userId),
+      country: FakeOsuApiFetcher.getFakeCountryNumber()
     });
   }
 
-  private getFakeBanchoUsername(userId: string): string {
+  static getFakeBanchoUsername(userId: string): string {
     return `fakeBanchoUsernameForBanchoUserId${userId}`;
   }
 
-  private getFakeCountryCode(): number {
+  static getFakeCountryNumber(): number {
     return 1;
   }
 }
