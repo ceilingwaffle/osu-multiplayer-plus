@@ -7,6 +7,7 @@ import Bottleneck from "bottleneck";
 import { Helpers } from "../utils/helpers";
 import { OsuUserValidationResult } from "./types/osu-user-validation-result";
 import { injectable } from "inversify";
+import { ApiOsuUser } from "./types/api-osu-user";
 
 /**
  * Singleton
@@ -126,7 +127,7 @@ export class NodesuApiFetcher implements IOsuApiFetcher {
         Log.methodFailure(
           this.isValidOsuUsername,
           this.constructor.name,
-          `Validation failed for Bancho osu! username ${username}: User object not instanceof Nodesu.User`
+          `Validation failed for Bancho osu! username ${username}: user not found or user not instanceof Nodesu.User`
         );
         return { isValid: false };
       }
@@ -175,7 +176,7 @@ export class NodesuApiFetcher implements IOsuApiFetcher {
         Log.methodFailure(
           this.isValidOsuUserId,
           this.constructor.name,
-          `Validation failed for Bancho osu! user ID ${banchoUserId}: user not instanceof Nodesu.User`
+          `Validation failed for Bancho osu! user ID ${banchoUserId}: user not found or user not instanceof Nodesu.User`
         );
         return { isValid: false };
       }
@@ -198,5 +199,14 @@ export class NodesuApiFetcher implements IOsuApiFetcher {
       Log.methodError(this.isValidOsuUserId, this.constructor.name, error);
       throw error;
     }
+  }
+
+  async getUserDataForUserId(userId: string): Promise<ApiOsuUser> {
+    const user: Nodesu.User = (await this.api.user.get(userId, null, null, Nodesu.LookupType.id)) as Nodesu.User;
+    return {
+      userId: user.userId,
+      username: user.username,
+      country: user.country
+    };
   }
 }
