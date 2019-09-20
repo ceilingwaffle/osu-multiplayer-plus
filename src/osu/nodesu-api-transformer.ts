@@ -17,7 +17,7 @@ export class NodesuApiTransformer {
     return {
       userId: result.userId,
       username: result.username,
-      country: result.country
+      country: result.country.toString()
     };
   }
 

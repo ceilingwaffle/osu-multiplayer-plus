@@ -26,7 +26,7 @@ export class FakeOsuApiFetcher implements IOsuApiFetcher {
     TestHelpers.logFakeImplementationWarning(this.isValidOsuUsername.name);
     return Promise.resolve({
       isValid: true,
-      osuUser: { username: username, userId: Helpers.stringToCharCodeNumbers(username), country: FakeOsuApiFetcher.getFakeCountryNumber() }
+      osuUser: { username: username, userId: Helpers.stringToCharCodeNumbers(username), country: FakeOsuApiFetcher.getFakeCountryCode() }
     });
   }
 
@@ -37,7 +37,7 @@ export class FakeOsuApiFetcher implements IOsuApiFetcher {
       osuUser: {
         username: `${FakeOsuApiFetcher.getFakeBanchoUsername(userId)} `,
         userId: Number(userId),
-        country: FakeOsuApiFetcher.getFakeCountryNumber()
+        country: FakeOsuApiFetcher.getFakeCountryCode()
       }
     });
   }
@@ -46,7 +46,7 @@ export class FakeOsuApiFetcher implements IOsuApiFetcher {
     return Promise.resolve({
       userId: Number(userId),
       username: FakeOsuApiFetcher.getFakeBanchoUsername(userId),
-      country: FakeOsuApiFetcher.getFakeCountryNumber()
+      country: FakeOsuApiFetcher.getFakeCountryCode()
     });
   }
 
@@ -54,7 +54,7 @@ export class FakeOsuApiFetcher implements IOsuApiFetcher {
     return `fakeBanchoUsernameForBanchoUserId${userId}`;
   }
 
-  static getFakeCountryNumber(): number {
-    return 1;
+  static getFakeCountryCode(): string {
+    return "AU";
   }
 }

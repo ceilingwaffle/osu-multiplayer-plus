@@ -239,7 +239,7 @@ export class UserService {
     return createdOsuUsers;
   }
 
-  createOsuUser(props: { username: string; userId: number; countryCode: number }): OsuUser {
+  createOsuUser(props: { username: string; userId: number; countryCode: string }): OsuUser {
     const osuUser = new OsuUser();
     osuUser.osuUserId = props.userId.toString();
     osuUser.osuUsername = props.username;

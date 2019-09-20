@@ -52,7 +52,7 @@ describe("When processing multiplayer results", function() {
           // all scores passing
           // match completed (not aborted)
           // match ended (MatchEvent)
-          const teamsOfUserIds: string[][] = [["3336000"], ["3336001"]];
+          const teamsOfUids: string[][] = [["3336000"], ["3336001"]];
           const gameSettings: { startingLives: number } = {
             startingLives: 2
           };
@@ -85,6 +85,7 @@ describe("When processing multiplayer results", function() {
 
           const expectedOsuUser1 = new OsuUser();
           expectedOsuUser1.id = 1;
+          expectedOsuUser1.countryCode = "AU";
           expectedOsuUser1.osuUserId = "3336000";
           expectedOsuUser1.osuUsername = FakeOsuApiFetcher.getFakeBanchoUsername("3336000");
           expectedOsuUser1.user = new User();
@@ -92,6 +93,7 @@ describe("When processing multiplayer results", function() {
 
           const expectedOsuUser2 = new OsuUser();
           expectedOsuUser2.id = 2;
+          expectedOsuUser2.countryCode = "AU";
           expectedOsuUser2.osuUserId = "3336001";
           expectedOsuUser2.osuUsername = FakeOsuApiFetcher.getFakeBanchoUsername("3336001");
           expectedOsuUser2.user = new User();
@@ -134,93 +136,93 @@ describe("When processing multiplayer results", function() {
 
           expect(actualLobby).excludingEvery(["createdAt", "updatedAt", "scoredInMatch", "lobby"]).to.deep.equal(expectedLobby); // prettier-ignore
 
-          const expectedReports: MatchReport[] = [
-            {
-              lobby: {
-                banchoLobbyId: inputMultiResults.multiplayerId,
-                lobbyName: null,
-                resultsUrl: null
-              },
-              match: {
-                startTime: inputMultiResults.matches[0].startTime,
-                endTime: inputMultiResults.matches[0].endTime,
-                playMode: PlayMode.Standard,
-                scoringType: ScoringType.score,
-                teamType: TeamMode.HeadToHead,
-                forcedMods: Mods.None,
-                beatmap: { mapId: null, mapUrl: null, mapString: "" },
-                status: "completed"
-              },
-              leaderboardLines: [
-                {
-                  team: {
-                    id: 1,
-                    number: 1,
-                    colorName: "",
-                    colorValue: "",
-                    position: 2,
-                    members: [
-                      {
-                        osuUserId: "3336000",
-                        osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336000"),
-                        countryCode: "AU",
-                        countryEmoji: "🇦🇺"
-                      }
-                    ]
-                  },
-                  teamStatus: {
-                    isEliminated: false,
-                    justEliminated: false,
-                    lives: 2 - 1 // team 1 scored lower than team 2, so they lose a life
-                  },
-                  teamScore: {
-                    teamScore: 100000,
-                    playerScores: [
-                      {
-                        osuUserId: "3336000",
-                        passed: true,
-                        score: 100000,
-                        mods: null
-                      }
-                    ]
-                  }
-                },
-                {
-                  team: {
-                    id: 2,
-                    number: 2,
-                    colorName: "",
-                    colorValue: "",
-                    position: 1,
-                    members: [
-                      {
-                        osuUserId: "3336001",
-                        osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336001"),
-                        countryCode: "AU",
-                        countryEmoji: "🇦🇺"
-                      }
-                    ]
-                  },
-                  teamStatus: {
-                    isEliminated: false,
-                    justEliminated: false,
-                    lives: 2
-                  },
-                  teamScore: {
-                    teamScore: 100001,
-                    playerScores: [
-                      {
-                        osuUserId: "3336001",
-                        passed: true,
-                        score: 100001,
-                        mods: null
-                      }
-                    ]
-                  }
-                }
-              ]
-            }
-          ];
+          // const expectedReports: MatchReport[] = [
+          //   {
+          //     lobby: {
+          //       banchoLobbyId: inputMultiResults.multiplayerId,
+          //       lobbyName: null,
+          //       resultsUrl: null
+          //     },
+          //     match: {
+          //       startTime: inputMultiResults.matches[0].startTime,
+          //       endTime: inputMultiResults.matches[0].endTime,
+          //       playMode: PlayMode.Standard,
+          //       scoringType: ScoringType.score,
+          //       teamType: TeamMode.HeadToHead,
+          //       forcedMods: Mods.None,
+          //       beatmap: { mapId: null, mapUrl: null, mapString: "" },
+          //       status: "completed"
+          //     },
+          //     leaderboardLines: [
+          //       {
+          //         team: {
+          //           id: 1,
+          //           number: 1,
+          //           colorName: "",
+          //           colorValue: "",
+          //           position: 2,
+          //           members: [
+          //             {
+          //               osuUserId: "3336000",
+          //               osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336000"),
+          //               countryCode: "AU",
+          //               countryEmoji: "🇦🇺"
+          //             }
+          //           ]
+          //         },
+          //         teamStatus: {
+          //           isEliminated: false,
+          //           justEliminated: false,
+          //           lives: gameSettings.startingLives - 1 // team 1 scored lower than team 2, so they lose a life
+          //         },
+          //         teamScore: {
+          //           teamScore: 100000,
+          //           playerScores: [
+          //             {
+          //               osuUserId: "3336000",
+          //               passed: true,
+          //               score: 100000,
+          //               mods: null
+          //             }
+          //           ]
+          //         }
+          //       },
+          //       {
+          //         team: {
+          //           id: 2,
+          //           number: 2,
+          //           colorName: "",
+          //           colorValue: "",
+          //           position: 1,
+          //           members: [
+          //             {
+          //               osuUserId: "3336001",
+          //               osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336001"),
+          //               countryCode: "AU",
+          //               countryEmoji: "🇦🇺"
+          //             }
+          //           ]
+          //         },
+          //         teamStatus: {
+          //           isEliminated: false,
+          //           justEliminated: false,
+          //           lives: gameSettings.startingLives
+          //         },
+          //         teamScore: {
+          //           teamScore: 100001,
+          //           playerScores: [
+          //             {
+          //               osuUserId: "3336001",
+          //               passed: true,
+          //               score: 100001,
+          //               mods: null
+          //             }
+          //           ]
+          //         }
+          //       }
+          //     ]
+          //   }
+          // ];
 
           // const actualReports: MatchReport[] = await processor.buildReport();
 

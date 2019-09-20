@@ -120,10 +120,8 @@ export class NodesuApiFetcher implements IOsuApiFetcher {
     try {
       Log.debug(`Validating osu username ${username} using osu API...`);
 
-      const user: object | Nodesu.User = await this.api.user.get(username, null, null, Nodesu.LookupType.string);
-      // Assume that if the response did not resolve into a Nodesu User object, then it was not a valid user ID.
-      // This will only work if { parseData: true } is set in the Nodesu client options.
-      if (!user || !(user instanceof Nodesu.User)) {
+      const user: ApiOsuUser = await this.getUserDataForUsername(username);
+      if (!user) {
         Log.methodFailure(
           this.isValidOsuUsername,
           this.constructor.name,
@@ -144,7 +142,7 @@ export class NodesuApiFetcher implements IOsuApiFetcher {
       Log.methodSuccess(this.isValidOsuUsername, this.constructor.name);
       return {
         isValid: true,
-        osuUser: NodesuApiTransformer.transformOsuUser(user)
+        osuUser: user
       };
     } catch (error) {
       Log.methodError(this.isValidOsuUsername, this.constructor.name, error);
@@ -169,10 +167,9 @@ export class NodesuApiFetcher implements IOsuApiFetcher {
         return { isValid: false };
       }
 
-      const user: object | Nodesu.User = await this.api.user.get(banchoUserId, null, null, Nodesu.LookupType.id);
-      // Assume that if the response did not resolve into a Nodesu User object, then it was not a valid user ID.
-      // This will only work if { parseData: true } is set in the Nodesu client options.
-      if (!user || !(user instanceof Nodesu.User)) {
+      const user: ApiOsuUser = await this.getUserDataForUserId(banchoUserId);
+
+      if (!user) {
         Log.methodFailure(
           this.isValidOsuUserId,
           this.constructor.name,
@@ -193,7 +190,7 @@ export class NodesuApiFetcher implements IOsuApiFetcher {
       Log.methodSuccess(this.isValidOsuUserId, this.constructor.name);
       return {
         isValid: true,
-        osuUser: NodesuApiTransformer.transformOsuUser(user)
+        osuUser: user
       };
     } catch (error) {
       Log.methodError(this.isValidOsuUserId, this.constructor.name, error);
@@ -201,12 +198,25 @@ export class NodesuApiFetcher implements IOsuApiFetcher {
     }
   }
 
-  async getUserDataForUserId(userId: string): Promise<ApiOsuUser> {
-    const user: Nodesu.User = (await this.api.user.get(userId, null, null, Nodesu.LookupType.id)) as Nodesu.User;
+  getUserDataForUserId(userId: string): Promise<ApiOsuUser> {
+    return this.getUserData({ userId: userId });
+  }
+
+  getUserDataForUsername(username: string): Promise<ApiOsuUser> {
+    return this.getUserData({ username: username });
+  }
+
+  private async getUserData({ userId, username }: { userId?: string; username?: string }): Promise<ApiOsuUser> {
+    let user: Nodesu.User;
+    if (userId) user = (await this.api.user.get(userId, null, null, Nodesu.LookupType.id)) as Nodesu.User;
+    if (username) user = (await this.api.user.get(username, null, null, Nodesu.LookupType.string)) as Nodesu.User;
+    // Assume that if the response did not resolve into a Nodesu User object, then it was not a valid user ID.
+    // This will only work if { parseData: true } is set in the Nodesu client options.
+    if (!user) return null;
     return {
       userId: user.userId,
       username: user.username,
-      country: user.country
+      country: user.country.toString()
     };
   }
 }
