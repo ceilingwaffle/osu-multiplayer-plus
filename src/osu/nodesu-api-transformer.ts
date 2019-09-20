@@ -8,7 +8,7 @@ import { Log } from "../utils/Log";
 import { ApiMultiplayer } from "./types/api-multiplayer";
 import { ApiMatch } from "./types/api-match";
 import { ApiPlayerScore } from "./types/api-player-score";
-import { ApiTeamMode } from "./types/api-team-mode";
+import { TeamMode } from "../multiplayer/components/enums/team-mode";
 import { ApiMatchEvent } from "./types/api-match-event";
 import { ApiOsuUser } from "./types/api-osu-user";
 
@@ -86,18 +86,18 @@ export class NodesuApiTransformer {
    * Converts the Nodesu MultiTeamTypeType into our own custom type.
    *
    * @param {NodesuMultiTeamTypeType} teamType
-   * @returns {ApiTeamMode}
+   * @returns {TeamMode}
    */
-  private static convertNodesuTeamType(teamType: NodesuMultiTeamTypeType): ApiTeamMode {
+  private static convertNodesuTeamType(teamType: NodesuMultiTeamTypeType): TeamMode {
     switch (teamType) {
       case NodesuMultiTeamType.headToHead:
-        return ApiTeamMode.HeadToHead;
+        return TeamMode.HeadToHead;
       case NodesuMultiTeamType.tagCoop:
-        return ApiTeamMode.TagCoop;
+        return TeamMode.TagCoop;
       case NodesuMultiTeamType.tagTeamVs:
-        return ApiTeamMode.TagTeamVs;
+        return TeamMode.TagTeamVs;
       case NodesuMultiTeamType.teamVs:
-        return ApiTeamMode.TeamVs;
+        return TeamMode.TeamVs;
       default:
         throw new Error("Nodesu API team type was not expected.");
     }

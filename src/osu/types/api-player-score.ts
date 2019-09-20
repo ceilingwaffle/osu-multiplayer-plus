@@ -1,6 +1,6 @@
-export type ApiPlayerScore = {
+export interface ApiPlayerScore {
   osuUserId: string;
   score: number;
   passed: boolean;
   ignored?: boolean;
-};
+}
