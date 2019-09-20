@@ -19,16 +19,30 @@ export class Match extends CreationTimestampedEntity {
   @Column()
   beatmapId: string;
 
+  @IsInt()
+  @IsPositive()
+  @Column()
+  startTime: number;
+
+  @IsInt()
+  @IsPositive()
+  @Column({ nullable: true })
+  endTime: number;
+
   @Column({ default: false })
   aborted: boolean;
 
   @Column({ default: false })
   ignored: boolean;
 
+  @IsInt()
+  @Column()
+  teamMode: number;
+
   @ManyToOne(type => Lobby, lobby => lobby.matches)
   @JoinColumn()
   lobby: Lobby;
 
-  @OneToMany(type => PlayerScore, playerScore => playerScore.scoredInMatch)
+  @OneToMany(type => PlayerScore, playerScore => playerScore.scoredInMatch, { cascade: ["insert", "update"] })
   playerScores: PlayerScore[];
 }

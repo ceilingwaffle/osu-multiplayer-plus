@@ -29,6 +29,6 @@ export class Lobby extends CreationTimestampedEntity {
   @OneToMany(type => GameLobby, gameLobby => gameLobby.lobby, { cascade: true })
   gameLobbies: GameLobby[];
 
-  @OneToMany(type => Match, match => match.lobby)
+  @OneToMany(type => Match, match => match.lobby, { cascade: ["insert", "update"] })
   matches: Match[];
 }

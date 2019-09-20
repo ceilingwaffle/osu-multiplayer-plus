@@ -149,6 +149,8 @@ TODO:
         ☐ Set log4js to log only warnings and errors to file @created(19-09-08 11:16)
         ☐ Move sqlite to postgres? Performance may be better (e.g. concurrency) @created(19-09-08 11:22)
         ☐ Prevent the app from launching multiple instances @created(19-09-10 13:05)
+    Domain:
+        ✔ Domain registered with Porkbun @created(19-09-20 01:06) @done(19-09-20 01:06)
     Design:
         What we have access to - maps, mods(SD), modes - team vs, ffa, TAG4, osu API
         ☐ We need a name for this thing
@@ -190,6 +192,11 @@ TODO:
                 ☐ If you're on 0 lives, you need to win the next map, otherwise you're eliminated. "One final chance" mode.
                 ☐ Riwaka: One player can force a mod on the entire lobby
                     Would also be cool if one player could force a mod on a specific player
+        Emoji Icons:
+            🕹 Game
+            🏠 Lobby
+            👪 Team
+            🙋 User/Ref
     Adding Lobbies:
         ✔ Currently, the lobby service is trying to add a new Lobby with the same banchoMultiplayerId rather than create a new Lobby-Game relationship. To fix this, add some code in the lobby service to check for the existing banchoMultiplayerId Lobby, and push the target-Game onto the lobby.games array. @started(19-08-18 17:00) @done(19-08-18 17:31) @lasted(31m15s)
         ✔ Make bancho multiplayer ID unique to lobby. No two lobbies should exist with the same mp ID. @done(19-08-18 19:49)
@@ -271,10 +278,11 @@ TODO:
             Teams:
                 ☐ `!obr addteam <ouid1> <ouid2> ...` @created(19-08-31 23:41) @started(19-09-07 16:48)
                     Adds a team of osu users. See targetgame command.
-                    ☐ Allow multiline like `!obr addteams\n<ouid1> <ouid2>\n<ouid3> <ouid4>\n...` @created(19-08-31 14:04)
+                    ✔ Allow multiline like `!obr addteams\n<ouid1> <ouid2>\n<ouid3> <ouid4>\n...` @created(19-08-31 14:04) @done(19-09-20 13:42)
                     ☐ If match results are processed before any teams are added @created(19-09-07 16:51)
-                        ☐ osu users from the results are created and added to a new team of 1
-                        ☐ But then if a team is created with 2+ osu users, and one of those osu users is in the team of 1, delete the team of 1 and create a new team with the 2+ osu users
+                        ✘ osu users from the results are created and added to a new team of 1 @cancelled(19-09-20 13:43)
+                        ✘ But then if a team is created with 2+ osu users, and one of those osu users is in the team of 1, delete the team of 1 and create a new team with the 2+ osu users @cancelled(19-09-20 13:43)
+                        ☐ Do not create any teams. Create the osu users only. @created(19-09-20 13:43)
                     ☐ How do we handle database integrity if we delete a team? @created(19-09-19 00:34)
                     ✔ In TeamResponseFactory - Make subject GameTeam instead of Team @created(19-09-19 00:34) @done(19-09-19 00:35)
                     ✔ In AddTeamDiscordMessageBuilder - Replace "Team ID x"  with "Team Number y (color)" @created(19-09-19 00:34) @done(19-09-19 00:35)

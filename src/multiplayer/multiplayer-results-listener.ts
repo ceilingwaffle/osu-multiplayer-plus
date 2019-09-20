@@ -23,8 +23,8 @@ export class MultiplayerResultsListener extends Emittery.Typed<OsuLobbyScannerEv
     const bufferedMultis: AsyncIterableIterator<ApiMultiplayer> = this.emitter.events("newMultiplayerMatches");
     for await (const multi of bufferedMultis) {
       Log.warn("Event newMultiplayerMatches (buffer)", { mpid: multi.multiplayerId, matches: multi.matches.length });
-      const matchReports: MatchReport[] = await new MultiplayerResultsProcessor(multi).process();
-      console.log(matchReports);
+      // const matchReports: MatchReport[] = await new MultiplayerResultsProcessor(multi).process().buildReport();
+      // console.log(matchReports);
     }
   }
 }

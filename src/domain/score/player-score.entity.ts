@@ -10,10 +10,10 @@ export class PlayerScore extends CreationTimestampedEntity {
   id: number;
 
   @IsInt()
-  @Column({ readonly: true })
+  @Column({ readonly: true, nullable: false })
   score: number;
 
-  @ManyToOne(type => OsuUser) // , osuUser => osuUser.playerScores
+  @ManyToOne(type => OsuUser, { cascade: ["insert", "update"] }) // , osuUser => osuUser.playerScores
   @JoinColumn({ name: "scored_by_osu_user_id" })
   scoredBy: OsuUser;
 
@@ -21,6 +21,9 @@ export class PlayerScore extends CreationTimestampedEntity {
   @JoinColumn({ name: "scored_in_match_id" })
   scoredInMatch: Match;
 
-  @Column({ default: false })
+  @Column({ default: false, nullable: false })
   ignored: boolean;
+
+  @Column({ readonly: true, nullable: false })
+  passed: boolean;
 }

@@ -8,14 +8,26 @@ import { MatchReport } from "../../../src/multiplayer/reports/match.report";
 import { MatchStatus } from "../../../src/multiplayer/components/match-status";
 import { LeaderboardLine } from "../../../src/multiplayer/components/leaderboard-line";
 import { AssertionError } from "assert";
+import { TestHelpers } from "../../test-helpers";
 
 // // arrange: ApiMultiplayer object
 // // act: MultiplayerResultsService...
 // // assert: MatchResults object
 
 describe("When processing multiplayer results", function() {
+  this.beforeEach(function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        await TestHelpers.dropTestDatabase();
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
+
   describe("with a number of results", function() {
-    it("should accurately report on 1 API result containing 1 match result", function() {
+    it("should return a report from 1 API result containing 1 match result", function() {
       return new Promise(async (resolve, reject) => {
         try {
           // 2 teams => 2 scores
@@ -31,21 +43,21 @@ describe("When processing multiplayer results", function() {
             startingLives: 2
           };
           const inputMultiResults: ApiMultiplayer = {
-            multiplayerId: "1234",
+            multiplayerId: "1234", // Lobby.banchoMultiplayerId
             matches: [
               {
-                mapNumber: 1,
-                multiplayerId: 1234,
-                mapId: 4178,
-                startTime: new Date(new Date().getTime() - 300),
-                endTime: new Date(),
-                teamMode: ApiTeamMode.HeadToHead,
+                mapNumber: 1, // GameLobby.startingMapNumber
+                multiplayerId: 1234, // Lobby.banchoMultiplayerId
+                mapId: 4178, // Match.beatmapId
+                startTime: new Date(new Date().getTime() - 300), // Match.startTime
+                endTime: new Date(), // Match.endTime
+                teamMode: ApiTeamMode.HeadToHead, // Match.teamMode
                 event: "match_end",
                 scores: [
                   {
-                    osuUserId: "3336000",
-                    score: 100000,
-                    passed: true
+                    osuUserId: "3336000", // Match.PlayerScores[].scoredBy(OsuUser).osuUserId
+                    score: 100000, // Match.PlayerScores[].score
+                    passed: true // Match.PlayerScores[].passed
                   },
                   {
                     osuUserId: "3336001",
@@ -146,7 +158,8 @@ describe("When processing multiplayer results", function() {
           ];
 
           const processor = new MultiplayerResultsProcessor(inputMultiResults);
-          const actualReports: MatchReport[] = await processor.process();
+          const lobby = await processor.process();
+          const actualReports: MatchReport[] = await processor.buildReport();
 
           expect(actualReports).to.deep.equal(expectedReports);
 

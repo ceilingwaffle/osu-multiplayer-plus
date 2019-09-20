@@ -10,7 +10,7 @@ export class OsuUser extends CreationTimestampedEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
-  @OneToOne(type => User, user => user.osuUser, { cascade: ["insert"] })
+  @OneToOne(type => User, user => user.osuUser, { cascade: ["insert", "update"] })
   @JoinColumn()
   user: User;
 

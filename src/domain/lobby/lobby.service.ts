@@ -71,6 +71,7 @@ export class LobbyService {
     // GL: lobby.addedBy = createdBy;
     lobby.banchoMultiplayerId = lobbyData.banchoMultiplayerId;
     lobby.status = LobbyStatus.AWAITING_FIRST_SCAN.getKey();
+    lobby.matches = [];
     // GL: lobby.games = games || [];
     // GL: lobby.startingMapNumber = lobbyData.startAtMap > 1 ? lobbyData.startAtMap : 1;
 
