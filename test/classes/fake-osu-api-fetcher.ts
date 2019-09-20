@@ -5,6 +5,7 @@ import { TestHelpers } from "../test-helpers";
 import { injectable } from "inversify";
 import { Log } from "../../src/utils/Log";
 import { Helpers } from "../../src/utils/helpers";
+import { ApiOsuUser } from "../../src/osu/types/api-osu-user";
 
 @injectable()
 export class FakeOsuApiFetcher implements IOsuApiFetcher {
@@ -25,7 +26,7 @@ export class FakeOsuApiFetcher implements IOsuApiFetcher {
     TestHelpers.logFakeImplementationWarning(this.isValidOsuUsername.name);
     return Promise.resolve({
       isValid: true,
-      osuUser: { username: username, userId: Helpers.stringToCharCodeNumbers(username), country: 1 }
+      osuUser: { username: username, userId: Helpers.stringToCharCodeNumbers(username), country: this.getFakeCountryCode() }
     });
   }
 
@@ -33,7 +34,23 @@ export class FakeOsuApiFetcher implements IOsuApiFetcher {
     TestHelpers.logFakeImplementationWarning(this.isValidOsuUserId.name);
     return Promise.resolve({
       isValid: true,
-      osuUser: { username: `fakeBanchoUsernameForBanchoUserId${userId} `, userId: Number(userId), country: 1 }
+      osuUser: { username: `${this.getFakeBanchoUsername(userId)} `, userId: Number(userId), country: this.getFakeCountryCode() }
     });
+  }
+
+  getUserDataForUserId(userId: string): Promise<ApiOsuUser> {
+    return Promise.resolve({
+      userId: Number(userId),
+      username: this.getFakeBanchoUsername(userId),
+      country: this.getFakeCountryCode()
+    });
+  }
+
+  private getFakeBanchoUsername(userId: string): string {
+    return `fakeBanchoUsernameForBanchoUserId${userId}`;
+  }
+
+  private getFakeCountryCode(): number {
+    return 1;
   }
 }

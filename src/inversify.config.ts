@@ -15,7 +15,7 @@ import { LobbyService } from "./domain/lobby/lobby.service";
 import { TeamService } from "./domain/team/team.service";
 import { NodesuApiFetcher } from "./osu/nodesu-api-fetcher";
 import { IOsuApiFetcher } from "./osu/interfaces/osu-api-fetcher";
-import { FakeOsuApiFetcher } from "../test/classes/test-osu-api-fetcher";
+import { FakeOsuApiFetcher } from "../test/classes/fake-osu-api-fetcher";
 import { IsValidBanchoMultiplayerIdConstraint } from "./osu/validators/bancho-multiplayer-id.validator";
 
 // const iocContainer = new Container();
