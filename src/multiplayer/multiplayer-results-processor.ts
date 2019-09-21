@@ -3,7 +3,7 @@ import getDecorators from "inversify-inject-decorators";
 import { TYPES } from "../types";
 const { lazyInject } = getDecorators(iocContainer);
 import { ApiMultiplayer } from "../osu/types/api-multiplayer";
-import { MatchReport } from "./reports/match.report";
+import { GameReport } from "./reports/game.report";
 import { UserService } from "../domain/user/user.service";
 import { Log } from "../utils/Log";
 import { LobbyRepository } from "../domain/lobby/lobby.repository";
@@ -36,7 +36,7 @@ export class MultiplayerResultsProcessor {
   /**
    * Creates and saves database entities from the input API multiplayer results.
    *
-   * @returns {Promise<MatchReport[]>}
+   * @returns {Promise<GameReport[]>}
    */
   async process(): Promise<Lobby> {
     try {
@@ -139,7 +139,7 @@ export class MultiplayerResultsProcessor {
     this.isProcessed = true;
   }
 
-  async buildReport(): Promise<MatchReport[]> {
+  async buildReport(): Promise<GameReport[]> {
     try {
       if (!this.markAsProcessed) {
         throw new Error("Must process API results first before building report.");

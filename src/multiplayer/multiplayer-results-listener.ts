@@ -1,6 +1,6 @@
 import { OsuLobbyScannerEventDataMap } from "../osu/interfaces/osu-lobby-scanner-events";
 import { Log } from "../utils/Log";
-import { MatchReport } from "./reports/match.report";
+import { GameReport } from "./reports/game.report";
 import { MultiplayerResultsProcessor } from "./multiplayer-results-processor";
 import Emittery = require("emittery");
 import { ApiMultiplayer } from "../osu/types/api-multiplayer";

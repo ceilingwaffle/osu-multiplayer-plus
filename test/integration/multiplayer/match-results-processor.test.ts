@@ -5,22 +5,18 @@ import { assert, expect } from "chai";
 import { MultiplayerResultsProcessor } from "../../../src/multiplayer/multiplayer-results-processor";
 import { ApiMultiplayer } from "../../../src/osu/types/api-multiplayer";
 import { TeamMode } from "../../../src/multiplayer/components/enums/team-mode";
-import { MatchReport } from "../../../src/multiplayer/reports/match.report";
-import { MatchStatus } from "../../../src/multiplayer/components/types/match-status";
+import { GameReport } from "../../../src/multiplayer/reports/game.report";
 import { LeaderboardLine } from "../../../src/multiplayer/components/leaderboard-line";
-import { AssertionError } from "assert";
 import { TestHelpers } from "../../test-helpers";
 import { Lobby } from "../../../src/domain/lobby/lobby.entity";
 import { LobbyStatus } from "../../../src/domain/lobby/lobby-status";
 import { FakeOsuApiFetcher } from "../../classes/fake-osu-api-fetcher";
-import { Mods } from "../../../src/multiplayer/components/enums/mods";
+import chaiExclude from "chai-exclude";
+import { DataPropertiesOnly } from "../../../src/utils/data-properties-only";
 import { PlayMode } from "../../../src/multiplayer/components/enums/play-mode";
 import { ScoringType } from "../../../src/multiplayer/components/enums/scoring-type";
-import { Match } from "../../../src/domain/match/match.entity";
-import { PlayerScore } from "../../../src/domain/score/player-score.entity";
-import { OsuUser } from "../../../src/domain/user/osu-user.entity";
-import chaiExclude from "chai-exclude";
-import { User } from "../../../src/domain/user/user.entity";
+import { Mods } from "../../../src/multiplayer/components/enums/mods";
+import { MatchStatus } from "../../../src/multiplayer/components/types/match-status";
 
 chai.use(chaiExclude);
 
@@ -41,22 +37,24 @@ describe("When processing multiplayer results", function() {
   });
 
   describe("with a number of results", function() {
-    it("should return a report from 1 API result containing 1 match result", function() {
+    it("should process and save 1 API result containing 1 match result", function() {
       return new Promise(async (resolve, reject) => {
         try {
-          // 2 teams => 2 scores
-          // 2 players total
+          // 2 teams
           // 1 player per team
-          // 1 API result total
+          // (2 players total)
+          // 1 API fetch
           // 1 match result
+          // (2 scores total)
           // all scores passing
           // match completed (not aborted)
-          // match ended (MatchEvent)
+          // MatchEvent = match_end
           const teamsOfUids: string[][] = [["3336000"], ["3336001"]];
           const gameSettings: { startingLives: number } = {
             startingLives: 2
           };
-          const inputMultiResults: ApiMultiplayer = {
+
+          const input: ApiMultiplayer = {
             multiplayerId: "1234", // Lobby.banchoMultiplayerId
             matches: [
               {
@@ -83,188 +81,155 @@ describe("When processing multiplayer results", function() {
             ]
           };
 
-          const expectedOsuUser1 = new OsuUser();
-          expectedOsuUser1.id = 1;
-          expectedOsuUser1.countryCode = "AU";
-          expectedOsuUser1.osuUserId = "3336000";
-          expectedOsuUser1.osuUsername = FakeOsuApiFetcher.getFakeBanchoUsername("3336000");
-          expectedOsuUser1.user = new User();
-          expectedOsuUser1.user.id = 1;
+          const expectedLobby: DataPropertiesOnly<Lobby> = {
+            id: 1,
+            banchoMultiplayerId: "1234",
+            status: LobbyStatus.AWAITING_FIRST_SCAN.getKey(),
+            gameLobbies: [],
+            matches: [
+              {
+                id: 1,
+                mapNumber: 1,
+                beatmapId: "4178",
+                startTime: input.matches[0].startTime.getTime(),
+                endTime: input.matches[0].endTime.getTime(),
+                aborted: false,
+                ignored: false,
+                teamMode: TeamMode.HeadToHead,
+                playerScores: [
+                  {
+                    id: 1,
+                    ignored: false,
+                    passed: true,
+                    score: 100000,
+                    scoredBy: {
+                      id: 1,
+                      countryCode: "AU",
+                      osuUserId: "3336000",
+                      osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336000"),
+                      user: {
+                        id: 1
+                      }
+                    }
+                  },
+                  {
+                    id: 2,
+                    ignored: false,
+                    passed: true,
+                    score: 100001,
+                    scoredBy: {
+                      id: 2,
+                      countryCode: "AU",
+                      osuUserId: "3336001",
+                      osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336001"),
+                      user: {
+                        id: 2
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          };
 
-          const expectedOsuUser2 = new OsuUser();
-          expectedOsuUser2.id = 2;
-          expectedOsuUser2.countryCode = "AU";
-          expectedOsuUser2.osuUserId = "3336001";
-          expectedOsuUser2.osuUsername = FakeOsuApiFetcher.getFakeBanchoUsername("3336001");
-          expectedOsuUser2.user = new User();
-          expectedOsuUser2.user.id = 2;
-
-          const expectedScore1 = new PlayerScore();
-          expectedScore1.id = 1;
-          expectedScore1.ignored = false;
-          expectedScore1.passed = true;
-          expectedScore1.score = 100000;
-          expectedScore1.scoredBy = expectedOsuUser1;
-
-          const expectedScore2 = new PlayerScore();
-          expectedScore2.id = 2;
-          expectedScore2.ignored = false;
-          expectedScore2.passed = true;
-          expectedScore2.score = 100001;
-          expectedScore2.scoredBy = expectedOsuUser2;
-
-          const expectedMatch = new Match();
-          expectedMatch.id = 1;
-          expectedMatch.mapNumber = 1;
-          expectedMatch.beatmapId = "4178";
-          expectedMatch.startTime = inputMultiResults.matches[0].startTime.getTime();
-          expectedMatch.endTime = inputMultiResults.matches[0].endTime.getTime();
-          expectedMatch.aborted = false;
-          expectedMatch.ignored = false;
-          expectedMatch.teamMode = TeamMode.HeadToHead;
-          expectedMatch.playerScores = [expectedScore1, expectedScore2];
-
-          const expectedLobby: Lobby = new Lobby();
-          expectedLobby.id = 1;
-          expectedLobby.banchoMultiplayerId = "1234";
-          expectedLobby.status = LobbyStatus.AWAITING_FIRST_SCAN.getKey();
-          expectedLobby.gameLobbies = [];
-          expectedLobby.matches = [expectedMatch];
-
-          const processor = new MultiplayerResultsProcessor(inputMultiResults);
+          const processor = new MultiplayerResultsProcessor(input);
           const actualLobby = await processor.process();
 
           expect(actualLobby).excludingEvery(["createdAt", "updatedAt", "scoredInMatch", "lobby"]).to.deep.equal(expectedLobby); // prettier-ignore
 
-          // const expectedReports: MatchReport[] = [
-          //   {
-          //     lobby: {
-          //       banchoLobbyId: inputMultiResults.multiplayerId,
-          //       lobbyName: null,
-          //       resultsUrl: null
-          //     },
-          //     match: {
-          //       startTime: inputMultiResults.matches[0].startTime,
-          //       endTime: inputMultiResults.matches[0].endTime,
-          //       playMode: PlayMode.Standard,
-          //       scoringType: ScoringType.score,
-          //       teamType: TeamMode.HeadToHead,
-          //       forcedMods: Mods.None,
-          //       beatmap: { mapId: null, mapUrl: null, mapString: "" },
-          //       status: "completed"
-          //     },
-          //     leaderboardLines: [
-          //       {
-          //         team: {
-          //           id: 1,
-          //           number: 1,
-          //           colorName: "",
-          //           colorValue: "",
-          //           position: 2,
-          //           members: [
-          //             {
-          //               osuUserId: "3336000",
-          //               osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336000"),
-          //               countryCode: "AU",
-          //               countryEmoji: "🇦🇺"
-          //             }
-          //           ]
-          //         },
-          //         teamStatus: {
-          //           isEliminated: false,
-          //           justEliminated: false,
-          //           lives: gameSettings.startingLives - 1 // team 1 scored lower than team 2, so they lose a life
-          //         },
-          //         teamScore: {
-          //           teamScore: 100000,
-          //           playerScores: [
-          //             {
-          //               osuUserId: "3336000",
-          //               passed: true,
-          //               score: 100000,
-          //               mods: null
-          //             }
-          //           ]
-          //         }
-          //       },
-          //       {
-          //         team: {
-          //           id: 2,
-          //           number: 2,
-          //           colorName: "",
-          //           colorValue: "",
-          //           position: 1,
-          //           members: [
-          //             {
-          //               osuUserId: "3336001",
-          //               osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336001"),
-          //               countryCode: "AU",
-          //               countryEmoji: "🇦🇺"
-          //             }
-          //           ]
-          //         },
-          //         teamStatus: {
-          //           isEliminated: false,
-          //           justEliminated: false,
-          //           lives: gameSettings.startingLives
-          //         },
-          //         teamScore: {
-          //           teamScore: 100001,
-          //           playerScores: [
-          //             {
-          //               osuUserId: "3336001",
-          //               passed: true,
-          //               score: 100001,
-          //               mods: null
-          //             }
-          //           ]
-          //         }
-          //       }
-          //     ]
-          //   }
-          // ];
+          const expectedReports: GameReport[] = [
+            {
+              lobby: {
+                banchoLobbyId: input.multiplayerId,
+                lobbyName: null,
+                resultsUrl: null
+              },
+              matches: [
+                {
+                  startTime: input.matches[0].startTime,
+                  endTime: input.matches[0].endTime,
+                  playMode: PlayMode.Standard,
+                  scoringType: ScoringType.score,
+                  teamType: TeamMode.HeadToHead,
+                  forcedMods: Mods.None,
+                  beatmap: { mapId: null, mapUrl: null, mapString: "" },
+                  status: "completed"
+                }
+              ],
+              leaderboardLines: [
+                {
+                  team: {
+                    id: 1,
+                    number: 1,
+                    colorName: "",
+                    colorValue: "",
+                    position: 2,
+                    members: [
+                      {
+                        osuUserId: "3336000",
+                        osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336000"),
+                        countryCode: "AU",
+                        countryEmoji: "🇦🇺"
+                      }
+                    ]
+                  },
+                  teamStatus: {
+                    isEliminated: false,
+                    justEliminated: false,
+                    lives: gameSettings.startingLives - 1 // team 1 scored lower than team 2, so they lose a life
+                  },
+                  teamScore: {
+                    teamScore: 100000,
+                    playerScores: [
+                      {
+                        osuUserId: "3336000",
+                        passed: true,
+                        score: 100000,
+                        mods: null
+                      }
+                    ]
+                  }
+                },
+                {
+                  team: {
+                    id: 2,
+                    number: 2,
+                    colorName: "",
+                    colorValue: "",
+                    position: 1,
+                    members: [
+                      {
+                        osuUserId: "3336001",
+                        osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336001"),
+                        countryCode: "AU",
+                        countryEmoji: "🇦🇺"
+                      }
+                    ]
+                  },
+                  teamStatus: {
+                    isEliminated: false,
+                    justEliminated: false,
+                    lives: gameSettings.startingLives
+                  },
+                  teamScore: {
+                    teamScore: 100001,
+                    playerScores: [
+                      {
+                        osuUserId: "3336001",
+                        passed: true,
+                        score: 100001,
+                        mods: null
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ];
 
-          // const actualReports: MatchReport[] = await processor.buildReport();
+          // const actualReports: GameReport[] = await processor.buildReport();
 
           // expect(actualReports).to.deep.equal(expectedReports);
-
-          // // lobby
-          // expect(actualReports[0].lobby.banchoLobbyId).to.equal(inputMultiResults.matches[0].multiplayerId);
-          // expect(actualReports[0].lobby.lobbyName).to.be.not.null;
-          // expect(actualReports[0].lobby.resultsUrl).to.be.not.null;
-          // // match report
-          // expect(actualReports[0].match.beatmap.mapId).to.equal(inputMultiResults.matches[0].mapId);
-          // expect(actualReports[0].match.beatmap.mapString).to.be.not.null;
-          // expect(actualReports[0].match.beatmap.mapUrl).to.be.not.null;
-          // expect(actualReports[0].match.endTime).to.equal(inputMultiResults.matches[0].endTime);
-          // // expect(reports[0].match.forcedMods).to.equal();
-          // // expect(reports[0].match.playMode);
-          // // expect(reports[0].match.scoringType)
-          // expect(actualReports[0].match.startTime).to.equal(inputMultiResults.matches[0].startTime);
-          // expect(actualReports[0].match.status).to.equal("aborted" as MatchStatus);
-          // expect(actualReports[0].match.teamType).to.equal(ApiTeamMode.HeadToHead);
-          // expect(actualReports[0].match).to.equal(ApiTeamMode.HeadToHead);
-          // // team lines
-          // expect(actualReports[0].leaderboardLines.length).to.equal(2, "There are two teams, so there should be two leaderboard lines.");
-          // expect(actualReports[0].leaderboardLines[0].team.colorName).to.be.not.null;
-          // expect(actualReports[0].leaderboardLines[0].team.colorValue).to.be.not.null;
-          // expect(actualReports[0].leaderboardLines[0].team.position).to.be.not.null;
-          // const user1LeaderboardLine = getLeaderboardLineOfUser(actualReports, teamsOfUserIds[0][0]);
-          // expect(user1LeaderboardLine.teamScore).to.equal(100000);
-          // expect(user1LeaderboardLine.teamStatus.isEliminated).to.equal(false);
-          // expect(user1LeaderboardLine.teamStatus.justEliminated).to.equal(false);
-          // expect(user1LeaderboardLine.teamStatus.lives).to.equal(
-          //   gameSettings.startingLives - 1,
-          //   "Team 1 lost, so they should have lost a life."
-          // );
-          // const user2LeaderboardLine = getLeaderboardLineOfUser(actualReports, teamsOfUserIds[0][1]);
-          // expect(user2LeaderboardLine.teamScore).to.equal(100001);
-          // expect(user2LeaderboardLine.teamStatus.isEliminated).to.equal(false);
-          // expect(user2LeaderboardLine.teamStatus.justEliminated).to.equal(false);
-          // expect(user2LeaderboardLine.teamStatus.lives).to.equal(
-          //   gameSettings.startingLives,
-          //   "Team 2 won, so they should not have lost a life."
-          // );
 
           return resolve();
         } catch (error) {
@@ -340,9 +305,70 @@ describe("When processing multiplayer results", function() {
   //   });
   // });
 });
-function getLeaderboardLineOfUser(reports: MatchReport[], targetUserId: string): LeaderboardLine {
+function getLeaderboardLineOfUser(reports: GameReport[], targetUserId: string): LeaderboardLine {
   const lines = reports[0].leaderboardLines.filter(ll => ll.team.members.map(m => m.osuUserId).includes(targetUserId));
   if (lines.length < 1) throw new Error("Player exist in one leaderboard line.");
   if (lines.length > 1) throw new Error("Player should not exist in more than one leaderboard line.");
   return lines[0];
 }
+
+/*
+          ResultsBuilder.game({ startingLives: 2, failsCounted: false })
+            .teams({ players: [["u1", "u2"], ["u3"]] })
+            .matches({ total: 5 }) // max matches played before game end = (startingLives * teamSize - 1 + matchesAborted)
+            .scores({
+              match: 1,
+              scores: [
+                { player: "u1", score: 10, passed: true },
+                { player: "u2", score: 20, passed: true },
+                { player: "u3", score: 40, passed: true }
+              ]
+            })
+            .matchAborted({ match: 1 }) // match still saved in DB, but no results from this match should be counted
+            .playerLeaves({ player: "u1", afterMatchStart: 3 }) // meaning player u1 WILL NOT submit a score for match 3
+            .playerJoins({ player: "u4", beforeMatchStart: 4 }) // meaning player u4 WILL submit a score for match 4
+            .matchAborted({ match: 5 })
+            .apiFetch({ matches: "1-3" }); // any matches not included here will be fetched one by one
+*/
+
+/*
+
+          // // lobby
+          // expect(actualReports[0].lobby.banchoLobbyId).to.equal(inputMultiResults.matches[0].multiplayerId);
+          // expect(actualReports[0].lobby.lobbyName).to.be.not.null;
+          // expect(actualReports[0].lobby.resultsUrl).to.be.not.null;
+          // // match report
+          // expect(actualReports[0].match.beatmap.mapId).to.equal(inputMultiResults.matches[0].mapId);
+          // expect(actualReports[0].match.beatmap.mapString).to.be.not.null;
+          // expect(actualReports[0].match.beatmap.mapUrl).to.be.not.null;
+          // expect(actualReports[0].match.endTime).to.equal(inputMultiResults.matches[0].endTime);
+          // // expect(reports[0].match.forcedMods).to.equal();
+          // // expect(reports[0].match.playMode);
+          // // expect(reports[0].match.scoringType)
+          // expect(actualReports[0].match.startTime).to.equal(inputMultiResults.matches[0].startTime);
+          // expect(actualReports[0].match.status).to.equal("aborted" as MatchStatus);
+          // expect(actualReports[0].match.teamType).to.equal(ApiTeamMode.HeadToHead);
+          // expect(actualReports[0].match).to.equal(ApiTeamMode.HeadToHead);
+          // // team lines
+          // expect(actualReports[0].leaderboardLines.length).to.equal(2, "There are two teams, so there should be two leaderboard lines.");
+          // expect(actualReports[0].leaderboardLines[0].team.colorName).to.be.not.null;
+          // expect(actualReports[0].leaderboardLines[0].team.colorValue).to.be.not.null;
+          // expect(actualReports[0].leaderboardLines[0].team.position).to.be.not.null;
+          // const user1LeaderboardLine = getLeaderboardLineOfUser(actualReports, teamsOfUserIds[0][0]);
+          // expect(user1LeaderboardLine.teamScore).to.equal(100000);
+          // expect(user1LeaderboardLine.teamStatus.isEliminated).to.equal(false);
+          // expect(user1LeaderboardLine.teamStatus.justEliminated).to.equal(false);
+          // expect(user1LeaderboardLine.teamStatus.lives).to.equal(
+          //   gameSettings.startingLives - 1,
+          //   "Team 1 lost, so they should have lost a life."
+          // );
+          // const user2LeaderboardLine = getLeaderboardLineOfUser(actualReports, teamsOfUserIds[0][1]);
+          // expect(user2LeaderboardLine.teamScore).to.equal(100001);
+          // expect(user2LeaderboardLine.teamStatus.isEliminated).to.equal(false);
+          // expect(user2LeaderboardLine.teamStatus.justEliminated).to.equal(false);
+          // expect(user2LeaderboardLine.teamStatus.lives).to.equal(
+          //   gameSettings.startingLives,
+          //   "Team 2 won, so they should not have lost a life."
+          // );
+
+ */

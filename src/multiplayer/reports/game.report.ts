@@ -2,8 +2,8 @@ import { Lobby } from "../components/lobby";
 import { Match } from "../components/match";
 import { LeaderboardLine } from "../components/leaderboard-line";
 
-export class MatchReport {
+export class GameReport {
   lobby: Lobby;
-  match: Match;
+  matches: Match[];
   leaderboardLines: LeaderboardLine[];
 }
