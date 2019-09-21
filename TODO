@@ -51,6 +51,9 @@ TODO:
         ☐ Handle internet disconnections by auto-reconnecting  @created(19-09-02 10:01)
             eg1: https://i.imgur.com/v4GDoRf.png
             eg2: https://i.imgur.com/9A5uA5A.png
+    Social:
+        Notable osu people showing interest:
+            ThePooN, RyuK, Musty98
     Testing:
         ☐ Improve the Osu API Fetcher test (mock) class @created(19-09-14 23:27)
             ☐ Potential issue with the validation methods where they may incorrectly fail or succeed with the validation but the mocked class is just assuming they always succeed @created(19-09-14 23:27)

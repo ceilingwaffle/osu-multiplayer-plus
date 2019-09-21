@@ -44,7 +44,9 @@ describe("When processing multiplayer results", function() {
           // 1 player per team
           // (2 players total)
           // 1 API fetch
-          // 1 match result
+          // 1 match per API fetch
+          // (1 match total)
+          // all players submitting a score
           // (2 scores total)
           // all scores passing
           // match completed (not aborted)
@@ -245,7 +247,9 @@ describe("When processing multiplayer results", function() {
           // 1 player per team
           // (2 players total)
           // 2 API fetches
-          // 1 match result per API fetch
+          // 1 match per API fetch
+          // (2 matches total)
+          // all players submitting a score
           // (4 scores total)
           // all scores passing
           // match completed (not aborted)
