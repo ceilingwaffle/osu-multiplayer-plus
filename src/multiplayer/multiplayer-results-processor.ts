@@ -47,7 +47,15 @@ export class MultiplayerResultsProcessor {
       //    find lobby using input.multiplayerId
       let lobby: Lobby = await this.lobbyRepository.findOne(
         { banchoMultiplayerId: this.input.multiplayerId },
-        { relations: ["matches", "matches.playerScores", "matches.playerScores.scoredBy"] }
+        {
+          relations: [
+            "gameLobbies",
+            "matches",
+            "matches.playerScores",
+            "matches.playerScores.scoredBy",
+            "matches.playerScores.scoredBy.user"
+          ]
+        }
       );
       //      create lobby if not found
       if (!lobby) {
@@ -85,10 +93,12 @@ export class MultiplayerResultsProcessor {
           //      create score if not found
           if (!score) {
             //      find player using Lobby.Match[].PlayerScores[].scoredBy(OsuUser).osuUserId
-            const players = lobby.matches
-              .map(match => match.playerScores.map(score => score.scoredBy))
-              .find(players => players.find(player => player.osuUserId === apiScore.osuUserId));
-            let player: OsuUser = players && players.length ? players[0] : undefined;
+            let player: OsuUser = lobby.matches
+              .map(match => match.playerScores)
+              .map(scores => scores.find(score => score.scoredBy.osuUserId === apiScore.osuUserId))
+              .map(score => {
+                if (score) return score.scoredBy;
+              })[0];
             if (!player) {
               //      find player in DB
               player = await this.osuUserRepository.findOne({ osuUserId: apiScore.osuUserId });
@@ -120,9 +130,21 @@ export class MultiplayerResultsProcessor {
       // save/update (cascade) entities
       // TODO: ensure Lobby.GameLobbies isn't being erased - if it is, just add it to the relations when finding lobby
       const savedLobby = await lobby.save();
+      const reloadedLobby: Lobby = await this.lobbyRepository.findOne(
+        { banchoMultiplayerId: this.input.multiplayerId },
+        {
+          relations: [
+            "gameLobbies",
+            "matches",
+            "matches.playerScores",
+            "matches.playerScores.scoredBy",
+            "matches.playerScores.scoredBy.user"
+          ]
+        }
+      );
       this.markAsProcessed();
       Log.methodSuccess(this.process, this.constructor.name);
-      return savedLobby;
+      return reloadedLobby;
     } catch (error) {
       Log.methodError(this.process, this.constructor.name, error);
       throw error;

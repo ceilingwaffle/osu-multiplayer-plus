@@ -238,6 +238,197 @@ describe("When processing multiplayer results", function() {
       });
     });
 
+    it("should process and save 2 API result containing 1 match result each", function() {
+      return new Promise(async (resolve, reject) => {
+        try {
+          // 2 teams
+          // 1 player per team
+          // (2 players total)
+          // 2 API fetches
+          // 1 match result per API fetch
+          // (4 scores total)
+          // all scores passing
+          // match completed (not aborted)
+          // MatchEvent = match_end
+          const teamsOfUids: string[][] = [["3336000"], ["3336001"]];
+          const gameSettings: { startingLives: number } = {
+            startingLives: 2
+          };
+
+          const apiResult1: ApiMultiplayer = {
+            multiplayerId: "1234", // Lobby.banchoMultiplayerId
+            matches: [
+              {
+                mapNumber: 1, // GameLobby.startingMapNumber
+                multiplayerId: 1234, // Lobby.banchoMultiplayerId
+                mapId: 4178, // Match.beatmapId
+                startTime: new Date(new Date().getTime() - 300), // Match.startTime
+                endTime: new Date(), // Match.endTime
+                teamMode: TeamMode.HeadToHead, // Match.teamMode
+                event: "match_end",
+                scores: [
+                  {
+                    osuUserId: "3336000", // Match.PlayerScores[].scoredBy(OsuUser).osuUserId
+                    score: 100000, // Match.PlayerScores[].score
+                    passed: true // Match.PlayerScores[].passed
+                  },
+                  {
+                    osuUserId: "3336001",
+                    score: 100001,
+                    passed: true
+                  }
+                ]
+              }
+            ]
+          };
+
+          const expectedLobby1: DataPropertiesOnly<Lobby> = {
+            id: 1,
+            banchoMultiplayerId: "1234",
+            status: LobbyStatus.AWAITING_FIRST_SCAN.getKey(),
+            gameLobbies: [],
+            matches: [
+              {
+                id: 1,
+                mapNumber: 1,
+                beatmapId: "4178",
+                startTime: apiResult1.matches[0].startTime.getTime(),
+                endTime: apiResult1.matches[0].endTime.getTime(),
+                aborted: false,
+                ignored: false,
+                teamMode: TeamMode.HeadToHead,
+                playerScores: [
+                  {
+                    id: 1,
+                    ignored: false,
+                    passed: true,
+                    score: 100000,
+                    scoredBy: {
+                      id: 1,
+                      countryCode: "AU",
+                      osuUserId: "3336000",
+                      osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336000"),
+                      user: {
+                        id: 1
+                      }
+                    }
+                  },
+                  {
+                    id: 2,
+                    ignored: false,
+                    passed: true,
+                    score: 100001,
+                    scoredBy: {
+                      id: 2,
+                      countryCode: "AU",
+                      osuUserId: "3336001",
+                      osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336001"),
+                      user: {
+                        id: 2
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          };
+
+          const processor = new MultiplayerResultsProcessor(apiResult1);
+          const actualLobby = await processor.process();
+
+          expect(actualLobby).excludingEvery(["createdAt", "updatedAt", "scoredInMatch", "lobby"]).to.deep.equal(expectedLobby1); // prettier-ignore
+
+          const apiResult2: ApiMultiplayer = {
+            multiplayerId: "1234", // Lobby.banchoMultiplayerId
+            matches: [
+              {
+                mapNumber: 2, // GameLobby.startingMapNumber
+                multiplayerId: 1234, // Lobby.banchoMultiplayerId
+                mapId: 6666, // Match.beatmapId
+                startTime: new Date(new Date().getTime() - 300), // Match.startTime
+                endTime: new Date(), // Match.endTime
+                teamMode: TeamMode.HeadToHead, // Match.teamMode
+                event: "match_end",
+                scores: [
+                  {
+                    osuUserId: "3336000", // Match.PlayerScores[].scoredBy(OsuUser).osuUserId
+                    score: 200000, // Match.PlayerScores[].score
+                    passed: true // Match.PlayerScores[].passed
+                  },
+                  {
+                    osuUserId: "3336001",
+                    score: 200001,
+                    passed: true
+                  }
+                ]
+              }
+            ]
+          };
+
+          const expectedLobby2: DataPropertiesOnly<Lobby> = {
+            id: 1,
+            banchoMultiplayerId: "1234",
+            status: LobbyStatus.AWAITING_FIRST_SCAN.getKey(),
+            gameLobbies: [],
+            matches: [
+              expectedLobby1.matches[0],
+              {
+                id: 2,
+                mapNumber: 2,
+                beatmapId: "6666",
+                startTime: apiResult2.matches[0].startTime.getTime(),
+                endTime: apiResult2.matches[0].endTime.getTime(),
+                aborted: false,
+                ignored: false,
+                teamMode: TeamMode.HeadToHead,
+                playerScores: [
+                  {
+                    id: 3,
+                    ignored: false,
+                    passed: true,
+                    score: 200000,
+                    scoredBy: {
+                      id: 1,
+                      countryCode: "AU",
+                      osuUserId: "3336000",
+                      osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336000"),
+                      user: {
+                        id: 1
+                      }
+                    }
+                  },
+                  {
+                    id: 4,
+                    ignored: false,
+                    passed: true,
+                    score: 200001,
+                    scoredBy: {
+                      id: 2,
+                      countryCode: "AU",
+                      osuUserId: "3336001",
+                      osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336001"),
+                      user: {
+                        id: 2
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          };
+
+          const processor2 = new MultiplayerResultsProcessor(apiResult2);
+          const actualLobby2 = await processor2.process();
+
+          expect(actualLobby2).excludingEvery(["createdAt", "updatedAt", "scoredInMatch", "lobby"]).to.deep.equal(expectedLobby2); // prettier-ignore
+
+          return resolve();
+        } catch (error) {
+          return reject(error);
+        }
+      });
+    });
+
     // it("should finish to completion when processing 2 match results");
     // it("should not throw an error when processing 0 match results");
   });
