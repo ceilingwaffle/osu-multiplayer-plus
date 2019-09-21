@@ -8,7 +8,7 @@ import { TeamMode } from "../../../src/multiplayer/components/enums/team-mode";
 import { GameReport } from "../../../src/multiplayer/reports/game.report";
 import { LeaderboardLine } from "../../../src/multiplayer/components/leaderboard-line";
 import { TestHelpers } from "../../test-helpers";
-import { Lobby } from "../../../src/domain/lobby/lobby.entity";
+import { Lobby as LobbyEntity } from "../../../src/domain/lobby/lobby.entity";
 import { LobbyStatus } from "../../../src/domain/lobby/lobby-status";
 import { FakeOsuApiFetcher } from "../../classes/fake-osu-api-fetcher";
 import chaiExclude from "chai-exclude";
@@ -17,6 +17,10 @@ import { PlayMode } from "../../../src/multiplayer/components/enums/play-mode";
 import { ScoringType } from "../../../src/multiplayer/components/enums/scoring-type";
 import { Mods } from "../../../src/multiplayer/components/enums/mods";
 import { MatchStatus } from "../../../src/multiplayer/components/types/match-status";
+import { Match as MatchEntity } from "../../../src/domain/match/match.entity";
+import { PlayerScore as PlayerScoreEntity } from "../../../src/domain/score/player-score.entity";
+import { OsuUser as OsuUserEntity } from "../../../src/domain/user/osu-user.entity";
+import { User as UserEntity } from "../../../src/domain/user/user.entity";
 
 chai.use(chaiExclude);
 
@@ -83,7 +87,7 @@ describe("When processing multiplayer results", function() {
             ]
           };
 
-          const expectedLobby: DataPropertiesOnly<Lobby> = {
+          const expectedLobby: DataPropertiesOnly<LobbyEntity> = {
             id: 1,
             banchoMultiplayerId: "1234",
             status: LobbyStatus.AWAITING_FIRST_SCAN.getKey(),
@@ -240,6 +244,125 @@ describe("When processing multiplayer results", function() {
       });
     });
 
+    it("should process the same API result twice without saving duplicates", function() {
+      return new Promise(async (resolve, reject) => {
+        try {
+          // all twice:
+          //   2 teams
+          //   1 player per team
+          //   (2 players total)
+          //   1 API fetch
+          //   1 match per API fetch
+          //   (1 match total)
+          //   all players submitting a score
+          //   (2 scores total)
+          //   all scores passing
+          //   match completed (not aborted)
+          //   MatchEvent = match_end
+          const teamsOfUids: string[][] = [["3336000"], ["3336001"]];
+          const gameSettings: { startingLives: number } = {
+            startingLives: 2
+          };
+
+          const input: ApiMultiplayer = {
+            multiplayerId: "1234", // Lobby.banchoMultiplayerId
+            matches: [
+              {
+                mapNumber: 1, // GameLobby.startingMapNumber
+                multiplayerId: 1234, // Lobby.banchoMultiplayerId
+                mapId: 4178, // Match.beatmapId
+                startTime: new Date(new Date().getTime() - 300), // Match.startTime
+                endTime: new Date(), // Match.endTime
+                teamMode: TeamMode.HeadToHead, // Match.teamMode
+                event: "match_end",
+                scores: [
+                  {
+                    osuUserId: "3336000", // Match.PlayerScores[].scoredBy(OsuUser).osuUserId
+                    score: 100000, // Match.PlayerScores[].score
+                    passed: true // Match.PlayerScores[].passed
+                  },
+                  {
+                    osuUserId: "3336001",
+                    score: 100001,
+                    passed: true
+                  }
+                ]
+              }
+            ]
+          };
+
+          const expectedLobby: DataPropertiesOnly<LobbyEntity> = {
+            id: 1,
+            banchoMultiplayerId: "1234",
+            status: LobbyStatus.AWAITING_FIRST_SCAN.getKey(),
+            gameLobbies: [],
+            matches: [
+              {
+                id: 1,
+                mapNumber: 1,
+                beatmapId: "4178",
+                startTime: input.matches[0].startTime.getTime(),
+                endTime: input.matches[0].endTime.getTime(),
+                aborted: false,
+                ignored: false,
+                teamMode: TeamMode.HeadToHead,
+                playerScores: [
+                  {
+                    id: 1,
+                    ignored: false,
+                    passed: true,
+                    score: 100000,
+                    scoredBy: {
+                      id: 1,
+                      countryCode: "AU",
+                      osuUserId: "3336000",
+                      osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336000"),
+                      user: {
+                        id: 1
+                      }
+                    }
+                  },
+                  {
+                    id: 2,
+                    ignored: false,
+                    passed: true,
+                    score: 100001,
+                    scoredBy: {
+                      id: 2,
+                      countryCode: "AU",
+                      osuUserId: "3336001",
+                      osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336001"),
+                      user: {
+                        id: 2
+                      }
+                    }
+                  }
+                ]
+              }
+            ]
+          };
+
+          // process the same API result twice
+          const processor1 = new MultiplayerResultsProcessor(input);
+          const actualLobby1 = await processor1.process();
+          const processor2 = new MultiplayerResultsProcessor(input);
+          const actualLobby2 = await processor2.process();
+          expect(actualLobby2).excludingEvery(["createdAt", "updatedAt", "scoredInMatch", "lobby"]).to.deep.equal(expectedLobby); // prettier-ignore
+
+          // ensure database records were only inserted once
+          expect(await LobbyEntity.count()).to.equal(1);
+          expect(await MatchEntity.count()).to.equal(1);
+          expect(await PlayerScoreEntity.count()).to.equal(2);
+          expect(await UserEntity.count()).to.equal(2);
+          expect(await OsuUserEntity.count()).to.equal(2);
+
+          return resolve();
+        } catch (error) {
+          return reject(error);
+        }
+      });
+    });
+
     it("should process and save 2 API result containing 1 match result each", function() {
       return new Promise(async (resolve, reject) => {
         try {
@@ -286,7 +409,7 @@ describe("When processing multiplayer results", function() {
             ]
           };
 
-          const expectedLobby1: DataPropertiesOnly<Lobby> = {
+          const expectedLobby1: DataPropertiesOnly<LobbyEntity> = {
             id: 1,
             banchoMultiplayerId: "1234",
             status: LobbyStatus.AWAITING_FIRST_SCAN.getKey(),
@@ -369,7 +492,7 @@ describe("When processing multiplayer results", function() {
             ]
           };
 
-          const expectedLobby2: DataPropertiesOnly<Lobby> = {
+          const expectedLobby2: DataPropertiesOnly<LobbyEntity> = {
             id: 1,
             banchoMultiplayerId: "1234",
             status: LobbyStatus.AWAITING_FIRST_SCAN.getKey(),
