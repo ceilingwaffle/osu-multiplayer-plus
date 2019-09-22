@@ -279,7 +279,7 @@ TODO:
                 ☐ `!obr removeref @<discordUser>, @<discordUser>, ...` @created(19-08-31 23:41)
                 ☐ `!obr listrefs` @created(19-08-31 23:41)
             Teams:
-                ☐ `!obr addteam <ouid1> <ouid2> ...` @created(19-08-31 23:41) @started(19-09-07 16:48)
+                ✔ `!obr addteam <ouid1> <ouid2> ...` @created(19-08-31 23:41) @started(19-09-07 16:48) @done(19-09-22 13:37) @lasted(2w20h49m1s)
                     Adds a team of osu users. See targetgame command.
                     ✔ Allow multiline like `!obr addteams\n<ouid1> <ouid2>\n<ouid3> <ouid4>\n...` @created(19-08-31 14:04) @done(19-09-20 13:42)
                     ☐ If match results are processed before any teams are added @created(19-09-07 16:51)
@@ -304,9 +304,25 @@ TODO:
                         So if a result comes in immediately before they use the command, it doesn't undo that immediate recent result - it should target the result prior to that one instead. 
                 ☐ `!obr redoresult <mapId?/mapName?>` @created(19-09-02 13:43)
                     In case they want to undo the undo.
+                ☐ `!obr undoabort <matchId>` @created(19-09-22 13:40)
             Leaderboard:
                 ☐ `!obr emoji` or `!obr icons` @created(19-09-06 08:19)
                     Lists every "team performance icon" and explains what each one represents (e.g. 🥄 = Team ended in last place)
+            Scores:
+                ☐ `!obr addscore <matchId> <osuUserId> <score>` @created(19-09-22 13:40)
+                    ☐ Validate: @created(19-09-22 13:43)
+                        ☐ user is permitted @created(19-09-22 13:44)
+                        ☐ valid match ID @created(19-09-22 13:43)
+                        ☐ osu user exists in team in game. @created(19-09-22 13:43)
+                        ☐ score gte 0 @created(19-09-22 13:43)
+                    ☐ Bot should recalculate entire game results after every addscore command, and output 1 report with the current leaderboard. @created(19-09-22 13:43)
+                ☐ `!obr removescore <matchId> <osuUserId>` @created(19-09-22 13:40)
+                    ☐ Validate: @created(19-09-22 13:43)
+                        ☐ user is permitted @created(19-09-22 13:44)
+                        ☐ valid match ID @created(19-09-22 13:43)
+                        ☐ osu user exists in team in game. @created(19-09-22 13:43)
+                    ☐ Bot should recalculate entire game results after every removescore command, and output 1 report with the current leaderboard. @created(19-09-22 13:43)
+                ☐ `!obr listscores <matchId>` @created(19-09-22 13:45)
         Lobby Management: 
 
         Game Management: 
@@ -438,21 +454,39 @@ TODO:
                         ☐ create TeamScore entities from Teams + calulcated scores + MP Object
                     ☐ -> (this)
                         ☐ save the created/updated entities
-                    ☐ -> MatchEventsBuilder to build MatchEvent objects *from stored entities*
+                    ☐ -> GameEventsBuilder to build GameEvent objects *from stored entities*
                         e.g. like "⭐ Team X won the match!" and "🛑 Match aborted! No lives were lost."
                         "from entities" is important - so we can recreate them from the database store in future if needed
-                    ☐ -> MatchLeaderboardBuilder to build MatchTeamLine objects
+                    ☐ -> GameLeaderboardBuilder to build GameTeamLine objects
                         -- Should NOT include any formatting/design/emoji - only Types and data
                         -- Independent (I) vs Dependent (D) on other line
                             (I) leaderboard position lost/gained/same
                             (I) team number / team name
-                            (I) team performance type (determined from MatchEvents)
+                            (I) team performance type (determined from GameEvents)
                             (I) lives remaining
                             (I) lives max
                             (I) team score
                             (I) players scores
                             (I) players map rank achieved
-                    ☐ -> MatchReportBuilder to build MatchReport objects from all the entities/objects
+                    ☐ -> GameReportBuilder to build GameReport objects from all the entities/objects
+            Reporting Leaderboards on Multiple-Lobby Games:
+                ✘ Solution 1: @created(19-09-22 13:33) @cancelled(19-09-22 13:33)
+                    Don't allow multiple-lobby games, and just deliver a report whenever a lobby map finishes.
+                ✘ Solution 2: @created(19-09-22 13:33) @cancelled(19-09-22 13:33)
+                    Assume the same maps are being played in the same order in all lobbies, and deliver a report whenever the last lobby finishes the map. 
+                    (This will be enforcable when the bot can create and manage lobbies [i.e. not in v1 when one of the users creates the lobbies and we just "observe" the lobbies])
+                ☐ Solution 3: @created(19-09-22 13:33)
+                    - Wait until all lobbies finish a map, then deliver a results-report for that map.
+                    - e.g. 
+                        - lobby L1 finishes map A at time T, 
+                        - lobby L2 finishes map B at time T+1
+                        - (bot does not deliver a report) 
+                        - bot sends a status message saying "Lobby L1 finished map A. Waiting on results from lobbies B,..."
+                        - lobby L2 finishes map A at time T+2
+                        - map A has now been completed by all lobbies --> bot delivers report on results for map A
+                        - lobby L1 finishes map B at time T+3 
+                        - map B has now been completed by all lobbies--> bot delivers report on results for map B
+                    - If the same map is played two times in the same lobby, wait to report results for that map until all other lobbies finish the map a second time.
         Discord Message Design:
             Test message design with: https://cog-creators.github.io/discord-embed-sandbox/
             ☐ Example 1 @created(19-09-04 10:55)
@@ -472,9 +506,9 @@ TODO:
                     ☐ Match Summary (may include more than one, listed in order of which is to be written first)
                         ☐ ⭐ Team X won the match! 
                         ☐ 🌟 Team X is on a winning streak of N! 
-                        ☐ 🤍 Team X lost a life!
+                        ☐ 💥 Team X lost a life!
                         ☐ 💀 Team X was eliminated!
-                        ☐ 🛑 Match aborted! No lives were lost.
+                        ☐ 🛑 Match aborted! No lives were lost. (Undo with !undoabort <matchId>)
                         ☐ 👔 Bottom tied! Teams X,Y(,..N-1) tied! No lives were lost.
                             If bottom teams tied (i.e. no loser can be determined)
                         ☐ 🏆 Game over! The winner is Team X!
@@ -493,7 +527,7 @@ TODO:
                         ☐ 🥉 3rd place (game over)
                         ✘ 🏅 4th place (game over) @cancelled(19-09-19 19:14)
                         ☐ 💀 Skull if team was eliminated this match
-                        ☐ 💔 Broken heart if team lost a life
+                        ☐ 💥 Collision if team lost a life
                         ✘ 🤩 Perfect Score (all team members SS) @cancelled(19-09-04 15:36)
                         ☐ 🌟 Team is on a 1st-place winning streak (won gte 2 times in a row)
                         ☐ ⭐ Team won the match!

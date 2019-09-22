@@ -91,7 +91,7 @@ describe("When processing multiplayer results", function() {
             id: 1,
             banchoMultiplayerId: "1234",
             status: LobbyStatus.AWAITING_FIRST_SCAN.getKey(),
-            gameLobbies: [],
+            gameLobbies: [{ removedAt: null, startingMapNumber: null }],
             matches: [
               {
                 id: 1,
@@ -295,7 +295,7 @@ describe("When processing multiplayer results", function() {
             id: 1,
             banchoMultiplayerId: "1234",
             status: LobbyStatus.AWAITING_FIRST_SCAN.getKey(),
-            gameLobbies: [],
+            gameLobbies: [{ removedAt: null, startingMapNumber: null }],
             matches: [
               {
                 id: 1,
@@ -413,7 +413,7 @@ describe("When processing multiplayer results", function() {
             id: 1,
             banchoMultiplayerId: "1234",
             status: LobbyStatus.AWAITING_FIRST_SCAN.getKey(),
-            gameLobbies: [],
+            gameLobbies: [{ removedAt: null, startingMapNumber: null }],
             matches: [
               {
                 id: 1,
@@ -496,7 +496,7 @@ describe("When processing multiplayer results", function() {
             id: 1,
             banchoMultiplayerId: "1234",
             status: LobbyStatus.AWAITING_FIRST_SCAN.getKey(),
-            gameLobbies: [],
+            gameLobbies: [{ removedAt: null, startingMapNumber: null }],
             matches: [
               expectedLobby1.matches[0],
               {
@@ -621,6 +621,16 @@ describe("When processing multiplayer results", function() {
   //       }
   //     });
   //   });
+  // });
+
+  // describe("where multiple lobbies have been added to one game", function() {
+  //   it("should deliver a leaderboard report when all lobbies have completed a map");
+  //   it("should deliver a message saying 'waiting for results for lobbies A,B,etc' if not all lobbies have completed a map");
+  //   it("should deliver results for a map when that map is played in a different order in three lobbies");
+  // });
+
+  // describe("where one lobby has been added to multiple games", function() {
+  //   it("should send a report to the message target channels of all those games");
   // });
 });
 function getLeaderboardLineOfUser(reports: GameReport[], targetUserId: string): LeaderboardLine {

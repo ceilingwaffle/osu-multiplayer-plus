@@ -135,6 +135,11 @@ export class MultiplayerResultsProcessor {
         {
           relations: [
             "gameLobbies",
+            "gameLobbies.lobby",
+            "gameLobbies.lobby.matches",
+            "gameLobbies.lobby.matches.playerScores",
+            "gameLobbies.lobby.matches.playerScores.scoredBy",
+            "gameLobbies.lobby.matches.playerScores.scoredBy.user",
             "matches",
             "matches.playerScores",
             "matches.playerScores.scoredBy",
@@ -169,7 +174,26 @@ export class MultiplayerResultsProcessor {
       // TODO: get report entities from DB
       // TODO: build report
 
-      // after building, fire event "report created for lobby <lobbyId>"
+      // Sequence of things to do:
+      //    - Determine if ready to report results for a GameLobby map:
+      //       - get all game lobbies and their matches (ordered such that the most recently-completed matches are listed at a later index for that game lobby)
+      //       - if all game lobbies have match results for a map
+      //          - trim all other GameLobby arrays to have the same size as the smallest array.
+      //          - if array1 is not empty, and if results have not been calculated for match at array1[n-1], that map is complete --> report results
+      //      - if not ready to report results
+      //         - deliver message "Lobby L1 finished map A (id, mapString). Waiting on results from lobbies B,C,..."
+      //
+      //    - Build game events
+      //
+      //
+      //
+      //
+      //
+      //
+      //
+      //
+
+      // after building, fire event "report created for game <gameId>"
       throw new Error("TODO: Implement method of MultiplayerResultsProcessor.");
     } catch (error) {
       Log.methodError(this.buildReport, this.constructor.name, error);
