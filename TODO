@@ -4,6 +4,7 @@ TODO:
     ✔ Fix `!obr removelobby` command not unwatching the lobby in the osu lobby scanner @created(19-08-30 23:29) @done(19-08-30 23:52)
     ☐ Remove all the comments starting with "GL:" from when we implemented the GameLobby entity @created(19-08-30 07:48)
     ✔ Completely rework adding/removing lobbies from games @created(19-08-28 20:27) @started(19-08-28 20:20) @done(19-08-30 07:41) @lasted(1d11h21m46s)
+    
     Storing add/remove values on a many-to-many GamesLobby table: https://github.com/typeorm/typeorm/issues/1224
     ☐ Remove GameStatus.UNKNOWN
     Using "UNKNOWN" feels lazy. If there's an error preventing a known-status being applied, we should just throw an error instead of resorting to an "UNKNOWN" status. Also having a game status as "UNKNOWN" means that status has to be handled in some way eventually, so why not just handle it that way to start with?
@@ -222,6 +223,7 @@ TODO:
             ☐ Delete messages (e.g. user types yes to confirm destructive command - we need to delete that message) @created(19-08-30 23:06)
             ☐ Create text channels (to create game-specific channels) @created(19-08-30 23:07)
         Misc:
+            ☐ Allow users to customize what is displayed on the leaderboard (e.g. disable player map ranks from being shown) @created(19-09-22 21:08)
             ☐ Figure out how to handle the situation where the target-channel of the GameMessageTarget has been deleted. Where do messages get sent to? Maybe DM the original author?
             Use authorId as the message-target to do this.
             ☐ End game and shut-down watchers if the game target-channel is deleted. Listen for the "Channel Delete" event on the Discord.js Client: 
@@ -493,6 +495,12 @@ TODO:
                 Can each player get their own colour? This would help players locate themselves as the leaderboard shifts around.
                 e.g. https://i.imgur.com/9Fhz8yJ.png
                 e.g. 
+                    ---------------------------------------------
+                    | ⭐ Team X won the match!                  |
+                    | 🌟 Team X is on a winning streak of N!    | 
+                    | 💥 Team Y lost a life!                    | 
+                    | 💀 Team Y was eliminated!                 | 
+                    ---------------------------------------------
                     Alive (4 maps remain)
                     ⬆ 01. Team 1 |🌟| 🤎🤎🤍 | Score: 123,456 | player1 [SS], player2 [S]
                     ⬇ 02. Team 3 |⬛| 🤎🤎🤍 | Score: 111,111👔 | p5 [S], player6 [A]
@@ -508,6 +516,7 @@ TODO:
                         ☐ 🌟 Team X is on a winning streak of N! 
                         ☐ 💥 Team X lost a life!
                         ☐ 💀 Team X was eliminated!
+                        ✘     Team Y is now in the accuracy average lead @cancelled(19-09-22 21:02)
                         ☐ 🛑 Match aborted! No lives were lost. (Undo with !undoabort <matchId>)
                         ☐ 👔 Bottom tied! Teams X,Y(,..N-1) tied! No lives were lost.
                             If bottom teams tied (i.e. no loser can be determined)

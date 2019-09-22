@@ -175,6 +175,10 @@ export class MultiplayerResultsProcessor {
       // TODO: build report
 
       // Sequence of things to do:
+      //    - Figure out what events we want to track -> add those events to the EventRegistrar
+      //          - Register events in the EventRegistrar
+      //
+      //
       //    - Determine if ready to report results for a GameLobby map:
       //       - get all game lobbies and their matches (ordered such that the most recently-completed matches are listed at a later index for that game lobby)
       //       - if all game lobbies have match results for a map
@@ -183,11 +187,13 @@ export class MultiplayerResultsProcessor {
       //      - if not ready to report results
       //         - deliver message "Lobby L1 finished map A (id, mapString). Waiting on results from lobbies B,C,..."
       //
+      //
       //    - Build game events
-      //
-      //
-      //
-      //
+      //          EventBuilder(game.matches) -> MatchEvents[]
+      //    - Build leaderboard
+      //          LeaderboardBuilder(events) -> Leaderboard
+      //    - Deliver leaderboard and game-message-targets to DiscordMessageBuilder
+      //          DiscordMessageBuilder.sendLeaderboard(game, leaderboard)
       //
       //
       //
