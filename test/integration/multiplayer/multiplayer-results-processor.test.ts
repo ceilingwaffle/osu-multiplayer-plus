@@ -448,7 +448,7 @@ describe("When processing multiplayer results", function() {
       });
     });
 
-    it("should process and save 2 API result containing 1 match result each", function() {
+    it("should process and save 2 API results containing 1 match result each", function() {
       return new Promise(async (resolve, reject) => {
         try {
           // 2 teams
@@ -694,7 +694,62 @@ describe("When processing multiplayer results", function() {
     });
 
     // it("should finish to completion when processing 2 match results");
-    // it("should not throw an error when processing 0 match results");
+    it("should not save any matches/users/scores when processing 0 match results", function() {
+      return new Promise(async (resolve, reject) => {
+        try {
+          const input: ApiMultiplayer = {
+            multiplayerId: addLobbyRequest.banchoMultiplayerId, // Lobby.banchoMultiplayerId
+            matches: []
+          };
+
+          const expectedLobby: DataPropertiesOnly<LobbyEntity> = {
+            id: 1,
+            banchoMultiplayerId: addLobbyRequest.banchoMultiplayerId,
+            status: LobbyStatus.AWAITING_FIRST_SCAN.getKey(),
+            gameLobbies: [
+              {
+                game: {
+                  countFailedScores: true,
+                  endedAt: null,
+                  id: 1,
+                  messageTargets: [
+                    {
+                      authorId: discordRequest.authorId,
+                      channelId: discordRequest.originChannelId,
+                      channelType: "initial-channel",
+                      commType: discordRequest.commType
+                    }
+                  ],
+                  status: "idle_newgame",
+                  teamLives: createGameRequest.teamLives
+                },
+                removedAt: null,
+                startingMapNumber: 1
+              }
+            ],
+            matches: []
+          };
+
+          // process the same API result twice
+          const processor1 = new MultiplayerResultsProcessor(input);
+          const actualLobby1 = await processor1.process();
+          const processor2 = new MultiplayerResultsProcessor(input);
+          const actualLobby2 = await processor2.process();
+          expect(actualLobby2).excludingEvery(["createdAt", "updatedAt", "scoredInMatch", "lobby"]).to.deep.equal(expectedLobby); // prettier-ignore
+
+          // ensure database records were only inserted once
+          expect(await LobbyEntity.count()).to.equal(1);
+          expect(await MatchEntity.count()).to.equal(0);
+          expect(await PlayerScoreEntity.count()).to.equal(0);
+          expect(await UserEntity.count()).to.equal(1);
+          expect(await OsuUserEntity.count()).to.equal(0);
+
+          return resolve();
+        } catch (error) {
+          return reject(error);
+        }
+      });
+    });
   });
 
   //   describe("with no tied scores", function() {
@@ -736,7 +791,7 @@ describe("When processing multiplayer results", function() {
   //     it("should ensure that only the team winning 3 matches in a row is marked as having a winning streak of 2");
   //   });
 
-  //   describe("with leaderboard positioned to be determined", function() {
+  //   describe("with leaderboard positions to be determined", function() {
   //     it("should ensure a team gaining 1 position causes the team it overtook to lose 1 position");
   //     it("should ensure a team gaining 1 position is marked as having gained 1 position");
   //     it("should ensure a team gaining 2 positions is marked as having gained 2 positions");
