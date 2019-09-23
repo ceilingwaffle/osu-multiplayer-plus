@@ -105,6 +105,9 @@ TODO:
             Need some way of limiting the maximum number of matches downloaded per multiplayer (right now we're using 500kb/s for 150+ matches in a single multi when polling every 1s)
     Refactor:
         ☐ Get ConnectionManager instance from iocContainer instead of singleton getInstance() method @created(19-09-23 23:05)
+            ☐ Replace with inversify provider @created(19-09-24 00:18)
+                See: https://github.com/inversify/InversifyJS/blob/master/wiki/provider_injection.md
+                and: https://stackoverflow.com/questions/40880447/how-to-inject-an-asynchronous-dependency-in-inversify
         ✔ Replace all uses of "NodesuApiFetcher.getInstance()" with a singleton instance of IOsuApiFetcher resolved from the inversify DIC @created(19-09-11 15:13) @done(19-09-14 22:41)
         ☐ Look into using LazyServiceIdentifier instead of lazyInject @created(19-09-09 23:15)
             ☐ The reason for this is so we can move the injections into constructor arguments. Then we'd have the option to overide these upon class initialization. @created(19-09-09 23:15)
@@ -525,12 +528,13 @@ TODO:
                         ☐ 👔 Bottom tied! Teams X,Y(,..N-1) tied! No lives were lost.
                             If bottom teams tied (i.e. no loser can be determined)
                         ☐ 🏆 Game over! The winner is Team X!
+                        ☐ 🚫 Player P from Team X quit
                         ☐     Team X now in leaderboard position N (do not output)
                         ☐     Team X gained/lost N leaderboard positions (do not output)
                         ☐     Team X scored N (do not output)
                         ☐     Player P scored N (do not output)
                         ☐     Player P achieved rank SS/S/A... (do not output)
-                        ☐     Player P quit (do not output)
+                        ☐ 
                         These events will be processed to determine the leaderboard output
                 ☐ Team Line
                     ☐ Team Performance Icon (in order of priority)
