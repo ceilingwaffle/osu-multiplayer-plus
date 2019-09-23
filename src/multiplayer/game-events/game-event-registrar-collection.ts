@@ -38,6 +38,7 @@ export class GameEventRegistrarCollection {
    * @returns {GameEventRegistrar}
    */
   findOrCreate(gameId: number): GameEventRegistrar {
+    if (!gameId || gameId < 0) throw new Error("Game ID must be defined and greater than 0 to register game events.");
     if (!this.registrars[gameId]) {
       this.registrars[gameId] = new GameEventRegistrar();
     }

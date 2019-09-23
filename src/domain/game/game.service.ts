@@ -32,6 +32,8 @@ import { CommunicationClientType } from "../../communication-types";
 import { PermissionsFailure } from "../../permissions/permissions.failure";
 import { Permissions } from "../../permissions/permissions";
 import { UserRepository } from "../user/user.repository";
+import { GameEventRegistrarInitializer } from "../../multiplayer/game-events/game-event-registrar-initializer";
+import { GameEventRegistrarCollection } from "../../multiplayer/game-events/game-event-registrar-collection";
 
 @injectable()
 export class GameService {
@@ -42,7 +44,8 @@ export class GameService {
   constructor(
     @inject(TYPES.UserService) protected userService: UserService,
     @inject(TYPES.IOsuLobbyScanner) protected osuLobbyScanner: IOsuLobbyScanner,
-    @inject(TYPES.Permissions) protected permissions: Permissions
+    @inject(TYPES.Permissions) protected permissions: Permissions,
+    @inject(TYPES.GameEventRegistrarCollection) protected gameEventRegistrarCollection: GameEventRegistrarCollection
   ) {
     Log.info(`Initialized ${this.constructor.name}.`);
   }
@@ -98,12 +101,21 @@ export class GameService {
       // save the game
       const reloadedGame = await this.saveAndReloadGame(game);
 
+      // register game events
+      this.registerGameEventsForGame(reloadedGame);
+
       Log.methodSuccess(this.createAndSaveGame, this.constructor.name);
       return successPromise(reloadedGame);
     } catch (error) {
       Log.methodError(this.createAndSaveGame, this.constructor.name, error);
       throw error;
     }
+  }
+
+  private registerGameEventsForGame(game: Game) {
+    const gameEvents = GameEventRegistrarInitializer.createGameEvents();
+    const registrar = this.gameEventRegistrarCollection.findOrCreate(game.id);
+    this.gameEventRegistrarCollection.registerGameEventsOnRegistrar(registrar, ...gameEvents);
   }
 
   // private convertTextToBoolean(text: "true" | "false", valueIfTextNull: boolean): boolean {

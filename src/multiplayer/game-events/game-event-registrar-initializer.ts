@@ -7,7 +7,8 @@ import { GameEvent } from "./game-event";
 import { TeamWonGameEvent } from "./events/team-won.game-event";
 import { TeamEliminatedGameEvent } from "./events/team-eliminated.game-event";
 import { Log } from "../../utils/Log";
-import { getCustomRepository } from "typeorm";
+import { getCustomRepository, Connection } from "typeorm";
+import { ConnectionManager } from "../../utils/connection-manager";
 
 export class GameEventRegistrarInitializer {
   static async initGameEventRegistrarsFromActiveDatabaseGames(): Promise<void> {
@@ -19,19 +20,19 @@ export class GameEventRegistrarInitializer {
       const allGames = await gameRepository.find();
       const activeGames = allGames.filter(game => GameStatus.isActiveStatus(game.status));
       // initialize game-event-registrars for all active games
+      const gameEvents = GameEventRegistrarInitializer.createGameEvents();
       for (const game of activeGames) {
         const registrar = gameEventRegistrarCollection.findOrCreate(game.id);
-        const gameEvents = GameEventRegistrarInitializer.createGameEvents();
         gameEventRegistrarCollection.registerGameEventsOnRegistrar(registrar, ...gameEvents);
       }
-      Log.methodSuccess(this.initGameEventRegistrarsFromActiveDatabaseGames, this.constructor.name);
+      Log.methodSuccess(this.initGameEventRegistrarsFromActiveDatabaseGames, GameEventRegistrarInitializer.name);
     } catch (error) {
-      Log.methodError(this.initGameEventRegistrarsFromActiveDatabaseGames, this.constructor.name, error);
+      Log.methodError(this.initGameEventRegistrarsFromActiveDatabaseGames, GameEventRegistrarInitializer.name, error);
       throw error;
     }
   }
 
-  private static createGameEvents(): GameEvent[] {
+  static createGameEvents(): GameEvent[] {
     const events: GameEvent[] = [];
     // should be added in the order we want te events to displayed above the leaderboard
     events.push(new TeamWonGameEvent());
