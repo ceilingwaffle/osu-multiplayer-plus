@@ -17,6 +17,7 @@ import { NodesuApiFetcher } from "./osu/nodesu-api-fetcher";
 import { IOsuApiFetcher } from "./osu/interfaces/osu-api-fetcher";
 import { FakeOsuApiFetcher } from "../test/classes/fake-osu-api-fetcher";
 import { IsValidBanchoMultiplayerIdConstraint } from "./osu/validators/bancho-multiplayer-id.validator";
+import { FakeOsuLobbyScanner } from "../test/classes/fake-osu-lobby-scanner";
 
 // const iocContainer = new Container();
 // autoProvide(iocContainer, entities);
@@ -44,7 +45,6 @@ export class IOCKernel extends Container {
     // lobby
     this.bind<LobbyController>(TYPES.LobbyController).to(LobbyController).inSingletonScope(); // prettier-ignore
     this.bind<LobbyService>(TYPES.LobbyService).to(LobbyService).inSingletonScope(); // prettier-ignore
-    this.bind<IOsuLobbyScanner>(TYPES.IOsuLobbyScanner).to(OsuLobbyScannerService).inSingletonScope(); // prettier-ignore
     // team
     this.bind<TeamService>(TYPES.TeamService).to(TeamService).inSingletonScope(); // prettier-ignore
     this.bind<TeamController>(TYPES.TeamController).to(TeamController).inSingletonScope(); // prettier-ignore
@@ -55,8 +55,10 @@ export class IOCKernel extends Container {
 
     if (process.env.NODE_ENV === "test") {
       this.bind<IOsuApiFetcher>(TYPES.IOsuApiFetcher).to(FakeOsuApiFetcher).inSingletonScope(); // prettier-ignore
+      this.bind<IOsuLobbyScanner>(TYPES.IOsuLobbyScanner).to(FakeOsuLobbyScanner).inSingletonScope(); // prettier-ignore
     } else {
       this.bind<IOsuApiFetcher>(TYPES.IOsuApiFetcher).to(NodesuApiFetcher).inSingletonScope(); // prettier-ignore
+      this.bind<IOsuLobbyScanner>(TYPES.IOsuLobbyScanner).to(OsuLobbyScannerService).inSingletonScope(); // prettier-ignore
     }
   }
 }

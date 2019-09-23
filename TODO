@@ -56,6 +56,8 @@ TODO:
         Notable osu people showing interest:
             ThePooN, RyuK, Musty98
     Testing:
+        ☐ Remove fake of IOsuLobbyScanner and instead somehow inject the ApiMultiplayer object into the return of FakeOsuApiFetcher.fetchMultiplayerResults() @created(19-09-23 16:12)
+            This is so we can include testing the real OsuLobbyScanner in the lobby-remove tests instead of copying code from the real implemention to the fake.
         ☐ Improve the Osu API Fetcher test (mock) class @created(19-09-14 23:27)
             ☐ Potential issue with the validation methods where they may incorrectly fail or succeed with the validation but the mocked class is just assuming they always succeed @created(19-09-14 23:27)
                 ☐ One solution is just to unit test every line within the validation method, but if we add more lines in future we need to remember the unit test those aswell @created(19-09-14 23:28)
@@ -113,8 +115,9 @@ TODO:
             Replace it with our own specific one with messages formatted the same as the ErrorDiscordMessageBuilder. Consider making ErrorDiscordMessageBuilder handle something less specific than just Response objects, or create another ErrorBuilder abstraction layer.
         ☐ Cleanup the failure methods. 
             Can we abstract and extend these? Keep them more consistent; less method signature copy pasting.
-        ☐ Replace lolex with a spy in lobby-create.test.
+        ✔ Replace lolex with a spy in lobby-create.test. @done(19-09-23 15:45)
             Using lolex is just a temp solution for now. The problem is if we use another timer anywhere else within the LobbyController.create method chain, it will replace all those timers with the lolex mock.
+            ✔ Replaced with FakeOsuLobbyScanner implemention of IOsuLobbyScanner @created(19-09-23 15:45) @done(19-09-23 15:45)
         ☐ Inject IOsuApiFetcher instead of getting directly from the DIC
             [12:00] bossqone: then you're hiding dependencies of your class, because you're passing whole container, not individual dependencies
             [12:07] bossqone: no problem at all, it will work anyway :) It's just tip to make your code more testable (e.g. you want to test that class. Now you need to construct whole DI container, bind correct instances, etc.., instead of passing mocked/correct instance directly to your class via constructor)

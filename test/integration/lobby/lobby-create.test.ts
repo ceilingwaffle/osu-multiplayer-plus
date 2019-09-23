@@ -17,14 +17,12 @@ import { DiscordRequestDto } from "../../../src/requests/dto";
 import { getCustomRepository } from "typeorm";
 import { GameRepository } from "../../../src/domain/game/game.repository";
 import { CreateGameDto } from "../../../src/domain/game/dto/create-game.dto";
-import { InstalledClock, LolexWithContext } from "lolex";
 import { LobbyRepository } from "../../../src/domain/lobby/lobby.repository";
 import { DiscordUserReportProperties } from "../../../src/domain/shared/reports/discord-user-report-properties";
 import { AddLobbyReport } from "../../../src/domain/lobby/reports/add-lobby.report";
 import { EndGameDto } from "../../../src/domain/game/dto/end-game.dto";
 import { LobbyStatus } from "../../../src/domain/lobby/lobby-status";
 import TYPES from "../../../src/types";
-var lolex: LolexWithContext = require("lolex");
 
 async function getEntities(): Promise<TestContextEntities[]> {
   const conn = await ConnectionManager.getInstance();
@@ -84,16 +82,10 @@ const createGame3DiscordRequest: DiscordRequestDto = {
   originChannelId: "tester1's amazing channel"
 };
 
-// // lolex clock for faking the lobby watcher timers
-// let clock: InstalledClock;
-
 describe("When adding a lobby", function() {
   this.beforeAll(function() {
     return new Promise(async (resolve, reject) => {
       try {
-        // console.log("Installing lolex timer...");
-        // // fake out the watcher timer so we don't actually start fetching match results for the lobby
-        // clock = lolex.install({ target: { setInterval: OsuLobbyWatcher }, now: 0, toFake: ["setInterval"] });
         return resolve();
       } catch (error) {
         return reject(error);
@@ -147,9 +139,6 @@ describe("When adding a lobby", function() {
   this.afterAll(function() {
     return new Promise(async (resolve, reject) => {
       try {
-        // console.log("Uninstalling lolex timer...");
-        // clock.uninstall();
-
         await TestHelpers.dropTestDatabase();
         return resolve();
       } catch (error) {
@@ -169,15 +158,12 @@ describe("When adding a lobby", function() {
           banchoMultiplayerId: "54078930" // replace this with a valid mp id if it expires
         };
 
-        // fake out the watcher timer so we don't actually start fetching match results for the lobby
-        const clock: InstalledClock = lolex.install();
         // user 2 adds a lobby without specifying a game id
         const lobbyController = iocContainer.get<LobbyController>(TYPES.LobbyController);
         const lobbyAddResponse = await lobbyController.create({
           lobbyDto: lobbyDto,
           requestDto: createGame2DiscordRequest
         });
-        clock.uninstall();
 
         const game2creator = await discordUserRepository.findByDiscordUserId(createGame2DiscordRequest.authorId);
         const savedLobby = await lobbyRepository.findOne(
@@ -258,15 +244,12 @@ describe("When adding a lobby", function() {
           gameId: 3
         };
 
-        // fake out the watcher timer so we don't actually start fetching match results for the lobby
-        const clock: InstalledClock = lolex.install();
         // user 1 adds a lobby to game 3
         const lobbyController = iocContainer.get<LobbyController>(TYPES.LobbyController);
         const lobbyAddResponse = await lobbyController.create({
           lobbyDto: lobbyDto,
           requestDto: createGame3DiscordRequest
         });
-        clock.uninstall();
 
         const game3creator = await discordUserRepository.findByDiscordUserId(createGame3DiscordRequest.authorId);
         const savedLobby = await lobbyRepository.findOne(
@@ -345,15 +328,12 @@ describe("When adding a lobby", function() {
           gameId: 999 // game ID should not exist
         };
 
-        // fake out the watcher timer so we don't actually start fetching match results for the lobby
-        const clock: InstalledClock = lolex.install();
         // user 1 adds a lobby to an non-existent game ID
         const lobbyController = iocContainer.get<LobbyController>(TYPES.LobbyController);
         const lobbyAddResponse = await lobbyController.create({
           lobbyDto: lobbyDto,
           requestDto: createGame1DiscordRequest
         });
-        clock.uninstall();
         /* #endregion */
 
         /* #region  Assertions */
@@ -384,8 +364,6 @@ describe("When adding a lobby", function() {
           gameId: 3
         };
 
-        // fake out the watcher timer so we don't actually start fetching match results for the lobby
-        const clock: InstalledClock = lolex.install();
         // user 1 adds a lobby to game 3 (should succeed)
         const lobbyController = iocContainer.get<LobbyController>(TYPES.LobbyController);
         const lobbyAddResponse1 = await lobbyController.create({
@@ -397,7 +375,6 @@ describe("When adding a lobby", function() {
           lobbyDto: lobbyDto2,
           requestDto: createGame3DiscordRequest
         });
-        clock.uninstall();
 
         const lobbyRepository = getCustomRepository(LobbyRepository);
         const savedLobby = await lobbyRepository.findOne(
@@ -452,15 +429,12 @@ describe("When adding a lobby", function() {
           gameId: 1
         };
 
-        // fake out the watcher timer so we don't actually start fetching match results for the lobby
-        const clock: InstalledClock = lolex.install();
         // user 1 attempts to add a lobby without having ever created a game
         const lobbyController = iocContainer.get<LobbyController>(TYPES.LobbyController);
         const lobbyAddResponse1 = await lobbyController.create({
           lobbyDto: lobbyDto1,
           requestDto: createGame1DiscordRequest
         });
-        clock.uninstall();
 
         const lobbyRepository = getCustomRepository(LobbyRepository);
         const lobbyShouldNotExist = await lobbyRepository.findOne(
@@ -497,15 +471,12 @@ describe("When adding a lobby", function() {
         const gameController = iocContainer.get<GameController>(TYPES.GameController);
         const gameEndResponse1 = await gameController.endGame({ endGameDto: endGameDto1, requestDto: createGame1DiscordRequest });
 
-        // fake out the watcher timer so we don't actually start fetching match results for the lobby
-        const clock: InstalledClock = lolex.install();
         // user 1 attempts to add a lobby to a game that has ended
         const lobbyController = iocContainer.get<LobbyController>(TYPES.LobbyController);
         const lobbyAddResponse1 = await lobbyController.create({
           lobbyDto: lobbyDto1,
           requestDto: createGame1DiscordRequest
         });
-        clock.uninstall();
 
         const lobbyRepository = getCustomRepository(LobbyRepository);
         const lobbyShouldNotExist = await lobbyRepository.findOne(
@@ -541,8 +512,6 @@ describe("When adding a lobby", function() {
           gameId: 2
         };
 
-        // fake out the watcher timer so we don't actually start fetching match results for the lobby
-        const clock: InstalledClock = lolex.install();
         // user 1 adds a lobby to game 1 (should succeed)
         const lobbyController = iocContainer.get<LobbyController>(TYPES.LobbyController);
         const lobbyAddResponse1 = await lobbyController.create({
@@ -554,7 +523,6 @@ describe("When adding a lobby", function() {
           lobbyDto: lobbyDto2,
           requestDto: createGame3DiscordRequest
         });
-        clock.uninstall();
 
         const lobbyRepository = getCustomRepository(LobbyRepository);
         const savedLobby = await lobbyRepository.findOne(

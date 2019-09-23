@@ -23,7 +23,6 @@
     "@types/node": "^8.0.29",
     "chai": "^4.2.0",
     "chai-exclude": "^2.0.2",
-    "lolex": "^4.2.0",
     "mocha": "^6.2.0",
     "mocha-parallel-tests": "^2.2.2",
     "nyc": "^14.1.1",
@@ -34,7 +33,6 @@
   "dependencies": {
     "@types/fs-extra": "^7.0.0",
     "@types/lodash": "^4.14.138",
-    "@types/lolex": "^3.1.1",
     "async-eventemitter": "^0.2.4",
     "bancho.js": "^0.9.5",
     "bottleneck": "^2.19.5",

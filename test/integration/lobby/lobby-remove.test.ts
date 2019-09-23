@@ -15,13 +15,10 @@ import { DiscordRequestDto } from "../../../src/requests/dto";
 import { getCustomRepository } from "typeorm";
 import { GameRepository } from "../../../src/domain/game/game.repository";
 import { CreateGameDto } from "../../../src/domain/game/dto/create-game.dto";
-import { InstalledClock, LolexWithContext } from "lolex";
 import { LobbyRepository } from "../../../src/domain/lobby/lobby.repository";
 import { RemoveLobbyDto } from "../../../src/domain/lobby/dto/remove-lobby.dto";
 import { LobbyStatus } from "../../../src/domain/lobby/lobby-status";
 import TYPES from "../../../src/types";
-
-var lolex: LolexWithContext = require("lolex");
 
 async function getEntities(): Promise<TestContextEntities[]> {
   const conn = await ConnectionManager.getInstance();
@@ -152,13 +149,10 @@ describe("When removing a lobby", function() {
           gameId: 1
         };
 
-        // user 1 adds lobby 1 to game 1
-        const clock: InstalledClock = lolex.install();
         const lobbyAddResponse1 = await lobbyController.create({
           lobbyDto: lobbyDto1,
           requestDto: createGame1DiscordRequest
         });
-        clock.uninstall();
         assert.isTrue(lobbyAddResponse1 && lobbyAddResponse1.success, "Should have added lobby 1 to game 1.");
 
         // user 1 removes lobby 1 from game 1
@@ -195,7 +189,6 @@ describe("When removing a lobby", function() {
           banchoMultiplayerId: "54078930", // replace this with a valid mp id if it expires
           gameId: 3
         };
-        const clock: InstalledClock = lolex.install();
         const lobbyAddResponse1 = await lobbyController.create({
           lobbyDto: lobbyDto1,
           requestDto: createGame1DiscordRequest
@@ -208,7 +201,6 @@ describe("When removing a lobby", function() {
           lobbyDto: lobbyDto3,
           requestDto: createGame3DiscordRequest
         });
-        clock.uninstall();
 
         // ensure that all lobby-add requests completed successfully
         assert.isTrue(lobbyAddResponse1 && lobbyAddResponse1.success);
@@ -300,7 +292,6 @@ describe("When removing a lobby", function() {
           banchoMultiplayerId: "45007374", // replace this with a valid mp id if it expires
           gameId: 1
         };
-        const clock: InstalledClock = lolex.install();
         const lobbyAddResponse1 = await lobbyController.create({
           lobbyDto: lobbyDto1,
           requestDto: createGame1DiscordRequest
@@ -309,7 +300,6 @@ describe("When removing a lobby", function() {
           lobbyDto: lobbyDto2,
           requestDto: createGame1DiscordRequest
         });
-        clock.uninstall();
 
         assert.isTrue(lobbyAddResponse1 && lobbyAddResponse1.success);
         assert.isTrue(lobbyAddResponse2 && lobbyAddResponse2.success);
@@ -434,13 +424,11 @@ describe("When removing a lobby", function() {
           banchoMultiplayerId: "54078930", // replace this with a valid mp id if it expires
           gameId: 1
         };
-        const clock: InstalledClock = lolex.install();
         const lobbyController = iocContainer.get<LobbyController>(TYPES.LobbyController);
         const lobbyAddResponse1 = await lobbyController.create({
           lobbyDto: lobbyDto1,
           requestDto: createGame1DiscordRequest
         });
-        clock.uninstall();
         assert.isTrue(lobbyAddResponse1 && lobbyAddResponse1.success, "The lobby-add-request did not complete successfully.");
 
         // remove the bancho mp id from game #1
@@ -475,7 +463,6 @@ describe("When removing a lobby", function() {
           banchoMultiplayerId: "54078930", // replace this with a valid mp id if it expires
           gameId: 2
         };
-        const clock: InstalledClock = lolex.install();
         const lobbyController = iocContainer.get<LobbyController>(TYPES.LobbyController);
         const lobbyAddResponse1 = await lobbyController.create({
           lobbyDto: lobbyDto1,
@@ -485,7 +472,6 @@ describe("When removing a lobby", function() {
           lobbyDto: lobbyDto2,
           requestDto: createGame2DiscordRequest
         });
-        clock.uninstall();
         assert.isTrue(lobbyAddResponse1 && lobbyAddResponse1.success);
         assert.isTrue(lobbyAddResponse2 && lobbyAddResponse2.success);
 
@@ -531,12 +517,10 @@ describe("When removing a lobby", function() {
         };
 
         // add a lobby 1 to game 1
-        const clock: InstalledClock = lolex.install();
         const lobbyAddResponse1 = await lobbyController.create({
           lobbyDto: lobbyDto1,
           requestDto: createGame1DiscordRequest
         });
-        clock.uninstall();
         assert.isTrue(lobbyAddResponse1 && lobbyAddResponse1.success);
 
         // assert that lobby 1 has no removedAt value after being added
@@ -560,12 +544,10 @@ describe("When removing a lobby", function() {
         expect(gameLobbyAfterRemove1.removedAt).to.be.within(1560000000, Math.floor(Date.now() / 1000));
 
         // re-add lobby 1 to game 1
-        const clock2: InstalledClock = lolex.install();
         const lobbyAddResponse2 = await lobbyController.create({
           lobbyDto: lobbyDto1,
           requestDto: createGame1DiscordRequest
         });
-        clock2.uninstall();
         assert.isTrue(lobbyAddResponse2 && lobbyAddResponse2.success);
 
         // assert that lobby 1 has no removedAt value after being added again
