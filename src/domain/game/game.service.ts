@@ -368,7 +368,7 @@ export class GameService {
     try {
       return GameStatus.isActiveStatus(game.status);
     } catch (error) {
-      Log.methodError(this.isGameEnded, this.constructor.name, error);
+      Log.methodError(this.isGameActive, this.constructor.name, error);
       throw error;
     }
   }
