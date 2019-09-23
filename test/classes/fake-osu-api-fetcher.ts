@@ -14,7 +14,7 @@ export class FakeOsuApiFetcher implements IOsuApiFetcher {
   }
 
   fetchMultiplayerResults(banchoMultiplayerId: string): Promise<ApiMultiplayer> {
-    throw new Error("TODO: Implement method of TestOsuApiFetcher.");
+    throw new Error("TODO: Implement method of FakeOsuApiFetcher.");
   }
 
   isValidBanchoMultiplayerId(banchoMultiplayerId: string): Promise<boolean> {
