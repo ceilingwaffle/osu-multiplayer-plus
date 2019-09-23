@@ -191,9 +191,9 @@ export class MultiplayerResultsProcessor {
       //
       //
       //    - Build game events
-      //          EventBuilder(game.matches) -> MatchEvents[]
+      //          EventBuilder(game.matches) -> GameEvents[]
       //    - Build leaderboard
-      //          LeaderboardBuilder(events) -> Leaderboard
+      //          LeaderboardBuilder(event[]) -> Leaderboard
       //    - Deliver leaderboard and game-message-targets to DiscordMessageBuilder
       //          DiscordMessageBuilder.sendLeaderboard(game, leaderboard)
       //

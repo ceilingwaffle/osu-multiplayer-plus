@@ -18,6 +18,7 @@ import { IOsuApiFetcher } from "./osu/interfaces/osu-api-fetcher";
 import { FakeOsuApiFetcher } from "../test/classes/fake-osu-api-fetcher";
 import { IsValidBanchoMultiplayerIdConstraint } from "./osu/validators/bancho-multiplayer-id.validator";
 import { FakeOsuLobbyScanner } from "../test/classes/fake-osu-lobby-scanner";
+import { GameEventRegistrarCollection } from "./multiplayer/game-events/game-event-registrar-collection";
 
 // const iocContainer = new Container();
 // autoProvide(iocContainer, entities);
@@ -52,6 +53,7 @@ export class IOCKernel extends Container {
     this.bind<RequesterFactory>(TYPES.RequesterFactory).to(RequesterFactory).inSingletonScope(); // prettier-ignore
     this.bind<Permissions>(TYPES.Permissions).to(Permissions).inSingletonScope(); // prettier-ignore
     // this.bind<IsValidBanchoMultiplayerIdConstraint>(TYPES.IsValidBanchoMultiplayerIdConstraint).to(IsValidBanchoMultiplayerIdConstraint); // prettier-ignore
+    this.bind<GameEventRegistrarCollection>(TYPES.GameEventRegistrarCollection).to(GameEventRegistrarCollection).inSingletonScope(); // prettier-ignore
 
     if (process.env.NODE_ENV === "test") {
       this.bind<IOsuApiFetcher>(TYPES.IOsuApiFetcher).to(FakeOsuApiFetcher).inSingletonScope(); // prettier-ignore

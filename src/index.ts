@@ -24,25 +24,28 @@ String.prototype.toSentenceCase = function(): string {
   return sentence;
 };
 
-// import iocContainer from "./inversify.config";
 import { Message } from "./utils/message";
-import { ConnectionManager } from "./utils/connection-manager";
 import { DiscordBot } from "./discord/discord-bot";
-// import { OsuLobbyWatcher } from "./osu/osu-lobby-watcher";
 import { Log } from "./utils/Log";
+import { GameEventRegistrarInitializer } from "./multiplayer/game-events/game-event-registrar-initializer";
 
 Message.enableSentenceCaseOutput();
 
-if (process.env.NODE_ENV !== "test")
-  (() => {
-    setTimeout(async () => {
-      try {
+Log.info("App starting...");
+
+(() => {
+  setTimeout(async () => {
+    try {
+      await GameEventRegistrarInitializer.initGameEventRegistrarsFromActiveDatabaseGames();
+
+      if (process.env.NODE_ENV !== "test") {
         const discordBot = new DiscordBot();
-        discordBot.start(process.env.DISCORD_BOT_TOKEN);
-      } catch (e) {
-        Log.error(e);
+        await discordBot.start(process.env.DISCORD_BOT_TOKEN);
       }
-    }, (2 ^ 32) - 1);
-  })();
+    } catch (e) {
+      Log.error(e);
+    }
+  }, (2 ^ 32) - 1);
+})();
 
 export {};
