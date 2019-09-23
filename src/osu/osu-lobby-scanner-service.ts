@@ -157,7 +157,7 @@ export class OsuLobbyScannerService extends Emittery.Typed<OsuLobbyScannerEventD
   private containsNewMatches(multi: ApiMultiplayer): boolean {
     // TODO: unit test containsNewMatches
     try {
-      return true;
+      // return true;
       if (!multi || !multi.multiplayerId) throw new Error(`No multiplayer results provided.`);
       if (!multi.multiplayerId) throw new Error(`No multiplayer ID provided with multiplayer results.`);
       const watcher = this.watching[multi.multiplayerId];
