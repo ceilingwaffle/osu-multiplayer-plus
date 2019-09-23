@@ -104,6 +104,7 @@ TODO:
         ☐ Too many match results being downloaded from the osu API.
             Need some way of limiting the maximum number of matches downloaded per multiplayer (right now we're using 500kb/s for 150+ matches in a single multi when polling every 1s)
     Refactor:
+        ☐ Get ConnectionManager instance from iocContainer instead of singleton getInstance() method @created(19-09-23 23:05)
         ✔ Replace all uses of "NodesuApiFetcher.getInstance()" with a singleton instance of IOsuApiFetcher resolved from the inversify DIC @created(19-09-11 15:13) @done(19-09-14 22:41)
         ☐ Look into using LazyServiceIdentifier instead of lazyInject @created(19-09-09 23:15)
             ☐ The reason for this is so we can move the injections into constructor arguments. Then we'd have the option to overide these upon class initialization. @created(19-09-09 23:15)
