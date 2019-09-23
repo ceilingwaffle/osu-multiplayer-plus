@@ -143,6 +143,30 @@ describe("When creating a game", function() {
     });
   });
 
+  it("should create and save 100 games", function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const gameDto: CreateGameDto = {};
+        const requestDto: DiscordRequestDto = {
+          commType: "discord",
+          authorId: "tester",
+          originChannelId: "tester's amazing channel"
+        };
+
+        for (let i = 0; i < 100; i++) {
+          const gameController = iocContainer.get<GameController>(TYPES.GameController);
+          const gameCreateResponse = await gameController.create({ gameDto: gameDto, requestDto: requestDto });
+          assert.isNotNull(gameCreateResponse);
+          assert.isTrue(gameCreateResponse.success);
+        }
+
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
+
   it("should fail to save a game with validation errors", function() {
     return new Promise(async (resolve, reject) => {
       try {
