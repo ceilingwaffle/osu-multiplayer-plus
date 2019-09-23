@@ -21,6 +21,14 @@ import { Match as MatchEntity } from "../../../src/domain/match/match.entity";
 import { PlayerScore as PlayerScoreEntity } from "../../../src/domain/score/player-score.entity";
 import { OsuUser as OsuUserEntity } from "../../../src/domain/user/osu-user.entity";
 import { User as UserEntity } from "../../../src/domain/user/user.entity";
+import { CreateGameDto } from "../../../src/domain/game/dto/create-game.dto";
+import iocContainer from "../../../src/inversify.config";
+import { GameService } from "../../../src/domain/game/game.service";
+import TYPES from "../../../src/types";
+import { DiscordRequestDto } from "../../../src/requests/dto/discord-request.dto";
+import { GameController } from "../../../src/domain/game/game.controller";
+import { LobbyController } from "../../../src/domain/lobby/lobby.controller";
+import { AddLobbyDto } from "../../../src/domain/lobby/dto/add-lobby.dto";
 
 chai.use(chaiExclude);
 
@@ -28,11 +36,39 @@ chai.use(chaiExclude);
 // // act: MultiplayerResultsService...
 // // assert: MatchResults object
 
+const discordRequest: DiscordRequestDto = {
+  commType: "discord",
+  authorId: "test_user",
+  originChannelId: "test_channel_1"
+};
+
+const createGameRequest: CreateGameDto = {
+  teamLives: 2,
+  countFailedScores: "true"
+};
+
+const addLobbyRequest: AddLobbyDto = {
+  banchoMultiplayerId: "1234"
+};
+
 describe("When processing multiplayer results", function() {
   this.beforeEach(function() {
     return new Promise(async (resolve, reject) => {
       try {
         await TestHelpers.dropTestDatabase();
+
+        // create game
+        const gameController = iocContainer.get<GameController>(TYPES.GameController);
+        const createdGameResponse = await gameController.create({ gameDto: createGameRequest, requestDto: discordRequest });
+        expect(createdGameResponse.success).to.be.true;
+        const createdGameReport = createdGameResponse.result;
+
+        // add lobby
+        const lobbyController = iocContainer.get<LobbyController>(TYPES.LobbyController);
+        const createdLobbyResponse = await lobbyController.create({ lobbyDto: addLobbyRequest, requestDto: discordRequest });
+        expect(createdLobbyResponse.success).to.be.true;
+        const createdLobbyReport = createdLobbyResponse.result;
+
         return resolve();
       } catch (error) {
         return reject(error);
@@ -56,16 +92,28 @@ describe("When processing multiplayer results", function() {
           // match completed (not aborted)
           // MatchEvent = match_end
           const teamsOfUids: string[][] = [["3336000"], ["3336001"]];
-          const gameSettings: { startingLives: number } = {
-            startingLives: 2
+
+          const discordRequest: DiscordRequestDto = {
+            commType: "discord",
+            authorId: "test_user",
+            originChannelId: "test_channel_1"
+          };
+
+          const createGameRequest: CreateGameDto = {
+            teamLives: 2,
+            countFailedScores: "true"
+          };
+
+          const addLobbyRequest: AddLobbyDto = {
+            banchoMultiplayerId: "1234"
           };
 
           const input: ApiMultiplayer = {
-            multiplayerId: "1234", // Lobby.banchoMultiplayerId
+            multiplayerId: addLobbyRequest.banchoMultiplayerId, // Lobby.banchoMultiplayerId
             matches: [
               {
                 mapNumber: 1, // GameLobby.startingMapNumber
-                multiplayerId: 1234, // Lobby.banchoMultiplayerId
+                multiplayerId: Number(addLobbyRequest.banchoMultiplayerId), // Lobby.banchoMultiplayerId
                 mapId: 4178, // Match.beatmapId
                 startTime: new Date(new Date().getTime() - 300), // Match.startTime
                 endTime: new Date(), // Match.endTime
@@ -89,9 +137,29 @@ describe("When processing multiplayer results", function() {
 
           const expectedLobby: DataPropertiesOnly<LobbyEntity> = {
             id: 1,
-            banchoMultiplayerId: "1234",
+            banchoMultiplayerId: addLobbyRequest.banchoMultiplayerId,
             status: LobbyStatus.AWAITING_FIRST_SCAN.getKey(),
-            gameLobbies: [{ removedAt: null, startingMapNumber: null }],
+            gameLobbies: [
+              {
+                game: {
+                  countFailedScores: true,
+                  endedAt: null,
+                  id: 1,
+                  messageTargets: [
+                    {
+                      authorId: discordRequest.authorId,
+                      channelId: discordRequest.originChannelId,
+                      channelType: "initial-channel",
+                      commType: discordRequest.commType
+                    }
+                  ],
+                  status: "idle_newgame",
+                  teamLives: createGameRequest.teamLives
+                },
+                removedAt: null,
+                startingMapNumber: 1
+              }
+            ],
             matches: [
               {
                 id: 1,
@@ -114,7 +182,7 @@ describe("When processing multiplayer results", function() {
                       osuUserId: "3336000",
                       osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336000"),
                       user: {
-                        id: 1
+                        id: 2
                       }
                     }
                   },
@@ -129,7 +197,7 @@ describe("When processing multiplayer results", function() {
                       osuUserId: "3336001",
                       osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336001"),
                       user: {
-                        id: 2
+                        id: 3
                       }
                     }
                   }
@@ -182,7 +250,7 @@ describe("When processing multiplayer results", function() {
                   teamStatus: {
                     isEliminated: false,
                     justEliminated: false,
-                    lives: gameSettings.startingLives - 1 // team 1 scored lower than team 2, so they lose a life
+                    lives: createGameRequest.teamLives - 1 // team 1 scored lower than team 2, so they lose a life
                   },
                   teamScore: {
                     teamScore: 100000,
@@ -215,7 +283,7 @@ describe("When processing multiplayer results", function() {
                   teamStatus: {
                     isEliminated: false,
                     justEliminated: false,
-                    lives: gameSettings.startingLives
+                    lives: createGameRequest.teamLives
                   },
                   teamScore: {
                     teamScore: 100001,
@@ -260,16 +328,13 @@ describe("When processing multiplayer results", function() {
           //   match completed (not aborted)
           //   MatchEvent = match_end
           const teamsOfUids: string[][] = [["3336000"], ["3336001"]];
-          const gameSettings: { startingLives: number } = {
-            startingLives: 2
-          };
 
           const input: ApiMultiplayer = {
-            multiplayerId: "1234", // Lobby.banchoMultiplayerId
+            multiplayerId: addLobbyRequest.banchoMultiplayerId, // Lobby.banchoMultiplayerId
             matches: [
               {
                 mapNumber: 1, // GameLobby.startingMapNumber
-                multiplayerId: 1234, // Lobby.banchoMultiplayerId
+                multiplayerId: Number(addLobbyRequest.banchoMultiplayerId), // Lobby.banchoMultiplayerId
                 mapId: 4178, // Match.beatmapId
                 startTime: new Date(new Date().getTime() - 300), // Match.startTime
                 endTime: new Date(), // Match.endTime
@@ -293,9 +358,29 @@ describe("When processing multiplayer results", function() {
 
           const expectedLobby: DataPropertiesOnly<LobbyEntity> = {
             id: 1,
-            banchoMultiplayerId: "1234",
+            banchoMultiplayerId: addLobbyRequest.banchoMultiplayerId,
             status: LobbyStatus.AWAITING_FIRST_SCAN.getKey(),
-            gameLobbies: [{ removedAt: null, startingMapNumber: null }],
+            gameLobbies: [
+              {
+                game: {
+                  countFailedScores: true,
+                  endedAt: null,
+                  id: 1,
+                  messageTargets: [
+                    {
+                      authorId: discordRequest.authorId,
+                      channelId: discordRequest.originChannelId,
+                      channelType: "initial-channel",
+                      commType: discordRequest.commType
+                    }
+                  ],
+                  status: "idle_newgame",
+                  teamLives: createGameRequest.teamLives
+                },
+                removedAt: null,
+                startingMapNumber: 1
+              }
+            ],
             matches: [
               {
                 id: 1,
@@ -318,7 +403,7 @@ describe("When processing multiplayer results", function() {
                       osuUserId: "3336000",
                       osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336000"),
                       user: {
-                        id: 1
+                        id: 2
                       }
                     }
                   },
@@ -333,7 +418,7 @@ describe("When processing multiplayer results", function() {
                       osuUserId: "3336001",
                       osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336001"),
                       user: {
-                        id: 2
+                        id: 3
                       }
                     }
                   }
@@ -353,7 +438,7 @@ describe("When processing multiplayer results", function() {
           expect(await LobbyEntity.count()).to.equal(1);
           expect(await MatchEntity.count()).to.equal(1);
           expect(await PlayerScoreEntity.count()).to.equal(2);
-          expect(await UserEntity.count()).to.equal(2);
+          expect(await UserEntity.count()).to.equal(3);
           expect(await OsuUserEntity.count()).to.equal(2);
 
           return resolve();
@@ -378,16 +463,28 @@ describe("When processing multiplayer results", function() {
           // match completed (not aborted)
           // MatchEvent = match_end
           const teamsOfUids: string[][] = [["3336000"], ["3336001"]];
-          const gameSettings: { startingLives: number } = {
-            startingLives: 2
+
+          const discordRequest: DiscordRequestDto = {
+            commType: "discord",
+            authorId: "test_user",
+            originChannelId: "test_channel_1"
+          };
+
+          const createGameRequest: CreateGameDto = {
+            teamLives: 2,
+            countFailedScores: "true"
+          };
+
+          const addLobbyRequest: AddLobbyDto = {
+            banchoMultiplayerId: "1234"
           };
 
           const apiResult1: ApiMultiplayer = {
-            multiplayerId: "1234", // Lobby.banchoMultiplayerId
+            multiplayerId: addLobbyRequest.banchoMultiplayerId, // Lobby.banchoMultiplayerId
             matches: [
               {
                 mapNumber: 1, // GameLobby.startingMapNumber
-                multiplayerId: 1234, // Lobby.banchoMultiplayerId
+                multiplayerId: Number(addLobbyRequest.banchoMultiplayerId), // Lobby.banchoMultiplayerId
                 mapId: 4178, // Match.beatmapId
                 startTime: new Date(new Date().getTime() - 300), // Match.startTime
                 endTime: new Date(), // Match.endTime
@@ -411,9 +508,29 @@ describe("When processing multiplayer results", function() {
 
           const expectedLobby1: DataPropertiesOnly<LobbyEntity> = {
             id: 1,
-            banchoMultiplayerId: "1234",
+            banchoMultiplayerId: addLobbyRequest.banchoMultiplayerId,
             status: LobbyStatus.AWAITING_FIRST_SCAN.getKey(),
-            gameLobbies: [{ removedAt: null, startingMapNumber: null }],
+            gameLobbies: [
+              {
+                game: {
+                  countFailedScores: true,
+                  endedAt: null,
+                  id: 1,
+                  messageTargets: [
+                    {
+                      authorId: discordRequest.authorId,
+                      channelId: discordRequest.originChannelId,
+                      channelType: "initial-channel",
+                      commType: discordRequest.commType
+                    }
+                  ],
+                  status: "idle_newgame",
+                  teamLives: createGameRequest.teamLives
+                },
+                removedAt: null,
+                startingMapNumber: 1
+              }
+            ],
             matches: [
               {
                 id: 1,
@@ -436,7 +553,7 @@ describe("When processing multiplayer results", function() {
                       osuUserId: "3336000",
                       osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336000"),
                       user: {
-                        id: 1
+                        id: 2
                       }
                     }
                   },
@@ -451,7 +568,7 @@ describe("When processing multiplayer results", function() {
                       osuUserId: "3336001",
                       osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336001"),
                       user: {
-                        id: 2
+                        id: 3
                       }
                     }
                   }
@@ -466,11 +583,11 @@ describe("When processing multiplayer results", function() {
           expect(actualLobby).excludingEvery(["createdAt", "updatedAt", "scoredInMatch", "lobby"]).to.deep.equal(expectedLobby1); // prettier-ignore
 
           const apiResult2: ApiMultiplayer = {
-            multiplayerId: "1234", // Lobby.banchoMultiplayerId
+            multiplayerId: addLobbyRequest.banchoMultiplayerId, // Lobby.banchoMultiplayerId
             matches: [
               {
                 mapNumber: 2, // GameLobby.startingMapNumber
-                multiplayerId: 1234, // Lobby.banchoMultiplayerId
+                multiplayerId: Number(addLobbyRequest.banchoMultiplayerId), // Lobby.banchoMultiplayerId
                 mapId: 6666, // Match.beatmapId
                 startTime: new Date(new Date().getTime() - 300), // Match.startTime
                 endTime: new Date(), // Match.endTime
@@ -494,9 +611,29 @@ describe("When processing multiplayer results", function() {
 
           const expectedLobby2: DataPropertiesOnly<LobbyEntity> = {
             id: 1,
-            banchoMultiplayerId: "1234",
+            banchoMultiplayerId: addLobbyRequest.banchoMultiplayerId,
             status: LobbyStatus.AWAITING_FIRST_SCAN.getKey(),
-            gameLobbies: [{ removedAt: null, startingMapNumber: null }],
+            gameLobbies: [
+              {
+                game: {
+                  countFailedScores: true,
+                  endedAt: null,
+                  id: 1,
+                  messageTargets: [
+                    {
+                      authorId: discordRequest.authorId,
+                      channelId: discordRequest.originChannelId,
+                      channelType: "initial-channel",
+                      commType: discordRequest.commType
+                    }
+                  ],
+                  status: "idle_newgame",
+                  teamLives: createGameRequest.teamLives
+                },
+                removedAt: null,
+                startingMapNumber: 1
+              }
+            ],
             matches: [
               expectedLobby1.matches[0],
               {
@@ -520,7 +657,7 @@ describe("When processing multiplayer results", function() {
                       osuUserId: "3336000",
                       osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336000"),
                       user: {
-                        id: 1
+                        id: 2
                       }
                     }
                   },
@@ -535,7 +672,7 @@ describe("When processing multiplayer results", function() {
                       osuUserId: "3336001",
                       osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336001"),
                       user: {
-                        id: 2
+                        id: 3
                       }
                     }
                   }

@@ -50,6 +50,7 @@ export class MultiplayerResultsProcessor {
         {
           relations: [
             "gameLobbies",
+            "gameLobbies.game",
             "matches",
             "matches.playerScores",
             "matches.playerScores.scoredBy",
@@ -135,6 +136,7 @@ export class MultiplayerResultsProcessor {
         {
           relations: [
             "gameLobbies",
+            "gameLobbies.game",
             "gameLobbies.lobby",
             "gameLobbies.lobby.matches",
             "gameLobbies.lobby.matches.playerScores",
