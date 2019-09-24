@@ -26,6 +26,7 @@ export class Lobby extends CreationTimestampedEntity {
   @Column({ default: LobbyStatus.UNKNOWN.getKey() })
   status: string;
 
+  // TODO: Can we enforce it such that a lobby is always guaranteed to belong to a game? i.e. no lobby should be saved unless it has a game attached.
   @OneToMany(type => GameLobby, gameLobby => gameLobby.lobby, { cascade: true })
   gameLobbies: GameLobby[];
 
