@@ -1,6 +1,6 @@
 {
-  "name": "osu-battle-royale-bot",
-  "version": "0.0.1",
+  "name": "osu-multiplayer-plus",
+  "version": "0.1.0",
   "description": "",
   "main": "src/index.ts",
   "author": "CeilingWaffle",
