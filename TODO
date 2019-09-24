@@ -32,13 +32,14 @@ TODO:
                     ☐ Option 3: Team loses a life and receives warning that if they fail to submit a score on the next map, they will be immediately eliminated. @created(19-09-02 13:38)
                     ☐ Option 4: @created(19-09-02 13:39)
     Osu Lobby Watcher / Osu API:
-        ☐ Persist osu watcher lobbies being watched after app exits @created(19-08-30 22:45)
-        ☐ Rebuild osu-lobby-watcher.ts using listener and EventEmitter @created(19-08-27 12:09)
+        ✔ Rebuild osu-lobby-watcher.ts using listener and EventEmitter @created(19-08-27 12:09) @done(19-09-24 22:29)
             https://github.com/onury/tasktimer
             https://blog.x5ff.xyz/blog/typescript-interval-iot/ 
             https://github.com/sindresorhus/emittery
             https://www.npmjs.com/package/async-eventemitter
-        ☐ Load mpids from database lobbies for all active games when the app starts @created(19-09-03 11:15)
+        ☐ Persist osu watcher lobbies being watched after app exits @created(19-08-30 22:45)
+        ☐ Load osu lobby watchers from database for all active games when the app starts @created(19-09-03 11:15)
+            ☐ Add a routine for when a closed game is re-actived, it should load the watcher from the database into the osu lobby watcher @created(19-09-24 22:27)
         ☐ Deny adding a lobby and send a warning to the user if the maximum allowed number of lobbies being scanned is reached @created(19-09-04 06:54)
             ☐ We can accomplish this by adding a method to IOsuApiFetcher like isMaxJobsReached() - which would compare the current number of lobbies being scanned with Bottleneck.limiter.maxConcurrent @created(19-09-04 06:58)
             ☐ If a user adds the bot from source code, using their own osu API key, the limit should be kept at 60 max requests per 60 seconds. The Bottleneck limiter should be able to dynamically set this depending on the user's own account API limit. @created(19-09-04 06:58)
@@ -104,6 +105,7 @@ TODO:
         ☐ Too many match results being downloaded from the osu API.
             Need some way of limiting the maximum number of matches downloaded per multiplayer (right now we're using 500kb/s for 150+ matches in a single multi when polling every 1s)
     Refactor:
+        ☐ Clean up the imports in every ts file @created(19-09-24 19:52)
         ✔ Get ConnectionManager instance from iocContainer instead of singleton getInstance() method @created(19-09-23 23:05) @done(19-09-24 15:33)
             ✘ Replace with inversify provider @created(19-09-24 00:18) @cancelled(19-09-24 15:34)
                 See: https://github.com/inversify/InversifyJS/blob/master/wiki/provider_injection.md
@@ -270,6 +272,9 @@ TODO:
                     ☐ Post final game results (if any) @created(19-09-10 13:37)
                 ✔ `!obr editgame <prop> <propValue>` @created(19-08-31 23:41) @started(19-09-01 23:11) @done(19-09-02 12:36) @lasted(13h25m58s)
                 ☐ `!obr startgame <gameId?>` @created(19-09-01 22:57)
+                    Validation: 
+                        ☐ Do not start game if the game has no registered teams @created(19-09-24 22:15)
+                        ☐ Do not start game if the game has no lobby added @created(19-09-24 22:15)
                 ☐ `!obr gameinfo <gameId?>` @created(19-08-31 23:41)
                     See types - https://discord.js.org/#/docs/commando/master/typedef/ArgumentInfo
                     Use a union type to check: If integer, assume gameId. If string, assume propKey.
@@ -277,7 +282,7 @@ TODO:
                 ☐ `!obr listgames <active/closed/(default:all)?>` @created(19-09-01 22:38)
                     List the games created within this Discord server.
             Lobby:
-                ✔ `!obr addlobby <banchoMpId>` @created(19-09-01 22:58) @done(19-09-01 23:05)
+                ☐ `!obr addlobby <banchoMpId>` @created(19-09-01 22:58)
                     ✔ When using command !obr addlobby 54078930 6, on a game which already has that lobby added, return some error message. @started(19-08-19 00:30) @done(19-08-19 05:13) @lasted(4h43m45s)
                     ☐ Don't actually starting watching for results until `!obr startgame` is used, unless the lobby was added to an already-started game @created(19-09-02 13:57)
                     ☐ We should be able to add a lobby to an already-started game and just have the score calculator calculate scores for registered players in the new lobby during the score-calculation at the end of each match @created(19-09-02 13:58)
