@@ -51,7 +51,7 @@ export class AppBaseRepository<T> extends Repository<T> {
       // TODO: Throw an error if "id" does not exist as a property on the entity.
       // TODO: Should be able to derive the table name from the entityType.
 
-      // ISSUE - osu users getting added to the wrong team (always added to the last team)
+      // DONE - ISSUE - osu users getting added to the wrong team (always added to the last team)
       let id = (await this.getLastIdOfTable(tableName)) || 0;
       values.forEach(u => ((u as any).id = ++id));
       const insertedIds: number[] = [];
