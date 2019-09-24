@@ -104,15 +104,15 @@ TODO:
         ☐ Too many match results being downloaded from the osu API.
             Need some way of limiting the maximum number of matches downloaded per multiplayer (right now we're using 500kb/s for 150+ matches in a single multi when polling every 1s)
     Refactor:
-        ☐ Get ConnectionManager instance from iocContainer instead of singleton getInstance() method @created(19-09-23 23:05)
-            ☐ Replace with inversify provider @created(19-09-24 00:18)
+        ✔ Get ConnectionManager instance from iocContainer instead of singleton getInstance() method @created(19-09-23 23:05) @done(19-09-24 15:33)
+            ✘ Replace with inversify provider @created(19-09-24 00:18) @cancelled(19-09-24 15:34)
                 See: https://github.com/inversify/InversifyJS/blob/master/wiki/provider_injection.md
                 and: https://stackoverflow.com/questions/40880447/how-to-inject-an-asynchronous-dependency-in-inversify
         ✔ Replace all uses of "NodesuApiFetcher.getInstance()" with a singleton instance of IOsuApiFetcher resolved from the inversify DIC @created(19-09-11 15:13) @done(19-09-14 22:41)
-        ☐ Look into using LazyServiceIdentifier instead of lazyInject @created(19-09-09 23:15)
-            ☐ The reason for this is so we can move the injections into constructor arguments. Then we'd have the option to overide these upon class initialization. @created(19-09-09 23:15)
+        ✘ Look into using LazyServiceIdentifier instead of lazyInject @created(19-09-09 23:15) @cancelled(19-09-24 15:34)
+            The reason for this is so we can move the injections into constructor arguments. Then we'd have the option to overide these upon class initialization.
         ☐ Move out files from src/discord/.. into their respective domain folders @created(19-09-07 18:26)
-        ☐ Swap inversify back to typical @injectable() decorators on classes instead of using autoProvide with inversify.entities.ts file @created(19-09-02 09:58)
+        ✔ Swap inversify back to typical @injectable() decorators on classes instead of using autoProvide with inversify.entities.ts file @created(19-09-02 09:58) @done(19-09-24 15:34)
             This is just so we have one less dependency, and we can do things like mapping interfaces to class implementations. And create singleton instances of classes.
         ☐ Replace strings with Symbols in locale files e.g. en.json @created(19-08-28 19:41)
         ☐ Replace the default commando "catch-all" error-handler.
@@ -164,9 +164,9 @@ TODO:
         ✔ Domain registered with Porkbun @created(19-09-20 01:06) @done(19-09-20 01:06)
     Design:
         What we have access to - maps, mods(SD), modes - team vs, ffa, TAG4, osu API
-        ☐ We need a name for this thing
-            ☐ Last Man Standing = LMS, so maybe lmsu -> lemonsu (good lord this is terrible; need more coffee)
-            ☐ Multiplayer Plus / osu!MP+ / osu!MPP Bot
+        ✔ We need a name for this thing @done(19-09-24 15:36)
+            ✘ Last Man Standing = LMS, so maybe lmsu -> lemonsu (good lord this is terrible; need more coffee) @cancelled(19-09-24 15:36)
+            ✔ Multiplayer Plus / osu!MP+ / osu!MPP Bot @done(19-09-24 15:36)
         ☐ Would be cool to run a single Discord server where everyone goes to create matches @created(19-09-10 13:45)
             ☐ And the server runs some official matches where users can sign up and earn prestige 
                 ☐ With higher prestige getting higher roles, shown higher in the server list
