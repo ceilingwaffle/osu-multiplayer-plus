@@ -54,6 +54,7 @@
     "moment": "^2.24.0",
     "mustache": "^3.0.1",
     "nodesu": "^0.7.1",
+    "pg": "^7.12.1",
     "reflect-metadata": "^0.1.13",
     "role-acl": "^3.3.6",
     "set-interval-async": "^1.0.26",

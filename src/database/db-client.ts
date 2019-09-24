@@ -1,6 +1,12 @@
+import * as path from "path";
+require("dotenv").config({
+  path: path.resolve(__dirname, "../.env"),
+  debug: process.env.DEBUG
+});
 import { Connection, createConnection } from "typeorm";
 import { injectable } from "inversify";
 import { Log } from "../utils/Log";
+import { PostgresConnectionOptions } from "typeorm/driver/postgres/PostgresConnectionOptions";
 
 export interface IDbClient {
   connect(): Promise<Connection>;
@@ -19,17 +25,47 @@ export class DbClient implements IDbClient {
   }
 
   async connect(): Promise<Connection> {
-    // TODO: wrap in settimeout with some max db connection time allowed?
-    Log.debug("Creating database connection...");
-    if (process.env.NODE_ENV == "test") {
-      this.connection = await createConnection(require("../../test/config/typeorm/ormconfig.testing.sqlite.dbinmemory.json"));
-    } else if (process.env.NODE_ENV == "development") {
-      this.connection = await createConnection(require("../../test/config/typeorm/ormconfig.testing.sqlite.dbinfile.json"));
-    } else {
-      this.connection = await createConnection(require("../../config/typeorm/ormconfig.sqlite.json"));
+    try {
+      // TODO: wrap in settimeout with some max db connection time allowed?
+      Log.debug("Creating database connection...");
+      if (process.env.NODE_ENV == "test") {
+        this.connection = await createConnection(require("../../test/config/typeorm/ormconfig.testing.sqlite.dbinmemory.json"));
+      } else if (process.env.NODE_ENV == "development") {
+        // this.connection = await createConnection(require("../../test/config/typeorm/ormconfig.testing.sqlite.dbinfile.json"));
+        const config: PostgresConnectionOptions = {
+          type: "postgres",
+          host: process.env.POSTGRES_HOSTNAME,
+          port: Number(process.env.POSTGRES_PORT),
+          username: process.env.POSTGRES_USERNAME,
+          password: process.env.POSTGRES_PASSWORD,
+          database: process.env.POSTGRES_DBNAME,
+          synchronize: false, // npm run typeorm schema:sync
+          logging: ["warn"],
+          entities: ["src/domain/**/*.entity.ts"],
+          subscribers: ["src/domain/**/*.subscriber.ts"],
+          migrations: ["src/database/migrations/**/*.ts"],
+          // seeds: ["src/database/seeds/**/*.ts"],
+          cli: {
+            entitiesDir: "src/domain/**",
+            migrationsDir: "src/database/migrations",
+            subscribersDir: "src/domain/**"
+          }
+        };
+
+        this.connection = await createConnection(config);
+      } else {
+        this.connection = await createConnection(require("../../config/typeorm/ormconfig.sqlite.json"));
+      }
+      Log.debug("Created database connection.", {
+        dbName: this.connection.name,
+        dbLocation: this.connection.options.database,
+        dbType: this.connection.options.type
+      });
+      return this.connection;
+    } catch (error) {
+      Log.methodError(error);
+      throw error;
     }
-    Log.debug("Created database connection.", { dbName: this.connection.name, dbLocation: this.connection.options.database });
-    return this.connection;
   }
 
   async connectIfNotConnected(): Promise<Connection> {
