@@ -23,13 +23,13 @@ export class GameEventRegistrarCollection {
    */
   registrars: { [gameId: number]: GameEventRegistrar } = {};
 
-  /**
-   * A pool of game events shared between registrars.
-   * (type = GameEventType)
-   *
-   * @type {{ [type: string]: GameEvent }}
-   */
-  events: { [type: string]: GameEvent } = {};
+  // /**
+  //  * A pool of game events shared between registrars.
+  //  * (type = GameEventType)
+  //  *
+  //  * @type {{ [type: string]: GameEvent }}
+  //  */
+  // events: { [type: string]: GameEvent } = {};
 
   /**
    * Finds or creates a GameEventRegistrar for the given game ID.
@@ -46,37 +46,39 @@ export class GameEventRegistrarCollection {
   }
 
   /**
-   * Add the game event to the pool of events only if we've never seen this event type before,
-   * otherwise register the existing event from the pool on to the registrar.
+   * Add new game events to the registrar. Events should be created for each registrar, not passed by reference
+   * (because the event.data property will contain different data depending on the game it's registered to).
    *
    * @param {GameEventRegistrar} registrar
    * @param {...GameEvent[]} gameEvents
    */
   registerGameEventsOnRegistrar(registrar: GameEventRegistrar, ...gameEvents: GameEvent[]): void {
-    for (const eventToBeRegistered of gameEvents) {
-      const seenEvents = this.getEvents();
-      if (!seenEvents.map(e => e.type).includes(eventToBeRegistered.type)) {
-        Log.info(`Saving previously unseen-event ${eventToBeRegistered.constructor.name} (type ${eventToBeRegistered.type})`);
-        this.events[eventToBeRegistered.type] = eventToBeRegistered;
-      } else {
-        Log.info(`Reusing previously seen-event ${eventToBeRegistered.constructor.name} (type ${eventToBeRegistered.type})`);
-      }
-      registrar.register(this.events[eventToBeRegistered.type]);
-    }
+    registrar.register(...gameEvents);
+    // NOTE: old referenced "events from a pool of seen events" code:
+    //      for (const eventToBeRegistered of gameEvents) {
+    //           const seenEvents = this.getEvents();
+    //           if (!seenEvents.map(e => e.type).includes(eventToBeRegistered.type)) {
+    //             Log.info(`Saving previously unseen-event ${eventToBeRegistered.constructor.name} (type ${eventToBeRegistered.type})`);
+    //             this.events[eventToBeRegistered.type] = eventToBeRegistered;
+    //           } else {
+    //             Log.info(`Reusing previously seen-event ${eventToBeRegistered.constructor.name} (type ${eventToBeRegistered.type})`);
+    //           }
+    //           registrar.register(this.events[eventToBeRegistered.type]);
+    //      }
   }
 
-  /**
-   * Returns the game events listed in this collection.
-   *
-   * @returns {GameEvent[]}
-   */
-  getEvents(): GameEvent[] {
-    var values: GameEvent[] = [];
-    for (var prop in this.events) {
-      if (this.events.hasOwnProperty(prop)) {
-        values.push(this.events[prop]);
-      }
-    }
-    return values;
-  }
+  // /**
+  //  * Returns the game events listed in this collection.
+  //  *
+  //  * @returns {GameEvent[]}
+  //  */
+  // getEvents(): GameEvent[] {
+  //   var values: GameEvent[] = [];
+  //   for (var prop in this.events) {
+  //     if (this.events.hasOwnProperty(prop)) {
+  //       values.push(this.events[prop]);
+  //     }
+  //   }
+  //   return values;
+  // }
 }

@@ -37,9 +37,9 @@ export class GameTeam extends CreationTimestampedEntity {
   @Column({ default: GameDefaults.teamLives })
   startingLives: number;
 
-  @IsInt()
-  @Column({ default: GameDefaults.teamLives })
-  currentLives: number;
+  // @IsInt()
+  // @Column({ default: GameDefaults.teamLives })
+  // currentLives: number;
 
   @IsString()
   @Column()

@@ -7,7 +7,7 @@ import { GameReport } from "./reports/game.report";
 import { UserService } from "../domain/user/user.service";
 import { Log } from "../utils/Log";
 import { LobbyRepository } from "../domain/lobby/lobby.repository";
-import { getCustomRepository, Connection } from "typeorm";
+import { Connection } from "typeorm";
 import { LobbyService } from "../domain/lobby/lobby.service";
 import { Lobby } from "../domain/lobby/lobby.entity";
 import { Match } from "../domain/match/match.entity";
@@ -16,6 +16,11 @@ import { OsuUser } from "../domain/user/osu-user.entity";
 import { OsuUserRepository } from "../domain/user/osu-user.repository";
 import { IOsuApiFetcher } from "../osu/interfaces/osu-api-fetcher";
 import { IDbClient } from "../database/db-client";
+import { GameEventRegistrarCollection } from "./game-events/game-event-registrar-collection";
+import { GameEvent } from "./game-events/game-event";
+import { Game } from "../domain/game/game.entity";
+import { GameStatus } from "../domain/game/game-status";
+import { GameEventRegistrar } from "./game-events/game-event-registrar";
 
 export class MultiplayerResultsProcessor {
   // @lazyInject(TYPES.UserService) private userService: UserService;
@@ -40,9 +45,10 @@ export class MultiplayerResultsProcessor {
   /**
    * Creates and saves database entities from the input API multiplayer results.
    *
-   * @returns {Promise<GameReport[]>}
+   * @returns {Promise<Game[]>} - The games (active games) that have added the lobby owner of the ApiMultiplayer input data.
+   * @memberof MultiplayerResultsProcessor
    */
-  async process(): Promise<Lobby> {
+  async process(): Promise<Game[]> {
     try {
       // ensure required API data exists
       this.validateApiResultsInput();
@@ -141,21 +147,22 @@ export class MultiplayerResultsProcessor {
           relations: [
             "gameLobbies",
             "gameLobbies.game",
-            "gameLobbies.lobby",
-            "gameLobbies.lobby.matches",
-            "gameLobbies.lobby.matches.playerScores",
-            "gameLobbies.lobby.matches.playerScores.scoredBy",
-            "gameLobbies.lobby.matches.playerScores.scoredBy.user",
-            "matches",
-            "matches.playerScores",
-            "matches.playerScores.scoredBy",
-            "matches.playerScores.scoredBy.user"
+            "gameLobbies.game.gameTeams",
+            "gameLobbies.game.gameTeams.team",
+            "gameLobbies.game.gameTeams.team.teamOsuUsers",
+            "gameLobbies.game.gameTeams.team.teamOsuUsers.osuUser",
+            "gameLobbies.game.gameLobbies",
+            "gameLobbies.game.gameLobbies.lobby",
+            "gameLobbies.game.gameLobbies.lobby.matches",
+            "gameLobbies.game.gameLobbies.lobby.matches.playerScores",
+            "gameLobbies.game.gameLobbies.lobby.matches.playerScores.scoredBy",
+            "gameLobbies.game.gameLobbies.lobby.matches.playerScores.scoredBy.user"
           ]
         }
       );
       this.markAsProcessed();
       Log.methodSuccess(this.process, this.constructor.name);
-      return reloadedLobby;
+      return reloadedLobby.gameLobbies.map(gl => gl.game).filter(g => GameStatus.isActiveStatus(g.status));
     } catch (error) {
       Log.methodError(this.process, this.constructor.name, error);
       throw error;
@@ -172,7 +179,7 @@ export class MultiplayerResultsProcessor {
     this.isProcessed = true;
   }
 
-  async buildReport(): Promise<GameReport[]> {
+  async buildGameReports(forGames: Game[]): Promise<GameReport[]> {
     try {
       if (!this.markAsProcessed) {
         throw new Error("Must process API results first before building report.");
@@ -203,12 +210,45 @@ export class MultiplayerResultsProcessor {
       //
       //
       //
-      //
+      // --------- IDEA -------------
+      // - api has pushed some data for a lobby result (e.g. map finished)
+      // - MpResultsProcessor processes that data with .process()
+      //       - saves the data in the database
+      //       - forwards the saved data to the GameReportBuilder
+      // - GameReportBuilder
+      //       - determines the latest events that happened in the game
+      //       - builds the game report (with a leaderboard) from those
+      // -----------------------------
+
+      // Build a collection of game-events for the leaderboard for each game we received match-results for.
+      const gameEventRegistrarCollection: GameEventRegistrarCollection = iocContainer.get<GameEventRegistrarCollection>(
+        TYPES.GameEventRegistrarCollection
+      );
+
+      for (const game of forGames) {
+        const registrar: GameEventRegistrar = gameEventRegistrarCollection.findOrCreate(game.id);
+        const events: GameEvent[] = registrar.getEvents();
+        const leaderboardEvents: GameEvent[] = [];
+        for (const eventType in events) {
+          const event: GameEvent = events[eventType];
+          if (event.happenedIn(game)) {
+            // event should have event.data defined if happenedIn === true
+            leaderboardEvents.push(event);
+          }
+        }
+      }
+
+      return null;
+
+      // build the "most recent" game report with leaderboard-data for the events determined by the entire history of the game's matches
+      // const gameReportBuilder = new GameReportBuilder(leaderboardEvents);
+      // const gameReport = gameReportBuilder.build();
 
       // after building, fire event "report created for game <gameId>"
-      throw new Error("TODO: Implement method of MultiplayerResultsProcessor.");
+
+      // throw new Error("TODO: Implement method of MultiplayerResultsProcessor.");
     } catch (error) {
-      Log.methodError(this.buildReport, this.constructor.name, error);
+      Log.methodError(this.buildGameReports, this.constructor.name, error);
       throw error;
     }
   }

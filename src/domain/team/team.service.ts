@@ -220,7 +220,6 @@ export class TeamService {
       gameTeam.team = team;
       gameTeam.addedBy = creator;
       gameTeam.startingLives = game.teamLives;
-      gameTeam.currentLives = game.teamLives;
       // assign a color to each game-team using ColorPicker
       this.assignColorToGameTeam(teamNumber, gameTeam);
       gameTeam.teamNumber = ++teamNumber;

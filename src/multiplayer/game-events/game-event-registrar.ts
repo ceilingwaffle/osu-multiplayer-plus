@@ -9,7 +9,22 @@ export class GameEventRegistrar {
    *
    * @type {{ [type: string]: GameEvent }}
    */
-  events: { [type: string]: GameEvent } = {};
+  private events: { [type: string]: GameEvent } = {};
+
+  /**
+   * Returns the game events listed in this registrar.
+   *
+   * @returns {GameEvent[]}
+   */
+  getEvents(): GameEvent[] {
+    var values: GameEvent[] = [];
+    for (var prop in this.events) {
+      if (this.events.hasOwnProperty(prop)) {
+        values.push(this.events[prop]);
+      }
+    }
+    return values;
+  }
 
   /**
    * Registers a GameEvent to be processed (e.g. during the MultiplayerResultsProcessor process).

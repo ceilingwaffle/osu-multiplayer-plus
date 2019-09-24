@@ -1,1 +1,1 @@
-export type GameEventType = "team_won" | "team_eliminated";
+export type GameEventType = "team_won_match" | "team_eliminated";
