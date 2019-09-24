@@ -1,9 +1,8 @@
-import "../../../src/index";
+import "../../../src/startup";
 import "mocha";
 import { assert, expect } from "chai";
 import { TestHelpers, TestContextEntities } from "../../test-helpers";
 import iocContainer from "../../../src/inversify.config";
-import { ConnectionManager } from "../../../src/utils/connection-manager";
 import { DiscordUser } from "../../../src/domain/user/discord-user.entity";
 import { User } from "../../../src/domain/user/user.entity";
 import { Game } from "../../../src/domain/game/game.entity";
@@ -12,16 +11,16 @@ import { AddLobbyDto } from "../../../src/domain/lobby/dto/add-lobby.dto";
 import { Lobby } from "../../../src/domain/lobby/lobby.entity";
 import { GameController } from "../../../src/domain/game/game.controller";
 import { DiscordRequestDto } from "../../../src/requests/dto";
-import { getCustomRepository } from "typeorm";
+import { getCustomRepository, Connection } from "typeorm";
 import { GameRepository } from "../../../src/domain/game/game.repository";
 import { CreateGameDto } from "../../../src/domain/game/dto/create-game.dto";
 import { LobbyRepository } from "../../../src/domain/lobby/lobby.repository";
 import { RemoveLobbyDto } from "../../../src/domain/lobby/dto/remove-lobby.dto";
 import { LobbyStatus } from "../../../src/domain/lobby/lobby-status";
 import TYPES from "../../../src/types";
+import { IDbClient } from "../../../src/database/db-client";
 
-async function getEntities(): Promise<TestContextEntities[]> {
-  const conn = await ConnectionManager.getInstance();
+function getEntities(conn: Connection): TestContextEntities[] {
   return [
     {
       name: conn.getMetadata(User).name,
@@ -78,20 +77,11 @@ const createGame3DiscordRequest: DiscordRequestDto = {
 };
 
 describe("When removing a lobby", function() {
-  // this.beforeAll(function() {
-  //   return new Promise(async (resolve, reject) => {
-  //     try {
-  //       return resolve();
-  //     } catch (error) {
-  //       return reject(error);
-  //     }
-  //   });
-  // });
-
   this.beforeEach(function() {
     return new Promise(async (resolve, reject) => {
       try {
-        await TestHelpers.reloadEntities(getEntities());
+        const conn = await iocContainer.get<IDbClient>(TYPES.IDbClient).connect();
+        await TestHelpers.loadAll(getEntities(conn), conn);
 
         /* #region  Setup */
         const gameController = iocContainer.get<GameController>(TYPES.GameController);
@@ -128,10 +118,12 @@ describe("When removing a lobby", function() {
     });
   });
 
-  this.afterAll(function() {
+  this.afterEach(function() {
     return new Promise(async (resolve, reject) => {
       try {
-        await TestHelpers.dropTestDatabase();
+        const conn = iocContainer.get<IDbClient>(TYPES.IDbClient).getConnection();
+        await TestHelpers.dropTestDatabase(conn);
+        conn.close();
         return resolve();
       } catch (error) {
         return reject(error);

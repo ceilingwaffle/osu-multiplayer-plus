@@ -20,22 +20,26 @@ import { ApiOsuUser } from "../../osu/types/api-osu-user";
 import { OsuUser } from "../user/osu-user.entity";
 import { Game } from "../game/game.entity";
 import { OsuUserRepository } from "../user/osu-user.repository";
-import { getCustomRepository } from "typeorm";
+import { getCustomRepository, Connection } from "typeorm";
 import { TeamOsuUser } from "./team-osu-user.entity";
 import { TeamRepository } from "./team.repository";
 import { GameRepository } from "../game/game.repository";
 import { GameTeam } from "./game-team.entity";
 import { successPromise } from "../../utils/either";
 import { TeamOsuUserRepository } from "./team-osu-user.repository";
+import { IDbClient } from "../../database/db-client";
 
 @injectable()
 export class TeamService {
-  private readonly osuUserRepository: OsuUserRepository = getCustomRepository(OsuUserRepository);
-  private readonly teamRepository: TeamRepository = getCustomRepository(TeamRepository);
-  private readonly teamOsuUserRepository: TeamOsuUserRepository = getCustomRepository(TeamOsuUserRepository);
-  private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
+  // private readonly osuUserRepository: OsuUserRepository = getCustomRepository(OsuUserRepository);
+  // private readonly teamRepository: TeamRepository = getCustomRepository(TeamRepository);
+  // private readonly teamOsuUserRepository: TeamOsuUserRepository = getCustomRepository(TeamOsuUserRepository);
+  // private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
+
+  protected dbConn: Connection = this.dbClient.getConnection();
 
   constructor(
+    @inject(TYPES.IDbClient) protected dbClient: IDbClient,
     @inject(TYPES.UserService) protected userService: UserService,
     @inject(TYPES.GameService) protected gameService: GameService,
     @inject(TYPES.Permissions) protected permissions: Permissions
@@ -74,7 +78,7 @@ export class TeamService {
         return failurePromise(targetGameResult.value);
       }
       // reload the game with the required relationships
-      const game: Game = await this.gameRepository.findOne(
+      const game: Game = await this.dbConn.manager.getCustomRepository(GameRepository).findOne(
         { id: targetGameResult.value.id },
         {
           relations: [
@@ -160,8 +164,8 @@ export class TeamService {
       for (const gt of game.gameTeams) {
         await gt.save();
       }
-      const savedGame = await this.gameRepository.save(game);
-      const reloadedGame = await this.gameRepository.findOne(
+      const savedGame = await this.dbConn.manager.getCustomRepository(GameRepository).save(game);
+      const reloadedGame = await this.dbConn.manager.getCustomRepository(GameRepository).findOne(
         { id: savedGame.id },
         {
           relations: [
@@ -251,7 +255,9 @@ export class TeamService {
   }): Promise<Team[]> {
     // get any existing teams made up of exactly the same group of users
     let osuBanchoUserIdsGroupedInTeams: number[][] = teamsOfApiOsuUsers.map(t => t.map(u => u.userId));
-    const existingTeams: Team[] = await this.teamRepository.findTeamsOfBanchoOsuUserIdGroups(osuBanchoUserIdsGroupedInTeams);
+    const existingTeams: Team[] = await this.dbConn.manager
+      .getCustomRepository(TeamRepository)
+      .findTeamsOfBanchoOsuUserIdGroups(osuBanchoUserIdsGroupedInTeams);
     // create the teams
     let teamsToBeAddedToGame: Team[] = [].concat(existingTeams);
     const unsavedNewTeams: Team[] = this.createTeamsIfNew({
@@ -263,7 +269,7 @@ export class TeamService {
     if (unsavedNewTeams.length) {
       // save the teams
       // (osu users already saved/fetched and existing as properties within "unsavedNewTeams")
-      const savedNewTeamIds: number[] = await this.teamRepository.chunkSave({
+      const savedNewTeamIds: number[] = await this.dbConn.manager.getCustomRepository(TeamRepository).chunkSave({
         values: unsavedNewTeams,
         entityType: Team
       });
@@ -276,16 +282,16 @@ export class TeamService {
         ); // ...tou within {},
       }
       // save teamOsuUsers
-      const savedTeamOsuUserIds = await this.teamOsuUserRepository.chunkSave({
+      const savedTeamOsuUserIds = await this.dbConn.manager.getCustomRepository(TeamOsuUserRepository).chunkSave({
         values: teamOsuUsers,
         entityType: TeamOsuUser
       });
 
-      // const reloadedNewTeams = await this.teamRepository.findByIdsWithRelations({
+      // const reloadedNewTeams = await this.dbConn.manager.getCustomRepository(TeamRepository).findByIdsWithRelations({
       //   ids: savedNewTeamIds,
       //   returnWithRelations: ["teamOsuUsers", "teamOsuUsers.osuUser"]
       // });
-      const reloadedNewTeams = await this.teamRepository.findByIds(savedNewTeamIds, {
+      const reloadedNewTeams = await this.dbConn.manager.getCustomRepository(TeamRepository).findByIds(savedNewTeamIds, {
         relations: ["teamOsuUsers", "teamOsuUsers.osuUser", "gameTeams"]
       });
       teamsToBeAddedToGame = teamsToBeAddedToGame.concat(reloadedNewTeams);
@@ -298,12 +304,12 @@ export class TeamService {
    * Returns a list of OsuUsers in the list of API Osu Users added to a team in the given game.
    *
    * @private
-   * @param {Game} game
+   this.dbConn.manager.getCustomRepository(TeamOsuUserRepository) {Game} game
    * @param {ApiOsuUser[]} apiOsuUsers
    * @returns {Promise<OsuUser[]>}
    */
   private async getOsuUsersInGameFromApiUserResults(game: Game, apiOsuUsers: ApiOsuUser[]): Promise<OsuUser[]> {
-    const osuUsersInGame = await this.osuUserRepository.findOsuUsersInGame(game.id);
+    const osuUsersInGame = await this.dbConn.manager.getCustomRepository(OsuUserRepository).findOsuUsersInGame(game.id);
     // compare by Bancho osu user ID
     const results = osuUsersInGame.filter(osuUser => apiOsuUsers.find(apiOsuUser => apiOsuUser.userId.toString() === osuUser.osuUserId));
     return results;

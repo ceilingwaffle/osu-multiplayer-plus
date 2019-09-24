@@ -1,28 +1,18 @@
 import { exec } from "child_process";
 import { BaseEntity, Connection } from "typeorm";
 import * as fs from "fs-extra";
-import { ConnectionManager } from "../src/utils/connection-manager";
 import { Log } from "../src/utils/Log";
-import { Message } from "../src/utils/message";
+import iocContainer from "../src/inversify.config";
+import { IDbClient } from "../src/database/db-client";
+import TYPES from "../src/types";
 
 export class TestHelpers {
-  static reloadEntities(entitiesPromise: Promise<TestContextEntities[]>): Promise<void> {
-    const timeout: number = 5000;
-    return new Promise((resolve, reject) => {
-      setTimeout(async () => {
-        try {
-          // Setup DB
-          await TestHelpers.dropTestDatabase();
-          const entities = await entitiesPromise;
-          // await TestHelpers.cleanAll(entities);
-          await TestHelpers.loadAll(entities);
-          return resolve();
-        } catch (error) {
-          return reject(error);
-        }
-      }, timeout);
-    });
-  }
+  // static async reloadEntities(entitiesPromise: Promise<TestContextEntities[]>, conn: Connection): Promise<void> {
+  //   await TestHelpers.dropTestDatabase(conn);
+  //   const entities = await entitiesPromise;
+  //   // await TestHelpers.cleanAll(entities);
+  //   await TestHelpers.loadAll(entities);
+  // }
 
   static async clearEntityTable(Entity: typeof BaseEntity, connection: Connection) {
     const entityTableName = connection.getMetadata(Entity).tableName;
@@ -45,20 +35,13 @@ export class TestHelpers {
     }
   }
 
-  static async dropTestDatabase(): Promise<boolean> {
+  static async dropTestDatabase(conn: Connection): Promise<void> {
     try {
-      let conn: Connection;
-      conn = await ConnectionManager.getInstance();
       await conn.dropDatabase();
-      Log.info(`Successfully dropped database: ${conn.options.database}`);
-      await ConnectionManager.close();
-      conn = await ConnectionManager.getInstance();
-      return true;
+      Log.info(`Successfully dropped test database (${conn.options.database}).`);
     } catch (error) {
-      Log.error("Error dropping test db:", error);
+      Log.error("Error dropping test database:", error);
       throw error;
-    } finally {
-      // await ConnectionManager.close();
     }
   }
 
@@ -93,9 +76,8 @@ export class TestHelpers {
     });
   }
 
-  static async loadAll(entities: TestContextEntities[]) {
+  static async loadAll(entities: TestContextEntities[], conn: Connection) {
     try {
-      const conn = await ConnectionManager.getInstance();
       for (const entity of entities) {
         if (!entity.values.length) continue;
 
@@ -113,13 +95,13 @@ export class TestHelpers {
     }
   }
 
-  static async cleanAll(entities: TestContextEntities[]) {
+  static async cleanAll(entities: TestContextEntities[], conn: Connection) {
     try {
       // we reverse the order due to SQL foreign key constraints
       // slice used here to get elements in reverse order without modifying original array
       for (const entity of entities.slice().reverse()) {
         try {
-          const qr = (await ConnectionManager.getInstance()).createQueryRunner();
+          const qr = conn.createQueryRunner();
           await qr.query(`DELETE FROM ${entity.tableName};`);
           // Reset IDs
           await qr.query(`DELETE FROM sqlite_sequence WHERE name='${entity.tableName}'`);
@@ -139,6 +121,15 @@ export class TestHelpers {
 
   static convertToTeamDtoArgFormat(inTeams: string[][]) {
     return [].concat(...inTeams.map(teamGroup => teamGroup.map(uid => uid).concat("|"))).slice(0, -1);
+  }
+
+  static async dropDatabaseAndReloadEntities(entities: TestContextEntities[], conn: Connection) {
+    await TestHelpers.dropTestDatabase(conn);
+    const dbClient = iocContainer.get<IDbClient>(TYPES.IDbClient);
+    await dbClient.close();
+    conn = await dbClient.connect();
+    await TestHelpers.loadAll(entities, conn);
+    return conn;
   }
 }
 

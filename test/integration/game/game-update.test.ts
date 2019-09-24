@@ -1,4 +1,4 @@
-import "../../../src/index";
+import "../../../src/startup";
 import "mocha";
 import { assert, expect } from "chai";
 import { TestHelpers, TestContextEntities } from "../../test-helpers";
@@ -8,13 +8,13 @@ import { GameController } from "../../../src/domain/game/game.controller";
 import { DiscordRequestDto } from "../../../src/requests/dto/discord-request.dto";
 import { Game } from "../../../src/domain/game/game.entity";
 import { User } from "../../../src/domain/user/user.entity";
-import { ConnectionManager } from "../../../src/utils/connection-manager";
 import { DiscordUser } from "../../../src/domain/user/discord-user.entity";
 import { UpdateGameDto } from "../../../src/domain/game/dto/update-game.dto";
 import TYPES from "../../../src/types";
+import { IDbClient } from "../../../src/database/db-client";
+import { Connection } from "typeorm";
 
-async function getEntities(): Promise<TestContextEntities[]> {
-  const conn = await ConnectionManager.getInstance();
+function getEntities(conn: Connection): TestContextEntities[] {
   return [
     {
       name: conn.getMetadata(User).name,
@@ -36,7 +36,15 @@ async function getEntities(): Promise<TestContextEntities[]> {
 
 describe("When updating a game", function() {
   this.beforeEach(function() {
-    return TestHelpers.reloadEntities(getEntities());
+    return new Promise(async (resolve, reject) => {
+      try {
+        const conn = await iocContainer.get<IDbClient>(TYPES.IDbClient).connect();
+        await TestHelpers.loadAll(getEntities(conn), conn);
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
   });
 
   this.afterAll(function() {

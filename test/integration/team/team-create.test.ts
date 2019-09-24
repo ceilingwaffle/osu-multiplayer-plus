@@ -1,4 +1,4 @@
-import "../../../src/index";
+import "../../../src/startup";
 import "mocha";
 import { assert, expect } from "chai";
 import { TestHelpers } from "../../test-helpers";
@@ -16,12 +16,26 @@ import { Team } from "../../../src/domain/team/team.entity";
 import { Helpers } from "../../../src/utils/helpers";
 import { UserController } from "../../../src/domain/user/user.controller";
 import { UpdateGameReport } from "../../../src/domain/game/reports/update-game.report";
+import { IDbClient } from "../../../src/database/db-client";
 
 describe("When adding teams to a game", function() {
   this.beforeEach(function() {
     return new Promise(async (resolve, reject) => {
       try {
-        await TestHelpers.dropTestDatabase();
+        const conn = await iocContainer.get<IDbClient>(TYPES.IDbClient).connect();
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
+
+  this.afterEach(function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const conn = iocContainer.get<IDbClient>(TYPES.IDbClient).getConnection();
+        await TestHelpers.dropTestDatabase(conn);
+        conn.close();
         return resolve();
       } catch (error) {
         return reject(error);

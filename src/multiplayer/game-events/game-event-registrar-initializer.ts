@@ -7,8 +7,8 @@ import { GameEvent } from "./game-event";
 import { TeamWonGameEvent } from "./events/team-won.game-event";
 import { TeamEliminatedGameEvent } from "./events/team-eliminated.game-event";
 import { Log } from "../../utils/Log";
-import { getCustomRepository, Connection } from "typeorm";
-import { ConnectionManager } from "../../utils/connection-manager";
+import { Connection } from "typeorm";
+import { IDbClient } from "../../database/db-client";
 
 export class GameEventRegistrarInitializer {
   static async initGameEventRegistrarsFromActiveDatabaseGames(): Promise<void> {
@@ -16,7 +16,9 @@ export class GameEventRegistrarInitializer {
       // We want GameEventRegistrarCollection as a singleton, so we'll use the iocContainer to ensure that.
       const gameEventRegistrarCollection = iocContainer.get<GameEventRegistrarCollection>(TYPES.GameEventRegistrarCollection);
       // get active games
-      const gameRepository = getCustomRepository(GameRepository);
+      const dbClient = iocContainer.get<IDbClient>(TYPES.IDbClient);
+      const dbConn: Connection = dbClient.getConnection();
+      const gameRepository = dbConn.manager.getCustomRepository(GameRepository);
       const allGames = await gameRepository.find();
       const activeGames = allGames.filter(game => GameStatus.isActiveStatus(game.status));
       // initialize game-event-registrars for all active games

@@ -1,4 +1,4 @@
-import "../../../src/index";
+import "../../../src/startup";
 import "mocha";
 import * as chai from "chai";
 import { assert, expect } from "chai";
@@ -29,6 +29,8 @@ import { DiscordRequestDto } from "../../../src/requests/dto/discord-request.dto
 import { GameController } from "../../../src/domain/game/game.controller";
 import { LobbyController } from "../../../src/domain/lobby/lobby.controller";
 import { AddLobbyDto } from "../../../src/domain/lobby/dto/add-lobby.dto";
+import { getConnection } from "typeorm";
+import { IDbClient } from "../../../src/database/db-client";
 
 chai.use(chaiExclude);
 
@@ -55,7 +57,8 @@ describe("When processing multiplayer results", function() {
   this.beforeEach(function() {
     return new Promise(async (resolve, reject) => {
       try {
-        await TestHelpers.dropTestDatabase();
+        const conn = await iocContainer.get<IDbClient>(TYPES.IDbClient).connect();
+        // await TestHelpers.dropTestDatabase();
 
         // create game
         const gameController = iocContainer.get<GameController>(TYPES.GameController);
@@ -69,6 +72,19 @@ describe("When processing multiplayer results", function() {
         expect(createdLobbyResponse.success).to.be.true;
         const createdLobbyReport = createdLobbyResponse.result;
 
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
+
+  this.afterEach(function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        const conn = iocContainer.get<IDbClient>(TYPES.IDbClient).getConnection();
+        await TestHelpers.dropTestDatabase(conn);
+        conn.close();
         return resolve();
       } catch (error) {
         return reject(error);

@@ -1,6 +1,5 @@
 import { CommandoClient, SQLiteProvider } from "discord.js-commando";
 import { CreateGameCommand } from "./commands/game/create-game.command";
-import { ConnectionManager } from "../utils/connection-manager";
 import { Helpers } from "../utils/helpers";
 import { Database } from "sqlite";
 import { EndGameCommand } from "./commands/game/end-game.command";
@@ -18,8 +17,8 @@ export class DiscordBot {
   public async start(token: string): Promise<void> {
     // this.registerListeners();
     try {
-      const connection = await ConnectionManager.getInstance();
-      Log.debug(`Connected to database "${connection.options.database}".`);
+      // const conn = await iocContainer.get<IDbClient>(TYPES.IDbClient).connectIfNotConnected();
+      // Log.debug(`Connected to database "${conn.options.database}".`);
     } catch (error) {
       Log.error("Error connecting to database.", error);
       throw error;

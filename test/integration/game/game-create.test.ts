@@ -1,4 +1,4 @@
-import "../../../src/index";
+import "../../../src/startup";
 import "mocha";
 import { assert, expect } from "chai";
 import { TestHelpers, TestContextEntities } from "../../test-helpers";
@@ -9,7 +9,6 @@ import { DiscordRequestDto } from "../../../src/requests/dto/discord-request.dto
 import { Game } from "../../../src/domain/game/game.entity";
 import { User } from "../../../src/domain/user/user.entity";
 import { GameStatus } from "../../../src/domain/game/game-status";
-import { ConnectionManager } from "../../../src/utils/connection-manager";
 import { DiscordUser } from "../../../src/domain/user/discord-user.entity";
 import { UpdateGameReport } from "../../../src/domain/game/reports/update-game.report";
 import { DiscordUserReportProperties } from "../../../src/domain/shared/reports/discord-user-report-properties";
@@ -17,9 +16,10 @@ import { GameDefaults } from "../../../src/domain/game/game-defaults";
 import { GameMessageTarget } from "../../../src/domain/game/game-message-target";
 import { UserGameRole } from "../../../src/domain/role/user-game-role.entity";
 import TYPES from "../../../src/types";
+import { IDbClient } from "../../../src/database/db-client";
+import { getConnection, createConnection, Connection } from "typeorm";
 
-async function getEntities(): Promise<TestContextEntities[]> {
-  const conn = await ConnectionManager.getInstance();
+function getEntities(conn: Connection): TestContextEntities[] {
   return [
     {
       name: conn.getMetadata(User).name,
@@ -41,11 +41,34 @@ async function getEntities(): Promise<TestContextEntities[]> {
 
 describe("When creating a game", function() {
   this.beforeEach(function() {
-    return TestHelpers.reloadEntities(getEntities());
+    // const conn = iocContainer
+    //   .get<IDbClient>(TYPES.IDbClient)
+    //   .connectIfNotConnected()
+    //   .then(conn => {
+    //     TestHelpers.loadAll(getEntities(conn), conn);
+    //   });
+
+    return new Promise(async (resolve, reject) => {
+      try {
+        const conn = await iocContainer.get<IDbClient>(TYPES.IDbClient).connectIfNotConnected();
+        await TestHelpers.loadAll(getEntities(conn), conn);
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
   });
 
-  this.afterAll(function() {
-    // TODO: Teardown DB
+  this.afterEach(function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        let conn = getConnection();
+        await conn.close();
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
   });
 
   it("should save a game from a Discord request containing no specified game properties", function() {

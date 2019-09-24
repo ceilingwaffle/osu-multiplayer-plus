@@ -12,7 +12,8 @@ export const TYPES = {
   RequesterFactory: Symbol.for("RequesterFactory"),
   IOsuApiFetcher: Symbol.for("IOsuApiFetcher"),
   // IsValidBanchoMultiplayerIdConstraint: Symbol.for("IsValidBanchoMultiplayerIdConstraint")
-  GameEventRegistrarCollection: Symbol.for("GameEventRegistrarCollection")
+  GameEventRegistrarCollection: Symbol.for("GameEventRegistrarCollection"),
+  IDbClient: Symbol.for("IDbClient")
 };
 
 export default TYPES;

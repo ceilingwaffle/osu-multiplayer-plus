@@ -19,6 +19,8 @@ import { FakeOsuApiFetcher } from "../test/classes/fake-osu-api-fetcher";
 import { IsValidBanchoMultiplayerIdConstraint } from "./osu/validators/bancho-multiplayer-id.validator";
 import { FakeOsuLobbyScanner } from "../test/classes/fake-osu-lobby-scanner";
 import { GameEventRegistrarCollection } from "./multiplayer/game-events/game-event-registrar-collection";
+import { Connection } from "typeorm";
+import { IDbClient, DbClient } from "./database/db-client";
 
 // const iocContainer = new Container();
 // autoProvide(iocContainer, entities);
@@ -54,6 +56,7 @@ export class IOCKernel extends Container {
     this.bind<Permissions>(TYPES.Permissions).to(Permissions).inSingletonScope(); // prettier-ignore
     // this.bind<IsValidBanchoMultiplayerIdConstraint>(TYPES.IsValidBanchoMultiplayerIdConstraint).to(IsValidBanchoMultiplayerIdConstraint); // prettier-ignore
     this.bind<GameEventRegistrarCollection>(TYPES.GameEventRegistrarCollection).to(GameEventRegistrarCollection).inSingletonScope(); // prettier-ignore
+    this.bind<IDbClient>(TYPES.IDbClient).to(DbClient).inSingletonScope(); // prettier-ignore
 
     if (process.env.NODE_ENV === "test") {
       this.bind<IOsuApiFetcher>(TYPES.IOsuApiFetcher).to(FakeOsuApiFetcher).inSingletonScope(); // prettier-ignore
@@ -62,6 +65,11 @@ export class IOCKernel extends Container {
       this.bind<IOsuApiFetcher>(TYPES.IOsuApiFetcher).to(NodesuApiFetcher).inSingletonScope(); // prettier-ignore
       this.bind<IOsuLobbyScanner>(TYPES.IOsuLobbyScanner).to(OsuLobbyScannerService).inSingletonScope(); // prettier-ignore
     }
+  }
+
+  async initDatabaseClientConnection(): Promise<Connection> {
+    const dbClient = this.get<IDbClient>(TYPES.IDbClient);
+    return await dbClient.connectIfNotConnected();
   }
 }
 

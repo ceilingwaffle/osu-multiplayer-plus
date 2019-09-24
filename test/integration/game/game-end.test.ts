@@ -1,4 +1,4 @@
-import "../../../src/index";
+import "../../../src/startup";
 import "mocha";
 import { assert, expect } from "chai";
 import { TestHelpers, TestContextEntities } from "../../test-helpers";
@@ -9,7 +9,6 @@ import { DiscordRequestDto } from "../../../src/requests/dto/discord-request.dto
 import { Game } from "../../../src/domain/game/game.entity";
 import { User } from "../../../src/domain/user/user.entity";
 import { GameStatus } from "../../../src/domain/game/game-status";
-import { ConnectionManager } from "../../../src/utils/connection-manager";
 import { DiscordUser } from "../../../src/domain/user/discord-user.entity";
 import { UpdateGameReport } from "../../../src/domain/game/reports/update-game.report";
 import { DiscordUserReportProperties } from "../../../src/domain/shared/reports/discord-user-report-properties";
@@ -23,9 +22,10 @@ import { fail } from "assert";
 import { GameRepository } from "../../../src/domain/game/game.repository";
 import { Message } from "../../../src/utils/message";
 import TYPES from "../../../src/types";
+import { IDbClient } from "../../../src/database/db-client";
+import { Connection } from "typeorm";
 
-async function getEntities(): Promise<TestContextEntities[]> {
-  const conn = await ConnectionManager.getInstance();
+function getEntities(conn: Connection): TestContextEntities[] {
   return [
     {
       name: conn.getMetadata(User).name,
@@ -80,7 +80,8 @@ describe("When ending a game", function() {
   this.beforeEach(function() {
     return new Promise(async (resolve, reject) => {
       try {
-        await TestHelpers.reloadEntities(getEntities());
+        const conn = await iocContainer.get<IDbClient>(TYPES.IDbClient).connect();
+        await TestHelpers.loadAll(getEntities(conn), conn);
 
         /* #region  Setup */
         const gameController = iocContainer.get<GameController>(TYPES.GameController);
@@ -120,10 +121,12 @@ describe("When ending a game", function() {
     });
   });
 
-  this.afterAll(function() {
+  this.afterEach(function() {
     return new Promise(async (resolve, reject) => {
       try {
-        await TestHelpers.dropTestDatabase();
+        const conn = iocContainer.get<IDbClient>(TYPES.IDbClient).getConnection();
+        await TestHelpers.dropTestDatabase(conn);
+        conn.close();
         return resolve();
       } catch (error) {
         return reject(error);

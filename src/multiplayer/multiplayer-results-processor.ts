@@ -7,7 +7,7 @@ import { GameReport } from "./reports/game.report";
 import { UserService } from "../domain/user/user.service";
 import { Log } from "../utils/Log";
 import { LobbyRepository } from "../domain/lobby/lobby.repository";
-import { getCustomRepository } from "typeorm";
+import { getCustomRepository, Connection } from "typeorm";
 import { LobbyService } from "../domain/lobby/lobby.service";
 import { Lobby } from "../domain/lobby/lobby.entity";
 import { Match } from "../domain/match/match.entity";
@@ -15,6 +15,7 @@ import { PlayerScore } from "../domain/score/player-score.entity";
 import { OsuUser } from "../domain/user/osu-user.entity";
 import { OsuUserRepository } from "../domain/user/osu-user.repository";
 import { IOsuApiFetcher } from "../osu/interfaces/osu-api-fetcher";
+import { IDbClient } from "../database/db-client";
 
 export class MultiplayerResultsProcessor {
   // @lazyInject(TYPES.UserService) private userService: UserService;
@@ -24,8 +25,11 @@ export class MultiplayerResultsProcessor {
   private userService: UserService = iocContainer.get<UserService>(TYPES.UserService);
   private lobbyService: LobbyService = iocContainer.get<LobbyService>(TYPES.LobbyService);
   private osuApi: IOsuApiFetcher = iocContainer.get<IOsuApiFetcher>(TYPES.IOsuApiFetcher);
-  protected readonly lobbyRepository: LobbyRepository = getCustomRepository(LobbyRepository);
-  protected readonly osuUserRepository: OsuUserRepository = getCustomRepository(OsuUserRepository);
+  // protected readonly lobbyRepository: LobbyRepository = getCustomRepository(LobbyRepository);
+  // protected readonly osuUserRepository: OsuUserRepository = getCustomRepository(OsuUserRepository);
+
+  protected dbClient: IDbClient = iocContainer.get<IDbClient>(TYPES.IDbClient);
+  protected dbConn: Connection = this.dbClient.getConnection();
 
   protected isProcessed: boolean;
 
@@ -45,7 +49,7 @@ export class MultiplayerResultsProcessor {
 
       // get existing entities from DB
       //    find lobby using input.multiplayerId
-      let lobby: Lobby = await this.lobbyRepository.findOne(
+      let lobby: Lobby = await this.dbConn.manager.getCustomRepository(LobbyRepository).findOne(
         { banchoMultiplayerId: this.input.multiplayerId },
         {
           relations: [
@@ -102,7 +106,7 @@ export class MultiplayerResultsProcessor {
               })[0];
             if (!player) {
               //      find player in DB
-              player = await this.osuUserRepository.findOne({ osuUserId: apiScore.osuUserId });
+              player = await this.dbConn.manager.getCustomRepository(OsuUserRepository).findOne({ osuUserId: apiScore.osuUserId });
             }
             if (!player) {
               //        get the player's osu username from the osu API
@@ -131,7 +135,7 @@ export class MultiplayerResultsProcessor {
       // save/update (cascade) entities
       // TODO: ensure Lobby.GameLobbies isn't being erased - if it is, just add it to the relations when finding lobby
       const savedLobby = await lobby.save();
-      const reloadedLobby: Lobby = await this.lobbyRepository.findOne(
+      const reloadedLobby: Lobby = await this.dbConn.manager.getCustomRepository(LobbyRepository).findOne(
         { banchoMultiplayerId: this.input.multiplayerId },
         {
           relations: [

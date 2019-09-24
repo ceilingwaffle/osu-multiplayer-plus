@@ -1,6 +1,6 @@
 import { TYPES } from "../../types";
-import { inject, injectable } from "inversify";
-import { getCustomRepository } from "typeorm";
+import { inject, injectable, interfaces } from "inversify";
+import { Connection } from "typeorm";
 import { Game } from "./game.entity";
 import { CreateGameDto } from "./dto/create-game.dto";
 import { Either, failurePromise, successPromise, success } from "../../utils/Either";
@@ -34,14 +34,18 @@ import { Permissions } from "../../permissions/permissions";
 import { UserRepository } from "../user/user.repository";
 import { GameEventRegistrarInitializer } from "../../multiplayer/game-events/game-event-registrar-initializer";
 import { GameEventRegistrarCollection } from "../../multiplayer/game-events/game-event-registrar-collection";
+import { IDbClient } from "../../database/db-client";
 
 @injectable()
 export class GameService {
-  private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
-  private readonly userGameRoleRepository: UserGameRoleRepository = getCustomRepository(UserGameRoleRepository);
-  private readonly userRepository: UserRepository = getCustomRepository(UserRepository);
+  // private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
+  // private readonly userGameRoleRepository: UserGameRoleRepository = getCustomRepository(UserGameRoleRepository);
+  // private readonly userRepository: UserRepository = getCustomRepository(UserRepository);
+
+  protected dbConn: Connection = this.dbClient.getConnection();
 
   constructor(
+    @inject(TYPES.IDbClient) protected dbClient: IDbClient,
     @inject(TYPES.UserService) protected userService: UserService,
     @inject(TYPES.IOsuLobbyScanner) protected osuLobbyScanner: IOsuLobbyScanner,
     @inject(TYPES.Permissions) protected permissions: Permissions,
@@ -74,7 +78,7 @@ export class GameService {
       const gameCreator = userResult.value;
 
       // create the game
-      const game = this.gameRepository.create({
+      const game = this.dbConn.manager.getCustomRepository(GameRepository).create({
         teamLives: gameData.teamLives != null ? gameData.teamLives : GameDefaults.teamLives,
         countFailedScores: Helpers.determineCountFailedScoresValue(
           gameData.countFailedScores != null ? gameData.countFailedScores : GameDefaults.countFailedScores
@@ -161,7 +165,7 @@ export class GameService {
         return failurePromise(invalidGamePropertiesFailure(this.makeValidationErrorsOfGameId(gameId)));
       }
 
-      const game = await this.gameRepository.findGameWithLobbies(gameId);
+      const game = await this.dbConn.manager.getCustomRepository(GameRepository).findGameWithLobbies(gameId);
       if (!game) {
         const failure = gameDoesNotExistFailure(gameId);
         Log.methodFailure(this.endGame, this.constructor.name, failure.reason);
@@ -189,7 +193,7 @@ export class GameService {
       await this.updateGameAsEnded(gameId, endedByUser);
 
       // return the updated game
-      const reloadedGame = await this.gameRepository.findGame(gameId);
+      const reloadedGame = await this.dbConn.manager.getCustomRepository(GameRepository).findGame(gameId);
       Log.methodSuccess(this.endGame, this.constructor.name);
       return successPromise(reloadedGame);
     } catch (error) {
@@ -206,7 +210,7 @@ export class GameService {
   }
 
   private async updateGameAsEnded(gameId: number, endedByUser: User) {
-    await this.gameRepository.update(gameId, {
+    await this.dbConn.manager.getCustomRepository(GameRepository).update(gameId, {
       status: GameStatus.MANUALLY_ENDED.getKey(),
       endedAt: Helpers.getNow(),
       endedBy: endedByUser
@@ -287,7 +291,7 @@ export class GameService {
    * @returns {Promise<string>}
    */
   public async getUserRoleForGame(userId: number, gameId: number): Promise<string> {
-    const role = await this.userGameRoleRepository.findUserRoleForGame(gameId, userId);
+    const role = await this.dbConn.manager.getCustomRepository(UserGameRoleRepository).findUserRoleForGame(gameId, userId);
     return role ? role : getLowestUserRole();
   }
 
@@ -343,7 +347,7 @@ export class GameService {
 
   public async findMostRecentGameCreatedByUser(userId: number): Promise<Either<Failure<GameFailure>, Game>> {
     try {
-      const game = await this.gameRepository.getMostRecentGameCreatedByUser(userId);
+      const game = await this.dbConn.manager.getCustomRepository(GameRepository).getMostRecentGameCreatedByUser(userId);
       if (!game) {
         return failurePromise(userHasNotCreatedGameFailure(userId));
       }
@@ -363,7 +367,7 @@ export class GameService {
       }
 
       // find the game
-      const game = await this.gameRepository.findOne({ id: gameId }, { relations: relations });
+      const game = await this.dbConn.manager.getCustomRepository(GameRepository).findOne({ id: gameId }, { relations: relations });
 
       if (!game) {
         return failurePromise(gameDoesNotExistFailure(gameId));
@@ -421,7 +425,7 @@ export class GameService {
   }): Promise<Either<Failure<GameFailure>, Game>> {
     try {
       game.status = status.getKey();
-      const savedGame = await this.gameRepository.save(game);
+      const savedGame = await this.dbConn.manager.getCustomRepository(GameRepository).save(game);
       return successPromise(savedGame);
     } catch (error) {
       Log.methodError(this.updateGameStatusForGameEntity, this.constructor.name, error);
@@ -445,7 +449,7 @@ export class GameService {
     if (gameId && gameId > 0) return this.findGameById(gameId);
 
     // check if the user used the !targetgame command
-    const user = await this.userRepository.findOne({ id: userId }, { relations: ["targetGame"] });
+    const user = await this.dbConn.manager.getCustomRepository(UserRepository).findOne({ id: userId }, { relations: ["targetGame"] });
     if (user.targetGame) return successPromise(user.targetGame);
 
     // If a game ID was not provided, get the most recent game created by the user ID (lobby creator).
@@ -466,8 +470,8 @@ export class GameService {
   ): Promise<Game> {
     try {
       // TODO: Optimize - some way of combining these into a single query
-      const savedGame = await this.gameRepository.save(game);
-      const reloadedGame = await this.gameRepository.findOneOrFail(savedGame.id, {
+      const savedGame = await this.dbConn.manager.getCustomRepository(GameRepository).save(game);
+      const reloadedGame = await this.dbConn.manager.getCustomRepository(GameRepository).findOneOrFail(savedGame.id, {
         relations: returnWithRelations
       });
       return reloadedGame;
