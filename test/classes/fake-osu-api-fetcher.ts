@@ -35,7 +35,7 @@ export class FakeOsuApiFetcher implements IOsuApiFetcher {
     return Promise.resolve({
       isValid: true,
       osuUser: {
-        username: `${FakeOsuApiFetcher.getFakeBanchoUsername(userId)} `,
+        username: `${FakeOsuApiFetcher.getFakeBanchoUsername(userId)}`,
         userId: Number(userId),
         country: FakeOsuApiFetcher.getFakeCountryCode()
       }
