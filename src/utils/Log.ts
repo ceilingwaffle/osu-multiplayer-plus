@@ -13,33 +13,33 @@ export class Log {
 
   static info(info: string, ...args: any[]) {
     if (!Log.logger) Log.init();
-    Log.logger.info(info, args);
+    Log.logger.info(info, ...args);
   }
 
   static debug(debug: string, ...args: any[]) {
     if (!Log.logger) Log.init();
-    Log.logger.debug(debug, args);
+    Log.logger.debug(debug, ...args);
   }
 
   static warn(warn: string, ...args: any[]) {
     if (!Log.logger) Log.init();
-    Log.logger.warn(warn, args);
+    Log.logger.warn(warn, ...args);
   }
 
   static error(error: string, ...args: any[]) {
     if (!Log.logger) Log.init();
-    Log.logger.error(error, args);
+    Log.logger.error(error, ...args);
   }
 
   static methodSuccess(method: Function, ...args: any[]) {
-    Log.info(`Method success: ${method.name}`, args);
+    Log.info(`Method success: ${method.name}`, ...args);
   }
 
   static methodFailure(method: Function, ...args: any[]) {
-    Log.warn(`Method handled-failure: ${method.name}`, args);
+    Log.warn(`Method handled-failure: ${method.name}`, ...args);
   }
 
   static methodError(method: Function, ...args: any[]) {
-    Log.error(`Method unexpected-error: ${method.name}`, args);
+    Log.error(`Method unexpected-error: ${method.name}`, ...args);
   }
 }
