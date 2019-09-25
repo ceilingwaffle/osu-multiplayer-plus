@@ -21,6 +21,8 @@ import { GameEvent } from "./game-events/game-event";
 import { Game } from "../domain/game/game.entity";
 import { GameStatus } from "../domain/game/game-status";
 import { GameEventRegistrar } from "./game-events/game-event-registrar";
+import { GameLobby } from "../domain/game/game-lobby.entity";
+import { Helpers } from "../utils/helpers";
 
 export class MultiplayerResultsProcessor {
   // @lazyInject(TYPES.UserService) private userService: UserService;
@@ -193,13 +195,9 @@ export class MultiplayerResultsProcessor {
       //
       //
       //    - Determine if ready to report results for a GameLobby map:
-      //       - get all game lobbies and their matches (ordered such that the most recently-completed matches are listed at a later index for that game lobby)
-      //       - if all game lobbies have match results for a map
-      //          - trim all other GameLobby arrays to have the same size as the smallest array.
-      //          - if array1 is not empty, and if results have not been calculated for match at array1[n-1], that map is complete --> report results
-      //      - if not ready to report results
-      //         - deliver message "Lobby L1 finished map A (id, mapString). Waiting on results from lobbies B,C,..."
-      //
+      for (const game of forGames) {
+        const ready = this.allGameLobbiesFinishedMap(game.gameLobbies);
+      }
       //
       //    - Build game events
       //          EventBuilder(game.matches) -> GameEvents[]
@@ -251,5 +249,39 @@ export class MultiplayerResultsProcessor {
       Log.methodError(this.buildGameReports, this.constructor.name, error);
       throw error;
     }
+  }
+
+  private allGameLobbiesFinishedMap(gameLobbies: GameLobby[]): boolean {
+    const lobbyMatchIds: { lid: number; mids: number[] }[] = gameLobbies.map(gl => {
+      return { lid: gl.lobby.id, mids: [] };
+    });
+    //       - get all game lobbies and their matches (ordered such that the most recently-completed matches are listed at a later index for that game lobby)
+    //       - if all game lobbies have match results for a map
+    gameLobbies.forEach(gl => {
+      gl.lobby.matches.forEach(m => {
+        lobbyMatchIds.find(lmid => lmid.lid === gl.lobby.id).mids.push(m.id);
+      });
+    });
+    let smallestMatchCount = Number.POSITIVE_INFINITY;
+    lobbyMatchIds.map(lmid => {
+      if (lmid.mids.length < smallestMatchCount) smallestMatchCount = lmid.mids.length;
+    });
+    //          - trim all other GameLobby arrays to have the same size as the smallest array.
+    let glsTrimmed = Helpers.deepClone(gameLobbies) as GameLobby[];
+    glsTrimmed = glsTrimmed.map(gl => {
+      if (smallestMatchCount < gl.lobby.matches.length) {
+        gl.lobby.matches.splice(smallestMatchCount, gl.lobby.matches.length - smallestMatchCount);
+      }
+      return gl;
+    });
+
+    // game.latestReportedMatch: { matchBeatmapId: number, sameLobbyMapIdsLatestEndTime: number }
+
+    //          - if array1 is not empty, and if results have not been calculated for match at array1[n-1], that map is complete --> report results
+    // if (glsTrimmed[0].lobby.matches.length && )
+    //      - if not ready to report results
+    //         - deliver message "Lobby L1 finished map A (id, mapString). Waiting on results from lobbies B,C,..."
+    //
+    return false;
   }
 }

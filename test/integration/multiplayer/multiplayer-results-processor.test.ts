@@ -54,8 +54,11 @@ const createGameRequest: CreateGameDto = {
   countFailedScores: "true"
 };
 
-const addLobbyRequest: AddLobbyDto = {
+const addLobby1Request: AddLobbyDto = {
   banchoMultiplayerId: "1234"
+};
+const addLobby2Request: AddLobbyDto = {
+  banchoMultiplayerId: "5678"
 };
 
 describe("When processing multiplayer results", function() {
@@ -73,7 +76,7 @@ describe("When processing multiplayer results", function() {
 
         // add lobby
         const lobbyController = iocContainer.get<LobbyController>(TYPES.LobbyController);
-        const createdLobbyResponse = await lobbyController.create({ lobbyDto: addLobbyRequest, requestDto: discordRequest });
+        const createdLobbyResponse = await lobbyController.create({ lobbyDto: addLobby1Request, requestDto: discordRequest });
         expect(createdLobbyResponse.success).to.be.true;
         const createdLobbyReport = createdLobbyResponse.result;
 
@@ -129,11 +132,11 @@ describe("When processing multiplayer results", function() {
 
           // TODO: Get these omega objects from a json file instead
           const input: ApiMultiplayer = {
-            multiplayerId: addLobbyRequest.banchoMultiplayerId, // Lobby.banchoMultiplayerId
+            multiplayerId: addLobby1Request.banchoMultiplayerId, // Lobby.banchoMultiplayerId
             matches: [
               {
                 mapNumber: 1, // GameLobby.startingMapNumber
-                multiplayerId: Number(addLobbyRequest.banchoMultiplayerId), // Lobby.banchoMultiplayerId
+                multiplayerId: Number(addLobby1Request.banchoMultiplayerId), // Lobby.banchoMultiplayerId
                 mapId: 4178, // Match.beatmapId
                 startTime: new Date(new Date().getTime() - 300), // Match.startTime
                 endTime: new Date(), // Match.endTime
@@ -168,7 +171,7 @@ describe("When processing multiplayer results", function() {
                   removedAt: null,
                   lobby: {
                     id: 1,
-                    banchoMultiplayerId: addLobbyRequest.banchoMultiplayerId,
+                    banchoMultiplayerId: addLobby1Request.banchoMultiplayerId,
                     status: LobbyStatus.AWAITING_FIRST_SCAN.getKey(),
                     matches: [
                       {
@@ -409,11 +412,11 @@ describe("When processing multiplayer results", function() {
           expect(addTeamsResponse.success).to.be.true;
 
           const input: ApiMultiplayer = {
-            multiplayerId: addLobbyRequest.banchoMultiplayerId, // Lobby.banchoMultiplayerId
+            multiplayerId: addLobby1Request.banchoMultiplayerId, // Lobby.banchoMultiplayerId
             matches: [
               {
                 mapNumber: 1, // GameLobby.startingMapNumber
-                multiplayerId: Number(addLobbyRequest.banchoMultiplayerId), // Lobby.banchoMultiplayerId
+                multiplayerId: Number(addLobby1Request.banchoMultiplayerId), // Lobby.banchoMultiplayerId
                 mapId: 4178, // Match.beatmapId
                 startTime: new Date(new Date().getTime() - 300), // Match.startTime
                 endTime: new Date(), // Match.endTime
@@ -448,7 +451,7 @@ describe("When processing multiplayer results", function() {
                   removedAt: null,
                   lobby: {
                     id: 1,
-                    banchoMultiplayerId: addLobbyRequest.banchoMultiplayerId,
+                    banchoMultiplayerId: addLobby1Request.banchoMultiplayerId,
                     status: LobbyStatus.AWAITING_FIRST_SCAN.getKey(),
                     matches: [
                       {
@@ -606,11 +609,11 @@ describe("When processing multiplayer results", function() {
           expect(addTeamsResponse.success).to.be.true;
 
           const apiResults1: ApiMultiplayer = {
-            multiplayerId: addLobbyRequest.banchoMultiplayerId, // Lobby.banchoMultiplayerId
+            multiplayerId: addLobby1Request.banchoMultiplayerId, // Lobby.banchoMultiplayerId
             matches: [
               {
                 mapNumber: 1, // GameLobby.startingMapNumber
-                multiplayerId: Number(addLobbyRequest.banchoMultiplayerId), // Lobby.banchoMultiplayerId
+                multiplayerId: Number(addLobby1Request.banchoMultiplayerId), // Lobby.banchoMultiplayerId
                 mapId: 4178, // Match.beatmapId
                 startTime: new Date(new Date().getTime() - 300), // Match.startTime
                 endTime: new Date(), // Match.endTime
@@ -645,7 +648,7 @@ describe("When processing multiplayer results", function() {
                   removedAt: null,
                   lobby: {
                     id: 1,
-                    banchoMultiplayerId: addLobbyRequest.banchoMultiplayerId,
+                    banchoMultiplayerId: addLobby1Request.banchoMultiplayerId,
                     status: LobbyStatus.AWAITING_FIRST_SCAN.getKey(),
                     matches: [
                       {
@@ -759,11 +762,11 @@ describe("When processing multiplayer results", function() {
           expect(actualGames1).excludingEvery(["createdAt", "updatedAt"]).to.deep.equal(expectedGamesData1); // prettier-ignore
 
           const apiResults2: ApiMultiplayer = {
-            multiplayerId: addLobbyRequest.banchoMultiplayerId, // Lobby.banchoMultiplayerId
+            multiplayerId: addLobby1Request.banchoMultiplayerId, // Lobby.banchoMultiplayerId
             matches: [
               {
                 mapNumber: 2, // GameLobby.startingMapNumber
-                multiplayerId: Number(addLobbyRequest.banchoMultiplayerId), // Lobby.banchoMultiplayerId
+                multiplayerId: Number(addLobby1Request.banchoMultiplayerId), // Lobby.banchoMultiplayerId
                 mapId: 6666, // Match.beatmapId
                 startTime: new Date(new Date().getTime() - 300), // Match.startTime
                 endTime: new Date(), // Match.endTime
@@ -798,7 +801,7 @@ describe("When processing multiplayer results", function() {
                   removedAt: null,
                   lobby: {
                     id: 1,
-                    banchoMultiplayerId: addLobbyRequest.banchoMultiplayerId,
+                    banchoMultiplayerId: addLobby1Request.banchoMultiplayerId,
                     status: LobbyStatus.AWAITING_FIRST_SCAN.getKey(),
                     matches: [
                       expectedGamesData1[0].gameLobbies[0].lobby.matches[0],
@@ -934,7 +937,7 @@ describe("When processing multiplayer results", function() {
           expect(addTeamsResponse.success).to.be.true;
 
           const input: ApiMultiplayer = {
-            multiplayerId: addLobbyRequest.banchoMultiplayerId, // Lobby.banchoMultiplayerId
+            multiplayerId: addLobby1Request.banchoMultiplayerId, // Lobby.banchoMultiplayerId
             matches: []
           };
 
@@ -951,7 +954,7 @@ describe("When processing multiplayer results", function() {
                   removedAt: null,
                   lobby: {
                     id: 1,
-                    banchoMultiplayerId: addLobbyRequest.banchoMultiplayerId,
+                    banchoMultiplayerId: addLobby1Request.banchoMultiplayerId,
                     status: LobbyStatus.AWAITING_FIRST_SCAN.getKey(),
                     matches: []
                   }
@@ -1101,19 +1104,157 @@ describe("When processing multiplayer results", function() {
   //   });
   // });
 
-  // describe("where multiple lobbies have been added to one game", function() {
-  //   it("should deliver a leaderboard report when all lobbies have completed a map");
-  //   it("should deliver a message saying 'waiting for results for lobbies A,B,etc' if not all lobbies have completed a map");
-  //   it("should deliver results for a map when that map is played in a different order in three lobbies");
-  // });
+  describe("with many lobbies added to one game", function() {
+    it("should build reports after two lobbies complete the same one map", function() {
+      return new Promise(async (resolve, reject) => {
+        try {
+          // add teams to game 1
+          const inTeams: string[][] = [["3336000"], ["3336001"], ["3336100"], ["3336101"]];
+          const addTeamsDto: AddTeamsDto = {
+            osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(inTeams)
+          };
+          const teamController = iocContainer.get<TeamController>(TYPES.TeamController);
+          const addTeamsResponse = await teamController.create({ teamDto: addTeamsDto, requestDto: discordRequest });
+          expect(addTeamsResponse.success).to.be.true;
 
-  // describe("where one lobby has been added to multiple games", function() {
-  //   it("should send a report to the message target channels of all those games");
-  // });
+          // add lobby 2 to game 1
+          const lobbyController = iocContainer.get<LobbyController>(TYPES.LobbyController);
+          const createdLobbyResponse = await lobbyController.create({ lobbyDto: addLobby2Request, requestDto: discordRequest });
+          expect(createdLobbyResponse.success).to.be.true;
+
+          const lobby1ApiResults1: ApiMultiplayer = {
+            // lobby 1 contains players 1 and 2
+            multiplayerId: addLobby1Request.banchoMultiplayerId,
+            matches: [
+              {
+                mapNumber: 1,
+                multiplayerId: Number(addLobby1Request.banchoMultiplayerId),
+                mapId: 101,
+                startTime: new Date(new Date().getTime() - 310),
+                endTime: new Date(new Date().getTime() - 10),
+                teamMode: TeamMode.HeadToHead,
+                event: "match_end",
+                scores: [
+                  {
+                    osuUserId: "3336000",
+                    score: 100000,
+                    passed: true
+                  },
+                  {
+                    osuUserId: "3336001",
+                    score: 100001,
+                    passed: true
+                  }
+                ]
+              }
+            ]
+          };
+
+          const lobby2ApiResults1: ApiMultiplayer = {
+            // lobby 2 contains players 3 and 4
+            multiplayerId: addLobby2Request.banchoMultiplayerId,
+            matches: [
+              {
+                // lobby 2 starts beatmap 102 5 seconds after lobby 1
+                // lobby 2 completes beatmap 102 5 seconds after lobby 1
+                mapNumber: 1,
+                multiplayerId: Number(addLobby2Request.banchoMultiplayerId),
+                mapId: 102,
+                startTime: new Date(new Date().getTime() - 305),
+                endTime: new Date(new Date().getTime() - 5),
+                teamMode: TeamMode.HeadToHead,
+                event: "match_end",
+                scores: [
+                  {
+                    osuUserId: "3336100",
+                    score: 100000,
+                    passed: true
+                  },
+                  {
+                    osuUserId: "3336101",
+                    score: 100001,
+                    passed: true
+                  }
+                ]
+              },
+              {
+                // lobby 2 completes beatmap 101 110 seconds after lobby 1 completed beatmap 101
+                mapNumber: 2,
+                multiplayerId: Number(addLobby2Request.banchoMultiplayerId),
+                mapId: 101,
+                startTime: new Date(new Date().getTime()),
+                endTime: new Date(new Date().getTime() + 100),
+                teamMode: TeamMode.HeadToHead,
+                event: "match_end",
+                scores: [
+                  {
+                    osuUserId: "3336100",
+                    score: 100000,
+                    passed: true
+                  },
+                  {
+                    osuUserId: "3336101",
+                    score: 100001,
+                    passed: true
+                  }
+                ]
+              }
+            ]
+          };
+
+          const processor1 = new MultiplayerResultsProcessor(lobby1ApiResults1);
+          const games1: Game[] = await processor1.process();
+          const r1 = await processor1.buildGameReports(games1);
+          const processor2 = new MultiplayerResultsProcessor(lobby2ApiResults1);
+          const games2: Game[] = await processor2.process();
+          const r2 = await processor2.buildGameReports(games2);
+
+          return reject();
+          return resolve();
+        } catch (error) {
+          return reject(error);
+        }
+      });
+    });
+    it("should deliver a message saying 'waiting for results for lobbies A,B,etc' if not all lobbies have completed a map", function() {
+      return new Promise(async (resolve, reject) => {
+        try {
+          return reject();
+          return resolve();
+        } catch (error) {
+          return reject(error);
+        }
+      });
+    });
+    it("should deliver results for a map when that map is played in a different order in three lobbies", function() {
+      return new Promise(async (resolve, reject) => {
+        try {
+          return reject();
+          return resolve();
+        } catch (error) {
+          return reject(error);
+        }
+      });
+    });
+  });
+
+  describe("with one lobby added to many games", function() {
+    it("should send a report to the message target channels of all those games", function() {
+      return new Promise(async (resolve, reject) => {
+        try {
+          return reject();
+          return resolve();
+        } catch (error) {
+          return reject(error);
+        }
+      });
+    });
+  });
 });
+
 function getLeaderboardLineOfUser(reports: GameReport[], targetUserId: string): LeaderboardLine {
   const lines = reports[0].leaderboardLines.filter(ll => ll.team.members.map(m => m.osuUserId).includes(targetUserId));
-  if (lines.length < 1) throw new Error("Player exist in one leaderboard line.");
+  if (lines.length < 1) throw new Error("Player does not exist in any leaderboard lines.");
   if (lines.length > 1) throw new Error("Player should not exist in more than one leaderboard line.");
   return lines[0];
 }

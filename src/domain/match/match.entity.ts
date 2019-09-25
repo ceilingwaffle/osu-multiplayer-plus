@@ -9,6 +9,7 @@ export class Match extends CreationTimestampedEntity {
   @PrimaryGeneratedColumn()
   id: number;
 
+  /** The order in which the map was played for a given lobby. */
   @IsInt()
   @IsPositive()
   @Column()

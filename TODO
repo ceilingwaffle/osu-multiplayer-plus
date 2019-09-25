@@ -162,8 +162,8 @@ TODO:
         ☐ Set log4js to log only warnings and errors to file @created(19-09-08 11:16)
         ☐ Move sqlite to postgres? Performance may be better (e.g. concurrency) @created(19-09-08 11:22)
         ☐ Prevent the app from launching multiple instances @created(19-09-10 13:05)
-    Domain:
-        ✔ Domain registered with Porkbun @created(19-09-20 01:06) @done(19-09-20 01:06)
+    Domain/Website:
+        ✔ osumpp.xyz domain registered with Porkbun @created(19-09-20 01:06) @done(19-09-20 01:06)
     Design:
         What we have access to - maps, mods(SD), modes - team vs, ffa, TAG4, osu API
         ✔ We need a name for this thing @done(19-09-24 15:36)
@@ -228,6 +228,9 @@ TODO:
         ✘ OLD IDEA -------- add the game without a relation to the UserGameRole, then create a new UserGameRole using gameCreator.userId + newGame.gameId + role === "game-creator" (this should update the game afterwards with a reference to the UserGameRole) @cancelled(19-08-23 19:32)
         ✘ Should we store a redundant reference to the game creator on the game entity? Possibly bad because now we have multiple references to the creator - what if we access it from the wrong entity while working on this in a few months time? @cancelled(19-08-23 19:32)
     Discord:
+        Announcement Messages:
+            ☐ Some way to send announcement messages via Discord - e.g. "Experiencing problem." "Down time for maintenance expected from x-y time on day d" @created(19-09-25 07:51)
+            ☐ Send auto-announcement on git push/CI -- with changelog changes @created(19-09-25 07:51)
         Bot Permissions Required:
             ☐ Delete messages (e.g. user types yes to confirm destructive command - we need to delete that message) @created(19-08-30 23:06)
             ☐ Create text channels (to create game-specific channels) @created(19-08-30 23:07)
