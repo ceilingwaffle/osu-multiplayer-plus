@@ -29,4 +29,13 @@ export interface IOsuLobbyScanner {
    * @returns {Promise<boolean>}
    */
   isWatching(multiplayerId: string): boolean;
+
+  /**
+   * Starts scanning for lobby match results for all lobbies added to the given game.
+   * Does not start a watcher for a lobby if one is already running for that lobby.
+   *
+   * @param {number} gameId
+   * @returns {void}
+   */
+  startWatchersForGame(gameId: number): void;
 }

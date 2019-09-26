@@ -21,7 +21,7 @@ export class CreateGameCommand extends AppBaseCommand {
       group: "osu",
       memberName: "creategame",
       description:
-        "Creates a new osu! Battle Royale game. You can then add multiplayer lobbies to the game from which scores will be calculated.",
+        "Creates a new osu! Battle Royale game. You can then add teams and multiplayer lobbies to the game from which scores will be calculated.",
       aliases: [],
       examples: ["!obr creategame"], // new DiscordCommandExampleBuilder(this).getAll()
       guildOnly: true, // accept commands from channels only, e.g. ignore DM commands

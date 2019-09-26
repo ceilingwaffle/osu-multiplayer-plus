@@ -16,6 +16,8 @@ import { EndGameDto } from "./dto/end-game.dto";
 import { EndGameReport } from "./reports/end-game.report";
 import { UpdateGameDto } from "./dto/update-game.dto";
 import { Permissions } from "../../permissions/permissions";
+import { StartGameReport } from "./reports/start-game.report";
+import { StartGameDto } from "./dto/start-game.dto";
 
 @injectable()
 export class GameController {
@@ -263,6 +265,107 @@ export class GameController {
       return {
         success: false,
         message: FailureMessage.get("gameUpdateFailed"),
+        errors: {
+          messages: [error]
+        }
+      };
+    }
+  }
+
+  async startGame(gameData: { startGameDto: StartGameDto; requestDto: RequestDtoType }): Promise<Response<StartGameReport>> {
+    try {
+      const requester = this.requesterFactory.create(gameData.requestDto);
+
+      // get/create the user starting the game
+      const userResult = await requester.getOrCreateUser();
+      if (userResult.failed()) {
+        if (userResult.value.error) throw userResult.value.error;
+        Log.methodFailure(this.startGame, this.constructor.name, userResult.value.reason);
+        return {
+          success: false,
+          message: FailureMessage.get("gameStartFailed"),
+          errors: {
+            messages: [userResult.value.reason],
+            validation: userResult.value.validationErrors
+          }
+        };
+      }
+      const requestingUser = userResult.value;
+
+      // ensure game exists
+      const targetGameResult = await this.gameService.findGameById(gameData.startGameDto.gameId);
+      if (targetGameResult.failed()) {
+        Log.methodFailure(this.startGame, this.constructor.name, targetGameResult.value.reason);
+        return {
+          success: false,
+          message: FailureMessage.get("gameStartFailed"),
+          errors: {
+            messages: [targetGameResult.value.reason],
+            validation: targetGameResult.value.validationErrors
+          }
+        };
+      }
+
+      // check if user is permitted to start the game
+      const userRole = await this.gameService.getUserRoleForGame(requestingUser.id, gameData.startGameDto.gameId);
+      const userPermittedResult = await this.permissions.checkUserPermission({
+        user: requestingUser,
+        userRole: userRole,
+        action: "start",
+        resource: "game",
+        entityId: gameData.startGameDto.gameId,
+        requesterClientType: requester.dto.commType
+      });
+      if (userPermittedResult.failed()) {
+        Log.methodFailure(
+          this.startGame,
+          this.constructor.name,
+          `User ${requestingUser.id} does not have permission to start game ${targetGameResult.value.id}.`,
+          userPermittedResult.value.reason
+        );
+        return {
+          success: false,
+          message: FailureMessage.get("gameStartFailed"),
+          errors: {
+            messages: [userPermittedResult.value.reason]
+          }
+        };
+      }
+
+      // try to start the game
+      const startGameResult = await this.gameService.startGame({ gameDto: gameData.startGameDto, startedByUser: requestingUser });
+      if (startGameResult.failed()) {
+        Log.methodFailure(this.startGame, this.constructor.name, startGameResult.value.reason);
+        return {
+          success: false,
+          message: FailureMessage.get("gameStartFailed"),
+          errors: {
+            messages: [startGameResult.value.reason],
+            validation: startGameResult.value.validationErrors
+          }
+        };
+      }
+
+      // the game was started successfully
+      const startedGame: Game = startGameResult.value;
+      Log.methodSuccess(this.endGame, this.constructor.name);
+      return {
+        success: true,
+        message: Message.get("gameStartSuccess"),
+        result: ((): StartGameReport => {
+          const gameResponseFactory = new GameResponseFactory(requester, startedGame, gameData.requestDto);
+          return {
+            gameId: startedGame.id,
+            startedBy: gameResponseFactory.getStartedBy(),
+            startedAgo: gameResponseFactory.getStartedAgoText()
+          };
+        })()
+      };
+    } catch (error) {
+      Log.methodError(this.startGame, this.constructor.name, error);
+      return {
+        success: false,
+        message: FailureMessage.get("gameStartFailed"),
         errors: {
           messages: [error]
         }

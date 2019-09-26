@@ -6,16 +6,16 @@ import { ApiMultiplayer } from "./types/api-multiplayer";
 import { dynamic, SetIntervalAsyncTimer, clearIntervalAsync } from "set-interval-async";
 import { injectable, decorate, inject } from "inversify";
 import TYPES from "../types";
-import Emittery = require("emittery");
+import Emittery from "emittery";
 import { MultiplayerResultsListener } from "../multiplayer/multiplayer-results-listener";
 
 interface Watcher {
   multiplayerId: string;
-  gameIds: number[];
+  inactiveGameIds: Set<number>;
+  activeGameIds: Set<number>;
   startAtMapNumber: number;
   timer: SetIntervalAsyncTimer;
   latestResults?: ApiMultiplayer;
-  isScanning?: boolean;
 }
 
 // decorate(injectable(), EventEmitter);
@@ -24,7 +24,7 @@ decorate(injectable(), Emittery);
 @injectable()
 export class OsuLobbyScannerService extends Emittery.Typed<OsuLobbyScannerEventDataMap> implements IOsuLobbyScanner {
   protected readonly interval: number = 5000;
-  protected readonly watching: { [multiplayerId: string]: Watcher } = {};
+  protected readonly watchers: { [multiplayerId: string]: Watcher } = {};
   protected readonly mpResultsListener: MultiplayerResultsListener = new MultiplayerResultsListener(this);
 
   constructor(@inject(TYPES.IOsuApiFetcher) private readonly osuApi: IOsuApiFetcher) {
@@ -52,7 +52,7 @@ export class OsuLobbyScannerService extends Emittery.Typed<OsuLobbyScannerEventD
 
   private async scan(multiplayerId: string): Promise<void> {
     try {
-      const watcher = this.watching[multiplayerId];
+      const watcher = this.watchers[multiplayerId];
       if (!watcher) {
         // This should never happen, but sometimes the timer may be scanning when we call disposeWatcher()
         Log.warn(`No watcher defined for multiplayer ${multiplayerId}`);
@@ -76,11 +76,11 @@ export class OsuLobbyScannerService extends Emittery.Typed<OsuLobbyScannerEventD
       Log.info(`Watching game ${gameId}, multi ${multiplayerId}...`);
       const watcher: Watcher = this.findWatcher(multiplayerId);
       if (!watcher) {
-        this.watching[multiplayerId] = {
+        this.watchers[multiplayerId] = {
           multiplayerId: multiplayerId,
           gameIds: [gameId],
           startAtMapNumber: startAtMapNumber,
-          timer: dynamic.setIntervalAsync(async () => await this.scan(multiplayerId), this.interval)
+          timer: null // make the timer later, when we start the scanner for this lobby
         };
         Log.info("Created new multi watcher");
       } else if (!watcher.gameIds.includes(gameId)) {
@@ -116,6 +116,29 @@ export class OsuLobbyScannerService extends Emittery.Typed<OsuLobbyScannerEventD
     return !!this.findWatcher(multiplayerId);
   }
 
+  startWatchersForGame(gameId: number): void {
+    const watchers = this.getWatchers();
+    watchers.forEach(watcher => {
+      if (watcher.gameIds.includes(gameId)) {
+        watcher.timer;
+      }
+    });
+  }
+
+  private makeWatcherTimer(multiplayerId: string): SetIntervalAsyncTimer {
+    return dynamic.setIntervalAsync(async () => await this.scan(multiplayerId), this.interval);
+  }
+
+  private getWatchers(): Watcher[] {
+    var watchers: Watcher[] = [];
+    for (var prop in this.watchers) {
+      if (this.watchers.hasOwnProperty(prop)) {
+        watchers.push(this.watchers[prop]);
+      }
+    }
+    return watchers;
+  }
+
   /**
    * Returns true if disposed successfully.
    *
@@ -128,13 +151,13 @@ export class OsuLobbyScannerService extends Emittery.Typed<OsuLobbyScannerEventD
     if (!watcher) {
       throw new Error(`Cannot dispose watcher because no watcher exists for multiplayer ${multiplayerId}.`);
     }
-    if (this.watching[multiplayerId].timer) {
-      await clearIntervalAsync(this.watching[multiplayerId].timer);
+    if (this.watchers[multiplayerId].timer) {
+      await clearIntervalAsync(this.watchers[multiplayerId].timer);
       Log.debug(`Cleared timer for mpid ${multiplayerId}`);
     } else {
       Log.warn(`Watcher for multiplayer ${multiplayerId} did not have a timer for some reason.`);
     }
-    const deleted = delete this.watching[multiplayerId];
+    const deleted = delete this.watchers[multiplayerId];
     if (deleted) {
       Log.debug(`Disposed watcher for multiplayer ${multiplayerId}.`);
     } else {
@@ -144,7 +167,7 @@ export class OsuLobbyScannerService extends Emittery.Typed<OsuLobbyScannerEventD
   }
 
   private findWatcher(multiplayerId: string): Watcher {
-    return this.watching[multiplayerId];
+    return this.watchers[multiplayerId];
   }
 
   /**
@@ -160,7 +183,7 @@ export class OsuLobbyScannerService extends Emittery.Typed<OsuLobbyScannerEventD
       // return true;
       if (!multi || !multi.multiplayerId) throw new Error(`No multiplayer results provided.`);
       if (!multi.multiplayerId) throw new Error(`No multiplayer ID provided with multiplayer results.`);
-      const watcher = this.watching[multi.multiplayerId];
+      const watcher = this.watchers[multi.multiplayerId];
       if (multi.matches.length < 1) return false; // there are no new matches if there are no matches
       if (!watcher.latestResults) return true;
 

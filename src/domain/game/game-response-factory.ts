@@ -17,6 +17,10 @@ export class GameResponseFactory extends AbstractResponseFactory<Game> {
     return this.getUserReportPropertiesForUser(this.subject.endedBy);
   }
 
+  getStartedBy(): UserReportProperties {
+    return this.getUserReportPropertiesForUser(this.subject.startedBy);
+  }
+
   // async getReferees(): Promise<UserReportProperties[]> {
   //   const referees = await this.userGameRoleRepository.getGameReferees(this.subject.id);
   //   return referees.map(user => this.getUserReportPropertiesForUser(user));
@@ -38,5 +42,9 @@ export class GameResponseFactory extends AbstractResponseFactory<Game> {
 
   getEndedAgoText(): string {
     return this.getTimeAgoTextForTime(this.subject.endedAt);
+  }
+
+  getStartedAgoText(): string {
+    return this.getTimeAgoTextForTime(this.subject.startedAt);
   }
 }

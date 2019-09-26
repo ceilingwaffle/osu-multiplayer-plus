@@ -25,8 +25,8 @@ export class Permissions {
       // }
       { resource: "*", role: "admin", action: "*" },
 
-      { resource: "game", role: ["game-creator", "referee"], action: ["create", "update", "end", "addteam"] },
-      { resource: "game", role: ["user"], action: ["create", "!update", "!end", "!addteam"] },
+      { resource: "game", role: ["game-creator", "referee"], action: ["create", "update", "end", "start", "addteam"] },
+      { resource: "game", role: ["user"], action: ["create", "!update", "!end", "!start", "!addteam"] },
 
       { resource: "lobby", role: ["game-creator", "referee"], action: ["add", "remove"] },
       { resource: "lobby", role: ["user"], action: ["!add", "!remove"] }

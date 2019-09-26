@@ -7,6 +7,8 @@
   "gameUpdateFailed": "game update failed",
   "gameEndSuccess": "game end success",
   "gameEndFailed": "game end failed",
+  "gameStartSuccess": "game start success",
+  "gameStartFailed": "game start failed",
 
   "lobbyReadSuccess": "lobby read success",
   "lobbyReadFailed": "lobby read failed",

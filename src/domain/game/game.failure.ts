@@ -39,9 +39,12 @@ export const gameDoesNotExistFailure = (gameId: number): Failure<GameFailure.Gam
 
 export const gameCannotBeEndedDueToStatusFailure = (gameId: number, gameStatus: string): Failure<GameFailure.GameStatusNotAllowed> => ({
   type: GameFailure.GameStatusNotAllowed,
-  reason: `Game with ID ${gameId} cannot be ended, probably because it's no longer active. It has a status of '${GameStatus.getTextFromKey(
-    gameStatus
-  )}'.`
+  reason: `Game ${gameId} cannot be ended because it has a status of '${GameStatus.getTextFromKey(gameStatus)}'.`
+});
+
+export const gameCannotBeStartedDueToStatusFailure = (gameId: number, gameStatus: string): Failure<GameFailure.GameStatusNotAllowed> => ({
+  type: GameFailure.GameStatusNotAllowed,
+  reason: `Game ${gameId} cannot be started because it has a status of '${GameStatus.getTextFromKey(gameStatus)}'.`
 });
 
 export const userHasNotCreatedGameFailure = (userId: number): Failure<GameFailure.UserHasNotCreatedGame> => ({

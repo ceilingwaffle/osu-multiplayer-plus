@@ -10,7 +10,8 @@ import {
   invalidGamePropertiesFailure,
   gameDoesNotExistFailure,
   gameCannotBeEndedDueToStatusFailure,
-  userHasNotCreatedGameFailure
+  userHasNotCreatedGameFailure,
+  gameCannotBeStartedDueToStatusFailure
 } from "./game.failure";
 import { UserService } from "../user/user.service";
 import { UserFailure } from "../user/user.failure";
@@ -35,6 +36,7 @@ import { UserRepository } from "../user/user.repository";
 import { GameEventRegistrarInitializer } from "../../multiplayer/game-events/game-event-registrar-initializer";
 import { GameEventRegistrarCollection } from "../../multiplayer/game-events/game-event-registrar-collection";
 import { IDbClient } from "../../database/db-client";
+import { StartGameDto } from "./dto/start-game.dto";
 
 @injectable()
 export class GameService {
@@ -128,7 +130,7 @@ export class GameService {
 
   private isValidGameId(gameId: number): boolean {
     if (!Number.isInteger(gameId)) {
-      Log.warn("Game ID is invalid.");
+      Log.warn("Game ID is invalid.", { gameId: gameId });
       return false;
     } else {
       return true;
@@ -190,7 +192,7 @@ export class GameService {
       }
 
       // update game status in database
-      await this.updateGameAsEnded(gameId, endedByUser);
+      await this.updateGameStatusAsEndedByUser(gameId, endedByUser);
 
       // return the updated game
       const reloadedGame = await this.dbConn.manager.getCustomRepository(GameRepository).findGame(gameId);
@@ -202,20 +204,96 @@ export class GameService {
     }
   }
 
-  private makeValidationErrorsOfGameId(gameId: number) {
+  public async startGame({
+    gameDto,
+    startedByUser
+  }: {
+    gameDto: StartGameDto;
+    startedByUser: User;
+  }): Promise<Either<Failure<GameFailure | UserFailure>, Game>> {
+    try {
+      const gameId = gameDto.gameId;
+
+      // validate the game ID
+      if (!this.isValidGameId(gameId)) {
+        Log.methodFailure(this.startGame, this.constructor.name, "Start-game validation failed.");
+        return failurePromise(invalidGamePropertiesFailure(this.makeValidationErrorsOfGameId(gameId)));
+      }
+
+      // get the target game
+      const game = await this.dbConn.manager.getCustomRepository(GameRepository).findGameWithLobbies(gameId);
+      if (!game) {
+        const failure = gameDoesNotExistFailure(gameId);
+        Log.methodFailure(this.startGame, this.constructor.name, failure.reason);
+        return failurePromise(failure);
+      }
+
+      // ensure the game has a "startable" status
+      if (!GameStatus.isStartable(game.status)) {
+        const failure = gameCannotBeStartedDueToStatusFailure(gameId, game.status);
+        Log.methodFailure(this.endGame, this.constructor.name, failure.reason);
+        return failurePromise(failure);
+      }
+
+      // start scanning lobbies for match results
+      await this.osuLobbyScanner.startWatchersForGameIfWatcherNotStarted(gameId);
+      // if (game.gameLobbies) {
+      //   await Promise.all(
+      //     game.gameLobbies
+      //       .filter(gameLobby => gameLobby.lobby && gameLobby.lobby.banchoMultiplayerId)
+      //       // for all bancho multiplayer ids belongings to this game
+      //       .map(gameLobby => gameLobby.lobby.banchoMultiplayerId)
+      //     // call watch on all lobbies for this game on the lobby scanner.
+      //     // TODO: .map(async banchoMultiplayerId => await this.osuLobbyScanner.startWatchersForGame(gameId))
+      //   );
+      // }
+
+      // set a new game status in the database
+      await this.updateGameStatusAsStartedByUser(gameId, startedByUser);
+
+      // return the updated game
+      const reloadedGame = await this.dbConn.manager.getCustomRepository(GameRepository).findGame(gameId);
+      Log.methodSuccess(this.endGame, this.constructor.name);
+      return successPromise(reloadedGame);
+    } catch (error) {
+      Log.methodError(this.endGame, this.constructor.name, error);
+      throw error;
+    }
+  }
+
+  private makeValidationErrorsOfGameId(gameId: number): ValidationError[] {
     const validationErrors = [new ValidationError()];
     validationErrors[0].property = "id";
     validationErrors[0].value = gameId;
     return validationErrors;
   }
 
-  private async updateGameAsEnded(gameId: number, endedByUser: User) {
-    await this.dbConn.manager.getCustomRepository(GameRepository).update(gameId, {
-      status: GameStatus.MANUALLY_ENDED.getKey(),
-      endedAt: Helpers.getNow(),
-      endedBy: endedByUser
-    });
-    Log.methodSuccess(this.updateGameAsEnded, this.constructor.name, { gameId: gameId });
+  private async updateGameStatusAsEndedByUser(gameId: number, endedByUser: User): Promise<void> {
+    try {
+      await this.dbConn.manager.getCustomRepository(GameRepository).update(gameId, {
+        status: GameStatus.MANUALLY_ENDED.getKey(),
+        endedAt: Helpers.getNow(),
+        endedBy: endedByUser
+      });
+      Log.methodSuccess(this.updateGameStatusAsEndedByUser, this.constructor.name, { gameId: gameId });
+    } catch (error) {
+      Log.methodError(this.updateGameStatusAsEndedByUser, this.constructor.name, { gameId: gameId }, error);
+      throw error;
+    }
+  }
+
+  private async updateGameStatusAsStartedByUser(gameId: number, startedByUser: User): Promise<void> {
+    try {
+      await this.dbConn.manager.getCustomRepository(GameRepository).update(gameId, {
+        status: GameStatus.INPROGRESS.getKey(),
+        startedAt: Helpers.getNow(),
+        startedBy: startedByUser
+      });
+      Log.methodSuccess(this.updateGameStatusAsStartedByUser, this.constructor.name, { gameId: gameId });
+    } catch (error) {
+      Log.methodError(this.updateGameStatusAsStartedByUser, this.constructor.name, { gameId: gameId }, error);
+      throw error;
+    }
   }
 
   public async updateGame(
@@ -380,23 +458,23 @@ export class GameService {
     }
   }
 
-  public isGameActive(game: Game): boolean {
-    try {
-      return GameStatus.isActiveStatus(game.status);
-    } catch (error) {
-      Log.methodError(this.isGameActive, this.constructor.name, error);
-      throw error;
-    }
-  }
+  // public isGameActive(game: Game): boolean {
+  //   try {
+  //     return GameStatus.isStartedStatus(game.status);
+  //   } catch (error) {
+  //     Log.methodError(this.isGameActive, this.constructor.name, error);
+  //     throw error;
+  //   }
+  // }
 
-  public isGameEnded(game: Game): boolean {
-    try {
-      return GameStatus.isEndedStatus(game.status);
-    } catch (error) {
-      Log.methodError(this.isGameEnded, this.constructor.name, error);
-      throw error;
-    }
-  }
+  // public isGameEnded(game: Game): boolean {
+  //   try {
+  //     return GameStatus.isEndedStatus(game.status);
+  //   } catch (error) {
+  //     Log.methodError(this.isGameEnded, this.constructor.name, error);
+  //     throw error;
+  //   }
+  // }
 
   public async updateGameStatusForGameId({
     gameId,
