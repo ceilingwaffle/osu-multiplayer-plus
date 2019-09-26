@@ -142,8 +142,6 @@ describe("When ending a game", function() {
         const endGameResponse = await gameController.endGame({ endGameDto: endGameDto, requestDto: createGame1DiscordRequest });
 
         // Assert game report has the expected values.
-        // Note that the "endedBy" property is optional (e.g. if the game was ended by the system)
-        // but in this case, the game was ended by a user, so we expect it to have some value about a User.
         assert.equal(endGameResponse.message, Message.get("gameEndSuccess"));
         const endGameReport = endGameResponse.result as EndGameReport;
         assert.isDefined(endGameReport.gameId);
@@ -164,20 +162,23 @@ describe("When ending a game", function() {
     });
   });
 
-  it("should end a game and ensure it was changed from an active-state to an ended-state", function() {
+  it("should end a game and ensure its status is correct", function() {
     return new Promise(async (resolve, reject) => {
       try {
         const gameController = iocContainer.get<GameController>(TYPES.GameController);
         const gameService = iocContainer.get<GameService>(TYPES.GameService);
         const endGameDto: EndGameDto = { gameId: 1 };
 
-        // ensure the game is in a ready/active/non-ended state
-        const activeGameResponse = await gameService.findGameById(endGameDto.gameId);
-        assert.isDefined(activeGameResponse);
-        assert.isTrue(activeGameResponse.succeeded());
-        const activeGame = activeGameResponse.value as Game;
-        assert.isTrue(gameService.isGameActive(activeGame), "The game is in an 'ended' state but it shouldn't be.");
-        assert.isFalse(gameService.isGameEnded(activeGame), "The game is in an 'ended' state but it shouldn't be.");
+        // ensure the just-created game has the correct status
+        const createGameResponse = await gameService.findGameById(endGameDto.gameId);
+        assert.isDefined(createGameResponse);
+        assert.isTrue(createGameResponse.succeeded());
+        const createdGame = createGameResponse.value as Game;
+        assert.isTrue(GameStatus.isEndable(createdGame.status), "A newly created game should be endable.");
+        assert.isFalse(GameStatus.isEndedStatus(createdGame.status));
+        assert.isTrue(GameStatus.isNewGameStatus(createdGame.status));
+        assert.isTrue(GameStatus.isStartable(createdGame.status), "A newly created game should be startable.");
+        assert.isFalse(GameStatus.isStartedStatus(createdGame.status));
 
         // the same Discord user ends the game
         const endGameResponse = await gameController.endGame({ endGameDto: endGameDto, requestDto: createGame1DiscordRequest });
@@ -188,8 +189,11 @@ describe("When ending a game", function() {
         const endedGameResponse = await gameService.findGameById(endGameDto.gameId);
         assert.isTrue(endedGameResponse.succeeded());
         const endedGame = endedGameResponse.value as Game;
-        assert.isTrue(gameService.isGameEnded(endedGame), "The game is in an 'active' state but it shouldn't be.");
-        assert.isFalse(gameService.isGameActive(endedGame), "The game is in an 'active' state but it shouldn't be.");
+        assert.isFalse(GameStatus.isEndable(endedGame.status), "An ended game should not be endable.");
+        assert.isTrue(GameStatus.isEndedStatus(endedGame.status));
+        assert.isFalse(GameStatus.isNewGameStatus(endedGame.status));
+        assert.isFalse(GameStatus.isStartable(endedGame.status), "An ended game should not be startable.");
+        assert.isFalse(GameStatus.isStartedStatus(endedGame.status));
 
         return resolve();
       } catch (error) {
