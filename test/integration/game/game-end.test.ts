@@ -8,7 +8,7 @@ import { GameController } from "../../../src/domain/game/game.controller";
 import { DiscordRequestDto } from "../../../src/requests/dto/discord-request.dto";
 import { Game } from "../../../src/domain/game/game.entity";
 import { User } from "../../../src/domain/user/user.entity";
-import { GameStatus } from "../../../src/domain/game/game-status/game-status";
+import { GameStatus } from "../../../src/domain/game/game-status";
 import { DiscordUser } from "../../../src/domain/user/discord-user.entity";
 import { UpdateGameReport } from "../../../src/domain/game/reports/update-game.report";
 import { DiscordUserReportProperties } from "../../../src/domain/shared/reports/discord-user-report-properties";

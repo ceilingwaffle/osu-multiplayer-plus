@@ -2,7 +2,7 @@ import iocContainer from "../../inversify.config";
 import TYPES from "../../types";
 import { GameEventRegistrarCollection } from "./game-event-registrar-collection";
 import { GameRepository } from "../../domain/game/game.repository";
-import { GameStatus } from "../../domain/game/game-status/game-status";
+import { GameStatus } from "../../domain/game/game-status";
 import { GameEvent } from "./game-event";
 import { TeamWonMatchGameEvent } from "./events/team-won-match.game-event";
 import { TeamEliminatedGameEvent } from "./events/team-eliminated.game-event";

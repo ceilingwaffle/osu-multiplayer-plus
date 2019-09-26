@@ -35,7 +35,7 @@ import { Helpers } from "../../../src/utils/helpers";
 import { AddTeamsDto } from "../../../src/domain/team/dto/add-team.dto";
 import { TeamController } from "../../../src/domain/team/team.controller";
 import { Game as GameEntity } from "../../../src/domain/game/game.entity";
-import { GameStatus } from "../../../src/domain/game/game-status/game-status";
+import { GameStatus } from "../../../src/domain/game/game-status";
 
 chai.use(chaiExclude);
 

@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, JoinTable, OneToMany } from "typeorm";
 import { IsInt, IsBoolean, IsPositive } from "class-validator";
 import { User } from "../user/user.entity";
-import { GameStatus } from "./game-status/game-status";
+import { GameStatus } from "./game-status";
 import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity";
 import { GameMessageTarget } from "./game-message-target";
 import { UserGameRole } from "../role/user-game-role.entity";
@@ -35,6 +35,13 @@ export class Game extends CreationTimestampedEntity {
 
   @Column({ name: "ended_at", nullable: true })
   endedAt: number;
+
+  @ManyToOne(type => User)
+  @JoinColumn({ name: "started_by_user_id" })
+  startedBy: User;
+
+  @Column({ name: "started_at", nullable: true })
+  startedAt: number;
 
   @OneToMany(type => GameLobby, gameLobby => gameLobby.game, { cascade: true })
   @JoinTable()

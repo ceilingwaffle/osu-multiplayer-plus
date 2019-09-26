@@ -1,7 +1,9 @@
-import { GenericType } from "../../../utils/generic-type";
-import { GameStatusActionable } from "./game-status-actionable";
+import { GenericType } from "../../utils/generic-type";
+import { ActionableGenericType } from "../../utils/actionable-generic-type";
+import { GameStatusActionableType } from "./game-status-actionable-type";
+import { GameStatusActionedType } from "./game-status-actioned-type";
 
-export class GameStatus extends GameStatusActionable {
+export class GameStatus extends ActionableGenericType<GameStatusActionableType, GameStatusActionedType> {
   static readonly UNKNOWN = new GameStatus("unknown", "Unknown", "unknown", []);
 
   // created (i.e. after the user has created the game and no lobby scanner has been started)
