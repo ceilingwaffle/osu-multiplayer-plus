@@ -19,7 +19,7 @@ import { IDbClient } from "../database/db-client";
 import { GameEventRegistrarCollection } from "./game-events/game-event-registrar-collection";
 import { GameEvent } from "./game-events/game-event";
 import { Game } from "../domain/game/game.entity";
-import { GameStatus } from "../domain/game/game-status";
+import { GameStatus } from "../domain/game/game-status/game-status";
 import { GameEventRegistrar } from "./game-events/game-event-registrar";
 import { GameLobby } from "../domain/game/game-lobby.entity";
 import { Helpers } from "../utils/helpers";
@@ -164,7 +164,7 @@ export class MultiplayerResultsProcessor {
       );
       this.markAsProcessed();
       Log.methodSuccess(this.process, this.constructor.name);
-      return reloadedLobby.gameLobbies.map(gl => gl.game).filter(g => GameStatus.isActiveStatus(g.status));
+      return reloadedLobby.gameLobbies.map(gl => gl.game).filter(g => GameStatus.isStartedStatus(g.status));
     } catch (error) {
       Log.methodError(this.process, this.constructor.name, error);
       throw error;

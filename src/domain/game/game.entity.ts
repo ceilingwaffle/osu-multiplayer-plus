@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, JoinTable, OneToMany } from "typeorm";
 import { IsInt, IsBoolean, IsPositive } from "class-validator";
 import { User } from "../user/user.entity";
-import { GameStatus } from "./game-status";
+import { GameStatus } from "./game-status/game-status";
 import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity";
 import { GameMessageTarget } from "./game-message-target";
 import { UserGameRole } from "../role/user-game-role.entity";

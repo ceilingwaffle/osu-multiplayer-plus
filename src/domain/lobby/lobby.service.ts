@@ -26,7 +26,7 @@ import { failurePromise, successPromise } from "../../utils/either";
 import { UserService } from "../user/user.service";
 import { validate } from "class-validator";
 import { GameRepository } from "../game/game.repository";
-import { GameStatus } from "../game/game-status";
+import { GameStatus } from "../game/game-status/game-status";
 import { RemoveLobbyDto } from "./dto/remove-lobby.dto";
 import { Helpers } from "../../utils/helpers";
 import { RemovedLobbyResult } from "./removed-lobby-result";

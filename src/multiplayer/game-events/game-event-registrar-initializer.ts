@@ -2,7 +2,7 @@ import iocContainer from "../../inversify.config";
 import TYPES from "../../types";
 import { GameEventRegistrarCollection } from "./game-event-registrar-collection";
 import { GameRepository } from "../../domain/game/game.repository";
-import { GameStatus } from "../../domain/game/game-status";
+import { GameStatus } from "../../domain/game/game-status/game-status";
 import { GameEvent } from "./game-event";
 import { TeamWonMatchGameEvent } from "./events/team-won-match.game-event";
 import { TeamEliminatedGameEvent } from "./events/team-eliminated.game-event";
@@ -20,7 +20,7 @@ export class GameEventRegistrarInitializer {
       const dbConn: Connection = dbClient.getConnection();
       const gameRepository = dbConn.manager.getCustomRepository(GameRepository);
       const allGames = await gameRepository.find();
-      const activeGames = allGames.filter(game => GameStatus.isActiveStatus(game.status));
+      const activeGames = allGames.filter(game => GameStatus.isStartedStatus(game.status));
       for (const game of activeGames) {
         // initialize game-event-registrars for all active games
         const registrar = gameEventRegistrarCollection.findOrCreate(game.id);
