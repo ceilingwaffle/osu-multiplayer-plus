@@ -32,8 +32,8 @@ export class OsuLobbyScannerService extends Emittery.Typed<OsuLobbyScannerEventD
         watcher = this.watchers[multiplayerId] = new OsuLobbyScannerWatcher(multiplayerId);
 
         Log.info("Created multiplayer watcher.", { gameId, multiplayerId });
-        if (watcher.tryAddInactiveGameId(gameId)) {
-          Log.info("Added game ID to inactive gameIds on existing multiplayer watcher.", { gameId, multiplayerId });
+        if (watcher.tryAddWaitingGameId(gameId)) {
+          Log.info("Added game ID to waiting gameIds on existing multiplayer watcher.", { gameId, multiplayerId });
         }
         Log.methodSuccess(this.tryCreateWatcher, this.constructor.name);
         return Promise.resolve({
@@ -42,8 +42,8 @@ export class OsuLobbyScannerService extends Emittery.Typed<OsuLobbyScannerEventD
           whatHappened: "createdStoppedWatcher"
         });
       } else if (!watcher.hasGameId(gameId)) {
-        if (watcher.tryAddInactiveGameId(gameId)) {
-          Log.info("Added game ID to inactive gameIds on existing multiplayer watcher.", { gameId, multiplayerId });
+        if (watcher.tryAddWaitingGameId(gameId)) {
+          Log.info("Added game ID to waiting gameIds on existing multiplayer watcher.", { gameId, multiplayerId });
         }
         Log.methodSuccess(this.tryCreateWatcher, this.constructor.name);
         return Promise.resolve({
@@ -72,8 +72,8 @@ export class OsuLobbyScannerService extends Emittery.Typed<OsuLobbyScannerEventD
       if (watcher.tryDeleteActiveGameId(gameId)) {
         Log.info(`Removed active game ID ${gameId} in watcher for MP ID ${multiplayerId}.`);
       }
-      if (watcher.tryDeleteInactiveGameId(gameId)) {
-        Log.info(`Removed inactive game ID ${gameId} in watcher for MP ID ${multiplayerId}.`);
+      if (watcher.tryDeleteWaitingGameId(gameId)) {
+        Log.info(`Removed waiting game ID ${gameId} in watcher for MP ID ${multiplayerId}.`);
       }
 
       // if other games are using this watcher, do not delete the watcher
@@ -118,9 +118,9 @@ export class OsuLobbyScannerService extends Emittery.Typed<OsuLobbyScannerEventD
 
       const affectedWatchers: LobbyWatcherChanged[] = [];
       for (const watcher of targetWatchers) {
-        // move inactive game to active
-        if (watcher.tryDeleteInactiveGameId(gameId)) {
-          Log.info(`Removed inactive game ID ${gameId} in watcher for MP ID ${watcher.multiplayerId}.`);
+        // move waiting game to active
+        if (watcher.tryDeleteWaitingGameId(gameId)) {
+          Log.info(`Removed waiting game ID ${gameId} in watcher for MP ID ${watcher.multiplayerId}.`);
         }
         if (watcher.tryAddActiveGameId(gameId)) {
           Log.info(`Added active game ID ${gameId} in watcher for MP ID ${watcher.multiplayerId}.`);
@@ -170,14 +170,14 @@ export class OsuLobbyScannerService extends Emittery.Typed<OsuLobbyScannerEventD
         if (watcher.tryDeleteActiveGameId(gameId)) {
           Log.info(`Removed active game ID ${gameId} in watcher for MP ID ${watcher.multiplayerId}.`);
         }
-        if (watcher.tryDeleteInactiveGameId(gameId)) {
-          Log.info(`Removed inactive game ID ${gameId} in watcher for MP ID ${watcher.multiplayerId}.`);
+        if (watcher.tryDeleteWaitingGameId(gameId)) {
+          Log.info(`Removed waiting game ID ${gameId} in watcher for MP ID ${watcher.multiplayerId}.`);
         }
 
         let disposedWatcher: boolean = false;
         let stoppedWatcher: boolean = false;
         if (!watcher.countAllGames()) {
-          // completely dispose the watcher if no games remain (inactive or active)
+          // completely dispose the watcher if no games remain (waiting or active)
           Log.info(`Disposing watcher for MP ID ${watcher.multiplayerId}...`);
           await this.disposeWatcher(watcher.multiplayerId);
           disposedWatcher = true;
