@@ -557,45 +557,45 @@ describe("When removing a lobby", function() {
     });
   });
 
-  // it("should deny a lobby-removal when the requesting-user does not have permission", function() {
-  //   return new Promise(async (resolve, reject) => {
-  //     try {
-  //       return resolve();
-  //     } catch (error) {
-  //       return reject(error);
-  //     }
-  //   });
-  // });
+  xit("should deny a lobby-removal when the requesting-user does not have permission", function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
 
-  // it("should receive an error message when trying to remove a Lobby when the Lobby was not one of the lobbies of a game", function() {
-  //   return new Promise((resolve, reject) => {
-  //     try {
-  //       // test with no game id provided (should use the game id of the most-recently created game by the requesting-user)
-  //       // test with a specific game id provided
-  //       return resolve();
-  //     } catch (error) {
-  //       return reject(error);
-  //     }
-  //   });
-  // });
+  xit("should receive an error message when trying to remove a Lobby when the Lobby was not one of the lobbies of a game", function() {
+    return new Promise((resolve, reject) => {
+      try {
+        // test with no game id provided (should use the game id of the most-recently created game by the requesting-user)
+        // test with a specific game id provided
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
 
-  // it("should receive an error message when trying to remove a Lobby from a non-existent game", function() {
-  //   return new Promise((resolve, reject) => {
-  //     try {
-  //       return resolve();
-  //     } catch (error) {
-  //       return reject(error);
-  //     }
-  //   });
-  // });
+  xit("should receive an error message when trying to remove a Lobby from a non-existent game", function() {
+    return new Promise((resolve, reject) => {
+      try {
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
 
-  // it("should receive an error message when trying to remove a Lobby from a concluded game", function() {
-  //   return new Promise((resolve, reject) => {
-  //     try {
-  //       return resolve();
-  //     } catch (error) {
-  //       return reject(error);
-  //     }
-  //   });
-  // });
+  xit("should receive an error message when trying to remove a Lobby from a concluded game", function() {
+    return new Promise((resolve, reject) => {
+      try {
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
 });

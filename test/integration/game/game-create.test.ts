@@ -41,13 +41,6 @@ function getEntities(conn: Connection): TestContextEntities[] {
 
 describe("When creating a game", function() {
   this.beforeEach(function() {
-    // const conn = iocContainer
-    //   .get<IDbClient>(TYPES.IDbClient)
-    //   .connectIfNotConnected()
-    //   .then(conn => {
-    //     TestHelpers.loadAll(getEntities(conn), conn);
-    //   });
-
     return new Promise(async (resolve, reject) => {
       try {
         const conn = await iocContainer.get<IDbClient>(TYPES.IDbClient).connectIfNotConnected();

@@ -104,7 +104,7 @@ describe("When processing multiplayer results", function() {
   //   it("should not process any results"); // in the real world, a game will refuse to be started if no teams have been added, but we should check for this anyway to be safe
   // });
 
-  describe("with a number of results", function() {
+  xdescribe("with a number of results", function() {
     it("should process and save 1 API result containing 1 match result", function() {
       return new Promise(async (resolve, reject) => {
         try {

@@ -299,16 +299,16 @@ describe("When adding a lobby", function() {
     });
   });
 
-  // it("should initiate the lobby scanner", function() {
-  //   return new Promise(async (resolve, reject) => {
-  //     try {
-  //       // TODO: Stub osu lobby scanner
-  //       return resolve();
-  //     } catch (error) {
-  //       return reject(error);
-  //     }
-  //   });
-  // });
+  xit("should initiate the lobby scanner", function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // TODO: Stub osu lobby scanner
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
 
   it("should fail to save a lobby when targetting a game ID of a game that doesn't exist", function() {
     return new Promise(async (resolve, reject) => {

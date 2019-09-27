@@ -963,63 +963,63 @@ describe("When adding teams to a game", function() {
     });
   });
 
-  // it("should fail to create any teams when attempting to add two identical teams", function() {
-  //   return new Promise(async (resolve, reject) => {
-  //     try {
-  //       return reject();
-  //       return resolve();
-  //     } catch (error) {
-  //       return reject(error);
-  //     }
-  //   });
-  // });
+  xit("should fail to create any teams when attempting to add two identical teams", function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        return reject();
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
 
-  // it("should allow a game ref to add a team", function() {
-  //   return new Promise(async (resolve, reject) => {
-  //     try {
-  //       // create multiple teams
-  //       // team.createdBy.discordUser.discordUserId === requestingUserId
-  //       // team.gameTeams[0].addedBy.discordUser.discordUserId === requestUserId
-  //       return reject();
-  //       return resolve();
-  //     } catch (error) {
-  //       return reject(error);
-  //     }
-  //   });
-  // });
+  xit("should allow a game ref to add a team", function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // create multiple teams
+        // team.createdBy.discordUser.discordUserId === requestingUserId
+        // team.gameTeams[0].addedBy.discordUser.discordUserId === requestUserId
+        return reject();
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
 
-  // it("should fail to add a team to an ended game", function() {
-  //   return new Promise(async (resolve, reject) => {
-  //     try {
-  //       return reject();
-  //       return resolve();
-  //     } catch (error) {
-  //       return reject(error);
-  //     }
-  //   });
-  // });
+  xit("should fail to add a team to an ended game", function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        return reject();
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
 
-  // it("should fail to add a team to a started game", function() {
-  //   return new Promise(async (resolve, reject) => {
-  //     try {
-  //       return reject();
-  //       return resolve();
-  //     } catch (error) {
-  //       return reject(error);
-  //     }
-  //   });
-  // });
+  xit("should fail to add a team to a started game", function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        return reject();
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
 
-  // it("should create 2 games and add team players to the most recetly created game", function() {
-  //   return new Promise(async (resolve, reject) => {
-  //     try {
-  // assert db state
-  // assert team report includes "Added to Game ID x"
-  //       return reject();
-  //       return resolve();
-  //     } catch (error) {
-  //       return reject(error);
-  //     }
-  //   });
-  // });
+  xit("should create 2 games and add team players to the most recetly created game", function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        // assert db state
+        // assert team report includes "Added to Game ID x"
+        return reject();
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
 });

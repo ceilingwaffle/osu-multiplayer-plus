@@ -227,15 +227,15 @@ describe("When ending a game", function() {
     });
   });
 
-  // it("should end a game requested by a game referee", function() {
-  //   return new Promise(async (resolve, reject) => {
-  //     try {
-  //       return resolve();
-  //     } catch (error) {
-  //       return reject(error);
-  //     }
-  //   });
-  // });
+  xit("should end a game requested by a game referee", function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
 
   it("should fail to end a game that has already ended", function() {
     return new Promise(async (resolve, reject) => {
@@ -328,13 +328,13 @@ describe("When ending a game", function() {
     });
   });
 
-  // it("should stop watching a lobby when a game is ended", function() {
-  //   return new Promise(async (resolve, reject) => {
-  //     try {
-  //       return resolve();
-  //     } catch (error) {
-  //       return reject(error);
-  //     }
-  //   });
-  // });
+  xit("should stop watching a lobby when a game is ended", function() {
+    return new Promise(async (resolve, reject) => {
+      try {
+        return resolve();
+      } catch (error) {
+        return reject(error);
+      }
+    });
+  });
 });
