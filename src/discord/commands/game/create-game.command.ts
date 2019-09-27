@@ -41,7 +41,6 @@ export class CreateGameCommand extends AppBaseCommand {
         }
       ]
     });
-    Log.debug(`Initialized ${this.constructor.name}`);
   }
 
   public async run(
