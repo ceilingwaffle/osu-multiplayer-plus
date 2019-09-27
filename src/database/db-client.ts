@@ -7,6 +7,7 @@ import { Connection, createConnection } from "typeorm";
 import { injectable } from "inversify";
 import { Log } from "../utils/Log";
 import { PostgresConnectionOptions } from "typeorm/driver/postgres/PostgresConnectionOptions";
+import { default as postgresConfig } from "../config/typeorm/ormconfig.postgres";
 
 export interface IDbClient {
   connect(): Promise<Connection>;
@@ -31,28 +32,7 @@ export class DbClient implements IDbClient {
       if (process.env.NODE_ENV == "test") {
         this.connection = await createConnection(require("../../test/config/typeorm/ormconfig.testing.sqlite.dbinmemory.json"));
       } else if (process.env.NODE_ENV == "development") {
-        // this.connection = await createConnection(require("../../test/config/typeorm/ormconfig.testing.sqlite.dbinfile.json"));
-        const config: PostgresConnectionOptions = {
-          type: "postgres",
-          host: process.env.POSTGRES_HOSTNAME,
-          port: Number(process.env.POSTGRES_PORT),
-          username: process.env.POSTGRES_USERNAME,
-          password: process.env.POSTGRES_PASSWORD,
-          database: process.env.POSTGRES_DBNAME,
-          synchronize: false, // npm run typeorm schema:sync
-          logging: ["warn"],
-          entities: ["src/domain/**/*.entity.ts"],
-          subscribers: ["src/domain/**/*.subscriber.ts"],
-          migrations: ["src/database/migrations/**/*.ts"],
-          // seeds: ["src/database/seeds/**/*.ts"],
-          cli: {
-            entitiesDir: "src/domain/**",
-            migrationsDir: "src/database/migrations",
-            subscribersDir: "src/domain/**"
-          }
-        };
-
-        this.connection = await createConnection(config);
+        this.connection = await createConnection(postgresConfig);
       } else {
         this.connection = await createConnection(require("../../config/typeorm/ormconfig.sqlite.json"));
       }
