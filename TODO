@@ -293,7 +293,7 @@ TODO:
             Lobby:
                 ☐ `!obr addlobby <banchoMpId>` @created(19-09-01 22:58)
                     ✔ When using command !obr addlobby 54078930 6, on a game which already has that lobby added, return some error message. @started(19-08-19 00:30) @done(19-08-19 05:13) @lasted(4h43m45s)
-                    ☐ Don't actually starting watching for results until `!obr startgame` is used, unless the lobby was added to an already-started game @created(19-09-02 13:57)
+                    ✔ Don't actually starting watching for results until `!obr startgame` is used, unless the lobby was added to an already-started game @created(19-09-02 13:57) @done(19-09-27 22:58)
                     ☐ We should be able to add a lobby to an already-started game and just have the score calculator calculate scores for registered players in the new lobby during the score-calculation at the end of each match @created(19-09-02 13:58)
                 ✔ `!obr removelobby <banchoMpId>` @created(19-09-01 23:05) @done(19-09-01 23:05)
                     ✔ Add a manual remove-lobby command. Include description like "this will not close the actual lobby; it will only tell the bot to stop scanning the lobby for future results." @started(19-08-19 00:30) @done(19-08-19 05:13) @lasted(4h43m45s)
