@@ -307,6 +307,10 @@ export class OsuLobbyScannerService extends Emittery.Typed<OsuLobbyScannerEventD
       if (!multi.multiplayerId) throw new Error(`No multiplayer ID provided with multiplayer results.`);
       if (!multi.matches.length) return false; // there can be no new matches if there are no matches
       const watcher = this.watchers[multi.multiplayerId];
+      if (!watcher) {
+        Log.methodFailure(this.containsNewMatches, this.constructor.name, "Watcher is undefined. Returning false.");
+        return false;
+      }
       if (!watcher.latestResults) return true;
 
       const latestKnownMatch = watcher.latestResults.matches.slice(-1)[0];
