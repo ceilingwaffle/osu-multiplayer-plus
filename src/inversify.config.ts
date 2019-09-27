@@ -1,6 +1,4 @@
 import "reflect-metadata";
-import { IOsuLobbyScanner } from "./osu/interfaces/osu-lobby-scanner";
-import { OsuLobbyScannerService } from "./osu/osu-lobby-scanner-service";
 import { GameService } from "./domain/game/game.service";
 import { GameController } from "./domain/game/game.controller";
 import { UserService } from "./domain/user/user.service";
@@ -17,7 +15,8 @@ import { NodesuApiFetcher } from "./osu/nodesu-api-fetcher";
 import { IOsuApiFetcher } from "./osu/interfaces/osu-api-fetcher";
 import { FakeOsuApiFetcher } from "../test/classes/fake-osu-api-fetcher";
 import { IsValidBanchoMultiplayerIdConstraint } from "./osu/validators/bancho-multiplayer-id.validator";
-import { FakeOsuLobbyScanner } from "../test/classes/fake-osu-lobby-scanner";
+import { IOsuLobbyScanner } from "./osu/interfaces/osu-lobby-scanner";
+import { OsuLobbyScannerService } from "./osu/osu-lobby-scanner-service";
 import { GameEventRegistrarCollection } from "./multiplayer/game-events/game-event-registrar-collection";
 import { Connection } from "typeorm";
 import { IDbClient, DbClient } from "./database/db-client";
@@ -58,12 +57,14 @@ export class IOCKernel extends Container {
     this.bind<GameEventRegistrarCollection>(TYPES.GameEventRegistrarCollection).to(GameEventRegistrarCollection).inSingletonScope(); // prettier-ignore
     this.bind<IDbClient>(TYPES.IDbClient).to(DbClient).inSingletonScope(); // prettier-ignore
 
+    this.bind<IOsuLobbyScanner>(TYPES.IOsuLobbyScanner).to(OsuLobbyScannerService).inSingletonScope(); // prettier-ignore
+
     if (process.env.NODE_ENV === "test") {
       this.bind<IOsuApiFetcher>(TYPES.IOsuApiFetcher).to(FakeOsuApiFetcher).inSingletonScope(); // prettier-ignore
-      this.bind<IOsuLobbyScanner>(TYPES.IOsuLobbyScanner).to(FakeOsuLobbyScanner).inSingletonScope(); // prettier-ignore
+      // this.bind<IOsuLobbyScanner>(TYPES.IOsuLobbyScanner).to(FakeOsuLobbyScanner).inSingletonScope(); // prettier-ignore
     } else {
       this.bind<IOsuApiFetcher>(TYPES.IOsuApiFetcher).to(NodesuApiFetcher).inSingletonScope(); // prettier-ignore
-      this.bind<IOsuLobbyScanner>(TYPES.IOsuLobbyScanner).to(OsuLobbyScannerService).inSingletonScope(); // prettier-ignore
+      // this.bind<IOsuLobbyScanner>(TYPES.IOsuLobbyScanner).to(OsuLobbyScannerService).inSingletonScope(); // prettier-ignore
     }
   }
 

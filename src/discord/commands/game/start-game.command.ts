@@ -5,8 +5,12 @@ const { lazyInject } = getDecorators(iocContainer);
 import { CommandoClient, CommandMessage } from "discord.js-commando";
 import { GameController } from "../../../domain/game/game.controller";
 import { AppBaseCommand } from "../app-base-command";
-import { Message } from "discord.js";
+import { Message, RichEmbed } from "discord.js";
 import { DiscordRequestDto } from "../../../requests/dto";
+import { Response } from "../../../requests/Response";
+import { StartGameReport } from "../../../domain/game/reports/start-game.report";
+import { ErrorDiscordMessageBuilder } from "../../message-builders/error.discord-message-builder";
+import { StartGameDiscordMessageBuilder } from "../../message-builders/game/start-game.discord-message-builder";
 
 export class StartGameCommand extends AppBaseCommand {
   @lazyInject(TYPES.GameController) private gameController: GameController;
@@ -25,7 +29,13 @@ export class StartGameCommand extends AppBaseCommand {
       examples: [],
       guildOnly: true,
       argsPromptLimit: 0,
-      args: []
+      args: [
+        {
+          key: "gameID",
+          prompt: "The ID number of the game to be started.",
+          type: "integer"
+        }
+      ]
     });
   }
 
@@ -43,6 +53,18 @@ export class StartGameCommand extends AppBaseCommand {
 
     if (!(await this.confirm(message.message))) return;
 
-    const startGameResponse = await this.gameController.startGame({ startGameDto: { gameId: args.gameID }, requestDto: requestDto });
+    const startGameResponse: Response<StartGameReport> = await this.gameController.startGame({
+      startGameDto: { gameId: args.gameID },
+      requestDto: requestDto
+    });
+
+    let toBeSent: RichEmbed;
+    if (!startGameResponse || !startGameResponse.success) {
+      toBeSent = new ErrorDiscordMessageBuilder().from(startGameResponse, this).buildDiscordMessage(message);
+    } else {
+      toBeSent = new StartGameDiscordMessageBuilder().from(startGameResponse, this).buildDiscordMessage(message);
+    }
+
+    return message.embed(toBeSent);
   }
 }

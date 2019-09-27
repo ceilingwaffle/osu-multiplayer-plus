@@ -33,6 +33,8 @@ export class GameRepository extends Repository<Game> {
         .leftJoinAndSelect("createdBy.discordUser", "discordUser_createdBy")
         .leftJoinAndSelect("game.endedBy", "endedBy")
         .leftJoinAndSelect("endedBy.discordUser", "discordUser_endedBy")
+        .leftJoinAndSelect("game.startedBy", "startedBy")
+        .leftJoinAndSelect("startedBy.discordUser", "discordUser_startedBy")
         // .leftJoinAndSelect("game.refereedBy", "refereedBy")
         // .leftJoinAndSelect("refereedBy.discordUser", "discordUser_refereedBy")
         // .leftJoinAndMapMany("game.refereedBy", "game.userGameRoles", "userGameRoles", "userGameRoles.role = :refRole", {

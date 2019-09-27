@@ -1,5 +1,5 @@
 import { TYPES } from "../../types";
-import { IOsuLobbyScanner } from "../../osu/interfaces/osu-lobby-scanner";
+import { IOsuLobbyScanner, LobbyWatcherChanged } from "../../osu/interfaces/osu-lobby-scanner";
 import { LobbyRepository } from "./lobby.repository";
 import { getCustomRepository } from "typeorm";
 import { Either, success } from "../../utils/Either";
@@ -177,8 +177,8 @@ export class LobbyService {
       //    ^ This will mean that the lobby returned from this method will have a status of AWAITING_FIRST_SCAN (since we're not awaiting
       //      scanner.watch()) and the scanner will update the lobby status some ~300ms later after the scanner for that lobby starts/fails.
 
-      // TODO: Don't actually start the watcher until !startgame command is used
-      this.osuLobbyScanner.watch(lobbyGame.id, lobbyData.banchoMultiplayerId);
+      // creates a lobby watcher if one does not already exist (watcher not started until !startgame command is used)
+      this.osuLobbyScanner.tryCreateWatcher({ gameId: lobbyGame.id, multiplayerId: lobbyData.banchoMultiplayerId });
 
       // We only want the game we just retrieved, not any other games that may have been previously added this lobby.
       // This ensures that the game data we're returning is definitely of the game we expect it to be.
@@ -248,10 +248,13 @@ export class LobbyService {
 
       // Attempt to unwatch the bancho lobby for this game. The OsuLobbyScanner will handle whether or not the lobby will
       // actually really be unwatched, depending on whether or not it still needs to be watched for any other games.
-      await this.osuLobbyScanner.unwatch(gameId, targetLobby.banchoMultiplayerId);
+      const watcher: LobbyWatcherChanged = await this.osuLobbyScanner.tryDeleteWatcher({
+        gameId,
+        multiplayerId: targetLobby.banchoMultiplayerId
+      });
 
       // update the lobby status if it's no longer being scanned
-      if (!this.osuLobbyScanner.isWatching(targetLobby.banchoMultiplayerId)) {
+      if (!watcher.isScanning) {
         targetLobby.status = LobbyStatus.STOPPED_WATCHING.getKey();
       }
 

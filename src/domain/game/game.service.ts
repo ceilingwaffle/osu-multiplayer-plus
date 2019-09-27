@@ -28,7 +28,7 @@ import { UpdateGameDto } from "./dto/update-game.dto";
 import { GameMessageTargetAction } from "./game-message-target-action";
 import { UserGameRoleRepository } from "../role/user-game-role.repository";
 import { getLowestUserRole } from "../role/role.type";
-import { IOsuLobbyScanner } from "../../osu/interfaces/osu-lobby-scanner";
+import { IOsuLobbyScanner, LobbyWatcherChanged } from "../../osu/interfaces/osu-lobby-scanner";
 import { CommunicationClientType } from "../../communication-types";
 import { PermissionsFailure } from "../../permissions/permissions.failure";
 import { Permissions } from "../../permissions/permissions";
@@ -179,17 +179,8 @@ export class GameService {
         return failurePromise(failure);
       }
 
-      if (game.gameLobbies) {
-        await Promise.all(
-          game.gameLobbies
-            .filter(gameLobby => gameLobby.lobby && gameLobby.lobby.banchoMultiplayerId)
-            // for all bancho multiplayer ids belongings to this game
-            .map(gameLobby => gameLobby.lobby.banchoMultiplayerId)
-            // call unwatch on all lobbies for this game on the lobby scanner.
-            .map(async banchoMultiplayerId => await this.osuLobbyScanner.unwatch(gameId, banchoMultiplayerId))
-          // GL: .map(mpid => OsuLobbyWatcher.getInstance().unwatch({ gameId: gameId, banchoMultiplayerId: mpid }))
-        );
-      }
+      // remove this game from any watchers running for lobbies added to this game (and maybe stop or delete the watcher)
+      const removedWatchers: LobbyWatcherChanged[] = await this.osuLobbyScanner.tryRemoveGameFromWatchers({ gameId });
 
       // update game status in database
       await this.updateGameStatusAsEndedByUser(gameId, endedByUser);
@@ -235,8 +226,11 @@ export class GameService {
         return failurePromise(failure);
       }
 
+      // TODO: Fail if the game has no added teams
+      // TODO: Fail if the game has no added lobbies
+
       // start scanning lobbies for match results
-      await this.osuLobbyScanner.startWatchersForGameIfWatcherNotStarted(gameId);
+      const activatedWatchers: LobbyWatcherChanged[] = await this.osuLobbyScanner.tryActivateWatchers({ gameId });
       // if (game.gameLobbies) {
       //   await Promise.all(
       //     game.gameLobbies
