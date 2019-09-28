@@ -237,6 +237,7 @@ export class OsuLobbyScannerService extends Emittery.Typed<OsuLobbyScannerEventD
       Log.info(`Scanning mp ${multiplayerId}...`);
       const results = await this.osuApi.fetchMultiplayerResults(multiplayerId);
       if (this.containsNewMatches(results)) {
+        results.targetGameIds = watcher.activeGameIds;
         watcher.latestResults = results;
         this.emit("newMultiplayerMatches", results);
       }
