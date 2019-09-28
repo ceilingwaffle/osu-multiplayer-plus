@@ -29,6 +29,7 @@ export class MultiplayerResultsListener extends Emittery.Typed<OsuLobbyScannerEv
       });
       // const matchReports: MatchReport[] = await new MultiplayerResultsProcessor(multi).process().buildReport();
       // console.log(matchReports);
+      // TODO: send reports only to games included in targetGameIds
     }
   }
 }

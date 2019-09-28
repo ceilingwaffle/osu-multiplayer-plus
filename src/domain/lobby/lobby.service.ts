@@ -181,7 +181,7 @@ export class LobbyService {
       this.osuLobbyScanner.tryCreateWatcher({ gameId: lobbyGame.id, multiplayerId: lobbyData.banchoMultiplayerId });
       if (GameStatus.isStartedStatus(lobbyGame.status)) {
         // start the watcher if the game is started
-        this.osuLobbyScanner.tryActivateWatchers({ gameId: lobbyGame.id });
+        await this.osuLobbyScanner.tryActivateWatchers({ gameId: lobbyGame.id });
       }
       // We only want the game we just retrieved, not any other games that may have been previously added this lobby.
       // This ensures that the game data we're returning is definitely of the game we expect it to be.

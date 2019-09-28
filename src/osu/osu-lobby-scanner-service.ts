@@ -9,6 +9,8 @@ import TYPES from "../types";
 import { MultiplayerResultsListener } from "../multiplayer/multiplayer-results-listener";
 import { OsuLobbyScannerWatcher } from "./watcher";
 import Emittery = require("emittery"); // don't convert this to an import or we'll get an Object.TypeError error
+import { Helpers } from "../utils/helpers";
+import cloneDeep = require("lodash/cloneDeep");
 
 decorate(injectable(), Emittery);
 @injectable()
@@ -104,7 +106,7 @@ export class OsuLobbyScannerService extends Emittery.Typed<OsuLobbyScannerEventD
     }
   }
 
-  tryActivateWatchers({ gameId }: { gameId: number }): Promise<LobbyWatcherChanged[]> {
+  async tryActivateWatchers({ gameId }: { gameId: number }): Promise<LobbyWatcherChanged[]> {
     try {
       const allWatchers: OsuLobbyScannerWatcher[] = this.getWatchers();
       if (!allWatchers.length) {
@@ -112,8 +114,8 @@ export class OsuLobbyScannerService extends Emittery.Typed<OsuLobbyScannerEventD
         return;
       }
 
-      // find watchers containing the given game ID
-      const targetWatchers: OsuLobbyScannerWatcher[] = allWatchers.filter(w => w.hasGameId(gameId));
+      // find watchers containing the given "waiting" game ID
+      const targetWatchers: OsuLobbyScannerWatcher[] = allWatchers.filter(w => w.hasWaitingGameId(gameId));
       if (!targetWatchers.length) {
         Log.warn(`Cannot activate watcher for game ID ${gameId} because the game ID does not exist on any watchers.`);
         return;
@@ -135,6 +137,14 @@ export class OsuLobbyScannerService extends Emittery.Typed<OsuLobbyScannerEventD
           watcher.timer = this.makeWatcherTimer(watcher.multiplayerId);
           startedWatcher = true;
           Log.info(`Started watcher for MP ID ${watcher.multiplayerId}.`);
+        } else if (watcher.latestResults) {
+          // Emit latest API results to the newly-activated game.
+          // We only want to signal that new results are ready for a single game.
+          // To do this, we clone the latest API results and replace all targetGameIds with just the game ID activated in this method.
+          Log.info(`Emitting latest (cached) API results to newly-activated game ID ${gameId}.`);
+          const multiplayerResultsCopy = cloneDeep(watcher.latestResults);
+          multiplayerResultsCopy.targetGameIds = new Set<number>([gameId]);
+          await this.emit("newMultiplayerMatches", multiplayerResultsCopy);
         }
 
         affectedWatchers.push({
@@ -239,7 +249,7 @@ export class OsuLobbyScannerService extends Emittery.Typed<OsuLobbyScannerEventD
       if (this.containsNewMatches(results)) {
         results.targetGameIds = watcher.activeGameIds;
         watcher.latestResults = results;
-        this.emit("newMultiplayerMatches", results);
+        await this.emit("newMultiplayerMatches", results);
       }
     } catch (error) {
       Log.methodError(this.scan, this.constructor.name, error);
