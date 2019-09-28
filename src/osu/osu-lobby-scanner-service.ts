@@ -108,13 +108,15 @@ export class OsuLobbyScannerService extends Emittery.Typed<OsuLobbyScannerEventD
     try {
       const allWatchers: OsuLobbyScannerWatcher[] = this.getWatchers();
       if (!allWatchers.length) {
-        throw new Error(`Cannot activate watcher for game ID ${gameId} because no watchers have been created.`);
+        Log.warn(`Cannot activate watcher for game ID ${gameId} because no watchers have been created.`);
+        return;
       }
 
       // find watchers containing the given game ID
       const targetWatchers: OsuLobbyScannerWatcher[] = allWatchers.filter(w => w.hasGameId(gameId));
       if (!targetWatchers.length) {
-        throw new Error(`Cannot activate watcher for game ID ${gameId} because the game ID does not exist on any watchers.`);
+        Log.warn(`Cannot activate watcher for game ID ${gameId} because the game ID does not exist on any watchers.`);
+        return;
       }
 
       const affectedWatchers: LobbyWatcherChanged[] = [];
