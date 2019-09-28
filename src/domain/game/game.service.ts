@@ -222,7 +222,7 @@ export class GameService {
       // ensure the game has a "startable" status
       if (!GameStatus.isStartable(game.status)) {
         const failure = gameCannotBeStartedDueToStatusFailure(gameId, game.status);
-        Log.methodFailure(this.endGame, this.constructor.name, failure.reason);
+        Log.methodFailure(this.startGame, this.constructor.name, failure.reason);
         return failurePromise(failure);
       }
 
@@ -247,10 +247,10 @@ export class GameService {
 
       // return the updated game
       const reloadedGame = await this.dbConn.manager.getCustomRepository(GameRepository).findGame(gameId);
-      Log.methodSuccess(this.endGame, this.constructor.name);
+      Log.methodSuccess(this.startGame, this.constructor.name);
       return successPromise(reloadedGame);
     } catch (error) {
-      Log.methodError(this.endGame, this.constructor.name, error);
+      Log.methodError(this.startGame, this.constructor.name, error);
       throw error;
     }
   }
@@ -363,8 +363,15 @@ export class GameService {
    * @returns {Promise<string>}
    */
   public async getUserRoleForGame(userId: number, gameId: number): Promise<string> {
-    const role = await this.dbConn.manager.getCustomRepository(UserGameRoleRepository).findUserRoleForGame(gameId, userId);
-    return role ? role : getLowestUserRole();
+    try {
+      const role = await this.dbConn.manager.getCustomRepository(UserGameRoleRepository).findUserRoleForGame(gameId, userId);
+      const result = role ? role : getLowestUserRole();
+      Log.methodSuccess(this.getUserRoleForGame, this.constructor.name);
+      return result;
+    } catch (error) {
+      Log.methodError(this.getUserRoleForGame, this.constructor.name, error);
+      throw error;
+    }
   }
 
   /**
@@ -415,13 +422,16 @@ export class GameService {
       const _exhaustiveCheck: never = gmtAction.action;
       return _exhaustiveCheck;
     }
+    Log.methodSuccess(this.updateGameWithGameMessageTargetAction, this.constructor.name);
   }
 
   public async findMostRecentGameCreatedByUser(userId: number): Promise<Either<Failure<GameFailure>, Game>> {
     try {
       const game = await this.dbConn.manager.getCustomRepository(GameRepository).getMostRecentGameCreatedByUser(userId);
       if (!game) {
-        return failurePromise(userHasNotCreatedGameFailure(userId));
+        const failure = userHasNotCreatedGameFailure(userId);
+        Log.methodFailure(this.findMostRecentGameCreatedByUser, this.constructor.name, failure.reason);
+        return failurePromise(failure);
       }
       return successPromise(game);
     } catch (error) {
@@ -434,17 +444,15 @@ export class GameService {
     try {
       // validate the game ID
       if (!this.isValidGameId(gameId)) {
-        Log.methodFailure(this.endGame, this.constructor.name, `Game ID ${gameId} is invalid.`);
+        Log.methodFailure(this.findGameById, this.constructor.name, `Game ID ${gameId} is invalid.`);
         return failurePromise(invalidGamePropertiesFailure(this.makeValidationErrorsOfGameId(gameId)));
       }
 
       // find the game
       const game = await this.dbConn.manager.getCustomRepository(GameRepository).findOne({ id: gameId }, { relations: relations });
+      if (!game) return failurePromise(gameDoesNotExistFailure(gameId));
 
-      if (!game) {
-        return failurePromise(gameDoesNotExistFailure(gameId));
-      }
-
+      Log.methodSuccess(this.findGameById, this.constructor.name);
       return successPromise(game);
     } catch (error) {
       Log.methodError(this.findGameById, this.constructor.name, error);
@@ -481,7 +489,9 @@ export class GameService {
       const findGameResult = await this.findGameById(gameId);
       if (findGameResult.failed()) return findGameResult;
       const game = findGameResult.value;
-      return await this.updateGameStatusForGameEntity({ game, status });
+      const result = this.updateGameStatusForGameEntity({ game, status });
+      Log.methodSuccess(this.updateGameStatusForGameId, this.constructor.name);
+      return result;
     } catch (error) {
       Log.methodError(this.updateGameStatusForGameId, this.constructor.name, error);
       throw error;
@@ -498,6 +508,7 @@ export class GameService {
     try {
       game.status = status.getKey();
       const savedGame = await this.dbConn.manager.getCustomRepository(GameRepository).save(game);
+      Log.methodSuccess(this.updateGameStatusForGameEntity, this.constructor.name);
       return successPromise(savedGame);
     } catch (error) {
       Log.methodError(this.updateGameStatusForGameEntity, this.constructor.name, error);
@@ -525,7 +536,9 @@ export class GameService {
     if (user.targetGame) return successPromise(user.targetGame);
 
     // If a game ID was not provided, get the most recent game created by the user ID (lobby creator).
-    return this.findMostRecentGameCreatedByUser(userId);
+    const result = this.findMostRecentGameCreatedByUser(userId);
+    Log.methodSuccess(this.getRequestingUserTargetGame, this.constructor.name);
+    return result;
   }
 
   private async saveAndReloadGame(
@@ -546,6 +559,7 @@ export class GameService {
       const reloadedGame = await this.dbConn.manager.getCustomRepository(GameRepository).findOneOrFail(savedGame.id, {
         relations: returnWithRelations
       });
+      Log.methodSuccess(this.saveAndReloadGame, this.constructor.name);
       return reloadedGame;
     } catch (error) {
       Log.methodError(this.saveAndReloadGame, this.constructor.name, error);
