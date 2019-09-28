@@ -65,7 +65,8 @@ export class OsuLobbyScannerService extends Emittery.Typed<OsuLobbyScannerEventD
       Log.info(`Trying to delete multiplayer watcher...`, { gameId, multiplayerId });
       const watcher: OsuLobbyScannerWatcher = this.findWatcher(multiplayerId);
       if (!watcher) {
-        throw new Error(`A watcher does not exist for multiplayer ID ${multiplayerId}.`);
+        Log.info(`Cannot delete watcher because a watcher does not exist for multiplayer ID ${multiplayerId}.`);
+        return;
       }
 
       // remove this game ID from the watcher

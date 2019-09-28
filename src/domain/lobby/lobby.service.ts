@@ -244,20 +244,22 @@ export class LobbyService {
       // ensure that the game lobby is not already removed
       const removableGameLobby = targetLobby.gameLobbies.find(gameLobby => !gameLobby.removedAt && gameLobby.game.id === gameId);
       if (!removableGameLobby) {
-        const failureReason = `Lobby ${targetLobby.banchoMultiplayerId} has already been removed from game ID ${gameId}.`;
+        const failureReason = `Lobby with MP ID ${targetLobby.banchoMultiplayerId} has already been removed from game ID ${gameId}.`;
         Log.methodFailure(this.processRemoveLobbyRequest, this.constructor.name);
         return failurePromise(lobbyRemovalFailure(failureReason));
       }
 
       // Attempt to unwatch the bancho lobby for this game. The OsuLobbyScanner will handle whether or not the lobby will
       // actually really be unwatched, depending on whether or not it still needs to be watched for any other games.
-      const watcher: LobbyWatcherChanged = await this.osuLobbyScanner.tryDeleteWatcher({
+      const watcherResult: LobbyWatcherChanged = await this.osuLobbyScanner.tryDeleteWatcher({
         gameId,
         multiplayerId: targetLobby.banchoMultiplayerId
       });
 
       // update the lobby status if it's no longer being scanned
-      if (!watcher.isScanning) {
+      if (!watcherResult) {
+        Log.warn(`Could not remove watcher for lobby because no watcher exists for MP ${targetLobby.banchoMultiplayerId}.`);
+      } else if (!watcherResult.isScanning) {
         targetLobby.status = LobbyStatus.STOPPED_WATCHING.getKey();
       }
 
