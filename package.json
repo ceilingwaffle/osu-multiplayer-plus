@@ -1,9 +1,10 @@
 {
   "name": "osu-multiplayer-plus",
   "version": "0.1.0",
-  "description": "",
+  "description": "Discord bot adding virtual game-modes like Battle Royale to osu! multiplayer lobbies",
+  "homepage": "https://osumpp.xyz",
   "main": "src/index.ts",
-  "author": "CeilingWaffle",
+  "author": "github.com/ceilingwaffle",
   "license": "MIT",
   "scripts": {
     "start": "rmdir /S /Q dist & tsc & xcopy .\\src\\locales .\\dist\\locales\\ /E /C /Q /Y & ts-node src/index.ts",
