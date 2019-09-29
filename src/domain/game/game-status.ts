@@ -43,16 +43,6 @@ export class GameStatus extends ActionableGenericType<GameStatusActionableType, 
   }
 
   private static getGameStatusFromKey(key: string): GameStatus {
-    const theseProps = Object.values(this) as Array<GenericType>;
-    const found: GameStatus[] = theseProps.filter(prop => prop.getKey() === key) as GameStatus[];
-
-    if (found.length < 1) {
-      throw new Error("Key not found.");
-    }
-    if (found.length > 1) {
-      throw new Error("Multiple keys found?? This should never happen...");
-    }
-
-    return found[0];
+    return this.getStatusFromKey<GameStatus>(key);
   }
 }

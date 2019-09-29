@@ -7,7 +7,8 @@ export enum LobbyFailure {
   InvalidCreationArguments,
   BanchoMultiplayerIdAlreadyAssociatedWithGameFailure,
   LobbyNotFound,
-  LobbyRemovalFailure
+  LobbyRemovalFailure,
+  InvalidLobbyStatusFailure
 }
 
 export type LobbyFailureTypes = LobbyFailure;
@@ -51,4 +52,9 @@ export const lobbyDoesNotExistFailure = (reason?: string): Failure<LobbyFailure.
 export const lobbyRemovalFailure = (reason?: string): Failure<LobbyFailure.LobbyRemovalFailure> => ({
   type: LobbyFailure.LobbyRemovalFailure,
   reason: reason || "Something went wrong when we tried to remove a lobby."
+});
+
+export const invalidLobbyStatusFailure = (reason?: string): Failure<LobbyFailure.InvalidLobbyStatusFailure> => ({
+  type: LobbyFailure.InvalidLobbyStatusFailure,
+  reason: reason || "Invalid lobby status."
 });

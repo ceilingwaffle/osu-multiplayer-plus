@@ -31,6 +31,7 @@ import { RemoveLobbyDto } from "./dto/remove-lobby.dto";
 import { Helpers } from "../../utils/helpers";
 import { RemovedLobbyResult } from "./removed-lobby-result";
 import { GameLobby } from "../game/game-lobby.entity";
+import { invalidLobbyStatusFailure } from "./lobby.failure";
 
 @injectable()
 export class LobbyService {
@@ -210,6 +211,12 @@ export class LobbyService {
         return failurePromise(lobbyDoesNotExistFailure(failureMessage));
       }
 
+      const initialLobbyStatus: LobbyStatus = LobbyStatus.getLobbyStatusFromKey(targetLobby.status);
+      if (!initialLobbyStatus || !initialLobbyStatus.getKey().length) {
+        Log.methodFailure(this.processRemoveLobbyRequest, this.constructor.name);
+        return failurePromise(invalidLobbyStatusFailure());
+      }
+
       // get the lobby remover
       const lobbyRemoverResult = await this.userService.findOne({ id: userId });
       if (lobbyRemoverResult.failed()) {
@@ -260,7 +267,13 @@ export class LobbyService {
       if (!watcherResult) {
         Log.warn(`Could not remove watcher for lobby because no watcher exists for MP ${targetLobby.banchoMultiplayerId}.`);
       } else if (!watcherResult.isScanning) {
-        targetLobby.status = LobbyStatus.STOPPED_WATCHING.getKey();
+        if (initialLobbyStatus.getKey() === LobbyStatus.AWAITING_FIRST_SCAN.getKey()) {
+          // not currently scanning, and was originally not being scanned, so keep status as AWAITING_FIRST_SCAN
+          //targetLobby.status = LobbyStatus.AWAITING_FIRST_SCAN.getKey();
+        } else if (initialLobbyStatus.getKey() === LobbyStatus.STARTED_WATCHING.getKey()) {
+          // not currently scanning, but was originally being scanned, so set status to STOPPED_WATCHING
+          targetLobby.status = LobbyStatus.STOPPED_WATCHING.getKey();
+        }
       }
 
       // update some GameLobby properties to mark it as removed

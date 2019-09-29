@@ -185,7 +185,7 @@ describe("When starting a game", function() {
         assert.isFalse(GameStatus.isStartable(startedGame.status), "A started game should not be startable.");
         assert.isTrue(GameStatus.isStartedStatus(startedGame.status));
         assert.isFalse(GameStatus.isNewGameStatus(startedGame.status));
-        assert.isFalse(GameStatus.isEndable(startedGame.status), "A started game should not be endable.");
+        assert.isTrue(GameStatus.isEndable(startedGame.status), "A started game should be endable.");
         assert.isFalse(GameStatus.isEndedStatus(startedGame.status));
 
         return resolve();

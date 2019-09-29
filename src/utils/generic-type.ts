@@ -23,4 +23,18 @@ export abstract class GenericType {
 
     return found[0].getText();
   }
+
+  static getStatusFromKey<T>(key: string): T {
+    const theseProps = Object.values(this) as Array<GenericType>;
+    const found: T[] = (theseProps.filter(prop => prop.getKey() === key) as unknown[]) as T[];
+
+    if (found.length < 1) {
+      throw new Error("Key not found.");
+    }
+    if (found.length > 1) {
+      throw new Error("Multiple keys found?? This should never happen...");
+    }
+
+    return found[0];
+  }
 }

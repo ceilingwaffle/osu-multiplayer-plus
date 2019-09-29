@@ -21,4 +21,18 @@ export class LobbyStatus extends ActionableGenericType<LobbyStatusActionableType
   static readonly STOPPED_WATCHING = new LobbyStatus("stopped_watching", "Stopped watching", "unknown", ["watcher_startable"]);
   /** The lobby status is unknown. Cannot start or unstart a watcher because we don't know what state the lobby is in. */
   static readonly UNKNOWN = new LobbyStatus("unknown", "Unknown", "unknown", []);
+
+  static getLobbyStatusFromKey(key: string): LobbyStatus {
+    return this.getStatusFromKey<LobbyStatus>(key);
+  }
+
+  // static isStartedStatus(statusKey: string): boolean {
+  //   const status: LobbyStatus = LobbyStatus.getLobbyStatusFromKey(statusKey);
+  //   return status.getActioned() === "started";
+  // }
+
+  // static isStoppedStatus(statusKey: string): boolean {
+  //   const status: LobbyStatus = LobbyStatus.getLobbyStatusFromKey(statusKey);
+  //   return status.getActioned() === "ended";
+  // }
 }

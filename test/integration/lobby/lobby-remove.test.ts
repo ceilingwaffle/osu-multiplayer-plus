@@ -411,7 +411,7 @@ describe("When removing a lobby", function() {
   it("should update the status of a lobby to STOPPED_WATCHING when the lobby is no longer being watched for any games", function() {
     return new Promise(async (resolve, reject) => {
       try {
-        // add lobby
+        // add lobby 1 to game 1
         const lobbyDto1: AddLobbyDto = {
           banchoMultiplayerId: "54078930", // replace this with a valid mp id if it expires
           gameId: 1
@@ -423,7 +423,7 @@ describe("When removing a lobby", function() {
         });
         assert.isTrue(lobbyAddResponse1 && lobbyAddResponse1.success, "The lobby-add-request did not complete successfully.");
 
-        // remove the bancho mp id from game #1
+        // remove lobby 1 from game 1
         const removeLobbyDto: RemoveLobbyDto = {
           banchoMultiplayerId: lobbyDto1.banchoMultiplayerId,
           gameId: lobbyDto1.gameId
@@ -431,10 +431,10 @@ describe("When removing a lobby", function() {
         const lobbyRemoveResponse = await lobbyController.remove({ lobbyDto: removeLobbyDto, requestDto: createGame1DiscordRequest });
         assert.isTrue(lobbyRemoveResponse && lobbyRemoveResponse.success);
 
-        // assert lobby status
+        // lobby 1 should have a status of AWAITING_FIRST_SCAN because we never started the game, so the lobby never started scanning for the first time
         const lobbyAfterRemoval = await Lobby.findOne({ banchoMultiplayerId: lobbyDto1.banchoMultiplayerId }, { relations: [] });
         assert.isDefined(lobbyAfterRemoval);
-        assert.equal(lobbyAfterRemoval.status, LobbyStatus.STOPPED_WATCHING.getKey());
+        assert.equal(lobbyAfterRemoval.status, LobbyStatus.AWAITING_FIRST_SCAN.getKey());
 
         return resolve();
       } catch (error) {
@@ -456,10 +456,12 @@ describe("When removing a lobby", function() {
           gameId: 2
         };
         const lobbyController = iocContainer.get<LobbyController>(TYPES.LobbyController);
+        // add lobby 1 to game 1
         const lobbyAddResponse1 = await lobbyController.create({
           lobbyDto: lobbyDto1,
           requestDto: createGame1DiscordRequest
         });
+        // add lobby 2 to game 2
         const lobbyAddResponse2 = await lobbyController.create({
           lobbyDto: lobbyDto2,
           requestDto: createGame2DiscordRequest
@@ -473,7 +475,7 @@ describe("When removing a lobby", function() {
         assert.isDefined(lobby1);
         assert.isDefined(lobby2);
 
-        // remove the bancho mp id from game #2
+        // remove lobby 2 from game 2
         const removeLobbyDto: RemoveLobbyDto = {
           banchoMultiplayerId: lobbyDto2.banchoMultiplayerId,
           gameId: lobbyDto2.gameId
@@ -481,7 +483,7 @@ describe("When removing a lobby", function() {
         const lobbyRemoveResponse = await lobbyController.remove({ lobbyDto: removeLobbyDto, requestDto: createGame2DiscordRequest });
         assert.isTrue(lobbyRemoveResponse && lobbyRemoveResponse.success);
 
-        // even though the lobby was removed from game #2, the lobby should still have "awaiting first scan" status, because it still belongs to game #1
+        // even though lobby 1 was removed from game 2, lobby 1 should still have "awaiting first scan" status, because it still belongs to game #1
         const lobbyAfterRemoval = await Lobby.findOne({ banchoMultiplayerId: lobbyDto1.banchoMultiplayerId }, { relations: [] });
         assert.isDefined(lobbyAfterRemoval);
         assert.equal(lobbyAfterRemoval.status, LobbyStatus.AWAITING_FIRST_SCAN.getKey());
