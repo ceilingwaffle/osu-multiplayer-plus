@@ -16,27 +16,6 @@ export class DiscordBot {
   private commando: CommandoClient;
 
   public async start(token: string): Promise<void> {
-    // this.registerListeners();
-    try {
-      // const conn = await iocContainer.get<IDbClient>(TYPES.IDbClient).connectIfNotConnected();
-      // Log.debug(`Connected to database "${conn.options.database}".`);
-    } catch (error) {
-      Log.error("Error connecting to database.", error);
-      throw error;
-    }
-
-    // console.log("Initializing Bancho...");
-    // this.gameManager = new GameManager();
-    // await this.gameManager
-    //   .connect()
-    //   .then(() => {
-    //     console.log("Connected to Bancho.");
-    //   })
-    //   .catch(error => {
-    //     console.error("Error connecting to Bancho.", error);
-    //     return reject(error);
-    //   });
-
     try {
       Log.debug("Initializing Discord Commando...");
 
@@ -46,6 +25,19 @@ export class DiscordBot {
         messageCacheLifetime: 30,
         messageSweepInterval: 60,
         disableEveryone: true
+      });
+
+      this.commando.on("ready", async () => {
+        Log.debug("The discord bot is ready.");
+        await this.commando.user.setPresence({
+          status: "online",
+          afk: false,
+          game: {
+            name: "osumpp.xyz | !obr help | Made by @Ceiling Waffle#7981",
+            url: "https://osumpp.xyz",
+            type: "WATCHING"
+          }
+        });
       });
 
       this.commando.registry
@@ -66,16 +58,8 @@ export class DiscordBot {
         this.commando.setProvider(new SQLiteProvider(db));
       });
 
-      try {
-        await this.commando.login(token);
-        Log.debug("Discord login succeded.");
-      } catch (error) {
-        Log.error("Discord bot token failed to login.", error);
-      }
-
-      this.commando.on("ready", () => {
-        Log.debug("The discord bot is ready.");
-      });
+      await this.commando.login(token);
+      Log.debug("Discord login succeded.");
     } catch (error) {
       Log.error("Error starting the Discord bot.", error);
       throw error;
