@@ -57,6 +57,7 @@ TODO:
         Notable osu people showing interest:
             ThePooN, RyuK, Musty98
     Testing:
+        ☐ Write tests for starting game (and test behaviour of OsuLobbyScannerService) @created(19-09-29 23:46)
         ☐ Remove fake of IOsuLobbyScanner and instead somehow inject the ApiMultiplayer object into the return of FakeOsuApiFetcher.fetchMultiplayerResults() @created(19-09-23 16:12)
             This is so we can include testing the real OsuLobbyScanner in the lobby-remove tests instead of copying code from the real implemention to the fake.
         ☐ Improve the Osu API Fetcher test (mock) class @created(19-09-14 23:27)
