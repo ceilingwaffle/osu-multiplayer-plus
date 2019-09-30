@@ -116,7 +116,7 @@ export class TestHelpers {
   }
 
   static logFakeImplementationWarning(methodName: string): void {
-    Log.warn(`FAKING RESPONSE FROM ${this.constructor.name}.${methodName}`);
+    Log.warn(`FAKING RESPONSE FROM ${this.name}.${methodName}`);
   }
 
   static convertToTeamDtoArgFormat(inTeams: string[][]) {
