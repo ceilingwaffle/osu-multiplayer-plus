@@ -1122,6 +1122,11 @@ describe("When processing multiplayer results", function() {
           const createdLobbyResponse = await lobbyController.create({ lobbyDto: addLobby2Request, requestDto: discordRequest });
           expect(createdLobbyResponse.success).to.be.true;
 
+          // start game 1
+          const gameController = iocContainer.get<GameController>(TYPES.GameController);
+          const startedGameResponse = await gameController.startGame({ startGameDto: { gameId: 1 }, requestDto: discordRequest });
+          expect(startedGameResponse.success).to.be.true;
+
           const lobby1ApiResults1: ApiMultiplayer = {
             // lobby 1 contains players 1 and 2
             multiplayerId: addLobby1Request.banchoMultiplayerId,
@@ -1216,7 +1221,7 @@ describe("When processing multiplayer results", function() {
         }
       });
     });
-    it("should deliver a message saying 'waiting for results for lobbies A,B,etc' if not all lobbies have completed a map", function() {
+    xit("should deliver a message saying 'waiting for results for lobbies A,B,etc' if not all lobbies have completed a map", function() {
       return new Promise(async (resolve, reject) => {
         try {
           return reject();
@@ -1226,7 +1231,7 @@ describe("When processing multiplayer results", function() {
         }
       });
     });
-    it("should deliver results for a map when that map is played in a different order in three lobbies", function() {
+    xit("should deliver results for a map when that map is played in a different order in three lobbies", function() {
       return new Promise(async (resolve, reject) => {
         try {
           return reject();
@@ -1239,7 +1244,7 @@ describe("When processing multiplayer results", function() {
   });
 
   describe("with one lobby added to many games", function() {
-    it("should send a report to the message target channels of all those games", function() {
+    xit("should send a report to the message target channels of all those games", function() {
       return new Promise(async (resolve, reject) => {
         try {
           return reject();
