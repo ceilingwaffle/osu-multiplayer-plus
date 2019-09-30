@@ -27,7 +27,7 @@ export class GameStatus extends ActionableGenericType<GameStatusActionableType, 
     return status.getActioned() === "ended";
   }
 
-  static isNewGameStatus(statusKey: string): boolean {
+  static isUnstartedGameStatus(statusKey: string): boolean {
     const status: GameStatus = GameStatus.getGameStatusFromKey(statusKey);
     return status.getActioned() === "created";
   }

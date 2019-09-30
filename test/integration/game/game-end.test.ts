@@ -176,7 +176,7 @@ describe("When ending a game", function() {
         const createdGame = createGameResponse.value as Game;
         assert.isTrue(GameStatus.isEndable(createdGame.status), "A newly created game should be endable.");
         assert.isFalse(GameStatus.isEndedStatus(createdGame.status));
-        assert.isTrue(GameStatus.isNewGameStatus(createdGame.status));
+        assert.isTrue(GameStatus.isUnstartedGameStatus(createdGame.status));
         assert.isTrue(GameStatus.isStartable(createdGame.status), "A newly created game should be startable.");
         assert.isFalse(GameStatus.isStartedStatus(createdGame.status));
 
@@ -191,7 +191,7 @@ describe("When ending a game", function() {
         const endedGame = endedGameResponse.value as Game;
         assert.isFalse(GameStatus.isEndable(endedGame.status), "An ended game should not be endable.");
         assert.isTrue(GameStatus.isEndedStatus(endedGame.status));
-        assert.isFalse(GameStatus.isNewGameStatus(endedGame.status));
+        assert.isFalse(GameStatus.isUnstartedGameStatus(endedGame.status));
         assert.isFalse(GameStatus.isStartable(endedGame.status), "An ended game should not be startable.");
         assert.isFalse(GameStatus.isStartedStatus(endedGame.status));
 
