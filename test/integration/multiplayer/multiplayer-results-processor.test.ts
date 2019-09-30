@@ -136,10 +136,10 @@ describe("When processing multiplayer results", function() {
             matches: [
               {
                 mapNumber: 1, // GameLobby.startingMapNumber
-                multiplayerId: Number(addLobby1Request.banchoMultiplayerId), // Lobby.banchoMultiplayerId
-                mapId: 4178, // Match.beatmapId
-                startTime: new Date(new Date().getTime() - 300), // Match.startTime
-                endTime: new Date(), // Match.endTime
+                multiplayerId: addLobby1Request.banchoMultiplayerId, // Lobby.banchoMultiplayerId
+                mapId: "4178", // Match.beatmapId
+                startTime: new Date().getTime() - 300, // Match.startTime
+                endTime: new Date().getTime(), // Match.endTime
                 teamMode: TeamMode.HeadToHead, // Match.teamMode
                 event: "match_end",
                 scores: [
@@ -178,8 +178,8 @@ describe("When processing multiplayer results", function() {
                         id: 1,
                         mapNumber: 1,
                         beatmapId: "4178",
-                        startTime: input.matches[0].startTime.getTime(),
-                        endTime: input.matches[0].endTime.getTime(),
+                        startTime: input.matches[0].startTime,
+                        endTime: input.matches[0].endTime,
                         aborted: false,
                         ignored: false,
                         teamMode: TeamMode.HeadToHead,
@@ -280,7 +280,7 @@ describe("When processing multiplayer results", function() {
           ];
 
           const processor = new MultiplayerResultsProcessor(input);
-          const actualGames: Game[] = await processor.process();
+          const actualGames: Game[] = await processor.saveMultiplayerEntities();
 
           expect(actualGames).excludingEvery(["createdAt", "updatedAt"]).to.deep.equal(expectedGamesData); // prettier-ignore
 
@@ -416,10 +416,10 @@ describe("When processing multiplayer results", function() {
             matches: [
               {
                 mapNumber: 1, // GameLobby.startingMapNumber
-                multiplayerId: Number(addLobby1Request.banchoMultiplayerId), // Lobby.banchoMultiplayerId
-                mapId: 4178, // Match.beatmapId
-                startTime: new Date(new Date().getTime() - 300), // Match.startTime
-                endTime: new Date(), // Match.endTime
+                multiplayerId: addLobby1Request.banchoMultiplayerId, // Lobby.banchoMultiplayerId
+                mapId: "4178", // Match.beatmapId
+                startTime: new Date().getTime() - 300, // Match.startTime
+                endTime: new Date().getTime(), // Match.endTime
                 teamMode: TeamMode.HeadToHead, // Match.teamMode
                 event: "match_end",
                 scores: [
@@ -458,8 +458,8 @@ describe("When processing multiplayer results", function() {
                         id: 1,
                         mapNumber: 1,
                         beatmapId: "4178",
-                        startTime: input.matches[0].startTime.getTime(),
-                        endTime: input.matches[0].endTime.getTime(),
+                        startTime: input.matches[0].startTime,
+                        endTime: input.matches[0].endTime,
                         aborted: false,
                         ignored: false,
                         teamMode: TeamMode.HeadToHead,
@@ -561,12 +561,12 @@ describe("When processing multiplayer results", function() {
 
           // process the same API result twice
           const processor1 = new MultiplayerResultsProcessor(input);
-          const actualGames1: Game[] = await processor1.process();
+          const actualGames1: Game[] = await processor1.saveMultiplayerEntities();
 
           expect(actualGames1).excludingEvery(["createdAt", "updatedAt"]).to.deep.equal(expectedGamesData); // prettier-ignore
 
           const processor2 = new MultiplayerResultsProcessor(input);
-          const actualGames2 = await processor2.process();
+          const actualGames2 = await processor2.saveMultiplayerEntities();
           expect(actualGames2).excludingEvery(["createdAt", "updatedAt"]).to.deep.equal(expectedGamesData); // prettier-ignore
 
           // ensure database records were only inserted once
@@ -613,10 +613,10 @@ describe("When processing multiplayer results", function() {
             matches: [
               {
                 mapNumber: 1, // GameLobby.startingMapNumber
-                multiplayerId: Number(addLobby1Request.banchoMultiplayerId), // Lobby.banchoMultiplayerId
-                mapId: 4178, // Match.beatmapId
-                startTime: new Date(new Date().getTime() - 300), // Match.startTime
-                endTime: new Date(), // Match.endTime
+                multiplayerId: addLobby1Request.banchoMultiplayerId, // Lobby.banchoMultiplayerId
+                mapId: "4178", // Match.beatmapId
+                startTime: new Date().getTime() - 300, // Match.startTime
+                endTime: new Date().getTime(), // Match.endTime
                 teamMode: TeamMode.HeadToHead, // Match.teamMode
                 event: "match_end",
                 scores: [
@@ -655,8 +655,8 @@ describe("When processing multiplayer results", function() {
                         id: 1,
                         mapNumber: 1,
                         beatmapId: "4178",
-                        startTime: apiResults1.matches[0].startTime.getTime(),
-                        endTime: apiResults1.matches[0].endTime.getTime(),
+                        startTime: apiResults1.matches[0].startTime,
+                        endTime: apiResults1.matches[0].endTime,
                         aborted: false,
                         ignored: false,
                         teamMode: TeamMode.HeadToHead,
@@ -757,7 +757,7 @@ describe("When processing multiplayer results", function() {
           ];
 
           const processor = new MultiplayerResultsProcessor(apiResults1);
-          const actualGames1 = await processor.process();
+          const actualGames1 = await processor.saveMultiplayerEntities();
 
           expect(actualGames1).excludingEvery(["createdAt", "updatedAt"]).to.deep.equal(expectedGamesData1); // prettier-ignore
 
@@ -766,10 +766,10 @@ describe("When processing multiplayer results", function() {
             matches: [
               {
                 mapNumber: 2, // GameLobby.startingMapNumber
-                multiplayerId: Number(addLobby1Request.banchoMultiplayerId), // Lobby.banchoMultiplayerId
-                mapId: 6666, // Match.beatmapId
-                startTime: new Date(new Date().getTime() - 300), // Match.startTime
-                endTime: new Date(), // Match.endTime
+                multiplayerId: addLobby1Request.banchoMultiplayerId, // Lobby.banchoMultiplayerId
+                mapId: "6666", // Match.beatmapId
+                startTime: new Date().getTime() - 300, // Match.startTime
+                endTime: new Date().getTime(), // Match.endTime
                 teamMode: TeamMode.HeadToHead, // Match.teamMode
                 event: "match_end",
                 scores: [
@@ -809,8 +809,8 @@ describe("When processing multiplayer results", function() {
                         id: 2,
                         mapNumber: 2,
                         beatmapId: "6666",
-                        startTime: apiResults2.matches[0].startTime.getTime(),
-                        endTime: apiResults2.matches[0].endTime.getTime(),
+                        startTime: apiResults2.matches[0].startTime,
+                        endTime: apiResults2.matches[0].endTime,
                         aborted: false,
                         ignored: false,
                         teamMode: TeamMode.HeadToHead,
@@ -911,7 +911,7 @@ describe("When processing multiplayer results", function() {
           ];
 
           const processor2 = new MultiplayerResultsProcessor(apiResults2);
-          const actualGamesData2: Game[] = await processor2.process();
+          const actualGamesData2: Game[] = await processor2.saveMultiplayerEntities();
 
           expect(actualGamesData2).excludingEvery(["createdAt", "updatedAt"]).to.deep.equal(expectedGamesData2); // prettier-ignore
 
@@ -1021,9 +1021,9 @@ describe("When processing multiplayer results", function() {
 
           // process the same API result twice
           const processor1 = new MultiplayerResultsProcessor(input);
-          const actualGames1 = await processor1.process();
+          const actualGames1 = await processor1.saveMultiplayerEntities();
           const processor2 = new MultiplayerResultsProcessor(input);
-          const actualGames2 = await processor2.process();
+          const actualGames2 = await processor2.saveMultiplayerEntities();
           expect(actualGames2).excludingEvery(["createdAt", "updatedAt"]).to.deep.equal(expectedGamesData); // prettier-ignore
 
           // ensure database records were only inserted once
@@ -1133,10 +1133,10 @@ describe("When processing multiplayer results", function() {
             matches: [
               {
                 mapNumber: 1,
-                multiplayerId: Number(addLobby1Request.banchoMultiplayerId),
-                mapId: 101,
-                startTime: new Date(new Date().getTime() - 310),
-                endTime: new Date(new Date().getTime() - 10),
+                multiplayerId: addLobby1Request.banchoMultiplayerId,
+                mapId: "101",
+                startTime: new Date().getTime() - 310,
+                endTime: new Date().getTime() - 10,
                 teamMode: TeamMode.HeadToHead,
                 event: "match_end",
                 scores: [
@@ -1163,10 +1163,10 @@ describe("When processing multiplayer results", function() {
                 // lobby 2 starts beatmap 102 5 seconds after lobby 1
                 // lobby 2 completes beatmap 102 5 seconds after lobby 1
                 mapNumber: 1,
-                multiplayerId: Number(addLobby2Request.banchoMultiplayerId),
-                mapId: 102,
-                startTime: new Date(new Date().getTime() - 305),
-                endTime: new Date(new Date().getTime() - 5),
+                multiplayerId: addLobby2Request.banchoMultiplayerId,
+                mapId: "102",
+                startTime: new Date().getTime() - 305,
+                endTime: new Date().getTime() - 5,
                 teamMode: TeamMode.HeadToHead,
                 event: "match_end",
                 scores: [
@@ -1185,10 +1185,10 @@ describe("When processing multiplayer results", function() {
               {
                 // lobby 2 completes beatmap 101 110 seconds after lobby 1 completed beatmap 101
                 mapNumber: 2,
-                multiplayerId: Number(addLobby2Request.banchoMultiplayerId),
-                mapId: 101,
-                startTime: new Date(new Date().getTime()),
-                endTime: new Date(new Date().getTime() + 100),
+                multiplayerId: addLobby2Request.banchoMultiplayerId,
+                mapId: "101",
+                startTime: new Date().getTime(),
+                endTime: new Date().getTime() + 100,
                 teamMode: TeamMode.HeadToHead,
                 event: "match_end",
                 scores: [
@@ -1208,11 +1208,18 @@ describe("When processing multiplayer results", function() {
           };
 
           const processor1 = new MultiplayerResultsProcessor(lobby1ApiResults1);
-          const games1: Game[] = await processor1.process();
-          const r1 = await processor1.buildGameReports(games1);
+          const games1: Game[] = await processor1.saveMultiplayerEntities();
+          for (const game of games1) {
+            const r1 = processor1.processMatchResults(game);
+            const a = true;
+          }
           const processor2 = new MultiplayerResultsProcessor(lobby2ApiResults1);
-          const games2: Game[] = await processor2.process();
-          const r2 = await processor2.buildGameReports(games2);
+          const games2: Game[] = await processor2.saveMultiplayerEntities();
+          // const r2 = await processor2.buildGameReports(games2);
+          for (const game of games2) {
+            const r1 = processor1.processMatchResults(game);
+            const a = true;
+          }
 
           return reject();
           return resolve();
@@ -1221,6 +1228,252 @@ describe("When processing multiplayer results", function() {
         }
       });
     });
+
+    it("should process the spreadsheet example https://docs.google.com/spreadsheets/d/13GDEfc9s_XgSruD__ht4fQTC8U4D00IQrhxlASg52eA/edit?usp=sharing", function() {
+      return new Promise(async (resolve, reject) => {
+        try {
+          // add teams to game 1 - two teams of two players each
+          const inTeams: string[][] = [["p1", "p2"], ["p3", "p4"]];
+          const addTeamsDto: AddTeamsDto = {
+            osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(inTeams)
+          };
+          const teamController = iocContainer.get<TeamController>(TYPES.TeamController);
+          const addTeamsResponse = await teamController.create({ teamDto: addTeamsDto, requestDto: discordRequest });
+          expect(addTeamsResponse.success).to.be.true;
+
+          // add lobby 2 to game 1
+          const lobbyController = iocContainer.get<LobbyController>(TYPES.LobbyController);
+          const createdLobbyResponse = await lobbyController.create({ lobbyDto: addLobby2Request, requestDto: discordRequest });
+          expect(createdLobbyResponse.success).to.be.true;
+
+          // start game 1
+          const gameController = iocContainer.get<GameController>(TYPES.GameController);
+          const startedGameResponse = await gameController.startGame({ startGameDto: { gameId: 1 }, requestDto: discordRequest });
+          expect(startedGameResponse.success).to.be.true;
+
+          const lobby1ApiResults1: ApiMultiplayer = {
+            multiplayerId: addLobby1Request.banchoMultiplayerId,
+            matches: [
+              {
+                mapNumber: 1,
+                multiplayerId: addLobby1Request.banchoMultiplayerId,
+                mapId: "BM1",
+                startTime: new Date().getTime() + 1,
+                endTime: new Date().getTime() + 301,
+                teamMode: TeamMode.HeadToHead,
+                event: "match_end",
+                scores: [
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[0][0]).toString(),
+                    score: 100000,
+                    passed: true
+                  },
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[1][0]).toString(),
+                    score: 100001,
+                    passed: true
+                  }
+                ]
+              },
+              {
+                mapNumber: 2,
+                multiplayerId: addLobby1Request.banchoMultiplayerId,
+                mapId: "BM2",
+                startTime: new Date().getTime() + 2,
+                endTime: new Date().getTime() + 302,
+                teamMode: TeamMode.HeadToHead,
+                event: "match_end",
+                scores: [
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[0][0]).toString(),
+                    score: 100000,
+                    passed: true
+                  },
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[0][0]).toString(),
+                    score: 100001,
+                    passed: true
+                  }
+                ]
+              },
+              {
+                mapNumber: 3,
+                multiplayerId: addLobby1Request.banchoMultiplayerId,
+                mapId: "BM3", // BM3#1
+                startTime: new Date().getTime() + 3,
+                endTime: new Date().getTime() + 303,
+                teamMode: TeamMode.HeadToHead,
+                event: "match_end",
+                scores: [
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[0][0]).toString(),
+                    score: 100000,
+                    passed: true
+                  },
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[0][0]).toString(),
+                    score: 100001,
+                    passed: true
+                  }
+                ]
+              },
+              {
+                mapNumber: 4,
+                multiplayerId: addLobby1Request.banchoMultiplayerId,
+                mapId: "BM4",
+                startTime: new Date().getTime() + 4,
+                endTime: new Date().getTime() + 304,
+                teamMode: TeamMode.HeadToHead,
+                event: "match_end",
+                scores: [
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[0][0]).toString(),
+                    score: 100000,
+                    passed: true
+                  },
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[0][0]).toString(),
+                    score: 100001,
+                    passed: true
+                  }
+                ]
+              },
+              {
+                mapNumber: 5,
+                multiplayerId: addLobby1Request.banchoMultiplayerId,
+                mapId: "BM3", // BM3#2
+                startTime: new Date().getTime() + 5,
+                endTime: new Date().getTime() + 305,
+                teamMode: TeamMode.HeadToHead,
+                event: "match_end",
+                scores: [
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[0][0]).toString(),
+                    score: 100000,
+                    passed: true
+                  },
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[1][0]).toString(),
+                    score: 100001,
+                    passed: true
+                  }
+                ]
+              }
+            ]
+          };
+
+          const lobby2ApiResults1: ApiMultiplayer = {
+            multiplayerId: addLobby2Request.banchoMultiplayerId,
+            matches: [
+              {
+                mapNumber: 1,
+                multiplayerId: addLobby2Request.banchoMultiplayerId,
+                mapId: "BM2",
+                startTime: new Date().getTime() + 101,
+                endTime: new Date().getTime() + 401,
+                teamMode: TeamMode.HeadToHead,
+                event: "match_end",
+                scores: [
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[0][1]).toString(),
+                    score: 100000,
+                    passed: true
+                  },
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[1][1]).toString(),
+                    score: 100001,
+                    passed: true
+                  }
+                ]
+              },
+              {
+                mapNumber: 2,
+                multiplayerId: addLobby2Request.banchoMultiplayerId,
+                mapId: "BM1",
+                startTime: new Date().getTime() + 102,
+                endTime: new Date().getTime() + 402,
+                teamMode: TeamMode.HeadToHead,
+                event: "match_end",
+                scores: [
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[0][1]).toString(),
+                    score: 100000,
+                    passed: true
+                  },
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[1][1]).toString(),
+                    score: 100001,
+                    passed: true
+                  }
+                ]
+              },
+              {
+                mapNumber: 3,
+                multiplayerId: addLobby2Request.banchoMultiplayerId,
+                mapId: "BM4",
+                startTime: new Date().getTime() + 103,
+                endTime: new Date().getTime() + 403,
+                teamMode: TeamMode.HeadToHead,
+                event: "match_end",
+                scores: [
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[0][1]).toString(),
+                    score: 100000,
+                    passed: true
+                  },
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[1][1]).toString(),
+                    score: 100001,
+                    passed: true
+                  }
+                ]
+              },
+              {
+                mapNumber: 4,
+                multiplayerId: addLobby2Request.banchoMultiplayerId,
+                mapId: "BM55",
+                startTime: new Date().getTime() + 104,
+                endTime: new Date().getTime() + 404,
+                teamMode: TeamMode.HeadToHead,
+                event: "match_end",
+                scores: [
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[0][1]).toString(),
+                    score: 100000,
+                    passed: true
+                  },
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[1][1]).toString(),
+                    score: 100001,
+                    passed: true
+                  }
+                ]
+              }
+            ]
+          };
+
+          const processor1 = new MultiplayerResultsProcessor(lobby1ApiResults1);
+          const games1: Game[] = await processor1.saveMultiplayerEntities();
+          for (const game of games1) {
+            const r1 = processor1.processMatchResults(game);
+            const a = true;
+          }
+          const processor2 = new MultiplayerResultsProcessor(lobby2ApiResults1);
+          const games2: Game[] = await processor2.saveMultiplayerEntities();
+          // const r2 = await processor2.buildGameReports(games2);
+          for (const game of games2) {
+            const r1 = processor1.processMatchResults(game);
+            const a = true;
+          }
+
+          return reject();
+          return resolve();
+        } catch (error) {
+          return reject(error);
+        }
+      });
+    });
+
     xit("should deliver a message saying 'waiting for results for lobbies A,B,etc' if not all lobbies have completed a map", function() {
       return new Promise(async (resolve, reject) => {
         try {

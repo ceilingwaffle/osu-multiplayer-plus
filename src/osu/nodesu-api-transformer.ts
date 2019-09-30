@@ -62,10 +62,10 @@ export class NodesuApiTransformer {
 
       matchResult = {
         mapNumber: mapNumber,
-        multiplayerId: result.match.matchId,
-        mapId: apiMatch.beatmapId,
-        startTime: apiMatch.startTime,
-        endTime: apiMatch.endTime,
+        multiplayerId: result.match.matchId.toString(),
+        mapId: apiMatch.beatmapId.toString(),
+        startTime: apiMatch.startTime.getTime(),
+        endTime: apiMatch.endTime.getTime(),
         teamMode: NodesuApiTransformer.convertNodesuTeamType(apiMatch.teamType),
         scores: scores,
         event: NodesuApiTransformer.determineMatchEvent(apiMatch.endTime)

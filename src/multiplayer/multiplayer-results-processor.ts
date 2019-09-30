@@ -24,6 +24,29 @@ import { GameEventRegistrar } from "./game-events/game-event-registrar";
 import { GameLobby } from "../domain/game/game-lobby.entity";
 import { Helpers } from "../utils/helpers";
 import cloneDeep = require("lodash/cloneDeep");
+import groupBy = require("lodash/groupBy");
+import _ = require("lodash"); // do not convert to default import!!
+
+interface MatchResult {
+  beatmapId: string;
+  matchId: number;
+  startTime: number;
+  lobbyId: number;
+}
+
+interface SameMapsInManyLobbies {
+  [beatmapId: string]: MatchResult[];
+}
+
+const getSameMapsInManyLobbies = (dictionary: SameMapsInManyLobbies): MatchResult[][] => {
+  var values: MatchResult[][] = [];
+  for (var prop in dictionary) {
+    if (dictionary.hasOwnProperty(prop)) {
+      values.push(dictionary[prop]);
+    }
+  }
+  return values;
+};
 
 export class MultiplayerResultsProcessor {
   // @lazyInject(TYPES.UserService) private userService: UserService;
@@ -51,7 +74,7 @@ export class MultiplayerResultsProcessor {
    * @returns {Promise<Game[]>} - The games (active games) that have added the lobby owner of the ApiMultiplayer input data.
    * @memberof MultiplayerResultsProcessor
    */
-  async process(): Promise<Game[]> {
+  async saveMultiplayerEntities(): Promise<Game[]> {
     try {
       // ensure required API data exists
       this.validateApiResultsInput();
@@ -75,10 +98,18 @@ export class MultiplayerResultsProcessor {
       if (!lobby) {
         lobby = this.lobbyService.create({ banchoMultiplayerId: this.input.multiplayerId });
       }
-      //    find matches using Lobby.Match[].startTime + Lobby.banchoMultiplayerId (this can only produce duplicate results if two matches in the same lobby start at the same time - safe to assume this is impossible, unless the osu API royally messes up)
+
+      const players: OsuUser[] = [];
+
+      //    find matches using Lobby.Match[].startTime + Lobby.banchoMultiplayerId
+      //    (this can only produce duplicate results if two matches in the same lobby start at the same time
+      //         - safe to assume this is impossible, unless the osu API royally messes up)
       for (const apiMatch of this.input.matches) {
         let match: Match = lobby.matches.find(
-          lobbyMatch => lobbyMatch.startTime === apiMatch.startTime.getTime() && lobby.banchoMultiplayerId === this.input.multiplayerId
+          lobbyMatch =>
+            lobbyMatch.startTime === apiMatch.startTime &&
+            lobby.banchoMultiplayerId === this.input.multiplayerId &&
+            lobbyMatch.beatmapId === apiMatch.multiplayerId
         );
         if (!match) {
           //      create match if not found
@@ -86,33 +117,37 @@ export class MultiplayerResultsProcessor {
           match = new Match();
           match.aborted = false; // TODO
           match.beatmapId = apiMatch.mapId.toString();
-          match.endTime = apiMatch.endTime.getTime();
+          match.endTime = apiMatch.endTime;
           match.ignored = false; // TODO
           match.lobby = lobby;
           match.mapNumber = apiMatch.mapNumber;
           match.playerScores = [];
-          match.startTime = apiMatch.startTime.getTime();
+          match.startTime = apiMatch.startTime;
           match.teamMode = apiMatch.teamMode;
           lobby.matches.push(match);
         }
 
         for (const apiScore of apiMatch.scores) {
-          //    find scores using Lobby.Match[].startTime + Lobby.Match.PlayerScores[].scoredBy(OsuUser).osuUserId + Lobby.Match.PlayerScores[].score (including score here is just for increased safety, in case two matches have the same startTime for some weird reason)
+          //    find scores using Lobby.Match[].startTime + Lobby.Match.PlayerScores[].scoredBy(OsuUser).osuUserId + Lobby.Match.PlayerScores[].score (including score and bmid here is just for increased safety, in case two matches have the same startTime for some weird reason)
           let score: PlayerScore = match.playerScores.find(
             score =>
-              match.startTime === apiMatch.startTime.getTime() &&
+              match.startTime === apiMatch.startTime &&
               score.scoredBy.osuUserId === apiScore.osuUserId &&
-              score.score === apiScore.score
+              score.score === apiScore.score &&
+              match.beatmapId === apiMatch.mapId
           );
           //      create score if not found
           if (!score) {
             //      find player using Lobby.Match[].PlayerScores[].scoredBy(OsuUser).osuUserId
-            let player: OsuUser = lobby.matches
-              .map(match => match.playerScores)
-              .map(scores => scores.find(score => score.scoredBy.osuUserId === apiScore.osuUserId))
-              .map(score => {
-                if (score) return score.scoredBy;
-              })[0];
+            let player: OsuUser;
+            if (!player) {
+              player = lobby.matches
+                .map(match => match.playerScores)
+                .map(scores => scores.find(score => score.scoredBy.osuUserId === apiScore.osuUserId))
+                .map(score => {
+                  if (score) return score.scoredBy;
+                })[0];
+            }
             if (!player) {
               //      find player in DB
               player = await this.dbConn.manager.getCustomRepository(OsuUserRepository).findOne({ osuUserId: apiScore.osuUserId });
@@ -127,6 +162,10 @@ export class MultiplayerResultsProcessor {
                 countryCode: apiOsuUser.country
               });
               player.user = this.userService.createUser({});
+            }
+            if (player && !players.find(p => p.osuUserId === player.osuUserId)) {
+              // remember seen players to avoid creating duplicates
+              players.push(player);
             }
 
             // TODO: Extract PlayerScore creation to a service class
@@ -157,6 +196,8 @@ export class MultiplayerResultsProcessor {
             "gameLobbies.game.gameLobbies",
             "gameLobbies.game.gameLobbies.lobby",
             "gameLobbies.game.gameLobbies.lobby.matches",
+            "gameLobbies.game.gameLobbies.lobby.matches.lobby",
+            "gameLobbies.game.gameLobbies.lobby.matches.lobby.matches",
             "gameLobbies.game.gameLobbies.lobby.matches.playerScores",
             "gameLobbies.game.gameLobbies.lobby.matches.playerScores.scoredBy",
             "gameLobbies.game.gameLobbies.lobby.matches.playerScores.scoredBy.user"
@@ -164,11 +205,11 @@ export class MultiplayerResultsProcessor {
         }
       );
       this.markAsProcessed();
-      Log.methodSuccess(this.process, this.constructor.name);
-      const result = reloadedLobby.gameLobbies.map(gl => gl.game).filter(g => GameStatus.isStartedStatus(g.status));
-      return result;
+      Log.methodSuccess(this.saveMultiplayerEntities, this.constructor.name);
+      const multiplayerGames: Game[] = reloadedLobby.gameLobbies.map(gl => gl.game).filter(g => GameStatus.isStartedStatus(g.status));
+      return multiplayerGames;
     } catch (error) {
-      Log.methodError(this.process, this.constructor.name, error);
+      Log.methodError(this.saveMultiplayerEntities, this.constructor.name, error);
       throw error;
     }
   }
@@ -181,6 +222,76 @@ export class MultiplayerResultsProcessor {
 
   private markAsProcessed() {
     this.isProcessed = true;
+  }
+
+  a(): void {}
+
+  processMatchResults(
+    game: Game
+  ): {
+    beatmapId: string;
+    matches: Match[];
+    lobbies: {
+      // lobbies that have *p*layed this map
+      Lp: Lobby[];
+      // lobbies *r*emaining to play this map
+      Lr: Lobby[];
+      // the *b*iggest number of times a lobby has played this map
+      Lb: number;
+    };
+  }[] {
+    const processed = _(game.gameLobbies)
+      .map(gameLobby => gameLobby.lobby)
+      .map(lobby => lobby.matches)
+      .flattenDeep()
+      .sortBy(match => match.startTime)
+      .groupBy(match => match.beatmapId)
+      .map((matches, matchesKey) => ({
+        beatmapId: matchesKey,
+        matches: matches,
+        lobbies: game.gameLobbies.map(gl => gl.lobby).filter(l => l.matches.find(m => matches.find(om => om.beatmapId === m.beatmapId)))
+      }))
+      .map(o => {
+        const lb = Math.max(0, ...o.matches.map(m => m.lobby.matches.filter(lm => lm.beatmapId === m.beatmapId).length));
+        return {
+          beatmapId: o.beatmapId,
+          matches: o.matches,
+          lobbies: {
+            Lp: o.lobbies,
+            Lr: game.gameLobbies.map(gl => gl.lobby).filter(l => l.matches.filter(lm => lm.beatmapId === o.beatmapId).length < lb),
+            Lb: lb
+          }
+        };
+      })
+      .value();
+
+    return processed;
+  }
+
+  groupBeatmapsBetweenManyLobbies(game: Game): SameMapsInManyLobbies {
+    const sameMapsInManyLobbies: SameMapsInManyLobbies = {};
+
+    for (const gameLobby of game.gameLobbies) {
+      for (const match of gameLobby.lobby.matches) {
+        if (!sameMapsInManyLobbies[match.beatmapId]) {
+          sameMapsInManyLobbies[match.beatmapId] = [
+            { matchId: match.id, startTime: match.startTime, lobbyId: gameLobby.lobby.id, beatmapId: match.beatmapId }
+          ];
+          continue;
+        }
+        if (sameMapsInManyLobbies[match.beatmapId].find(mlg => mlg.matchId === match.id)) {
+          continue;
+        }
+        sameMapsInManyLobbies[match.beatmapId].push({
+          matchId: match.id,
+          startTime: match.startTime,
+          lobbyId: gameLobby.lobby.id,
+          beatmapId: match.beatmapId
+        });
+      }
+    }
+
+    return sameMapsInManyLobbies;
   }
 
   async buildGameReports(forGames: Game[]): Promise<GameReport[]> {

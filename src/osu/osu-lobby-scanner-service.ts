@@ -331,9 +331,9 @@ export class OsuLobbyScannerService extends Emittery.Typed<OsuLobbyScannerEventD
       const checkingMatch = multi.matches.slice(-1)[0];
       // TODO: More reliable way of determining the answer instead of just not comparing start times at all
       // const latestST = latestKnownMatch.startTime.getTime();
-      const latestET = latestKnownMatch.endTime.getTime();
+      const latestET = latestKnownMatch.endTime;
       // const checkingST = checkingMatch.startTime.getTime();
-      const checkingET = checkingMatch.endTime.getTime();
+      const checkingET = checkingMatch.endTime;
 
       // const answer = latestST !== checkingST && latestET !== checkingET;
       const answer = latestET !== checkingET;

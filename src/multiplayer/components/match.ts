@@ -6,8 +6,8 @@ import { ScoringType } from "./enums/scoring-type";
 import { PlayMode } from "./enums/play-mode";
 
 export interface Match {
-  startTime: Date;
-  endTime: Date;
+  startTime: number;
+  endTime: number;
   playMode: PlayMode;
   scoringType: ScoringType;
   teamType: TeamMode;

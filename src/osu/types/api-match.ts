@@ -5,10 +5,10 @@ import { ApiMatchEvent } from "./api-match-event";
 export type ApiMatch = {
   /** The order in which the map was played for a given lobby. */
   mapNumber: number;
-  multiplayerId: number;
-  mapId: number;
-  startTime: Date;
-  endTime: Date;
+  multiplayerId: string;
+  mapId: string;
+  startTime: number;
+  endTime: number;
   teamMode: TeamMode;
   event: ApiMatchEvent;
   scores: ApiPlayerScore[];
