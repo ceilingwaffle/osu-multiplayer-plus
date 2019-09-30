@@ -13,16 +13,17 @@ export class FakeOsuApiFetcher implements IOsuApiFetcher {
     Log.debug(`Initialized ${this.constructor.name}`);
   }
 
-  fetchMultiplayerResults(banchoMultiplayerId: string): Promise<ApiMultiplayer> {
-    throw new Error("TODO: Implement method of FakeOsuApiFetcher.");
+  async fetchMultiplayerResults(banchoMultiplayerId: string): Promise<ApiMultiplayer> {
+    Log.warn("TODO: Implement method of FakeOsuApiFetcher.");
+    return { multiplayerId: banchoMultiplayerId, matches: [] };
   }
 
-  isValidBanchoMultiplayerId(banchoMultiplayerId: string): Promise<boolean> {
+  async isValidBanchoMultiplayerId(banchoMultiplayerId: string): Promise<boolean> {
     TestHelpers.logFakeImplementationWarning(this.isValidBanchoMultiplayerId.name);
     return Promise.resolve(true);
   }
 
-  isValidOsuUsername(username: string): Promise<OsuUserValidationResult> {
+  async isValidOsuUsername(username: string): Promise<OsuUserValidationResult> {
     TestHelpers.logFakeImplementationWarning(this.isValidOsuUsername.name);
     return Promise.resolve({
       isValid: true,
@@ -30,7 +31,7 @@ export class FakeOsuApiFetcher implements IOsuApiFetcher {
     });
   }
 
-  isValidOsuUserId(userId: string): Promise<OsuUserValidationResult> {
+  async isValidOsuUserId(userId: string): Promise<OsuUserValidationResult> {
     TestHelpers.logFakeImplementationWarning(this.isValidOsuUserId.name);
     return Promise.resolve({
       isValid: true,
@@ -42,7 +43,7 @@ export class FakeOsuApiFetcher implements IOsuApiFetcher {
     });
   }
 
-  getUserDataForUserId(userId: string): Promise<ApiOsuUser> {
+  async getUserDataForUserId(userId: string): Promise<ApiOsuUser> {
     return Promise.resolve({
       userId: Number(userId),
       username: FakeOsuApiFetcher.getFakeBanchoUsername(userId),
