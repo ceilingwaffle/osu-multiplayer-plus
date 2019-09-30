@@ -1,5 +1,6 @@
 import * as path from "path";
 import { ApiOsuUser } from "../osu/types/api-osu-user";
+import cloneDeep = require("lodash/cloneDeep");
 
 export class Helpers {
   static getNow() {
@@ -48,18 +49,6 @@ export class Helpers {
 
   static unique(fromArray: any[]): any[] {
     return [...new Set(fromArray)];
-  }
-
-  /**
-   * https://stackoverflow.com/a/40283265
-   *
-   * @static
-   * @param {any[]} arr
-   * @returns {any[]}
-   * @memberof Helpers
-   */
-  static deepClone(arr: any[]): any[] {
-    return arr.map(a => ({ ...a }));
   }
 
   /**

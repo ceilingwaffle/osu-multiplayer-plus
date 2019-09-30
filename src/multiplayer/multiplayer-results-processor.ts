@@ -23,6 +23,7 @@ import { GameStatus } from "../domain/game/game-status";
 import { GameEventRegistrar } from "./game-events/game-event-registrar";
 import { GameLobby } from "../domain/game/game-lobby.entity";
 import { Helpers } from "../utils/helpers";
+import cloneDeep = require("lodash/cloneDeep");
 
 export class MultiplayerResultsProcessor {
   // @lazyInject(TYPES.UserService) private userService: UserService;
@@ -45,7 +46,7 @@ export class MultiplayerResultsProcessor {
   }
 
   /**
-   * Creates and saves database entities from the input API multiplayer results.
+   * Takes multiplayer results from the osu API and creates and saves database entities from those results.
    *
    * @returns {Promise<Game[]>} - The games (active games) that have added the lobby owner of the ApiMultiplayer input data.
    * @memberof MultiplayerResultsProcessor
@@ -164,7 +165,8 @@ export class MultiplayerResultsProcessor {
       );
       this.markAsProcessed();
       Log.methodSuccess(this.process, this.constructor.name);
-      return reloadedLobby.gameLobbies.map(gl => gl.game).filter(g => GameStatus.isStartedStatus(g.status));
+      const result = reloadedLobby.gameLobbies.map(gl => gl.game).filter(g => GameStatus.isStartedStatus(g.status));
+      return result;
     } catch (error) {
       Log.methodError(this.process, this.constructor.name, error);
       throw error;
@@ -267,7 +269,7 @@ export class MultiplayerResultsProcessor {
       if (lmid.mids.length < smallestMatchCount) smallestMatchCount = lmid.mids.length;
     });
     //          - trim all other GameLobby arrays to have the same size as the smallest array.
-    let glsTrimmed = Helpers.deepClone(gameLobbies) as GameLobby[];
+    let glsTrimmed = cloneDeep(gameLobbies);
     glsTrimmed = glsTrimmed.map(gl => {
       if (smallestMatchCount < gl.lobby.matches.length) {
         gl.lobby.matches.splice(smallestMatchCount, gl.lobby.matches.length - smallestMatchCount);
