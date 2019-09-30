@@ -1,6 +1,7 @@
 import { Repository, Entity, ObjectType } from "typeorm";
 import { Log } from "../../utils/Log";
 import { Helpers } from "../../utils/helpers";
+import cloneDeep = require("lodash/cloneDeep");
 
 export class AppBaseRepository<T> extends Repository<T> {
   protected async getLastIdOfTable(tableName: string) {
@@ -55,7 +56,7 @@ export class AppBaseRepository<T> extends Repository<T> {
       let id = (await this.getLastIdOfTable(tableName)) || 0;
       values.forEach(u => ((u as any).id = ++id));
       const insertedIds: number[] = [];
-      let remainingValues = Helpers.deepClone(values);
+      let remainingValues = cloneDeep(values);
       while (remainingValues.length) {
         const chunk = remainingValues.splice(0, chunkSize);
         const insertResult = await this.createQueryBuilder()
