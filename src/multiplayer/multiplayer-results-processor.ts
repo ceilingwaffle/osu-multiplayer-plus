@@ -22,31 +22,24 @@ import { Game } from "../domain/game/game.entity";
 import { GameStatus } from "../domain/game/game-status";
 import { GameEventRegistrar } from "./game-events/game-event-registrar";
 import { GameLobby } from "../domain/game/game-lobby.entity";
-import { Helpers } from "../utils/helpers";
 import cloneDeep = require("lodash/cloneDeep");
 import groupBy = require("lodash/groupBy");
-import _ = require("lodash"); // do not convert to default import!!
+import _ = require("lodash"); // do not convert to default import -- it will break!!
 
-interface MatchResult {
+export interface BeatmapLobbyGroup {
   beatmapId: string;
-  matchId: number;
-  startTime: number;
-  lobbyId: number;
+  matches: Match[];
+  lobbies: {
+    /** Lobbies that have played this map */
+    played: Lobby[];
+    /** Lobbies remaining to play this map. If a lobby exists in both "remaining" and "played",
+     * it means the lobby existing in remaining needs to "catch up" with the other lobbies in "played"
+     * by playing the same map for some (n>1)th time */
+    remaining: Lobby[];
+    /** The greatest number of times any lobby has played this map */
+    greatestPlayedCount: number;
+  };
 }
-
-interface SameMapsInManyLobbies {
-  [beatmapId: string]: MatchResult[];
-}
-
-const getSameMapsInManyLobbies = (dictionary: SameMapsInManyLobbies): MatchResult[][] => {
-  var values: MatchResult[][] = [];
-  for (var prop in dictionary) {
-    if (dictionary.hasOwnProperty(prop)) {
-      values.push(dictionary[prop]);
-    }
-  }
-  return values;
-};
 
 export class MultiplayerResultsProcessor {
   // @lazyInject(TYPES.UserService) private userService: UserService;
@@ -105,12 +98,18 @@ export class MultiplayerResultsProcessor {
       //    (this can only produce duplicate results if two matches in the same lobby start at the same time
       //         - safe to assume this is impossible, unless the osu API royally messes up)
       for (const apiMatch of this.input.matches) {
-        let match: Match = lobby.matches.find(
+        const matches: Match[] = lobby.matches.filter(
           lobbyMatch =>
             lobbyMatch.startTime === apiMatch.startTime &&
             lobby.banchoMultiplayerId === this.input.multiplayerId &&
-            lobbyMatch.beatmapId === apiMatch.multiplayerId
+            lobbyMatch.beatmapId === apiMatch.mapId
         );
+        if (matches.length > 1) {
+          Log.warn(
+            "Duplicate match results found! This is bad. Probably because two maps had the same start-time in the same lobby. This should never happen! For now, we'll just select and use the last of these duplicates."
+          );
+        }
+        let match: Match = matches.slice(-1)[0]; // set to undefined if no matches exist
         if (!match) {
           //      create match if not found
           // TODO: Extract match creation to MatchService
@@ -184,7 +183,7 @@ export class MultiplayerResultsProcessor {
       // TODO: ensure Lobby.GameLobbies isn't being erased - if it is, just add it to the relations when finding lobby
       const savedLobby = await lobby.save();
       const reloadedLobby: Lobby = await this.dbConn.manager.getCustomRepository(LobbyRepository).findOne(
-        { banchoMultiplayerId: this.input.multiplayerId },
+        { id: savedLobby.id },
         {
           relations: [
             "gameLobbies",
@@ -224,23 +223,8 @@ export class MultiplayerResultsProcessor {
     this.isProcessed = true;
   }
 
-  a(): void {}
-
-  processMatchResults(
-    game: Game
-  ): {
-    beatmapId: string;
-    matches: Match[];
-    lobbies: {
-      // lobbies that have *p*layed this map
-      Lp: Lobby[];
-      // lobbies *r*emaining to play this map
-      Lr: Lobby[];
-      // the *b*iggest number of times a lobby has played this map
-      Lb: number;
-    };
-  }[] {
-    const processed = _(game.gameLobbies)
+  groupLobbiesByBeatmaps(game: Game): BeatmapLobbyGroup[] {
+    const beatmapLobbyGroups = _(game.gameLobbies)
       .map(gameLobby => gameLobby.lobby)
       .map(lobby => lobby.matches)
       .flattenDeep()
@@ -251,47 +235,21 @@ export class MultiplayerResultsProcessor {
         matches: matches,
         lobbies: game.gameLobbies.map(gl => gl.lobby).filter(l => l.matches.find(m => matches.find(om => om.beatmapId === m.beatmapId)))
       }))
-      .map(o => {
+      .map<BeatmapLobbyGroup>(o => {
         const lb = Math.max(0, ...o.matches.map(m => m.lobby.matches.filter(lm => lm.beatmapId === m.beatmapId).length));
         return {
           beatmapId: o.beatmapId,
           matches: o.matches,
           lobbies: {
-            Lp: o.lobbies,
-            Lr: game.gameLobbies.map(gl => gl.lobby).filter(l => l.matches.filter(lm => lm.beatmapId === o.beatmapId).length < lb),
-            Lb: lb
+            played: o.lobbies,
+            remaining: game.gameLobbies.map(gl => gl.lobby).filter(l => l.matches.filter(lm => lm.beatmapId === o.beatmapId).length < lb),
+            greatestPlayedCount: lb
           }
         };
       })
       .value();
 
-    return processed;
-  }
-
-  groupBeatmapsBetweenManyLobbies(game: Game): SameMapsInManyLobbies {
-    const sameMapsInManyLobbies: SameMapsInManyLobbies = {};
-
-    for (const gameLobby of game.gameLobbies) {
-      for (const match of gameLobby.lobby.matches) {
-        if (!sameMapsInManyLobbies[match.beatmapId]) {
-          sameMapsInManyLobbies[match.beatmapId] = [
-            { matchId: match.id, startTime: match.startTime, lobbyId: gameLobby.lobby.id, beatmapId: match.beatmapId }
-          ];
-          continue;
-        }
-        if (sameMapsInManyLobbies[match.beatmapId].find(mlg => mlg.matchId === match.id)) {
-          continue;
-        }
-        sameMapsInManyLobbies[match.beatmapId].push({
-          matchId: match.id,
-          startTime: match.startTime,
-          lobbyId: gameLobby.lobby.id,
-          beatmapId: match.beatmapId
-        });
-      }
-    }
-
-    return sameMapsInManyLobbies;
+    return beatmapLobbyGroups;
   }
 
   async buildGameReports(forGames: Game[]): Promise<GameReport[]> {

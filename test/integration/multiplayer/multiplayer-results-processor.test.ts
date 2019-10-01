@@ -2,7 +2,7 @@ import "../../../src/startup";
 import "mocha";
 import * as chai from "chai";
 import { assert, expect } from "chai";
-import { MultiplayerResultsProcessor } from "../../../src/multiplayer/multiplayer-results-processor";
+import { MultiplayerResultsProcessor, BeatmapLobbyGroup } from "../../../src/multiplayer/multiplayer-results-processor";
 import { ApiMultiplayer } from "../../../src/osu/types/api-multiplayer";
 import { TeamMode } from "../../../src/multiplayer/components/enums/team-mode";
 import { GameReport } from "../../../src/multiplayer/reports/game.report";
@@ -36,6 +36,7 @@ import { AddTeamsDto } from "../../../src/domain/team/dto/add-team.dto";
 import { TeamController } from "../../../src/domain/team/team.controller";
 import { Game as GameEntity } from "../../../src/domain/game/game.entity";
 import { GameStatus } from "../../../src/domain/game/game-status";
+import { debug } from "console";
 
 chai.use(chaiExclude);
 
@@ -1210,14 +1211,14 @@ describe("When processing multiplayer results", function() {
           const processor1 = new MultiplayerResultsProcessor(lobby1ApiResults1);
           const games1: Game[] = await processor1.saveMultiplayerEntities();
           for (const game of games1) {
-            const r1 = processor1.processMatchResults(game);
+            const r1 = processor1.groupLobbiesByBeatmaps(game);
             const a = true;
           }
           const processor2 = new MultiplayerResultsProcessor(lobby2ApiResults1);
           const games2: Game[] = await processor2.saveMultiplayerEntities();
           // const r2 = await processor2.buildGameReports(games2);
           for (const game of games2) {
-            const r1 = processor1.processMatchResults(game);
+            const r1 = processor1.groupLobbiesByBeatmaps(game);
             const a = true;
           }
 
@@ -1279,8 +1280,8 @@ describe("When processing multiplayer results", function() {
                 mapNumber: 2,
                 multiplayerId: addLobby1Request.banchoMultiplayerId,
                 mapId: "BM2",
-                startTime: new Date().getTime() + 2,
-                endTime: new Date().getTime() + 302,
+                startTime: new Date().getTime() + 12,
+                endTime: new Date().getTime() + 312,
                 teamMode: TeamMode.HeadToHead,
                 event: "match_end",
                 scores: [
@@ -1300,8 +1301,8 @@ describe("When processing multiplayer results", function() {
                 mapNumber: 3,
                 multiplayerId: addLobby1Request.banchoMultiplayerId,
                 mapId: "BM3", // BM3#1
-                startTime: new Date().getTime() + 3,
-                endTime: new Date().getTime() + 303,
+                startTime: new Date().getTime() + 33,
+                endTime: new Date().getTime() + 333,
                 teamMode: TeamMode.HeadToHead,
                 event: "match_end",
                 scores: [
@@ -1321,8 +1322,8 @@ describe("When processing multiplayer results", function() {
                 mapNumber: 4,
                 multiplayerId: addLobby1Request.banchoMultiplayerId,
                 mapId: "BM4",
-                startTime: new Date().getTime() + 4,
-                endTime: new Date().getTime() + 304,
+                startTime: new Date().getTime() + 44,
+                endTime: new Date().getTime() + 344,
                 teamMode: TeamMode.HeadToHead,
                 event: "match_end",
                 scores: [
@@ -1342,8 +1343,8 @@ describe("When processing multiplayer results", function() {
                 mapNumber: 5,
                 multiplayerId: addLobby1Request.banchoMultiplayerId,
                 mapId: "BM3", // BM3#2
-                startTime: new Date().getTime() + 5,
-                endTime: new Date().getTime() + 305,
+                startTime: new Date().getTime() + 55,
+                endTime: new Date().getTime() + 355,
                 teamMode: TeamMode.HeadToHead,
                 event: "match_end",
                 scores: [
@@ -1390,8 +1391,8 @@ describe("When processing multiplayer results", function() {
                 mapNumber: 2,
                 multiplayerId: addLobby2Request.banchoMultiplayerId,
                 mapId: "BM1",
-                startTime: new Date().getTime() + 102,
-                endTime: new Date().getTime() + 402,
+                startTime: new Date().getTime() + 112,
+                endTime: new Date().getTime() + 412,
                 teamMode: TeamMode.HeadToHead,
                 event: "match_end",
                 scores: [
@@ -1411,8 +1412,8 @@ describe("When processing multiplayer results", function() {
                 mapNumber: 3,
                 multiplayerId: addLobby2Request.banchoMultiplayerId,
                 mapId: "BM4",
-                startTime: new Date().getTime() + 103,
-                endTime: new Date().getTime() + 403,
+                startTime: new Date().getTime() + 123,
+                endTime: new Date().getTime() + 423,
                 teamMode: TeamMode.HeadToHead,
                 event: "match_end",
                 scores: [
@@ -1431,9 +1432,170 @@ describe("When processing multiplayer results", function() {
               {
                 mapNumber: 4,
                 multiplayerId: addLobby2Request.banchoMultiplayerId,
-                mapId: "BM55",
-                startTime: new Date().getTime() + 104,
-                endTime: new Date().getTime() + 404,
+                mapId: "BM5",
+                startTime: new Date().getTime() + 134,
+                endTime: new Date().getTime() + 434,
+                teamMode: TeamMode.HeadToHead,
+                event: "match_end",
+                scores: [
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[0][1]).toString(),
+                    score: 100000,
+                    passed: true
+                  },
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[1][1]).toString(),
+                    score: 100001,
+                    passed: true
+                  }
+                ]
+              }
+            ]
+          };
+
+          const lobby2ApiResults2: ApiMultiplayer = {
+            multiplayerId: addLobby2Request.banchoMultiplayerId,
+            matches: [
+              ...lobby2ApiResults1.matches,
+              {
+                mapNumber: 5,
+                multiplayerId: addLobby2Request.banchoMultiplayerId,
+                mapId: "BM3",
+                startTime: new Date().getTime() + 145,
+                endTime: new Date().getTime() + 445,
+                teamMode: TeamMode.HeadToHead,
+                event: "match_end",
+                scores: [
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[0][1]).toString(),
+                    score: 100000,
+                    passed: true
+                  },
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[1][1]).toString(),
+                    score: 100001,
+                    passed: true
+                  }
+                ]
+              },
+              {
+                mapNumber: 6,
+                multiplayerId: addLobby2Request.banchoMultiplayerId,
+                mapId: "BM3",
+                startTime: new Date().getTime() + 156,
+                endTime: new Date().getTime() + 456,
+                teamMode: TeamMode.HeadToHead,
+                event: "match_end",
+                scores: [
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[0][1]).toString(),
+                    score: 100000,
+                    passed: true
+                  },
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[1][1]).toString(),
+                    score: 100001,
+                    passed: true
+                  }
+                ]
+              }
+            ]
+          };
+
+          const lobby1ApiResults2: ApiMultiplayer = {
+            multiplayerId: addLobby1Request.banchoMultiplayerId,
+            matches: [
+              ...lobby1ApiResults1.matches,
+              {
+                mapNumber: 6,
+                multiplayerId: addLobby1Request.banchoMultiplayerId,
+                mapId: "BM5",
+                startTime: new Date().getTime() + 567,
+                endTime: new Date().getTime() + 867,
+                teamMode: TeamMode.HeadToHead,
+                event: "match_end",
+                scores: [
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[0][0]).toString(),
+                    score: 100000,
+                    passed: true
+                  },
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[1][0]).toString(),
+                    score: 100001,
+                    passed: true
+                  }
+                ]
+              }
+            ]
+          };
+
+          const lobby2ApiResults3: ApiMultiplayer = {
+            multiplayerId: addLobby2Request.banchoMultiplayerId,
+            matches: [
+              ...lobby2ApiResults2.matches,
+              {
+                mapNumber: 7,
+                multiplayerId: addLobby2Request.banchoMultiplayerId,
+                mapId: "BM5", // lobby#2, BM5#2
+                startTime: new Date().getTime() + 678,
+                endTime: new Date().getTime() + 978,
+                teamMode: TeamMode.HeadToHead,
+                event: "match_end",
+                scores: [
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[0][1]).toString(),
+                    score: 100000,
+                    passed: true
+                  },
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[1][1]).toString(),
+                    score: 100001,
+                    passed: true
+                  }
+                ]
+              }
+            ]
+          };
+
+          const lobby1ApiResults3: ApiMultiplayer = {
+            multiplayerId: addLobby1Request.banchoMultiplayerId,
+            matches: [
+              ...lobby1ApiResults2.matches,
+              {
+                mapNumber: 7,
+                multiplayerId: addLobby1Request.banchoMultiplayerId,
+                mapId: "BM5",
+                startTime: new Date().getTime() + 1200,
+                endTime: new Date().getTime() + 1400,
+                teamMode: TeamMode.HeadToHead,
+                event: "match_end",
+                scores: [
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[0][0]).toString(),
+                    score: 100000,
+                    passed: true
+                  },
+                  {
+                    osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(inTeams[1][0]).toString(),
+                    score: 100001,
+                    passed: true
+                  }
+                ]
+              }
+            ]
+          };
+
+          const lobby2ApiResults4: ApiMultiplayer = {
+            multiplayerId: addLobby2Request.banchoMultiplayerId,
+            matches: [
+              ...lobby2ApiResults3.matches,
+              {
+                mapNumber: 8,
+                multiplayerId: addLobby2Request.banchoMultiplayerId,
+                mapId: "BM5", // lobby#2, BM5#3
+                startTime: new Date().getTime() + 1600,
+                endTime: new Date().getTime() + 1800,
                 teamMode: TeamMode.HeadToHead,
                 event: "match_end",
                 scores: [
@@ -1454,19 +1616,454 @@ describe("When processing multiplayer results", function() {
 
           const processor1 = new MultiplayerResultsProcessor(lobby1ApiResults1);
           const games1: Game[] = await processor1.saveMultiplayerEntities();
-          for (const game of games1) {
-            const r1 = processor1.processMatchResults(game);
-            const a = true;
-          }
+          expect(games1).to.have.lengthOf(1);
+          const r1 = processor1.groupLobbiesByBeatmaps(games1[0]);
+          expect(r1.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(1);
+          expect(r1.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(1);
+          expect(r1.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(2);
+          expect(r1.find(r => r.beatmapId === "BM4").matches).to.have.lengthOf(1);
+          expect(r1)
+            .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
+            .to.deep.equal([
+              {
+                beatmapId: "BM1",
+                lobbies: {
+                  played: [{ banchoMultiplayerId: addLobby1Request.banchoMultiplayerId }],
+                  remaining: [{ banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }],
+                  greatestPlayedCount: 1
+                }
+              },
+              {
+                beatmapId: "BM2",
+                lobbies: {
+                  played: [{ banchoMultiplayerId: addLobby1Request.banchoMultiplayerId }],
+                  remaining: [{ banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }],
+                  greatestPlayedCount: 1
+                }
+              },
+              {
+                beatmapId: "BM3",
+                lobbies: {
+                  played: [{ banchoMultiplayerId: addLobby1Request.banchoMultiplayerId }],
+                  remaining: [{ banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }],
+                  greatestPlayedCount: 2
+                }
+              },
+              {
+                beatmapId: "BM4",
+                lobbies: {
+                  played: [{ banchoMultiplayerId: addLobby1Request.banchoMultiplayerId }],
+                  remaining: [{ banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }],
+                  greatestPlayedCount: 1
+                }
+              }
+            ]);
+
           const processor2 = new MultiplayerResultsProcessor(lobby2ApiResults1);
           const games2: Game[] = await processor2.saveMultiplayerEntities();
-          // const r2 = await processor2.buildGameReports(games2);
-          for (const game of games2) {
-            const r1 = processor1.processMatchResults(game);
-            const a = true;
-          }
+          expect(games2).to.have.lengthOf(1);
+          const r2 = processor2.groupLobbiesByBeatmaps(games2[0]);
+          expect(r2.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(2);
+          expect(r2.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(2);
+          expect(r2.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(2);
+          expect(r2.find(r => r.beatmapId === "BM4").matches).to.have.lengthOf(2);
+          expect(r2.find(r => r.beatmapId === "BM5").matches).to.have.lengthOf(1);
+          expect(r2)
+            .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
+            .to.deep.equal([
+              {
+                beatmapId: "BM1",
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 1
+                }
+              },
+              {
+                beatmapId: "BM2",
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 1
+                }
+              },
+              {
+                beatmapId: "BM3",
+                lobbies: {
+                  played: [{ banchoMultiplayerId: addLobby1Request.banchoMultiplayerId }],
+                  remaining: [{ banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }],
+                  greatestPlayedCount: 2
+                }
+              },
+              {
+                beatmapId: "BM4",
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 1
+                }
+              },
+              {
+                beatmapId: "BM5",
+                lobbies: {
+                  played: [{ banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }],
+                  remaining: [{ banchoMultiplayerId: addLobby1Request.banchoMultiplayerId }],
+                  greatestPlayedCount: 1
+                }
+              }
+            ]);
 
-          return reject();
+          const processor3 = new MultiplayerResultsProcessor(lobby2ApiResults2);
+          const games3: Game[] = await processor3.saveMultiplayerEntities();
+          expect(games3).to.have.lengthOf(1);
+          const r3 = processor3.groupLobbiesByBeatmaps(games3[0]);
+          expect(r3.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(2);
+          expect(r3.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(2);
+          expect(r3.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(4);
+          expect(r3.find(r => r.beatmapId === "BM4").matches).to.have.lengthOf(2);
+          expect(r3.find(r => r.beatmapId === "BM5").matches).to.have.lengthOf(1);
+          expect(r3)
+            .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
+            .to.deep.equal([
+              {
+                beatmapId: "BM1",
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 1
+                }
+              },
+              {
+                beatmapId: "BM2",
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 1
+                }
+              },
+              {
+                beatmapId: "BM3",
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 2
+                }
+              },
+              {
+                beatmapId: "BM4",
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 1
+                }
+              },
+              {
+                beatmapId: "BM5",
+                lobbies: {
+                  played: [{ banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }],
+                  remaining: [{ banchoMultiplayerId: addLobby1Request.banchoMultiplayerId }],
+                  greatestPlayedCount: 1
+                }
+              }
+            ]);
+
+          const processor4 = new MultiplayerResultsProcessor(lobby1ApiResults2);
+          const games4: Game[] = await processor4.saveMultiplayerEntities();
+          expect(games4).to.have.lengthOf(1);
+          const r4 = processor4.groupLobbiesByBeatmaps(games4[0]);
+          expect(r4.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(2);
+          expect(r4.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(2);
+          expect(r4.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(4);
+          expect(r4.find(r => r.beatmapId === "BM4").matches).to.have.lengthOf(2);
+          expect(r4.find(r => r.beatmapId === "BM5").matches).to.have.lengthOf(2);
+          expect(r4)
+            .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
+            .to.deep.equal([
+              {
+                beatmapId: "BM1",
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 1
+                }
+              },
+              {
+                beatmapId: "BM2",
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 1
+                }
+              },
+              {
+                beatmapId: "BM3",
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 2
+                }
+              },
+              {
+                beatmapId: "BM4",
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 1
+                }
+              },
+              {
+                beatmapId: "BM5",
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 1
+                }
+              }
+            ]);
+
+          const processor5 = new MultiplayerResultsProcessor(lobby2ApiResults3);
+          const games5: Game[] = await processor5.saveMultiplayerEntities();
+          expect(games5).to.have.lengthOf(1);
+          const r5 = processor5.groupLobbiesByBeatmaps(games5[0]);
+          expect(r5.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(2);
+          expect(r5.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(2);
+          expect(r5.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(4);
+          expect(r5.find(r => r.beatmapId === "BM4").matches).to.have.lengthOf(2);
+          expect(r5.find(r => r.beatmapId === "BM5").matches).to.have.lengthOf(3);
+          expect(r5)
+            .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
+            .to.deep.equal([
+              {
+                beatmapId: "BM1",
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 1
+                }
+              },
+              {
+                beatmapId: "BM2",
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 1
+                }
+              },
+              {
+                beatmapId: "BM3",
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 2
+                }
+              },
+              {
+                beatmapId: "BM4",
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 1
+                }
+              },
+              {
+                beatmapId: "BM5",
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [{ banchoMultiplayerId: addLobby1Request.banchoMultiplayerId }],
+                  greatestPlayedCount: 2
+                }
+              }
+            ]);
+
+          const processor6 = new MultiplayerResultsProcessor(lobby1ApiResults3);
+          const games6: Game[] = await processor6.saveMultiplayerEntities();
+          expect(games6).to.have.lengthOf(1);
+          const r6 = processor6.groupLobbiesByBeatmaps(games6[0]);
+          expect(r6.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(2);
+          expect(r6.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(2);
+          expect(r6.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(4);
+          expect(r6.find(r => r.beatmapId === "BM4").matches).to.have.lengthOf(2);
+          expect(r6.find(r => r.beatmapId === "BM5").matches).to.have.lengthOf(4);
+          expect(r6)
+            .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
+            .to.deep.equal([
+              {
+                beatmapId: "BM1",
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 1
+                }
+              },
+              {
+                beatmapId: "BM2",
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 1
+                }
+              },
+              {
+                beatmapId: "BM3",
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 2
+                }
+              },
+              {
+                beatmapId: "BM4",
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 1
+                }
+              },
+              {
+                beatmapId: "BM5",
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 2
+                }
+              }
+            ]);
+
+          const processor7 = new MultiplayerResultsProcessor(lobby2ApiResults4);
+          const games7: Game[] = await processor7.saveMultiplayerEntities();
+          expect(games7).to.have.lengthOf(1);
+          const r7 = processor7.groupLobbiesByBeatmaps(games7[0]);
+          expect(r7.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(2);
+          expect(r7.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(2);
+          expect(r7.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(4);
+          expect(r7.find(r => r.beatmapId === "BM4").matches).to.have.lengthOf(2);
+          expect(r7.find(r => r.beatmapId === "BM5").matches).to.have.lengthOf(5);
+          expect(r7)
+            .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
+            .to.deep.equal([
+              {
+                beatmapId: "BM1",
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 1
+                }
+              },
+              {
+                beatmapId: "BM2",
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 1
+                }
+              },
+              {
+                beatmapId: "BM3",
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 2
+                }
+              },
+              {
+                beatmapId: "BM4",
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 1
+                }
+              },
+              {
+                beatmapId: "BM5",
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [{ banchoMultiplayerId: addLobby1Request.banchoMultiplayerId }],
+                  greatestPlayedCount: 3
+                }
+              }
+            ]);
+
           return resolve();
         } catch (error) {
           return reject(error);
@@ -1485,6 +2082,17 @@ describe("When processing multiplayer results", function() {
       });
     });
     xit("should deliver results for a map when that map is played in a different order in three lobbies", function() {
+      return new Promise(async (resolve, reject) => {
+        try {
+          return reject();
+          return resolve();
+        } catch (error) {
+          return reject(error);
+        }
+      });
+    });
+
+    xit("should calculate scores correctly after a player swaps from one lobby to another", function() {
       return new Promise(async (resolve, reject) => {
         try {
           return reject();
