@@ -22,6 +22,7 @@ import { Game } from "../domain/game/game.entity";
 import { GameStatus } from "../domain/game/game-status";
 import { GameEventRegistrar } from "./game-events/game-event-registrar";
 import { GameLobby } from "../domain/game/game-lobby.entity";
+import { MultiplayerMessage } from "./messages/multiplayer-message";
 import cloneDeep = require("lodash/cloneDeep");
 import groupBy = require("lodash/groupBy");
 import _ = require("lodash"); // do not convert to default import -- it will break!!
@@ -49,6 +50,7 @@ export class MultiplayerResultsProcessor {
   private userService: UserService = iocContainer.get<UserService>(TYPES.UserService);
   private lobbyService: LobbyService = iocContainer.get<LobbyService>(TYPES.LobbyService);
   private osuApi: IOsuApiFetcher = iocContainer.get<IOsuApiFetcher>(TYPES.IOsuApiFetcher);
+  private gameEventRegistrarCollection: GameEventRegistrarCollection = iocContainer.get<GameEventRegistrarCollection>(TYPES.GameEventRegistrarCollection); //prettier-ignore
   // protected readonly lobbyRepository: LobbyRepository = getCustomRepository(LobbyRepository);
   // protected readonly osuUserRepository: OsuUserRepository = getCustomRepository(OsuUserRepository);
 
@@ -203,7 +205,6 @@ export class MultiplayerResultsProcessor {
           ]
         }
       );
-      this.markAsProcessed();
       Log.methodSuccess(this.saveMultiplayerEntities, this.constructor.name);
       const multiplayerGames: Game[] = reloadedLobby.gameLobbies.map(gl => gl.game).filter(g => GameStatus.isStartedStatus(g.status));
       return multiplayerGames;
@@ -219,11 +220,7 @@ export class MultiplayerResultsProcessor {
     }
   }
 
-  private markAsProcessed() {
-    this.isProcessed = true;
-  }
-
-  groupLobbiesByBeatmaps(game: Game): BeatmapLobbyGroup[] {
+  buildLobbyStatusesGroupedByBeatmaps(game: Game): BeatmapLobbyGroup[] {
     const beatmapLobbyGroups = _(game.gameLobbies)
       .map(gameLobby => gameLobby.lobby)
       .map(lobby => lobby.matches)
@@ -252,107 +249,133 @@ export class MultiplayerResultsProcessor {
     return beatmapLobbyGroups;
   }
 
-  async buildGameReports(forGames: Game[]): Promise<GameReport[]> {
-    try {
-      if (!this.markAsProcessed) {
-        throw new Error("Must process API results first before building report.");
+  buildMessages(beatmapsPlayed: BeatmapLobbyGroup): MultiplayerMessage[] {
+    throw new Error("TODO: Implement method of MultiplayerResultsProcessor.");
+  }
+
+  buildLeaderboardEvents(game: Game): GameEvent[] {
+    const registrar: GameEventRegistrar = this.gameEventRegistrarCollection.findOrCreate(game.id);
+    const events: GameEvent[] = registrar.getEvents();
+    const leaderboardEvents: GameEvent[] = [];
+    for (const eventType in events) {
+      const event: GameEvent = events[eventType];
+      if (event.happenedIn(game)) {
+        // event should have event.data defined if happenedIn === true
+        leaderboardEvents.push(event);
       }
-      // TODO: get report entities from DB
-      // TODO: build report
-
-      // Sequence of things to do:
-      //    - Figure out what events we want to track -> add those events to the EventRegistrar
-      //          - Register events in the EventRegistrar
-      //
-      //
-      //    - Determine if ready to report results for a GameLobby map:
-      for (const game of forGames) {
-        const ready = this.allGameLobbiesFinishedMap(game.gameLobbies);
-      }
-      //
-      //    - Build game events
-      //          EventBuilder(game.matches) -> GameEvents[]
-      //    - Build leaderboard
-      //          LeaderboardBuilder(event[]) -> Leaderboard
-      //    - Deliver leaderboard and game-message-targets to DiscordMessageBuilder
-      //          DiscordMessageBuilder.sendLeaderboard(game, leaderboard)
-      //
-      //
-      //
-      // --------- IDEA -------------
-      // - api has pushed some data for a lobby result (e.g. map finished)
-      // - MpResultsProcessor processes that data with .process()
-      //       - saves the data in the database
-      //       - forwards the saved data to the GameReportBuilder
-      // - GameReportBuilder
-      //       - determines the latest events that happened in the game
-      //       - builds the game report (with a leaderboard) from those
-      // -----------------------------
-
-      // Build a collection of game-events for the leaderboard for each game we received match-results for.
-      const gameEventRegistrarCollection: GameEventRegistrarCollection = iocContainer.get<GameEventRegistrarCollection>(
-        TYPES.GameEventRegistrarCollection
-      );
-
-      for (const game of forGames) {
-        const registrar: GameEventRegistrar = gameEventRegistrarCollection.findOrCreate(game.id);
-        const events: GameEvent[] = registrar.getEvents();
-        const leaderboardEvents: GameEvent[] = [];
-        for (const eventType in events) {
-          const event: GameEvent = events[eventType];
-          if (event.happenedIn(game)) {
-            // event should have event.data defined if happenedIn === true
-            leaderboardEvents.push(event);
-          }
-        }
-      }
-
-      return null;
-
-      // build the "most recent" game report with leaderboard-data for the events determined by the entire history of the game's matches
-      // const gameReportBuilder = new GameReportBuilder(leaderboardEvents);
-      // const gameReport = gameReportBuilder.build();
-
-      // after building, fire event "report created for game <gameId>"
-
-      // throw new Error("TODO: Implement method of MultiplayerResultsProcessor.");
-    } catch (error) {
-      Log.methodError(this.buildGameReports, this.constructor.name, error);
-      throw error;
     }
+    return leaderboardEvents;
   }
 
-  private allGameLobbiesFinishedMap(gameLobbies: GameLobby[]): boolean {
-    const lobbyMatchIds: { lid: number; mids: number[] }[] = gameLobbies.map(gl => {
-      return { lid: gl.lobby.id, mids: [] };
-    });
-    //       - get all game lobbies and their matches (ordered such that the most recently-completed matches are listed at a later index for that game lobby)
-    //       - if all game lobbies have match results for a map
-    gameLobbies.forEach(gl => {
-      gl.lobby.matches.forEach(m => {
-        lobbyMatchIds.find(lmid => lmid.lid === gl.lobby.id).mids.push(m.id);
-      });
-    });
-    let smallestMatchCount = Number.POSITIVE_INFINITY;
-    lobbyMatchIds.map(lmid => {
-      if (lmid.mids.length < smallestMatchCount) smallestMatchCount = lmid.mids.length;
-    });
-    //          - trim all other GameLobby arrays to have the same size as the smallest array.
-    let glsTrimmed = cloneDeep(gameLobbies);
-    glsTrimmed = glsTrimmed.map(gl => {
-      if (smallestMatchCount < gl.lobby.matches.length) {
-        gl.lobby.matches.splice(smallestMatchCount, gl.lobby.matches.length - smallestMatchCount);
-      }
-      return gl;
-    });
-
-    // game.latestReportedMatch: { matchBeatmapId: number, sameLobbyMapIdsLatestEndTime: number }
-
-    //          - if array1 is not empty, and if results have not been calculated for match at array1[n-1], that map is complete --> report results
-    // if (glsTrimmed[0].lobby.matches.length && )
-    //      - if not ready to report results
-    //         - deliver message "Lobby L1 finished map A (id, mapString). Waiting on results from lobbies B,C,..."
-    //
-    return false;
+  buildGameReport(leaderboardEvents: GameEvent[]): GameReport {
+    throw new Error("TODO: Implement method of MultiplayerResultsProcessor.");
   }
+
+  // async buildGameReports(forGames: Game[]): Promise<GameReport[]> {
+  //   try {
+  //     if (!this.markAsProcessed) {
+  //       throw new Error("Must process API results first before building report.");
+  //     }
+  //     // TODO: get report entities from DB
+  //     // TODO: build report
+
+  //     // Sequence of things to do:
+  //     //    - Figure out what events we want to track -> add those events to the EventRegistrar
+  //     //          - Register events in the EventRegistrar
+  //     //
+  //     //
+  //     //    - Determine if ready to report results for a GameLobby map:
+  //     for (const game of forGames) {
+  //       const ready = this.allGameLobbiesFinishedMap(game.gameLobbies);
+  //     }
+  //     //
+  //     //    - Build game events
+  //     //          EventBuilder(game.matches) -> GameEvents[]
+  //     //    - Build messages
+  //     //          e.g. Lobby 1 completed BM1#1.
+  //     //          e.g. Waiting on BM1#1 from lobbies 2."
+  //     //          e.g. All lobbies have completed BM2#1
+  //     //    - Build leaderboard
+  //     //          LeaderboardBuilder(event[]) -> Leaderboard
+  //     //    - Deliver leaderboard and game-message-targets to DiscordMessageBuilder
+  //     //          DiscordMessageBuilder.sendLeaderboard(game, leaderboard)
+  //     //
+  //     //
+  //     //
+  //     // --------- IDEA -------------
+  //     // - api has pushed some data for a lobby result (e.g. map finished)
+  //     // - MpResultsProcessor processes that data with .process()
+  //     //       - saves the data in the database
+  //     //       - forwards the saved data to the GameReportBuilder
+  //     // - GameReportBuilder
+  //     //       - determines the latest events that happened in the game
+  //     //       - builds the game report (with a leaderboard) from those
+  //     // -----------------------------
+
+  //     // Build a collection of game-events for the leaderboard for each game we received match-results for.
+  //     const gameEventRegistrarCollection: GameEventRegistrarCollection = iocContainer.get<GameEventRegistrarCollection>(
+  //       TYPES.GameEventRegistrarCollection
+  //     );
+
+  //     for (const game of forGames) {
+  //       const registrar: GameEventRegistrar = gameEventRegistrarCollection.findOrCreate(game.id);
+  //       const events: GameEvent[] = registrar.getEvents();
+  //       const leaderboardEvents: GameEvent[] = [];
+  //       for (const eventType in events) {
+  //         const event: GameEvent = events[eventType];
+  //         if (event.happenedIn(game)) {
+  //           // event should have event.data defined if happenedIn === true
+  //           leaderboardEvents.push(event);
+  //         }
+  //       }
+  //     }
+
+  //     return null;
+
+  //     // build the "most recent" game report with leaderboard-data for the events determined by the entire history of the game's matches
+  //     // const gameReportBuilder = new GameReportBuilder(leaderboardEvents);
+  //     // const gameReport = gameReportBuilder.build();
+
+  //     // after building, fire event "report created for game <gameId>"
+
+  //     // throw new Error("TODO: Implement method of MultiplayerResultsProcessor.");
+  //   } catch (error) {
+  //     Log.methodError(this.buildGameReports, this.constructor.name, error);
+  //     throw error;
+  //   }
+  // }
+
+  // private allGameLobbiesFinishedMap(gameLobbies: GameLobby[]): boolean {
+  //   const lobbyMatchIds: { lid: number; mids: number[] }[] = gameLobbies.map(gl => {
+  //     return { lid: gl.lobby.id, mids: [] };
+  //   });
+  //   //       - get all game lobbies and their matches (ordered such that the most recently-completed matches are listed at a later index for that game lobby)
+  //   //       - if all game lobbies have match results for a map
+  //   gameLobbies.forEach(gl => {
+  //     gl.lobby.matches.forEach(m => {
+  //       lobbyMatchIds.find(lmid => lmid.lid === gl.lobby.id).mids.push(m.id);
+  //     });
+  //   });
+  //   let smallestMatchCount = Number.POSITIVE_INFINITY;
+  //   lobbyMatchIds.map(lmid => {
+  //     if (lmid.mids.length < smallestMatchCount) smallestMatchCount = lmid.mids.length;
+  //   });
+  //   //          - trim all other GameLobby arrays to have the same size as the smallest array.
+  //   let glsTrimmed = cloneDeep(gameLobbies);
+  //   glsTrimmed = glsTrimmed.map(gl => {
+  //     if (smallestMatchCount < gl.lobby.matches.length) {
+  //       gl.lobby.matches.splice(smallestMatchCount, gl.lobby.matches.length - smallestMatchCount);
+  //     }
+  //     return gl;
+  //   });
+
+  //   // game.latestReportedMatch: { matchBeatmapId: number, sameLobbyMapIdsLatestEndTime: number }
+
+  //   //          - if array1 is not empty, and if results have not been calculated for match at array1[n-1], that map is complete --> report results
+  //   // if (glsTrimmed[0].lobby.matches.length && )
+  //   //      - if not ready to report results
+  //   //         - deliver message "Lobby L1 finished map A (id, mapString). Waiting on results from lobbies B,C,..."
+  //   //
+  //   return false;
+  // }
 }

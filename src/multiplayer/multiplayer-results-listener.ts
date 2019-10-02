@@ -1,9 +1,12 @@
 import { OsuLobbyScannerEventDataMap } from "../osu/interfaces/osu-lobby-scanner-events";
 import { Log } from "../utils/Log";
 import { GameReport } from "./reports/game.report";
-import { MultiplayerResultsProcessor } from "./multiplayer-results-processor";
+import { MultiplayerResultsProcessor, BeatmapLobbyGroup } from "./multiplayer-results-processor";
 import Emittery = require("emittery");
 import { ApiMultiplayer } from "../osu/types/api-multiplayer";
+import { Game } from "../domain/game/game.entity";
+import { MultiplayerMessage as LobbyBeatmapStatusMessage } from "./messages/multiplayer-message";
+import { GameEvent } from "./game-events/game-event";
 
 export class MultiplayerResultsListener extends Emittery.Typed<OsuLobbyScannerEventDataMap> {
   constructor(protected readonly eventEmitter: Emittery.Typed<OsuLobbyScannerEventDataMap>) {
@@ -27,9 +30,24 @@ export class MultiplayerResultsListener extends Emittery.Typed<OsuLobbyScannerEv
         matchesCount: apiMultiplayerResult.matches.length,
         targetGameIds: Array.from(apiMultiplayerResult.targetGameIds)
       });
-      // const matchReports: MatchReport[] = await new MultiplayerResultsProcessor(multi).process().buildReport();
-      // console.log(matchReports);
-      // TODO: send reports only to games included in targetGameIds
+
+      const processor = new MultiplayerResultsProcessor(apiMultiplayerResult);
+      const multiplayerGames: Game[] = await processor.saveMultiplayerEntities();
+
+      for (const game of multiplayerGames) {
+        const lobbyBeatmapStatusMessages: LobbyBeatmapStatusMessage[] = [];
+        const leaderboardEvents: GameEvent[] = [];
+        processor.buildLobbyStatusesGroupedByBeatmaps(game).forEach(bmLobbyGroup => {
+          processor.buildMessages(bmLobbyGroup).forEach(message => {
+            lobbyBeatmapStatusMessages.push(message);
+          });
+        });
+        // TODO: Deliver messages
+        leaderboardEvents.push(...processor.buildLeaderboardEvents(game));
+        // TODO: build game report for game
+        processor.buildGameReport(leaderboardEvents);
+        // TODO: send reports only to games included in targetGameIds
+      }
     }
   }
 }

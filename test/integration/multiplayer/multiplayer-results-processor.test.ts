@@ -375,8 +375,7 @@ describe("When processing multiplayer results", function() {
             }
           ];
 
-          const actualReports: GameReport[] = await processor.buildGameReports(actualGames);
-
+          // const actualReports: GameReport[] = await processor.buildGameReports(actualGames);
           // expect(actualReports).to.deep.equal(expectedReports);
 
           return resolve();
@@ -1211,14 +1210,14 @@ describe("When processing multiplayer results", function() {
           const processor1 = new MultiplayerResultsProcessor(lobby1ApiResults1);
           const games1: Game[] = await processor1.saveMultiplayerEntities();
           for (const game of games1) {
-            const r1 = processor1.groupLobbiesByBeatmaps(game);
+            const r1 = processor1.buildLobbyStatusesGroupedByBeatmaps(game);
             const a = true;
           }
           const processor2 = new MultiplayerResultsProcessor(lobby2ApiResults1);
           const games2: Game[] = await processor2.saveMultiplayerEntities();
           // const r2 = await processor2.buildGameReports(games2);
           for (const game of games2) {
-            const r1 = processor1.groupLobbiesByBeatmaps(game);
+            const r1 = processor1.buildLobbyStatusesGroupedByBeatmaps(game);
             const a = true;
           }
 
@@ -1617,7 +1616,7 @@ describe("When processing multiplayer results", function() {
           const processor1 = new MultiplayerResultsProcessor(lobby1ApiResults1);
           const games1: Game[] = await processor1.saveMultiplayerEntities();
           expect(games1).to.have.lengthOf(1);
-          const r1 = processor1.groupLobbiesByBeatmaps(games1[0]);
+          const r1 = processor1.buildLobbyStatusesGroupedByBeatmaps(games1[0]);
           expect(r1.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(1);
           expect(r1.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(1);
           expect(r1.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(2);
@@ -1662,7 +1661,7 @@ describe("When processing multiplayer results", function() {
           const processor2 = new MultiplayerResultsProcessor(lobby2ApiResults1);
           const games2: Game[] = await processor2.saveMultiplayerEntities();
           expect(games2).to.have.lengthOf(1);
-          const r2 = processor2.groupLobbiesByBeatmaps(games2[0]);
+          const r2 = processor2.buildLobbyStatusesGroupedByBeatmaps(games2[0]);
           expect(r2.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(2);
           expect(r2.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(2);
           expect(r2.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(2);
@@ -1725,7 +1724,7 @@ describe("When processing multiplayer results", function() {
           const processor3 = new MultiplayerResultsProcessor(lobby2ApiResults2);
           const games3: Game[] = await processor3.saveMultiplayerEntities();
           expect(games3).to.have.lengthOf(1);
-          const r3 = processor3.groupLobbiesByBeatmaps(games3[0]);
+          const r3 = processor3.buildLobbyStatusesGroupedByBeatmaps(games3[0]);
           expect(r3.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(2);
           expect(r3.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(2);
           expect(r3.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(4);
@@ -1791,7 +1790,7 @@ describe("When processing multiplayer results", function() {
           const processor4 = new MultiplayerResultsProcessor(lobby1ApiResults2);
           const games4: Game[] = await processor4.saveMultiplayerEntities();
           expect(games4).to.have.lengthOf(1);
-          const r4 = processor4.groupLobbiesByBeatmaps(games4[0]);
+          const r4 = processor4.buildLobbyStatusesGroupedByBeatmaps(games4[0]);
           expect(r4.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(2);
           expect(r4.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(2);
           expect(r4.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(4);
@@ -1860,7 +1859,7 @@ describe("When processing multiplayer results", function() {
           const processor5 = new MultiplayerResultsProcessor(lobby2ApiResults3);
           const games5: Game[] = await processor5.saveMultiplayerEntities();
           expect(games5).to.have.lengthOf(1);
-          const r5 = processor5.groupLobbiesByBeatmaps(games5[0]);
+          const r5 = processor5.buildLobbyStatusesGroupedByBeatmaps(games5[0]);
           expect(r5.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(2);
           expect(r5.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(2);
           expect(r5.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(4);
@@ -1929,7 +1928,7 @@ describe("When processing multiplayer results", function() {
           const processor6 = new MultiplayerResultsProcessor(lobby1ApiResults3);
           const games6: Game[] = await processor6.saveMultiplayerEntities();
           expect(games6).to.have.lengthOf(1);
-          const r6 = processor6.groupLobbiesByBeatmaps(games6[0]);
+          const r6 = processor6.buildLobbyStatusesGroupedByBeatmaps(games6[0]);
           expect(r6.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(2);
           expect(r6.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(2);
           expect(r6.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(4);
@@ -1998,7 +1997,7 @@ describe("When processing multiplayer results", function() {
           const processor7 = new MultiplayerResultsProcessor(lobby2ApiResults4);
           const games7: Game[] = await processor7.saveMultiplayerEntities();
           expect(games7).to.have.lengthOf(1);
-          const r7 = processor7.groupLobbiesByBeatmaps(games7[0]);
+          const r7 = processor7.buildLobbyStatusesGroupedByBeatmaps(games7[0]);
           expect(r7.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(2);
           expect(r7.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(2);
           expect(r7.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(4);
