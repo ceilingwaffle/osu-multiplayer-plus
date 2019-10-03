@@ -20,6 +20,7 @@ import { OsuLobbyScannerService } from "./osu/osu-lobby-scanner-service";
 import { GameEventRegistrarCollection } from "./multiplayer/game-events/game-event-registrar-collection";
 import { Connection } from "typeorm";
 import { IDbClient, DbClient } from "./database/db-client";
+import { MultiplayerResultsListener } from "./multiplayer/multiplayer-results-listener";
 
 // const iocContainer = new Container();
 // autoProvide(iocContainer, entities);
@@ -58,6 +59,7 @@ export class IOCKernel extends Container {
     this.bind<IDbClient>(TYPES.IDbClient).to(DbClient).inSingletonScope(); // prettier-ignore
 
     this.bind<IOsuLobbyScanner>(TYPES.IOsuLobbyScanner).to(OsuLobbyScannerService).inSingletonScope(); // prettier-ignore
+    this.bind<MultiplayerResultsListener>(TYPES.MultiplayerResultsListener).to(MultiplayerResultsListener).inSingletonScope(); // prettier-ignore
 
     if (process.env.NODE_ENV === "test") {
       this.bind<IOsuApiFetcher>(TYPES.IOsuApiFetcher).to(FakeOsuApiFetcher).inSingletonScope(); // prettier-ignore

@@ -16,14 +16,12 @@ import { DataPropertiesOnly } from "../../../src/utils/data-properties-only";
 import { PlayMode } from "../../../src/multiplayer/components/enums/play-mode";
 import { ScoringType } from "../../../src/multiplayer/components/enums/scoring-type";
 import { Mods } from "../../../src/multiplayer/components/enums/mods";
-import { MatchStatus } from "../../../src/multiplayer/components/types/match-status";
-import { Match as MatchEntity } from "../../../src/domain/match/match.entity";
+import { Match as MatchEntity, Match } from "../../../src/domain/match/match.entity";
 import { PlayerScore as PlayerScoreEntity } from "../../../src/domain/score/player-score.entity";
 import { OsuUser as OsuUserEntity } from "../../../src/domain/user/osu-user.entity";
 import { User as UserEntity } from "../../../src/domain/user/user.entity";
 import { CreateGameDto } from "../../../src/domain/game/dto/create-game.dto";
 import iocContainer from "../../../src/inversify.config";
-import { GameService } from "../../../src/domain/game/game.service";
 import TYPES from "../../../src/types";
 import { DiscordRequestDto } from "../../../src/requests/dto/discord-request.dto";
 import { GameController } from "../../../src/domain/game/game.controller";
@@ -36,7 +34,9 @@ import { AddTeamsDto } from "../../../src/domain/team/dto/add-team.dto";
 import { TeamController } from "../../../src/domain/team/team.controller";
 import { Game as GameEntity } from "../../../src/domain/game/game.entity";
 import { GameStatus } from "../../../src/domain/game/game-status";
-import { debug } from "console";
+import { LobbyBeatmapStatusMessage } from "../../../src/multiplayer/lobby-beatmap-status-message";
+import { GameRepository } from "../../../src/domain/game/game.repository";
+import { getCustomRepository } from "typeorm";
 
 chai.use(chaiExclude);
 
@@ -1997,13 +1997,13 @@ describe("When processing multiplayer results", function() {
           const processor7 = new MultiplayerResultsProcessor(lobby2ApiResults4);
           const games7: Game[] = await processor7.saveMultiplayerEntities();
           expect(games7).to.have.lengthOf(1);
-          const r7 = processor7.buildLobbyStatusesGroupedByBeatmaps(games7[0]);
-          expect(r7.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(2);
-          expect(r7.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(2);
-          expect(r7.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(4);
-          expect(r7.find(r => r.beatmapId === "BM4").matches).to.have.lengthOf(2);
-          expect(r7.find(r => r.beatmapId === "BM5").matches).to.have.lengthOf(5);
-          expect(r7)
+          const blg7 = processor7.buildLobbyStatusesGroupedByBeatmaps(games7[0]);
+          expect(blg7.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(2);
+          expect(blg7.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(2);
+          expect(blg7.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(4);
+          expect(blg7.find(r => r.beatmapId === "BM4").matches).to.have.lengthOf(2);
+          expect(blg7.find(r => r.beatmapId === "BM5").matches).to.have.lengthOf(5);
+          expect(blg7)
             .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
             .to.deep.equal([
               {
@@ -2062,6 +2062,10 @@ describe("When processing multiplayer results", function() {
                 }
               }
             ]);
+
+          const gameRepository: GameRepository = getCustomRepository(GameRepository);
+          const reportedMatches: Match[] = await gameRepository.getReportedMatchesForGame(games7[0].id);
+          const messages: LobbyBeatmapStatusMessage[] = processor7.buildLobbyMatchReportMessages({ beatmapsPlayed: blg7, reportedMatches });
 
           return resolve();
         } catch (error) {

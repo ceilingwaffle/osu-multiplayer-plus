@@ -1,8 +1,9 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne, OneToMany, Column, JoinColumn, Unique } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, ManyToOne, OneToMany, Column, JoinColumn, Unique, JoinTable } from "typeorm";
 import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity";
 import { Lobby } from "../lobby/lobby.entity";
 import { IsInt, IsPositive } from "class-validator";
 import { PlayerScore } from "../score/player-score.entity";
+import { GameMatchReported } from "../game/game-match-reported.entity";
 
 @Entity("matches")
 export class Match extends CreationTimestampedEntity {
@@ -46,4 +47,8 @@ export class Match extends CreationTimestampedEntity {
 
   @OneToMany(type => PlayerScore, playerScore => playerScore.scoredInMatch, { cascade: ["insert", "update"] })
   playerScores: PlayerScore[];
+
+  @OneToMany(type => GameMatchReported, gameMatchReported => gameMatchReported.match)
+  @JoinTable()
+  gameMatchesReported: GameMatchReported[];
 }

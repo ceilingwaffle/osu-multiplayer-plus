@@ -5,12 +5,19 @@ import { MultiplayerResultsProcessor, BeatmapLobbyGroup } from "./multiplayer-re
 import Emittery = require("emittery");
 import { ApiMultiplayer } from "../osu/types/api-multiplayer";
 import { Game } from "../domain/game/game.entity";
-import { MultiplayerMessage as LobbyBeatmapStatusMessage } from "./messages/multiplayer-message";
 import { GameEvent } from "./game-events/game-event";
+import { Match } from "../domain/match/match.entity";
+import { LobbyBeatmapStatusMessage } from "./lobby-beatmap-status-message";
+import { injectable } from "inversify";
+import { GameRepository } from "../domain/game/game.repository";
+import { getCustomRepository } from "typeorm";
 
-export class MultiplayerResultsListener extends Emittery.Typed<OsuLobbyScannerEventDataMap> {
-  constructor(protected readonly eventEmitter: Emittery.Typed<OsuLobbyScannerEventDataMap>) {
-    super();
+@injectable()
+export class MultiplayerResultsListener {
+  private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
+  public readonly eventEmitter: Emittery.Typed<OsuLobbyScannerEventDataMap> = new Emittery.Typed<OsuLobbyScannerEventDataMap>();
+
+  constructor() {
     Log.info(`Initialized ${this.constructor.name}.`);
     this.registerEventListeners();
   }
@@ -35,12 +42,12 @@ export class MultiplayerResultsListener extends Emittery.Typed<OsuLobbyScannerEv
       const multiplayerGames: Game[] = await processor.saveMultiplayerEntities();
 
       for (const game of multiplayerGames) {
+        const reportedMatches: Match[] = (await this.gameRepository.getReportedMatchesForGame(game.id)) || [];
         const lobbyBeatmapStatusMessages: LobbyBeatmapStatusMessage[] = [];
         const leaderboardEvents: GameEvent[] = [];
-        processor.buildLobbyStatusesGroupedByBeatmaps(game).forEach(bmLobbyGroup => {
-          processor.buildMessages(bmLobbyGroup).forEach(message => {
-            lobbyBeatmapStatusMessages.push(message);
-          });
+        const bmLobbyGroups = processor.buildLobbyStatusesGroupedByBeatmaps(game);
+        processor.buildLobbyMatchReportMessages({ beatmapsPlayed: bmLobbyGroups, reportedMatches }).forEach(message => {
+          lobbyBeatmapStatusMessages.push(message);
         });
         // TODO: Deliver messages
         leaderboardEvents.push(...processor.buildLeaderboardEvents(game));

@@ -21,10 +21,7 @@ import { GameEvent } from "./game-events/game-event";
 import { Game } from "../domain/game/game.entity";
 import { GameStatus } from "../domain/game/game-status";
 import { GameEventRegistrar } from "./game-events/game-event-registrar";
-import { GameLobby } from "../domain/game/game-lobby.entity";
-import { MultiplayerMessage } from "./messages/multiplayer-message";
-import cloneDeep = require("lodash/cloneDeep");
-import groupBy = require("lodash/groupBy");
+import { LobbyBeatmapStatusMessage } from "./lobby-beatmap-status-message";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
 
 export interface BeatmapLobbyGroup {
@@ -249,7 +246,17 @@ export class MultiplayerResultsProcessor {
     return beatmapLobbyGroups;
   }
 
-  buildMessages(beatmapsPlayed: BeatmapLobbyGroup): MultiplayerMessage[] {
+  buildLobbyMatchReportMessages({
+    beatmapsPlayed,
+    reportedMatches
+  }: {
+    beatmapsPlayed: BeatmapLobbyGroup[];
+    reportedMatches: Match[];
+  }): LobbyBeatmapStatusMessage[] {
+    // for (const bmPlayed of beatmapsPlayed) {
+    //   bmPlayed.lobbies.
+    // }
+
     throw new Error("TODO: Implement method of MultiplayerResultsProcessor.");
   }
 

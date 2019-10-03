@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, JoinTable, OneToMany } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, ManyToOne, JoinColumn, JoinTable, OneToMany, ManyToMany } from "typeorm";
 import { IsInt, IsBoolean, IsPositive } from "class-validator";
 import { User } from "../user/user.entity";
 import { GameStatus } from "./game-status";
@@ -8,6 +8,8 @@ import { UserGameRole } from "../role/user-game-role.entity";
 import { GameLobby } from "./game-lobby.entity";
 import { GameTeam } from "../team/game-team.entity";
 import { Realm } from "../realm/realm.entity";
+import { Match } from "../match/match.entity";
+import { GameMatchReported } from "./game-match-reported.entity";
 
 @Entity("games")
 export class Game extends CreationTimestampedEntity {
@@ -25,6 +27,9 @@ export class Game extends CreationTimestampedEntity {
 
   @Column("simple-json", { nullable: true })
   messageTargets: GameMessageTarget[];
+
+  @ManyToMany(type => Match)
+  reportedMatches;
 
   @Column({ default: GameStatus.UNKNOWN.getKey() })
   status: string;
@@ -62,4 +67,8 @@ export class Game extends CreationTimestampedEntity {
 
   @ManyToOne(type => Realm)
   createdInRealm: Realm;
+
+  @OneToMany(type => GameMatchReported, gameMatchReported => gameMatchReported.match)
+  @JoinTable()
+  gameMatchesReported: GameMatchReported[];
 }

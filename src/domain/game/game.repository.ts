@@ -1,5 +1,7 @@
 import { Repository, EntityRepository, SelectQueryBuilder } from "typeorm";
 import { Game } from "./game.entity";
+import { Log } from "../../utils/Log";
+import { Match } from "../match/match.entity";
 
 @EntityRepository(Game)
 export class GameRepository extends Repository<Game> {
@@ -23,6 +25,19 @@ export class GameRepository extends Repository<Game> {
       .leftJoinAndSelect("gameLobbies.lobby", "lobby")
       .where("game.id = :gameId", { gameId: gameId })
       .getOne();
+  }
+
+  async getReportedMatchesForGame(gameId: number): Promise<Match[]> {
+    try {
+      const game = await this.findOne({ id: gameId }, { relations: ["gameMatchesReported", "gameMatchesReported.match"] });
+      if (!game || !game.gameMatchesReported) return null;
+      const matches: Match[] = game.gameMatchesReported.map(gmr => gmr.match);
+      Log.methodSuccess(this.getReportedMatchesForGame, this.constructor.name);
+      return matches;
+    } catch (error) {
+      Log.methodError(this.getReportedMatchesForGame, this.constructor.name, error);
+      throw error;
+    }
   }
 
   private getFindGameQb(gameId: number): SelectQueryBuilder<Game> {

@@ -1,7 +1,6 @@
 import { IOsuLobbyScanner, LobbyWatcherChanged } from "./interfaces/osu-lobby-scanner";
 import { IOsuApiFetcher } from "./interfaces/osu-api-fetcher";
 import { Log } from "../utils/Log";
-import { OsuLobbyScannerEventDataMap } from "./interfaces/osu-lobby-scanner-events";
 import { ApiMultiplayer } from "./types/api-multiplayer";
 import { dynamic, SetIntervalAsyncTimer, clearIntervalAsync } from "set-interval-async";
 import { injectable, inject, decorate } from "inversify";
@@ -9,19 +8,20 @@ import TYPES from "../types";
 import { MultiplayerResultsListener } from "../multiplayer/multiplayer-results-listener";
 import { OsuLobbyScannerWatcher } from "./watcher";
 import Emittery = require("emittery"); // don't convert this to an import or we'll get an Object.TypeError error
-import { Helpers } from "../utils/helpers";
 import cloneDeep = require("lodash/cloneDeep");
 
 decorate(injectable(), Emittery);
 @injectable()
-export class OsuLobbyScannerService extends Emittery.Typed<OsuLobbyScannerEventDataMap> implements IOsuLobbyScanner {
+export class OsuLobbyScannerService implements IOsuLobbyScanner {
   protected readonly interval: number = 5000;
   protected readonly watchers: { [multiplayerId: string]: OsuLobbyScannerWatcher } = {};
   // protected readonly eventEmitter: Emittery.Typed<OsuLobbyScannerEventDataMap> = new Emittery.Typed<OsuLobbyScannerEventDataMap>();
-  protected readonly mpResultsListener: MultiplayerResultsListener = new MultiplayerResultsListener(this);
+  // protected readonly mpResultsListener: MultiplayerResultsListener = new MultiplayerResultsListener(this);
 
-  constructor(@inject(TYPES.IOsuApiFetcher) private readonly osuApi: IOsuApiFetcher) {
-    super();
+  constructor(
+    @inject(TYPES.IOsuApiFetcher) private readonly osuApi: IOsuApiFetcher,
+    @inject(TYPES.MultiplayerResultsListener) protected readonly mpResultsListener: MultiplayerResultsListener
+  ) {
     Log.info(`Initialized ${this.constructor.name}.`);
     this.registerEventListeners();
   }
@@ -144,7 +144,7 @@ export class OsuLobbyScannerService extends Emittery.Typed<OsuLobbyScannerEventD
           Log.info(`Emitting latest (cached) API results to newly-activated game ID ${gameId}.`);
           const multiplayerResultsCopy = cloneDeep(watcher.latestResults);
           multiplayerResultsCopy.targetGameIds = new Set<number>([gameId]);
-          await this.emit("newMultiplayerMatches", multiplayerResultsCopy);
+          await this.mpResultsListener.eventEmitter.emit("newMultiplayerMatches", multiplayerResultsCopy);
         }
 
         affectedWatchers.push({
@@ -219,17 +219,17 @@ export class OsuLobbyScannerService extends Emittery.Typed<OsuLobbyScannerEventD
   }
 
   private registerEventListeners() {
-    this.on("watcherFailed", mpid => {
+    this.mpResultsListener.eventEmitter.on("watcherFailed", mpid => {
       // TODO: Fire event for the Lobby class to update its status indicating that an error occurred while it was being scanned for results
       Log.warn("Event watcherFailed", `Watcher failed for mp ${mpid}`);
     });
 
-    this.on("watcherStarted", mpid => {
+    this.mpResultsListener.eventEmitter.on("watcherStarted", mpid => {
       // TODO: Fire event for the Lobby class to update its status indicating that it is now being actively scanned for results
       Log.info("Event watcherStarted", `Watcher started for mp ${mpid}`);
     });
 
-    this.on("watcherStopped", mpid => {
+    this.mpResultsListener.eventEmitter.on("watcherStopped", mpid => {
       // TODO: Fire event for the Lobby class to update its status indicating that it is no longer being scanned for results
       Log.warn("Event watcherStopped", `Watcher stopped for mp ${mpid}`);
     });
@@ -249,7 +249,7 @@ export class OsuLobbyScannerService extends Emittery.Typed<OsuLobbyScannerEventD
       if (this.containsNewMatches(results)) {
         results.targetGameIds = watcher.activeGameIds;
         watcher.latestResults = results;
-        await this.emit("newMultiplayerMatches", results);
+        await this.mpResultsListener.eventEmitter.emit("newMultiplayerMatches", results);
       }
     } catch (error) {
       Log.methodError(this.scan, this.constructor.name, error);
