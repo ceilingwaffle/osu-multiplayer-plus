@@ -47,6 +47,7 @@ TODO:
         ☐ When adding a lobby before creating a game, the error message returned should replace "user ID X" with [at]DiscordUsername" instead (e.g. No games have been created by user ID 2. -> No games have been created by [at]CeilingWaffle
         ☐ Response<T> should be of type AddLobbyFailureReport and contain a discordUserId property
             ☐ When adding an invalid bancho mp id (e.g. 1234) the error message should be better. Right now it's: banchoMultiplayerId: "1234" is bad because: [object Object]
+        ☐ If an error is thrown at any stage during the osu lobby scanner process, an error message should be delivered to the Discord game target channels, so that if something does go wrong, it doesn't silently fail @created(19-10-03 18:57)
     Server:
         ☐ Ensure app does not crash, or if it does, restart it in a reliable way
             Don't worry about uncaught exceptions like "connection closed" errors - just use foreverjs to restart the app in the event of failure.
@@ -57,6 +58,7 @@ TODO:
         Notable osu people showing interest:
             ThePooN, RyuK, Musty98
     Testing:
+        ☐ Test multiplayer-results-processor with postgres instead of sqlite - to test for potential DB-specific errors @created(19-10-03 19:43)
         ☐ Write tests for creating and reading game-matches-reported @created(19-10-03 14:08)
         ☐ Write tests for starting game (and test behaviour of OsuLobbyScannerService) @created(19-09-29 23:46)
         ☐ Remove fake of IOsuLobbyScanner and instead somehow inject the ApiMultiplayer object into the return of FakeOsuApiFetcher.fetchMultiplayerResults() @created(19-09-23 16:12)

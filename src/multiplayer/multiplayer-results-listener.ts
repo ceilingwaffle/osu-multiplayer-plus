@@ -30,31 +30,37 @@ export class MultiplayerResultsListener {
   }
 
   private async handleNewMultiplayerMatches(): Promise<void> {
-    const apiMultiplayerResults: AsyncIterableIterator<ApiMultiplayer> = this.eventEmitter.events("newMultiplayerMatches");
-    for await (const apiMultiplayerResult of apiMultiplayerResults) {
-      Log.warn("Event newMultiplayerMatches (buffer)", {
-        mpid: apiMultiplayerResult.multiplayerId,
-        matchesCount: apiMultiplayerResult.matches.length,
-        targetGameIds: Array.from(apiMultiplayerResult.targetGameIds)
-      });
-
-      const processor = new MultiplayerResultsProcessor(apiMultiplayerResult);
-      const multiplayerGames: Game[] = await processor.saveMultiplayerEntities();
-
-      for (const game of multiplayerGames) {
-        const reportedMatches: Match[] = (await this.gameRepository.getReportedMatchesForGame(game.id)) || [];
-        const lobbyBeatmapStatusMessages: LobbyBeatmapStatusMessage[] = [];
-        const leaderboardEvents: GameEvent[] = [];
-        const bmLobbyGroups = processor.buildLobbyStatusesGroupedByBeatmaps(game);
-        processor.buildLobbyMatchReportMessages({ beatmapsPlayed: bmLobbyGroups, reportedMatches }).forEach(message => {
-          lobbyBeatmapStatusMessages.push(message);
+    try {
+      const apiMultiplayerResults: AsyncIterableIterator<ApiMultiplayer> = this.eventEmitter.events("newMultiplayerMatches");
+      for await (const apiMultiplayerResult of apiMultiplayerResults) {
+        Log.warn("Event newMultiplayerMatches (buffer)", {
+          mpid: apiMultiplayerResult.multiplayerId,
+          matchesCount: apiMultiplayerResult.matches.length,
+          targetGameIds: Array.from(apiMultiplayerResult.targetGameIds)
         });
-        // TODO: Deliver messages
-        leaderboardEvents.push(...processor.buildLeaderboardEvents(game));
-        // TODO: build game report for game
-        processor.buildGameReport(leaderboardEvents);
-        // TODO: send reports only to games included in targetGameIds
+
+        const processor = new MultiplayerResultsProcessor(apiMultiplayerResult);
+        const multiplayerGames: Game[] = await processor.saveMultiplayerEntities();
+
+        for (const game of multiplayerGames) {
+          const reportedMatches: Match[] = (await this.gameRepository.getReportedMatchesForGame(game.id)) || [];
+          const lobbyBeatmapStatusMessages: LobbyBeatmapStatusMessage[] = [];
+          const leaderboardEvents: GameEvent[] = [];
+          const bmLobbyGroups = processor.buildLobbyStatusesGroupedByBeatmaps(game);
+          const messages: LobbyBeatmapStatusMessage[] =
+            processor.buildLobbyMatchReportMessages({ beatmapsPlayed: bmLobbyGroups, reportedMatches }) || [];
+          for (const message of messages) lobbyBeatmapStatusMessages.push(message);
+          // TODO: Deliver messages
+          leaderboardEvents.push(...processor.buildLeaderboardEvents(game));
+          // TODO: build game report for game
+          processor.buildGameReport(leaderboardEvents);
+          // TODO: send reports only to games included in targetGameIds
+        }
       }
+      Log.methodSuccess(this.handleNewMultiplayerMatches, this.constructor.name);
+    } catch (error) {
+      Log.methodError(this.handleNewMultiplayerMatches, this.constructor.name, error);
+      throw error;
     }
   }
 }

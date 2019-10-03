@@ -181,29 +181,12 @@ export class MultiplayerResultsProcessor {
       // save/update (cascade) entities
       // TODO: ensure Lobby.GameLobbies isn't being erased - if it is, just add it to the relations when finding lobby
       const savedLobby = await lobby.save();
-      const reloadedLobby: Lobby = await this.dbConn.manager.getCustomRepository(LobbyRepository).findOne(
-        { id: savedLobby.id },
-        {
-          relations: [
-            "gameLobbies",
-            "gameLobbies.game",
-            "gameLobbies.game.gameTeams",
-            "gameLobbies.game.gameTeams.team",
-            "gameLobbies.game.gameTeams.team.teamOsuUsers",
-            "gameLobbies.game.gameTeams.team.teamOsuUsers.osuUser",
-            "gameLobbies.game.gameLobbies",
-            "gameLobbies.game.gameLobbies.lobby",
-            "gameLobbies.game.gameLobbies.lobby.matches",
-            "gameLobbies.game.gameLobbies.lobby.matches.lobby",
-            "gameLobbies.game.gameLobbies.lobby.matches.lobby.matches",
-            "gameLobbies.game.gameLobbies.lobby.matches.playerScores",
-            "gameLobbies.game.gameLobbies.lobby.matches.playerScores.scoredBy",
-            "gameLobbies.game.gameLobbies.lobby.matches.playerScores.scoredBy.user"
-          ]
-        }
-      );
-      Log.methodSuccess(this.saveMultiplayerEntities, this.constructor.name);
+      const reloadedLobby: Lobby = await this.dbConn.manager
+        .getCustomRepository(LobbyRepository)
+        .findMultiplayerEntitiesForLobby(savedLobby.id);
+
       const multiplayerGames: Game[] = reloadedLobby.gameLobbies.map(gl => gl.game).filter(g => GameStatus.isStartedStatus(g.status));
+      Log.methodSuccess(this.saveMultiplayerEntities, this.constructor.name);
       return multiplayerGames;
     } catch (error) {
       Log.methodError(this.saveMultiplayerEntities, this.constructor.name, error);
@@ -256,8 +239,9 @@ export class MultiplayerResultsProcessor {
     // for (const bmPlayed of beatmapsPlayed) {
     //   bmPlayed.lobbies.
     // }
-
-    throw new Error("TODO: Implement method of MultiplayerResultsProcessor.");
+    Log.warn("TODO - implement method", this.buildLobbyMatchReportMessages.name, this.constructor.name);
+    //throw new Error("TODO: Implement method of MultiplayerResultsProcessor.");
+    return null;
   }
 
   buildLeaderboardEvents(game: Game): GameEvent[] {
