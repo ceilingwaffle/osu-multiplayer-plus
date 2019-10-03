@@ -23,12 +23,12 @@ export class Match extends CreationTimestampedEntity {
 
   @IsInt()
   @IsPositive()
-  @Column()
+  @Column({ type: "int", unsigned: true })
   startTime: number;
 
   @IsInt()
   @IsPositive()
-  @Column({ nullable: true })
+  @Column({ type: "int", unsigned: true, nullable: true })
   endTime: number;
 
   @Column({ default: false })
