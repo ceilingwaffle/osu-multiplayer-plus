@@ -348,7 +348,7 @@ export class GameController {
 
       // the game was started successfully
       const startedGame: Game = startGameResult.value;
-      Log.methodSuccess(this.endGame, this.constructor.name);
+      Log.methodSuccess(this.startGame, this.constructor.name);
       return {
         success: true,
         message: Message.get("gameStartSuccess"),
