@@ -21,14 +21,16 @@ export class Match extends CreationTimestampedEntity {
   @Column()
   beatmapId: string;
 
+  /** The start-time timestamp in milliseconds */
   @IsInt()
   @IsPositive()
-  @Column({ type: "int", unsigned: true })
+  @Column({ type: "bigint", unsigned: true })
   startTime: number;
 
+  /** The end-time timestamp in milliseconds (null if match has not yet been recorded as ended) */
   @IsInt()
   @IsPositive()
-  @Column({ type: "int", unsigned: true, nullable: true })
+  @Column({ type: "bigint", unsigned: true, nullable: true })
   endTime: number;
 
   @Column({ default: false })
