@@ -2,13 +2,14 @@ import "../../../src/startup";
 import "mocha";
 import * as chai from "chai";
 import { assert, expect } from "chai";
-import { MultiplayerResultsProcessor, BeatmapLobbyGroup } from "../../../src/multiplayer/multiplayer-results-processor";
+import { MultiplayerResultsProcessor } from "../../../src/multiplayer/multiplayer-results-processor";
+import { BeatmapLobbyPlayedStatusGroup } from "../../../src/multiplayer/beatmap-lobby-played-status-group";
 import { ApiMultiplayer } from "../../../src/osu/types/api-multiplayer";
 import { TeamMode } from "../../../src/multiplayer/components/enums/team-mode";
 import { GameReport } from "../../../src/multiplayer/reports/game.report";
 import { LeaderboardLine } from "../../../src/multiplayer/components/leaderboard-line";
 import { TestHelpers } from "../../test-helpers";
-import { Lobby as LobbyEntity } from "../../../src/domain/lobby/lobby.entity";
+import { Lobby as LobbyEntity, Lobby } from "../../../src/domain/lobby/lobby.entity";
 import { LobbyStatus } from "../../../src/domain/lobby/lobby-status";
 import { FakeOsuApiFetcher } from "../../classes/fake-osu-api-fetcher";
 import chaiExclude from "chai-exclude";
@@ -1105,7 +1106,7 @@ describe("When processing multiplayer results", function() {
   // });
 
   describe("with many lobbies added to one game", function() {
-    it("should build reports after two lobbies complete the same one map", function() {
+    xit("should build reports after two lobbies complete the same one map", function() {
       return new Promise(async (resolve, reject) => {
         try {
           // add teams to game 1
@@ -1210,18 +1211,19 @@ describe("When processing multiplayer results", function() {
           const processor1 = new MultiplayerResultsProcessor(lobby1ApiResults1);
           const games1: Game[] = await processor1.saveMultiplayerEntities();
           for (const game of games1) {
-            const r1 = processor1.buildLobbyStatusesGroupedByBeatmaps(game);
+            const r1 = processor1.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(game);
             const a = true;
           }
           const processor2 = new MultiplayerResultsProcessor(lobby2ApiResults1);
           const games2: Game[] = await processor2.saveMultiplayerEntities();
           // const r2 = await processor2.buildGameReports(games2);
           for (const game of games2) {
-            const r1 = processor1.buildLobbyStatusesGroupedByBeatmaps(game);
+            const r1 = processor1.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(game);
             const a = true;
           }
 
-          return reject();
+          // TODO - finish this
+
           return resolve();
         } catch (error) {
           return reject(error);
@@ -1616,7 +1618,7 @@ describe("When processing multiplayer results", function() {
           const processor1 = new MultiplayerResultsProcessor(lobby1ApiResults1);
           const games1: Game[] = await processor1.saveMultiplayerEntities();
           expect(games1).to.have.lengthOf(1);
-          const r1 = processor1.buildLobbyStatusesGroupedByBeatmaps(games1[0]);
+          const r1 = processor1.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games1[0]);
           expect(r1.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(1);
           expect(r1.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(1);
           expect(r1.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(2);
@@ -1661,7 +1663,7 @@ describe("When processing multiplayer results", function() {
           const processor2 = new MultiplayerResultsProcessor(lobby2ApiResults1);
           const games2: Game[] = await processor2.saveMultiplayerEntities();
           expect(games2).to.have.lengthOf(1);
-          const r2 = processor2.buildLobbyStatusesGroupedByBeatmaps(games2[0]);
+          const r2 = processor2.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games2[0]);
           expect(r2.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(2);
           expect(r2.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(2);
           expect(r2.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(2);
@@ -1724,7 +1726,7 @@ describe("When processing multiplayer results", function() {
           const processor3 = new MultiplayerResultsProcessor(lobby2ApiResults2);
           const games3: Game[] = await processor3.saveMultiplayerEntities();
           expect(games3).to.have.lengthOf(1);
-          const r3 = processor3.buildLobbyStatusesGroupedByBeatmaps(games3[0]);
+          const r3 = processor3.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games3[0]);
           expect(r3.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(2);
           expect(r3.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(2);
           expect(r3.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(4);
@@ -1790,7 +1792,7 @@ describe("When processing multiplayer results", function() {
           const processor4 = new MultiplayerResultsProcessor(lobby1ApiResults2);
           const games4: Game[] = await processor4.saveMultiplayerEntities();
           expect(games4).to.have.lengthOf(1);
-          const r4 = processor4.buildLobbyStatusesGroupedByBeatmaps(games4[0]);
+          const r4 = processor4.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games4[0]);
           expect(r4.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(2);
           expect(r4.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(2);
           expect(r4.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(4);
@@ -1859,7 +1861,7 @@ describe("When processing multiplayer results", function() {
           const processor5 = new MultiplayerResultsProcessor(lobby2ApiResults3);
           const games5: Game[] = await processor5.saveMultiplayerEntities();
           expect(games5).to.have.lengthOf(1);
-          const r5 = processor5.buildLobbyStatusesGroupedByBeatmaps(games5[0]);
+          const r5 = processor5.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games5[0]);
           expect(r5.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(2);
           expect(r5.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(2);
           expect(r5.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(4);
@@ -1928,7 +1930,7 @@ describe("When processing multiplayer results", function() {
           const processor6 = new MultiplayerResultsProcessor(lobby1ApiResults3);
           const games6: Game[] = await processor6.saveMultiplayerEntities();
           expect(games6).to.have.lengthOf(1);
-          const r6 = processor6.buildLobbyStatusesGroupedByBeatmaps(games6[0]);
+          const r6 = processor6.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games6[0]);
           expect(r6.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(2);
           expect(r6.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(2);
           expect(r6.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(4);
@@ -1997,7 +1999,7 @@ describe("When processing multiplayer results", function() {
           const processor7 = new MultiplayerResultsProcessor(lobby2ApiResults4);
           const games7: Game[] = await processor7.saveMultiplayerEntities();
           expect(games7).to.have.lengthOf(1);
-          const blg7 = processor7.buildLobbyStatusesGroupedByBeatmaps(games7[0]);
+          const blg7 = processor7.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games7[0]);
           expect(blg7.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(2);
           expect(blg7.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(2);
           expect(blg7.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(4);
@@ -2065,7 +2067,14 @@ describe("When processing multiplayer results", function() {
 
           const gameRepository: GameRepository = getCustomRepository(GameRepository);
           const reportedMatches: Match[] = await gameRepository.getReportedMatchesForGame(games7[0].id);
-          const messages: LobbyBeatmapStatusMessage[] = processor7.buildLobbyMatchReportMessages({ beatmapsPlayed: blg7, reportedMatches });
+          const allGameLobbies: Lobby[] = games7[0].gameLobbies.map(gl => gl.lobby);
+          const messages: LobbyBeatmapStatusMessage[] = processor7.buildLobbyMatchReportMessages({
+            beatmapsPlayed: blg7,
+            reportedMatches,
+            allGameLobbies
+          });
+
+          // TODO: assert actual messages object deep equals expected (and test correct beatmap number in message)
 
           return resolve();
         } catch (error) {

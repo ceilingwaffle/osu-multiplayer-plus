@@ -23,21 +23,10 @@ import { GameStatus } from "../domain/game/game-status";
 import { GameEventRegistrar } from "./game-events/game-event-registrar";
 import { LobbyBeatmapStatusMessage } from "./lobby-beatmap-status-message";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
-
-export interface BeatmapLobbyGroup {
-  beatmapId: string;
-  matches: Match[];
-  lobbies: {
-    /** Lobbies that have played this map */
-    played: Lobby[];
-    /** Lobbies remaining to play this map. If a lobby exists in both "remaining" and "played",
-     * it means the lobby existing in remaining needs to "catch up" with the other lobbies in "played"
-     * by playing the same map for some (n>1)th time */
-    remaining: Lobby[];
-    /** The greatest number of times any lobby has played this map */
-    greatestPlayedCount: number;
-  };
-}
+import { PlayMode } from "./components/enums/play-mode";
+import { ScoringType } from "./components/enums/scoring-type";
+import { TeamMode } from "./components/enums/team-mode";
+import { BeatmapLobbyPlayedStatusGroup } from "./beatmap-lobby-played-status-group";
 
 export class MultiplayerResultsProcessor {
   // @lazyInject(TYPES.UserService) private userService: UserService;
@@ -200,48 +189,127 @@ export class MultiplayerResultsProcessor {
     }
   }
 
-  buildLobbyStatusesGroupedByBeatmaps(game: Game): BeatmapLobbyGroup[] {
-    const beatmapLobbyGroups = _(game.gameLobbies)
+  /**
+   * Returns a list of beatmaps each containing lists of lobbies where the ebatmap is "played in lobbies" and "remaining to be played in lobbies".
+   * The lobbies are all lobbies currently being watched for a game (active lobby, being sacnend by the osu lobby scanner, and added to the game).
+   *
+   * @param {Game} game
+   * @returns {BeatmapLobbyPlayedStatusGroup[]}
+   */
+  buildBeatmapsGroupedByLobbyPlayedStatusesForGame(game: Game): BeatmapLobbyPlayedStatusGroup[] {
+    const matches: Match[] = _(game.gameLobbies)
       .map(gameLobby => gameLobby.lobby)
       .map(lobby => lobby.matches)
       .flattenDeep()
-      .sortBy(match => match.startTime)
+      .uniqBy(match => match.id)
+      .cloneDeep();
+
+    const lobbies: Lobby[] = _(game.gameLobbies)
+      .map(gameLobby => gameLobby.lobby)
+      .uniqBy(lobby => lobby.id)
+      .cloneDeep();
+
+    return this.buildBeatmapsGroupedByLobbyPlayedStatuses(matches, lobbies);
+  }
+
+  private buildBeatmapsGroupedByLobbyPlayedStatuses(matches: Match[], lobbies: Lobby[]) {
+    return _(matches)
+      .sortBy(match => match.endTime)
       .groupBy(match => match.beatmapId)
       .map((matches, matchesKey) => ({
         beatmapId: matchesKey,
         matches: matches,
-        lobbies: game.gameLobbies.map(gl => gl.lobby).filter(l => l.matches.find(m => matches.find(om => om.beatmapId === m.beatmapId)))
+        lobbies: lobbies.filter(l => l.matches.find(m => matches.find(om => om.beatmapId === m.beatmapId)))
       }))
-      .map<BeatmapLobbyGroup>(o => {
+      .map<BeatmapLobbyPlayedStatusGroup>(o => {
         const lb = Math.max(0, ...o.matches.map(m => m.lobby.matches.filter(lm => lm.beatmapId === m.beatmapId).length));
         return {
           beatmapId: o.beatmapId,
           matches: o.matches,
           lobbies: {
             played: o.lobbies,
-            remaining: game.gameLobbies.map(gl => gl.lobby).filter(l => l.matches.filter(lm => lm.beatmapId === o.beatmapId).length < lb),
+            remaining: lobbies.filter(l => l.matches.filter(lm => lm.beatmapId === o.beatmapId).length < lb),
             greatestPlayedCount: lb
           }
         };
       })
       .value();
-
-    return beatmapLobbyGroups;
   }
 
   buildLobbyMatchReportMessages({
     beatmapsPlayed,
-    reportedMatches
+    reportedMatches,
+    allGameLobbies
   }: {
-    beatmapsPlayed: BeatmapLobbyGroup[];
+    beatmapsPlayed: BeatmapLobbyPlayedStatusGroup[];
     reportedMatches: Match[];
+    allGameLobbies: Lobby[];
   }): LobbyBeatmapStatusMessage[] {
-    // for (const bmPlayed of beatmapsPlayed) {
-    //   bmPlayed.lobbies.
-    // }
+    // creating clones of both the matches and the lobbies just for safety - in case they get modified anywhere
+    const allMatches: Match[] = _(beatmapsPlayed)
+      .map(bmp => bmp.matches)
+      .flatten()
+      .uniqBy(match => match.id)
+      .sortBy(match => match.startTime)
+      .cloneDeep();
+
+    const allLobbies = _(allGameLobbies)
+      .uniqBy(l => l.id)
+      .cloneDeep();
+
+    const completedMessages: LobbyBeatmapStatusMessage[] = this.gatherCompletedMessages({ allMatches, beatmapsPlayed });
+    const waitingMessages: LobbyBeatmapStatusMessage[] = [];
+    for (let i = 0; i < allMatches.length; i++) {
+      // we filter out any matches not yet "seen by" each lobby, so we can generate groups of beatmaps up to this point in time
+      const matchesUpToNow = allMatches.slice(0, i + 1);
+      allLobbies.forEach(l => (l.matches = l.matches.filter(lm => matchesUpToNow.some(m => m.id === lm.id))));
+      const beatmapsGroupedByLobbyPlayedStatus = this.buildBeatmapsGroupedByLobbyPlayedStatuses(matchesUpToNow, allLobbies);
+      const b = true;
+
+      // TODO: Filter out reportedMatches somehow
+
+      // TODO: Build the waiting messages from the beatmap groups
+    }
+
     Log.warn("TODO - implement method", this.buildLobbyMatchReportMessages.name, this.constructor.name);
     //throw new Error("TODO: Implement method of MultiplayerResultsProcessor.");
     return null;
+  }
+
+  private gatherCompletedMessages({
+    allMatches,
+    beatmapsPlayed
+  }: {
+    allMatches: Match[];
+    beatmapsPlayed: BeatmapLobbyPlayedStatusGroup[];
+  }): LobbyBeatmapStatusMessage[] {
+    const completedMessages: LobbyBeatmapStatusMessage[] = [];
+    for (const match of allMatches) {
+      const beatmapNumber: number =
+        beatmapsPlayed
+          .find(bmp => bmp.beatmapId === match.beatmapId)
+          .matches.filter(m => m.lobby.id === match.lobby.id)
+          .findIndex(m => m.id === match.id) + 1;
+      const message: LobbyBeatmapStatusMessage = {
+        lobby: { banchoLobbyId: match.lobby.banchoMultiplayerId, lobbyName: "TODO:LobbyName", resultsUrl: "TODO:ResultsURL" },
+        message: `Lobby ${match.lobby.id} completed beatmap ${match.beatmapId}#${beatmapNumber}.`,
+        match: {
+          startTime: match.startTime,
+          endTime: match.endTime,
+          playMode: PlayMode.Standard,
+          scoringType: ScoringType.scoreV2,
+          teamType: TeamMode.HeadToHead,
+          forcedMods: 0,
+          beatmap: { mapId: match.beatmapId, mapUrl: "TODO:MapURL", mapString: "TODO:MapString" },
+          status: "completed",
+          entityId: match.id
+        } // TODO: get PlayMode, ScoringType, TeamMode, Mods, status
+      };
+      completedMessages.push(message);
+    }
+    return _(completedMessages)
+      .sortBy(cm => cm.match.endTime)
+      .value();
   }
 
   buildLeaderboardEvents(game: Game): GameEvent[] {

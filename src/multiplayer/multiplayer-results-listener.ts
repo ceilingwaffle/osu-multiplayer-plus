@@ -1,7 +1,8 @@
 import { OsuLobbyScannerEventDataMap } from "../osu/interfaces/osu-lobby-scanner-events";
 import { Log } from "../utils/Log";
 import { GameReport } from "./reports/game.report";
-import { MultiplayerResultsProcessor, BeatmapLobbyGroup } from "./multiplayer-results-processor";
+import { MultiplayerResultsProcessor } from "./multiplayer-results-processor";
+import { BeatmapLobbyPlayedStatusGroup } from "./beatmap-lobby-played-status-group";
 import Emittery = require("emittery");
 import { ApiMultiplayer } from "../osu/types/api-multiplayer";
 import { Game } from "../domain/game/game.entity";
@@ -11,6 +12,7 @@ import { LobbyBeatmapStatusMessage } from "./lobby-beatmap-status-message";
 import { injectable } from "inversify";
 import { GameRepository } from "../domain/game/game.repository";
 import { getCustomRepository } from "typeorm";
+import { Lobby } from "../domain/lobby/lobby.entity";
 
 @injectable()
 export class MultiplayerResultsListener {
@@ -46,9 +48,10 @@ export class MultiplayerResultsListener {
           const reportedMatches: Match[] = (await this.gameRepository.getReportedMatchesForGame(game.id)) || [];
           const lobbyBeatmapStatusMessages: LobbyBeatmapStatusMessage[] = [];
           const leaderboardEvents: GameEvent[] = [];
-          const bmLobbyGroups = processor.buildLobbyStatusesGroupedByBeatmaps(game);
+          const bmLobbyGroups = processor.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(game);
+          const allGameLobbies: Lobby[] = game.gameLobbies.map(gl => gl.lobby);
           const messages: LobbyBeatmapStatusMessage[] =
-            processor.buildLobbyMatchReportMessages({ beatmapsPlayed: bmLobbyGroups, reportedMatches }) || [];
+            processor.buildLobbyMatchReportMessages({ beatmapsPlayed: bmLobbyGroups, reportedMatches, allGameLobbies }) || [];
           for (const message of messages) lobbyBeatmapStatusMessages.push(message);
           // TODO: Deliver messages
           leaderboardEvents.push(...processor.buildLeaderboardEvents(game));

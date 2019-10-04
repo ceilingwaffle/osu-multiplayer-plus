@@ -14,4 +14,5 @@ export interface Match {
   forcedMods: Mods;
   beatmap: Beatmap;
   status: MatchStatus;
+  entityId?: number;
 }
