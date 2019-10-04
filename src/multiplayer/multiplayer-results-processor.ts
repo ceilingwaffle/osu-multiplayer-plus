@@ -27,6 +27,8 @@ import { PlayMode } from "./components/enums/play-mode";
 import { ScoringType } from "./components/enums/scoring-type";
 import { TeamMode } from "./components/enums/team-mode";
 import { BeatmapLobbyPlayedStatusGroup } from "./beatmap-lobby-played-status-group";
+import { Match as MatchComponent } from "./components/match";
+import { Lobby as LobbyComponent } from "./components/lobby";
 
 export class MultiplayerResultsProcessor {
   // @lazyInject(TYPES.UserService) private userService: UserService;
@@ -212,28 +214,66 @@ export class MultiplayerResultsProcessor {
     return this.buildBeatmapsGroupedByLobbyPlayedStatuses(matches, lobbies);
   }
 
-  private buildBeatmapsGroupedByLobbyPlayedStatuses(matches: Match[], lobbies: Lobby[]) {
-    return _(matches)
-      .sortBy(match => match.endTime)
-      .groupBy(match => match.beatmapId)
-      .map((matches, matchesKey) => ({
-        beatmapId: matchesKey,
-        matches: matches,
-        lobbies: lobbies.filter(l => l.matches.find(m => matches.find(om => om.beatmapId === m.beatmapId)))
-      }))
-      .map<BeatmapLobbyPlayedStatusGroup>(o => {
-        const lb = Math.max(0, ...o.matches.map(m => m.lobby.matches.filter(lm => lm.beatmapId === m.beatmapId).length));
-        return {
-          beatmapId: o.beatmapId,
-          matches: o.matches,
-          lobbies: {
-            played: o.lobbies,
-            remaining: lobbies.filter(l => l.matches.filter(lm => lm.beatmapId === o.beatmapId).length < lb),
-            greatestPlayedCount: lb
+  private buildBeatmapsGroupedByLobbyPlayedStatuses(matches: Match[], lobbies: Lobby[]): BeatmapLobbyPlayedStatusGroup[] {
+    try {
+      if (!matches || !matches.length) {
+        Log.methodFailure(
+          this.buildBeatmapsGroupedByLobbyPlayedStatuses,
+          this.constructor.name,
+          "Matches array arg was undefined or empty."
+        );
+        return new Array<BeatmapLobbyPlayedStatusGroup>();
+      }
+      if (!lobbies || !lobbies.length) {
+        Log.methodFailure(
+          this.buildBeatmapsGroupedByLobbyPlayedStatuses,
+          this.constructor.name,
+          "Lobbies array arg was undefined or empty."
+        );
+        return new Array<BeatmapLobbyPlayedStatusGroup>();
+      }
+
+      const r = _(matches)
+        .sortBy(match => match.endTime)
+        .groupBy(match => match.beatmapId)
+        .map((matches, matchesKey) => ({
+          beatmapId: matchesKey,
+          matches: matches,
+          lobbies: lobbies
+        }))
+        .map<BeatmapLobbyPlayedStatusGroup>(o => {
+          // lb stands for "Lobby Biggest" i.e. the biggest number of times the same beatmap has been played in the same lobby
+          const sameBeatmapNumber = Math.max(0, ...o.matches.map(m => m.lobby.matches.filter(lm => lm.beatmapId === m.beatmapId).length));
+          if (sameBeatmapNumber < 1) {
+            throw new Error(
+              `Value for 'sameBeatmapNumber' was ${sameBeatmapNumber}. This means the beatmap was probably not found ` +
+                `in any matches or lobbies. This should never happen :/`
+            );
           }
-        };
-      })
-      .value();
+          const lbthMatch = _(o.matches)
+            .map(m => m.lobby.matches.filter(lm => lm.beatmapId === m.beatmapId))
+            .flatten()
+            .value()[sameBeatmapNumber - 1];
+          return {
+            beatmapId: o.beatmapId,
+            matches: o.matches,
+            lobbies: {
+              greatestPlayedCount: sameBeatmapNumber,
+              // "played" and "remaining" depends on how many times a lobby has played the same map.
+              // e.g. If lobby 1 plays BM1, then lobby 2 plays BM1, then lobby 1 plays BM1 again, lobby 2 goes in "remaining"
+              //       because we're still waiting on lobby 2 to complete BM1 for the 2nd time (lb === 2)
+              played: o.lobbies.filter(l => l.matches.filter(lm => lm.beatmapId === lbthMatch.beatmapId).length === sameBeatmapNumber),
+              remaining: o.lobbies.filter(l => l.matches.filter(lm => lm.beatmapId === lbthMatch.beatmapId).length !== sameBeatmapNumber)
+            }
+          };
+        })
+        .value();
+
+      return r;
+    } catch (error) {
+      Log.methodError(this.buildBeatmapsGroupedByLobbyPlayedStatuses, this.constructor.name, error);
+      throw error;
+    }
   }
 
   buildLobbyMatchReportMessages({
@@ -250,7 +290,7 @@ export class MultiplayerResultsProcessor {
       .map(bmp => bmp.matches)
       .flatten()
       .uniqBy(match => match.id)
-      .sortBy(match => match.startTime)
+      .sortBy(match => match.endTime)
       .cloneDeep();
 
     const allLobbies = _(allGameLobbies)
@@ -266,14 +306,45 @@ export class MultiplayerResultsProcessor {
       const beatmapsGroupedByLobbyPlayedStatus = this.buildBeatmapsGroupedByLobbyPlayedStatuses(matchesUpToNow, allLobbies);
       const b = true;
 
-      // TODO: Filter out reportedMatches somehow
-
       // TODO: Build the waiting messages from the beatmap groups
+      const thisMatch = allMatches[i];
+      const beatmapNumber: number = this.getSameBeatmapNumberPlayedInLobbyForMatch(beatmapsGroupedByLobbyPlayedStatus, thisMatch);
+
+      const waitingMapTarget = beatmapsGroupedByLobbyPlayedStatus.find(b => b.beatmapId === thisMatch.beatmapId);
+      waitingMapTarget.lobbies.remaining.forEach(rLobby => {
+        const message: LobbyBeatmapStatusMessage = {
+          lobby: this.buildLobbyComponent(rLobby),
+          message: `Waiting on beatmap ${thisMatch.beatmapId}#${beatmapNumber} from lobby ${rLobby.id}.`,
+          match: this.buildMatchComponent(thisMatch)
+        };
+        waitingMessages.push(message);
+      });
+
+      // TODO: Filter out reportedMatches
+      const a = true;
     }
 
     Log.warn("TODO - implement method", this.buildLobbyMatchReportMessages.name, this.constructor.name);
     //throw new Error("TODO: Implement method of MultiplayerResultsProcessor.");
     return null;
+  }
+
+  private buildLobbyComponent(fromLobby: Lobby): LobbyComponent {
+    return { banchoLobbyId: fromLobby.banchoMultiplayerId, lobbyName: "TODO:rLobbyName", resultsUrl: "TODO:rLobbyResultsURL" };
+  }
+
+  private buildMatchComponent(fromMatchEntity: Match): MatchComponent {
+    return {
+      startTime: fromMatchEntity.startTime,
+      endTime: fromMatchEntity.endTime,
+      playMode: PlayMode.Standard,
+      scoringType: ScoringType.scoreV2,
+      teamType: TeamMode.HeadToHead,
+      forcedMods: 0,
+      beatmap: { mapId: fromMatchEntity.beatmapId, mapUrl: "TODO:MapURL", mapString: "TODO:MapString" },
+      status: "completed",
+      entityId: fromMatchEntity.id
+    }; // TODO: get PlayMode, ScoringType, TeamMode, Mods, status
   }
 
   private gatherCompletedMessages({
@@ -285,31 +356,26 @@ export class MultiplayerResultsProcessor {
   }): LobbyBeatmapStatusMessage[] {
     const completedMessages: LobbyBeatmapStatusMessage[] = [];
     for (const match of allMatches) {
-      const beatmapNumber: number =
-        beatmapsPlayed
-          .find(bmp => bmp.beatmapId === match.beatmapId)
-          .matches.filter(m => m.lobby.id === match.lobby.id)
-          .findIndex(m => m.id === match.id) + 1;
+      const beatmapNumber: number = this.getSameBeatmapNumberPlayedInLobbyForMatch(beatmapsPlayed, match);
       const message: LobbyBeatmapStatusMessage = {
         lobby: { banchoLobbyId: match.lobby.banchoMultiplayerId, lobbyName: "TODO:LobbyName", resultsUrl: "TODO:ResultsURL" },
         message: `Lobby ${match.lobby.id} completed beatmap ${match.beatmapId}#${beatmapNumber}.`,
-        match: {
-          startTime: match.startTime,
-          endTime: match.endTime,
-          playMode: PlayMode.Standard,
-          scoringType: ScoringType.scoreV2,
-          teamType: TeamMode.HeadToHead,
-          forcedMods: 0,
-          beatmap: { mapId: match.beatmapId, mapUrl: "TODO:MapURL", mapString: "TODO:MapString" },
-          status: "completed",
-          entityId: match.id
-        } // TODO: get PlayMode, ScoringType, TeamMode, Mods, status
+        match: this.buildMatchComponent(match)
       };
       completedMessages.push(message);
     }
     return _(completedMessages)
       .sortBy(cm => cm.match.endTime)
       .value();
+  }
+
+  private getSameBeatmapNumberPlayedInLobbyForMatch(beatmapsPlayed: BeatmapLobbyPlayedStatusGroup[], match: Match): number {
+    return (
+      beatmapsPlayed
+        .find(bmp => bmp.beatmapId === match.beatmapId)
+        .matches.filter(m => m.lobby.id === match.lobby.id)
+        .findIndex(m => m.id === match.id) + 1
+    );
   }
 
   buildLeaderboardEvents(game: Game): GameEvent[] {
@@ -327,7 +393,8 @@ export class MultiplayerResultsProcessor {
   }
 
   buildGameReport(leaderboardEvents: GameEvent[]): GameReport {
-    throw new Error("TODO: Implement method of MultiplayerResultsProcessor.");
+    Log.warn("TODO: Implement method of MultiplayerResultsProcessor.");
+    return null;
   }
 
   // async buildGameReports(forGames: Game[]): Promise<GameReport[]> {

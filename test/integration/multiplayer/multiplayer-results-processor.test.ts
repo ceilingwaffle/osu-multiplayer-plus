@@ -1917,10 +1917,7 @@ describe("When processing multiplayer results", function() {
               {
                 beatmapId: "BM5",
                 lobbies: {
-                  played: [
-                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
-                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
-                  ],
+                  played: [{ banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }],
                   remaining: [{ banchoMultiplayerId: addLobby1Request.banchoMultiplayerId }],
                   greatestPlayedCount: 2
                 }
@@ -2055,10 +2052,7 @@ describe("When processing multiplayer results", function() {
               {
                 beatmapId: "BM5",
                 lobbies: {
-                  played: [
-                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
-                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
-                  ],
+                  played: [{ banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }],
                   remaining: [{ banchoMultiplayerId: addLobby1Request.banchoMultiplayerId }],
                   greatestPlayedCount: 3
                 }
