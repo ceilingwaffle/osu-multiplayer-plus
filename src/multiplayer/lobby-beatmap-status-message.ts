@@ -3,7 +3,8 @@ import { Beatmap } from "./components/beatmap";
 import { Match } from "./components/match";
 
 export interface LobbyBeatmapStatusMessage {
-  lobby: Lobby;
   message: string;
+  lobby: Lobby;
   match: Match;
+  beatmapNumber: number;
 }

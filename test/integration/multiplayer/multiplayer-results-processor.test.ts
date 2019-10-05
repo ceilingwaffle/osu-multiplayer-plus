@@ -38,6 +38,7 @@ import { GameStatus } from "../../../src/domain/game/game-status";
 import { LobbyBeatmapStatusMessage } from "../../../src/multiplayer/lobby-beatmap-status-message";
 import { GameRepository } from "../../../src/domain/game/game.repository";
 import { getCustomRepository } from "typeorm";
+import _ = require("lodash"); // do not convert to default import or this will break
 
 chai.use(chaiExclude);
 
@@ -1618,16 +1619,18 @@ describe("When processing multiplayer results", function() {
           const processor1 = new MultiplayerResultsProcessor(lobby1ApiResults1);
           const games1: Game[] = await processor1.saveMultiplayerEntities();
           expect(games1).to.have.lengthOf(1);
-          const r1 = processor1.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games1[0]);
-          expect(r1.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(1);
-          expect(r1.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(1);
-          expect(r1.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(2);
-          expect(r1.find(r => r.beatmapId === "BM4").matches).to.have.lengthOf(1);
+          const r1: BeatmapLobbyPlayedStatusGroup[] = processor1.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games1[0]);
+          expect(r1.find(r => r.beatmapId === "BM1" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(1);
+          expect(r1.find(r => r.beatmapId === "BM2" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(1);
+          expect(r1.find(r => r.beatmapId === "BM3" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(1);
+          expect(r1.find(r => r.beatmapId === "BM4" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(1);
+          expect(r1.find(r => r.beatmapId === "BM3" && r.sameBeatmapNumber === 2).matches).to.have.lengthOf(1);
           expect(r1)
             .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
             .to.deep.equal([
               {
                 beatmapId: "BM1",
+                sameBeatmapNumber: 1,
                 lobbies: {
                   played: [{ banchoMultiplayerId: addLobby1Request.banchoMultiplayerId }],
                   remaining: [{ banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }],
@@ -1636,6 +1639,7 @@ describe("When processing multiplayer results", function() {
               },
               {
                 beatmapId: "BM2",
+                sameBeatmapNumber: 1,
                 lobbies: {
                   played: [{ banchoMultiplayerId: addLobby1Request.banchoMultiplayerId }],
                   remaining: [{ banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }],
@@ -1644,6 +1648,7 @@ describe("When processing multiplayer results", function() {
               },
               {
                 beatmapId: "BM3",
+                sameBeatmapNumber: 1,
                 lobbies: {
                   played: [{ banchoMultiplayerId: addLobby1Request.banchoMultiplayerId }],
                   remaining: [{ banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }],
@@ -1652,10 +1657,20 @@ describe("When processing multiplayer results", function() {
               },
               {
                 beatmapId: "BM4",
+                sameBeatmapNumber: 1,
                 lobbies: {
                   played: [{ banchoMultiplayerId: addLobby1Request.banchoMultiplayerId }],
                   remaining: [{ banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }],
                   greatestPlayedCount: 1
+                }
+              },
+              {
+                beatmapId: "BM3",
+                sameBeatmapNumber: 2,
+                lobbies: {
+                  played: [{ banchoMultiplayerId: addLobby1Request.banchoMultiplayerId }],
+                  remaining: [{ banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }],
+                  greatestPlayedCount: 2
                 }
               }
             ]);
@@ -1664,16 +1679,18 @@ describe("When processing multiplayer results", function() {
           const games2: Game[] = await processor2.saveMultiplayerEntities();
           expect(games2).to.have.lengthOf(1);
           const r2 = processor2.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games2[0]);
-          expect(r2.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(2);
-          expect(r2.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(2);
-          expect(r2.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(2);
-          expect(r2.find(r => r.beatmapId === "BM4").matches).to.have.lengthOf(2);
-          expect(r2.find(r => r.beatmapId === "BM5").matches).to.have.lengthOf(1);
+          expect(r2.find(r => r.beatmapId === "BM1" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+          expect(r2.find(r => r.beatmapId === "BM2" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+          expect(r2.find(r => r.beatmapId === "BM3" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(1);
+          expect(r2.find(r => r.beatmapId === "BM3" && r.sameBeatmapNumber === 2).matches).to.have.lengthOf(1);
+          expect(r2.find(r => r.beatmapId === "BM4" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+          expect(r2.find(r => r.beatmapId === "BM5" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(1);
           expect(r2)
             .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
             .to.deep.equal([
               {
                 beatmapId: "BM1",
+                sameBeatmapNumber: 1,
                 lobbies: {
                   played: [
                     { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
@@ -1685,6 +1702,7 @@ describe("When processing multiplayer results", function() {
               },
               {
                 beatmapId: "BM2",
+                sameBeatmapNumber: 1,
                 lobbies: {
                   played: [
                     { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
@@ -1696,6 +1714,7 @@ describe("When processing multiplayer results", function() {
               },
               {
                 beatmapId: "BM3",
+                sameBeatmapNumber: 1,
                 lobbies: {
                   played: [{ banchoMultiplayerId: addLobby1Request.banchoMultiplayerId }],
                   remaining: [{ banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }],
@@ -1704,6 +1723,7 @@ describe("When processing multiplayer results", function() {
               },
               {
                 beatmapId: "BM4",
+                sameBeatmapNumber: 1,
                 lobbies: {
                   played: [
                     { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
@@ -1714,7 +1734,17 @@ describe("When processing multiplayer results", function() {
                 }
               },
               {
+                beatmapId: "BM3",
+                sameBeatmapNumber: 2,
+                lobbies: {
+                  played: [{ banchoMultiplayerId: addLobby1Request.banchoMultiplayerId }],
+                  remaining: [{ banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }],
+                  greatestPlayedCount: 2
+                }
+              },
+              {
                 beatmapId: "BM5",
+                sameBeatmapNumber: 1,
                 lobbies: {
                   played: [{ banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }],
                   remaining: [{ banchoMultiplayerId: addLobby1Request.banchoMultiplayerId }],
@@ -1727,16 +1757,18 @@ describe("When processing multiplayer results", function() {
           const games3: Game[] = await processor3.saveMultiplayerEntities();
           expect(games3).to.have.lengthOf(1);
           const r3 = processor3.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games3[0]);
-          expect(r3.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(2);
-          expect(r3.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(2);
-          expect(r3.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(4);
-          expect(r3.find(r => r.beatmapId === "BM4").matches).to.have.lengthOf(2);
-          expect(r3.find(r => r.beatmapId === "BM5").matches).to.have.lengthOf(1);
+          expect(r3.find(r => r.beatmapId === "BM1" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+          expect(r3.find(r => r.beatmapId === "BM2" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+          expect(r3.find(r => r.beatmapId === "BM3" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+          expect(r3.find(r => r.beatmapId === "BM3" && r.sameBeatmapNumber === 2).matches).to.have.lengthOf(2);
+          expect(r3.find(r => r.beatmapId === "BM4" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+          expect(r3.find(r => r.beatmapId === "BM5" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(1);
           expect(r3)
             .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
             .to.deep.equal([
               {
                 beatmapId: "BM1",
+                sameBeatmapNumber: 1,
                 lobbies: {
                   played: [
                     { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
@@ -1748,6 +1780,7 @@ describe("When processing multiplayer results", function() {
               },
               {
                 beatmapId: "BM2",
+                sameBeatmapNumber: 1,
                 lobbies: {
                   played: [
                     { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
@@ -1759,6 +1792,7 @@ describe("When processing multiplayer results", function() {
               },
               {
                 beatmapId: "BM3",
+                sameBeatmapNumber: 1,
                 lobbies: {
                   played: [
                     { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
@@ -1770,6 +1804,7 @@ describe("When processing multiplayer results", function() {
               },
               {
                 beatmapId: "BM4",
+                sameBeatmapNumber: 1,
                 lobbies: {
                   played: [
                     { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
@@ -1780,7 +1815,20 @@ describe("When processing multiplayer results", function() {
                 }
               },
               {
+                beatmapId: "BM3",
+                sameBeatmapNumber: 2,
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 2
+                }
+              },
+              {
                 beatmapId: "BM5",
+                sameBeatmapNumber: 1,
                 lobbies: {
                   played: [{ banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }],
                   remaining: [{ banchoMultiplayerId: addLobby1Request.banchoMultiplayerId }],
@@ -1793,16 +1841,18 @@ describe("When processing multiplayer results", function() {
           const games4: Game[] = await processor4.saveMultiplayerEntities();
           expect(games4).to.have.lengthOf(1);
           const r4 = processor4.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games4[0]);
-          expect(r4.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(2);
-          expect(r4.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(2);
-          expect(r4.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(4);
-          expect(r4.find(r => r.beatmapId === "BM4").matches).to.have.lengthOf(2);
-          expect(r4.find(r => r.beatmapId === "BM5").matches).to.have.lengthOf(2);
+          expect(r4.find(r => r.beatmapId === "BM1" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+          expect(r4.find(r => r.beatmapId === "BM2" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+          expect(r4.find(r => r.beatmapId === "BM3" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+          expect(r4.find(r => r.beatmapId === "BM3" && r.sameBeatmapNumber === 2).matches).to.have.lengthOf(2);
+          expect(r4.find(r => r.beatmapId === "BM4" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+          expect(r4.find(r => r.beatmapId === "BM5" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
           expect(r4)
             .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
             .to.deep.equal([
               {
                 beatmapId: "BM1",
+                sameBeatmapNumber: 1,
                 lobbies: {
                   played: [
                     { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
@@ -1814,6 +1864,7 @@ describe("When processing multiplayer results", function() {
               },
               {
                 beatmapId: "BM2",
+                sameBeatmapNumber: 1,
                 lobbies: {
                   played: [
                     { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
@@ -1825,6 +1876,7 @@ describe("When processing multiplayer results", function() {
               },
               {
                 beatmapId: "BM3",
+                sameBeatmapNumber: 1,
                 lobbies: {
                   played: [
                     { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
@@ -1836,6 +1888,7 @@ describe("When processing multiplayer results", function() {
               },
               {
                 beatmapId: "BM4",
+                sameBeatmapNumber: 1,
                 lobbies: {
                   played: [
                     { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
@@ -1846,7 +1899,20 @@ describe("When processing multiplayer results", function() {
                 }
               },
               {
+                beatmapId: "BM3",
+                sameBeatmapNumber: 2,
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 2
+                }
+              },
+              {
                 beatmapId: "BM5",
+                sameBeatmapNumber: 1,
                 lobbies: {
                   played: [
                     { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
@@ -1862,16 +1928,19 @@ describe("When processing multiplayer results", function() {
           const games5: Game[] = await processor5.saveMultiplayerEntities();
           expect(games5).to.have.lengthOf(1);
           const r5 = processor5.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games5[0]);
-          expect(r5.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(2);
-          expect(r5.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(2);
-          expect(r5.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(4);
-          expect(r5.find(r => r.beatmapId === "BM4").matches).to.have.lengthOf(2);
-          expect(r5.find(r => r.beatmapId === "BM5").matches).to.have.lengthOf(3);
+          expect(r5.find(r => r.beatmapId === "BM1" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+          expect(r5.find(r => r.beatmapId === "BM2" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+          expect(r5.find(r => r.beatmapId === "BM3" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+          expect(r5.find(r => r.beatmapId === "BM3" && r.sameBeatmapNumber === 2).matches).to.have.lengthOf(2);
+          expect(r5.find(r => r.beatmapId === "BM4" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+          expect(r5.find(r => r.beatmapId === "BM5" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+          expect(r5.find(r => r.beatmapId === "BM5" && r.sameBeatmapNumber === 2).matches).to.have.lengthOf(1);
           expect(r5)
             .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
             .to.deep.equal([
               {
                 beatmapId: "BM1",
+                sameBeatmapNumber: 1,
                 lobbies: {
                   played: [
                     { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
@@ -1883,6 +1952,8 @@ describe("When processing multiplayer results", function() {
               },
               {
                 beatmapId: "BM2",
+                sameBeatmapNumber: 1,
+
                 lobbies: {
                   played: [
                     { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
@@ -1894,6 +1965,8 @@ describe("When processing multiplayer results", function() {
               },
               {
                 beatmapId: "BM3",
+                sameBeatmapNumber: 1,
+
                 lobbies: {
                   played: [
                     { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
@@ -1905,6 +1978,8 @@ describe("When processing multiplayer results", function() {
               },
               {
                 beatmapId: "BM4",
+                sameBeatmapNumber: 1,
+
                 lobbies: {
                   played: [
                     { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
@@ -1915,7 +1990,30 @@ describe("When processing multiplayer results", function() {
                 }
               },
               {
+                beatmapId: "BM3",
+                sameBeatmapNumber: 2,
+
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 2
+                }
+              },
+              {
                 beatmapId: "BM5",
+                sameBeatmapNumber: 1,
+                lobbies: {
+                  played: [{ banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }],
+                  remaining: [{ banchoMultiplayerId: addLobby1Request.banchoMultiplayerId }],
+                  greatestPlayedCount: 2
+                }
+              },
+              {
+                beatmapId: "BM5",
+                sameBeatmapNumber: 2,
                 lobbies: {
                   played: [{ banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }],
                   remaining: [{ banchoMultiplayerId: addLobby1Request.banchoMultiplayerId }],
@@ -1928,16 +2026,19 @@ describe("When processing multiplayer results", function() {
           const games6: Game[] = await processor6.saveMultiplayerEntities();
           expect(games6).to.have.lengthOf(1);
           const r6 = processor6.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games6[0]);
-          expect(r6.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(2);
-          expect(r6.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(2);
-          expect(r6.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(4);
-          expect(r6.find(r => r.beatmapId === "BM4").matches).to.have.lengthOf(2);
-          expect(r6.find(r => r.beatmapId === "BM5").matches).to.have.lengthOf(4);
+          expect(r6.find(r => r.beatmapId === "BM1" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+          expect(r6.find(r => r.beatmapId === "BM2" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+          expect(r6.find(r => r.beatmapId === "BM3" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+          expect(r6.find(r => r.beatmapId === "BM3" && r.sameBeatmapNumber === 2).matches).to.have.lengthOf(2);
+          expect(r6.find(r => r.beatmapId === "BM4" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+          expect(r6.find(r => r.beatmapId === "BM5" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+          expect(r6.find(r => r.beatmapId === "BM5" && r.sameBeatmapNumber === 2).matches).to.have.lengthOf(2);
           expect(r6)
             .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
             .to.deep.equal([
               {
                 beatmapId: "BM1",
+                sameBeatmapNumber: 1,
                 lobbies: {
                   played: [
                     { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
@@ -1949,6 +2050,7 @@ describe("When processing multiplayer results", function() {
               },
               {
                 beatmapId: "BM2",
+                sameBeatmapNumber: 1,
                 lobbies: {
                   played: [
                     { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
@@ -1960,6 +2062,7 @@ describe("When processing multiplayer results", function() {
               },
               {
                 beatmapId: "BM3",
+                sameBeatmapNumber: 1,
                 lobbies: {
                   played: [
                     { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
@@ -1971,6 +2074,7 @@ describe("When processing multiplayer results", function() {
               },
               {
                 beatmapId: "BM4",
+                sameBeatmapNumber: 1,
                 lobbies: {
                   played: [
                     { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
@@ -1981,7 +2085,32 @@ describe("When processing multiplayer results", function() {
                 }
               },
               {
+                beatmapId: "BM3",
+                sameBeatmapNumber: 2,
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 2
+                }
+              },
+              {
                 beatmapId: "BM5",
+                sameBeatmapNumber: 1,
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 2
+                }
+              },
+              {
+                beatmapId: "BM5",
+                sameBeatmapNumber: 2,
                 lobbies: {
                   played: [
                     { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
@@ -1997,16 +2126,20 @@ describe("When processing multiplayer results", function() {
           const games7: Game[] = await processor7.saveMultiplayerEntities();
           expect(games7).to.have.lengthOf(1);
           const blg7 = processor7.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games7[0]);
-          expect(blg7.find(r => r.beatmapId === "BM1").matches).to.have.lengthOf(2);
-          expect(blg7.find(r => r.beatmapId === "BM2").matches).to.have.lengthOf(2);
-          expect(blg7.find(r => r.beatmapId === "BM3").matches).to.have.lengthOf(4);
-          expect(blg7.find(r => r.beatmapId === "BM4").matches).to.have.lengthOf(2);
-          expect(blg7.find(r => r.beatmapId === "BM5").matches).to.have.lengthOf(5);
+          expect(blg7.find(r => r.beatmapId === "BM1" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+          expect(blg7.find(r => r.beatmapId === "BM2" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+          expect(blg7.find(r => r.beatmapId === "BM3" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+          expect(blg7.find(r => r.beatmapId === "BM3" && r.sameBeatmapNumber === 2).matches).to.have.lengthOf(2);
+          expect(blg7.find(r => r.beatmapId === "BM4" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+          expect(blg7.find(r => r.beatmapId === "BM5" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+          expect(blg7.find(r => r.beatmapId === "BM5" && r.sameBeatmapNumber === 2).matches).to.have.lengthOf(2);
+          expect(blg7.find(r => r.beatmapId === "BM5" && r.sameBeatmapNumber === 3).matches).to.have.lengthOf(1);
           expect(blg7)
             .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
             .to.deep.equal([
               {
                 beatmapId: "BM1",
+                sameBeatmapNumber: 1,
                 lobbies: {
                   played: [
                     { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
@@ -2018,6 +2151,7 @@ describe("When processing multiplayer results", function() {
               },
               {
                 beatmapId: "BM2",
+                sameBeatmapNumber: 1,
                 lobbies: {
                   played: [
                     { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
@@ -2029,6 +2163,8 @@ describe("When processing multiplayer results", function() {
               },
               {
                 beatmapId: "BM3",
+                sameBeatmapNumber: 1,
+
                 lobbies: {
                   played: [
                     { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
@@ -2040,6 +2176,8 @@ describe("When processing multiplayer results", function() {
               },
               {
                 beatmapId: "BM4",
+                sameBeatmapNumber: 1,
+
                 lobbies: {
                   played: [
                     { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
@@ -2050,7 +2188,40 @@ describe("When processing multiplayer results", function() {
                 }
               },
               {
+                beatmapId: "BM3",
+                sameBeatmapNumber: 2,
+
+                lobbies: {
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
+                  greatestPlayedCount: 2
+                }
+              },
+              {
                 beatmapId: "BM5",
+                sameBeatmapNumber: 1,
+
+                lobbies: {
+                  played: [{ banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }],
+                  remaining: [{ banchoMultiplayerId: addLobby1Request.banchoMultiplayerId }],
+                  greatestPlayedCount: 3
+                }
+              },
+              {
+                beatmapId: "BM5",
+                sameBeatmapNumber: 2,
+                lobbies: {
+                  played: [{ banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }],
+                  remaining: [{ banchoMultiplayerId: addLobby1Request.banchoMultiplayerId }],
+                  greatestPlayedCount: 3
+                }
+              },
+              {
+                beatmapId: "BM5",
+                sameBeatmapNumber: 3,
                 lobbies: {
                   played: [{ banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }],
                   remaining: [{ banchoMultiplayerId: addLobby1Request.banchoMultiplayerId }],

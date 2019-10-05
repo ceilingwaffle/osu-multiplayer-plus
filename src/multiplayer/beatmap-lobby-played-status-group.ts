@@ -3,6 +3,7 @@ import { Match } from "../domain/match/match.entity";
 
 export interface BeatmapLobbyPlayedStatusGroup {
   beatmapId: string;
+  sameBeatmapNumber: number;
   matches: Match[];
   lobbies: {
     /** Lobbies that have played this map */

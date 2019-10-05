@@ -234,36 +234,55 @@ export class MultiplayerResultsProcessor {
       }
 
       const r = _(matches)
-        .sortBy(match => match.endTime)
-        .groupBy(match => match.beatmapId)
-        .map((matches, matchesKey) => ({
-          beatmapId: matchesKey,
-          matches: matches,
-          lobbies: lobbies
-        }))
+        .sortBy(match => match.endTime) // TODO: sort everywhere by startTime instead of endTime
+        .groupBy(match =>
+          JSON.stringify({
+            beatmapId: match.beatmapId,
+            sameBeatmapNumber:
+              matches.filter(m => m.lobby.id === match.lobby.id && m.beatmapId === match.beatmapId).findIndex(m => m.id === match.id) + 1
+          })
+        )
+        .map((matches, matchesKey) => {
+          const keyAsObject = JSON.parse(matchesKey) as { beatmapId: string; sameBeatmapNumber: number };
+          return {
+            beatmapId: keyAsObject.beatmapId,
+            sameBeatmapNumber: keyAsObject.sameBeatmapNumber,
+            matches: matches,
+            lobbies: lobbies
+          };
+        })
         .map<BeatmapLobbyPlayedStatusGroup>(o => {
-          // lb stands for "Lobby Biggest" i.e. the biggest number of times the same beatmap has been played in the same lobby
-          const sameBeatmapNumber = Math.max(0, ...o.matches.map(m => m.lobby.matches.filter(lm => lm.beatmapId === m.beatmapId).length));
-          if (sameBeatmapNumber < 1) {
+          // beatmapPlayedTimes = the most number of times the same beatmap has been played in the same lobby
+          // const beatmapPlayedTimes = Math.max(0, ...o.matches.map(m => m.lobby.matches.filter(lm => lm.beatmapId === m.beatmapId).length));
+          const beatmapPlayedTimes = Math.max(
+            0,
+            ...o.matches.map(m => o.lobbies.find(ol => ol.id === m.lobby.id).matches.filter(lm => lm.beatmapId === m.beatmapId).length)
+          );
+          if (beatmapPlayedTimes < 1) {
             throw new Error(
-              `Value for 'sameBeatmapNumber' was ${sameBeatmapNumber}. This means the beatmap was probably not found ` +
+              `Value for 'sameBeatmapNumber' was ${beatmapPlayedTimes}. This means the beatmap was probably not found ` +
                 `in any matches or lobbies. This should never happen :/`
             );
           }
-          const lbthMatch = _(o.matches)
+          const matchLastPlayedThisMap = _(o.matches)
             .map(m => m.lobby.matches.filter(lm => lm.beatmapId === m.beatmapId))
             .flatten()
-            .value()[sameBeatmapNumber - 1];
+            .value()[beatmapPlayedTimes - 1];
           return {
             beatmapId: o.beatmapId,
+            sameBeatmapNumber: o.sameBeatmapNumber,
             matches: o.matches,
             lobbies: {
-              greatestPlayedCount: sameBeatmapNumber,
+              greatestPlayedCount: beatmapPlayedTimes,
               // "played" and "remaining" depends on how many times a lobby has played the same map.
               // e.g. If lobby 1 plays BM1, then lobby 2 plays BM1, then lobby 1 plays BM1 again, lobby 2 goes in "remaining"
               //       because we're still waiting on lobby 2 to complete BM1 for the 2nd time (lb === 2)
-              played: o.lobbies.filter(l => l.matches.filter(lm => lm.beatmapId === lbthMatch.beatmapId).length === sameBeatmapNumber),
-              remaining: o.lobbies.filter(l => l.matches.filter(lm => lm.beatmapId === lbthMatch.beatmapId).length !== sameBeatmapNumber)
+              played: o.lobbies.filter(
+                l => l.matches.filter(lm => lm.beatmapId === matchLastPlayedThisMap.beatmapId).length === beatmapPlayedTimes
+              ),
+              remaining: o.lobbies.filter(
+                l => l.matches.filter(lm => lm.beatmapId === matchLastPlayedThisMap.beatmapId).length !== beatmapPlayedTimes
+              )
             }
           };
         })
@@ -297,25 +316,39 @@ export class MultiplayerResultsProcessor {
       .uniqBy(l => l.id)
       .cloneDeep();
 
-    const completedMessages: LobbyBeatmapStatusMessage[] = this.gatherCompletedMessages({ allMatches, beatmapsPlayed });
+    const completedMessagesAllAtOnce: LobbyBeatmapStatusMessage[] = this.gatherCompletedMessages({ allMatches, beatmapsPlayed });
+    const completedMessages: LobbyBeatmapStatusMessage[] = [];
     const waitingMessages: LobbyBeatmapStatusMessage[] = [];
     for (let i = 0; i < allMatches.length; i++) {
       // we filter out any matches not yet "seen by" each lobby, so we can generate groups of beatmaps up to this point in time
       const matchesUpToNow = allMatches.slice(0, i + 1);
-      allLobbies.forEach(l => (l.matches = l.matches.filter(lm => matchesUpToNow.some(m => m.id === lm.id))));
-      const beatmapsGroupedByLobbyPlayedStatus = this.buildBeatmapsGroupedByLobbyPlayedStatuses(matchesUpToNow, allLobbies);
-      const b = true;
+      const allLobbiesCopy: Lobby[] = _(allLobbies).cloneDeep();
+      allLobbiesCopy.forEach(l => (l.matches = l.matches.filter(lm => matchesUpToNow.some(m => m.id === lm.id))));
+      const beatmapsGroupedByLobbyPlayedStatus = this.buildBeatmapsGroupedByLobbyPlayedStatuses(matchesUpToNow, allLobbiesCopy);
 
-      // TODO: Build the waiting messages from the beatmap groups
       const thisMatch = allMatches[i];
       const beatmapNumber: number = this.getSameBeatmapNumberPlayedInLobbyForMatch(beatmapsGroupedByLobbyPlayedStatus, thisMatch);
+      const completedMapTarget: BeatmapLobbyPlayedStatusGroup = beatmapsGroupedByLobbyPlayedStatus.find(
+        b => b.beatmapId === thisMatch.beatmapId && b.sameBeatmapNumber === beatmapNumber
+      );
+      completedMapTarget.lobbies.played.forEach(pLobby => {
+        const message: LobbyBeatmapStatusMessage = {
+          message: `Lobby ${pLobby.id} completed beatmap ${thisMatch.beatmapId}#${beatmapNumber}.`,
+          lobby: this.buildLobbyComponent(pLobby),
+          match: this.buildMatchComponent(thisMatch),
+          beatmapNumber: beatmapNumber
+        };
+        if (!completedMessages.find(msg => msg.message == message.message)) completedMessages.push(message);
+      });
 
+      // TODO: Build the waiting messages from the beatmap groups
       const waitingMapTarget = beatmapsGroupedByLobbyPlayedStatus.find(b => b.beatmapId === thisMatch.beatmapId);
       waitingMapTarget.lobbies.remaining.forEach(rLobby => {
         const message: LobbyBeatmapStatusMessage = {
-          lobby: this.buildLobbyComponent(rLobby),
           message: `Waiting on beatmap ${thisMatch.beatmapId}#${beatmapNumber} from lobby ${rLobby.id}.`,
-          match: this.buildMatchComponent(thisMatch)
+          lobby: this.buildLobbyComponent(rLobby),
+          match: this.buildMatchComponent(thisMatch),
+          beatmapNumber: beatmapNumber
         };
         waitingMessages.push(message);
       });
@@ -359,8 +392,9 @@ export class MultiplayerResultsProcessor {
       const beatmapNumber: number = this.getSameBeatmapNumberPlayedInLobbyForMatch(beatmapsPlayed, match);
       const message: LobbyBeatmapStatusMessage = {
         lobby: { banchoLobbyId: match.lobby.banchoMultiplayerId, lobbyName: "TODO:LobbyName", resultsUrl: "TODO:ResultsURL" },
-        message: `Lobby ${match.lobby.id} completed beatmap ${match.beatmapId}#${beatmapNumber}.`,
-        match: this.buildMatchComponent(match)
+        match: this.buildMatchComponent(match),
+        beatmapNumber: beatmapNumber,
+        message: `Lobby ${match.lobby.id} completed beatmap ${match.beatmapId}#${beatmapNumber}.`
       };
       completedMessages.push(message);
     }
@@ -370,12 +404,20 @@ export class MultiplayerResultsProcessor {
   }
 
   private getSameBeatmapNumberPlayedInLobbyForMatch(beatmapsPlayed: BeatmapLobbyPlayedStatusGroup[], match: Match): number {
-    return (
-      beatmapsPlayed
-        .find(bmp => bmp.beatmapId === match.beatmapId)
-        .matches.filter(m => m.lobby.id === match.lobby.id)
-        .findIndex(m => m.id === match.id) + 1
-    );
+    try {
+      // This relies on the matches listed under each "beatmapPlayed" to be only listed there if the match was played for a specific "same beatmap number".
+      // i.e. The matches listed under "beatmapPlayed" should not contain every match played with that beatmap ID, instead it should only
+      //      list matches included for that beatmap ID *and* what number of times that specific beatmap ID has been played.
+      for (const bmp of beatmapsPlayed) {
+        if (bmp.matches.some(m => m.id === match.id)) {
+          return bmp.sameBeatmapNumber;
+        }
+      }
+      throw new Error("Target match not found.");
+    } catch (error) {
+      Log.methodError(this.getSameBeatmapNumberPlayedInLobbyForMatch, this.constructor.name, error);
+      throw error;
+    }
   }
 
   buildLeaderboardEvents(game: Game): GameEvent[] {
