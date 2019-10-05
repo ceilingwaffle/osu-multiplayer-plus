@@ -35,9 +35,12 @@ import { AddTeamsDto } from "../../../src/domain/team/dto/add-team.dto";
 import { TeamController } from "../../../src/domain/team/team.controller";
 import { Game as GameEntity } from "../../../src/domain/game/game.entity";
 import { GameStatus } from "../../../src/domain/game/game-status";
-import { LobbyBeatmapStatusMessage } from "../../../src/multiplayer/lobby-beatmap-status-message";
 import { GameRepository } from "../../../src/domain/game/game.repository";
 import { getCustomRepository } from "typeorm";
+import {
+  WaitingLobbyBeatmapStatusMessage,
+  CompletedLobbyBeatmapStatusMessage
+} from "../../../src/multiplayer/lobby-beatmap-status-message";
 import _ = require("lodash"); // do not convert to default import or this will break
 
 chai.use(chaiExclude);
@@ -2006,8 +2009,11 @@ describe("When processing multiplayer results", function() {
                 beatmapId: "BM5",
                 sameBeatmapNumber: 1,
                 lobbies: {
-                  played: [{ banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }],
-                  remaining: [{ banchoMultiplayerId: addLobby1Request.banchoMultiplayerId }],
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
                   greatestPlayedCount: 2
                 }
               },
@@ -2205,8 +2211,11 @@ describe("When processing multiplayer results", function() {
                 sameBeatmapNumber: 1,
 
                 lobbies: {
-                  played: [{ banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }],
-                  remaining: [{ banchoMultiplayerId: addLobby1Request.banchoMultiplayerId }],
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
                   greatestPlayedCount: 3
                 }
               },
@@ -2214,8 +2223,11 @@ describe("When processing multiplayer results", function() {
                 beatmapId: "BM5",
                 sameBeatmapNumber: 2,
                 lobbies: {
-                  played: [{ banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }],
-                  remaining: [{ banchoMultiplayerId: addLobby1Request.banchoMultiplayerId }],
+                  played: [
+                    { banchoMultiplayerId: addLobby1Request.banchoMultiplayerId },
+                    { banchoMultiplayerId: addLobby2Request.banchoMultiplayerId }
+                  ],
+                  remaining: [],
                   greatestPlayedCount: 3
                 }
               },
@@ -2233,13 +2245,21 @@ describe("When processing multiplayer results", function() {
           const gameRepository: GameRepository = getCustomRepository(GameRepository);
           const reportedMatches: Match[] = await gameRepository.getReportedMatchesForGame(games7[0].id);
           const allGameLobbies: Lobby[] = games7[0].gameLobbies.map(gl => gl.lobby);
-          const messages: LobbyBeatmapStatusMessage[] = processor7.buildLobbyMatchReportMessages({
+          const messages: (
+            | CompletedLobbyBeatmapStatusMessage
+            | WaitingLobbyBeatmapStatusMessage)[] = processor7.buildLobbyMatchReportMessages({
             beatmapsPlayed: blg7,
             reportedMatches,
             allGameLobbies
           });
 
           // TODO: assert actual messages object deep equals expected (and test correct beatmap number in message)
+          //      test both completed and waiting messages
+
+          // TODO: Test with some matches having null endTime
+
+          // TODO: Test where lobby 1 BM#1 starts before lobby 2 BM#1, and lobby 2 BM#1 finishes before lobby 1 BM#1
+          //       (e.g. if the results from lobby 1 had some network latency before submission)
 
           return resolve();
         } catch (error) {
