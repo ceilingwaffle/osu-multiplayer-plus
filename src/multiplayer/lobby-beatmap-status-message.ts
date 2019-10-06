@@ -1,15 +1,20 @@
 import { Lobby } from "./components/lobby";
 import { Match } from "./components/match";
 
-type MessageType = "completed" | "waiting";
+type MessageType = "lobby_completed" | "awaiting" | "all_lobbies_completed";
 
 interface LobbyBeatmapStatusMessage<T extends MessageType> {
   type?: T;
   message: string;
-  lobby: Lobby;
-  match: Match;
   sameBeatmapNumber: number;
 }
 
-export interface CompletedLobbyBeatmapStatusMessage extends LobbyBeatmapStatusMessage<"completed"> {}
-export interface WaitingLobbyBeatmapStatusMessage extends LobbyBeatmapStatusMessage<"waiting"> {}
+interface HasLobbyAndMatchProps {
+  lobby: Lobby;
+  match: Match;
+}
+
+export interface LobbyCompletedBeatmapMessage extends HasLobbyAndMatchProps, LobbyBeatmapStatusMessage<"lobby_completed"> {}
+export interface LobbyAwaitingBeatmapMessage extends HasLobbyAndMatchProps, LobbyBeatmapStatusMessage<"awaiting"> {}
+export interface AllLobbiesCompletedBeatmapMessage extends LobbyBeatmapStatusMessage<"all_lobbies_completed"> {}
+export type LobbyBeatmapStatusMessageTypes = LobbyCompletedBeatmapMessage | LobbyAwaitingBeatmapMessage | AllLobbiesCompletedBeatmapMessage;

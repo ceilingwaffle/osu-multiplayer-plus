@@ -8,11 +8,11 @@ import { ApiMultiplayer } from "../osu/types/api-multiplayer";
 import { Game } from "../domain/game/game.entity";
 import { GameEvent } from "./game-events/game-event";
 import { Match } from "../domain/match/match.entity";
-import { LobbyBeatmapStatusMessage } from "./lobby-beatmap-status-message";
 import { injectable } from "inversify";
 import { GameRepository } from "../domain/game/game.repository";
 import { getCustomRepository } from "typeorm";
 import { Lobby } from "../domain/lobby/lobby.entity";
+import { LobbyBeatmapStatusMessageTypes } from "./lobby-beatmap-status-message";
 
 @injectable()
 export class MultiplayerResultsListener {
@@ -46,13 +46,11 @@ export class MultiplayerResultsListener {
 
         for (const game of multiplayerGames) {
           const reportedMatches: Match[] = (await this.gameRepository.getReportedMatchesForGame(game.id)) || [];
-          const lobbyBeatmapStatusMessages: LobbyBeatmapStatusMessage[] = [];
           const leaderboardEvents: GameEvent[] = [];
           const bmLobbyGroups = processor.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(game);
           const allGameLobbies: Lobby[] = game.gameLobbies.map(gl => gl.lobby);
-          const messages: LobbyBeatmapStatusMessage[] =
+          const lobbyBeatmapStatusMessages: LobbyBeatmapStatusMessageTypes[] =
             processor.buildLobbyMatchReportMessages({ beatmapsPlayed: bmLobbyGroups, reportedMatches, allGameLobbies }) || [];
-          for (const message of messages) lobbyBeatmapStatusMessages.push(message);
           // TODO: Deliver messages
           leaderboardEvents.push(...processor.buildLeaderboardEvents(game));
           // TODO: build game report for game

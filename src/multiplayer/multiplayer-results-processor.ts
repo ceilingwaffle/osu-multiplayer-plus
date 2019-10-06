@@ -21,7 +21,12 @@ import { GameEvent } from "./game-events/game-event";
 import { Game } from "../domain/game/game.entity";
 import { GameStatus } from "../domain/game/game-status";
 import { GameEventRegistrar } from "./game-events/game-event-registrar";
-import { CompletedLobbyBeatmapStatusMessage, WaitingLobbyBeatmapStatusMessage } from "./lobby-beatmap-status-message";
+import {
+  LobbyCompletedBeatmapMessage,
+  LobbyAwaitingBeatmapMessage,
+  AllLobbiesCompletedBeatmapMessage,
+  LobbyBeatmapStatusMessageTypes
+} from "./lobby-beatmap-status-message";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
 import { PlayMode } from "./components/enums/play-mode";
 import { ScoringType } from "./components/enums/scoring-type";
@@ -298,7 +303,7 @@ export class MultiplayerResultsProcessor {
     beatmapsPlayed: BeatmapLobbyPlayedStatusGroup[];
     reportedMatches: Match[];
     allGameLobbies: Lobby[];
-  }): (CompletedLobbyBeatmapStatusMessage | WaitingLobbyBeatmapStatusMessage)[] {
+  }): LobbyBeatmapStatusMessageTypes[] {
     // creating clones of both the matches and the lobbies just for safety - in case they get modified anywhere
     const allMatches: Match[] = _(beatmapsPlayed)
       .map(bmp => bmp.matches)
@@ -311,9 +316,8 @@ export class MultiplayerResultsProcessor {
       .uniqBy(l => l.id)
       .cloneDeep();
 
-    const completedMessagesAllAtOnce: CompletedLobbyBeatmapStatusMessage[] = this.gatherCompletedMessages({ allMatches, beatmapsPlayed });
-    let completedMessages: CompletedLobbyBeatmapStatusMessage[] = completedMessagesAllAtOnce;
-    let waitingMessages: WaitingLobbyBeatmapStatusMessage[] = [];
+    const completedMessages: LobbyCompletedBeatmapMessage[] = this.gatherCompletedMessages({ allMatches, beatmapsPlayed });
+    let waitingMessages: LobbyAwaitingBeatmapMessage[] = [];
     for (let i = 0; i < allMatches.length; i++) {
       // we filter out any matches not yet "seen by" each lobby, so we can generate groups of beatmaps up to this point in time
       const matchesUpToNow = allMatches.slice(0, i + 1);
@@ -327,9 +331,18 @@ export class MultiplayerResultsProcessor {
         forCompletedMatch: thisMatch,
         beatmapsPlayed: beatmapsGroupedByLobbyPlayedStatus
       });
-
-      // TODO: Filter out reportedMatches
     }
+    const allLobbiesCompletedMessages: AllLobbiesCompletedBeatmapMessage[] = [];
+    for (const bmp of beatmapsPlayed) {
+      if (!bmp.lobbies.remaining.length) {
+        const message: AllLobbiesCompletedBeatmapMessage = {
+          message: `All lobbies have completed beatmap ${bmp.beatmapId}#${bmp.sameBeatmapNumber}`,
+          sameBeatmapNumber: bmp.sameBeatmapNumber
+        };
+      }
+    }
+
+    // TODO: Filter out reportedMatches
 
     Log.warn("TODO - implement method", this.buildLobbyMatchReportMessages.name, this.constructor.name);
     return null;
@@ -359,12 +372,12 @@ export class MultiplayerResultsProcessor {
   }: {
     allMatches: Match[];
     beatmapsPlayed: BeatmapLobbyPlayedStatusGroup[];
-  }): CompletedLobbyBeatmapStatusMessage[] {
-    const completedMessages: CompletedLobbyBeatmapStatusMessage[] = [];
+  }): LobbyCompletedBeatmapMessage[] {
+    const completedMessages: LobbyCompletedBeatmapMessage[] = [];
     for (const match of allMatches) {
       if (!match.endTime) continue; // a match is only considered as "completed" when it has ended
       const beatmapNumber: number = this.getSameBeatmapNumberPlayedInLobbyForMatch(beatmapsPlayed, match);
-      const message: CompletedLobbyBeatmapStatusMessage = {
+      const message: LobbyCompletedBeatmapMessage = {
         message: `Lobby ${match.lobby.id} completed beatmap ${match.beatmapId}#${beatmapNumber}.`,
         lobby: this.buildLobbyComponent(match.lobby),
         match: this.buildMatchComponent(match),
@@ -383,11 +396,11 @@ export class MultiplayerResultsProcessor {
   }: {
     forCompletedMatch: Match;
     beatmapsPlayed: BeatmapLobbyPlayedStatusGroup[];
-  }): WaitingLobbyBeatmapStatusMessage[] {
-    const waitingMessages: WaitingLobbyBeatmapStatusMessage[] = [];
+  }): LobbyAwaitingBeatmapMessage[] {
+    const waitingMessages: LobbyAwaitingBeatmapMessage[] = [];
     for (const bmp of beatmapsPlayed) {
       for (const rLobby of bmp.lobbies.remaining) {
-        const message: WaitingLobbyBeatmapStatusMessage = {
+        const message: LobbyAwaitingBeatmapMessage = {
           message: `Waiting on beatmap ${bmp.beatmapId}#${bmp.sameBeatmapNumber} from lobby ${rLobby.id}.`,
           lobby: this.buildLobbyComponent(rLobby),
           match: this.buildMatchComponent(forCompletedMatch),

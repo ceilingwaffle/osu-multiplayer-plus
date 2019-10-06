@@ -38,8 +38,10 @@ import { GameStatus } from "../../../src/domain/game/game-status";
 import { GameRepository } from "../../../src/domain/game/game.repository";
 import { getCustomRepository } from "typeorm";
 import {
-  WaitingLobbyBeatmapStatusMessage,
-  CompletedLobbyBeatmapStatusMessage
+  LobbyAwaitingBeatmapMessage,
+  LobbyCompletedBeatmapMessage,
+  AllLobbiesCompletedBeatmapMessage,
+  LobbyBeatmapStatusMessageTypes
 } from "../../../src/multiplayer/lobby-beatmap-status-message";
 import _ = require("lodash"); // do not convert to default import or this will break
 
@@ -2245,9 +2247,7 @@ describe("When processing multiplayer results", function() {
           const gameRepository: GameRepository = getCustomRepository(GameRepository);
           const reportedMatches: Match[] = await gameRepository.getReportedMatchesForGame(games7[0].id);
           const allGameLobbies: Lobby[] = games7[0].gameLobbies.map(gl => gl.lobby);
-          const messages: (
-            | CompletedLobbyBeatmapStatusMessage
-            | WaitingLobbyBeatmapStatusMessage)[] = processor7.buildLobbyMatchReportMessages({
+          const messages: LobbyBeatmapStatusMessageTypes[] = processor7.buildLobbyMatchReportMessages({
             beatmapsPlayed: blg7,
             reportedMatches,
             allGameLobbies
