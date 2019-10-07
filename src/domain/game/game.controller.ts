@@ -1,4 +1,3 @@
-import "../../../src/startup";
 import { TYPES } from "../../types";
 import { inject, injectable } from "inversify";
 import { GameService } from "./game.service";

@@ -1,4 +1,4 @@
-import "../../../src/startup";
+import "../../../src/bootstrap";
 import "mocha";
 import * as chai from "chai";
 import { assert, expect } from "chai";
@@ -1228,7 +1228,10 @@ describe("When processing multiplayer results", function() {
             const a = true;
           }
 
-          // TODO - finish this
+          // TODO: Create a new test file, extract all the lobbyresults objects setup stuff, and store the results of the processor method calls,
+          //        then create individual "it" test methods testing specific parts of those rtesults (e.g. beatmap lobby groups, messages, multiplayer entities, etc.)
+
+          // TODO - assert contents of messages - completed, awaiting, and allLobbiesCompleted
 
           return resolve();
         } catch (error) {

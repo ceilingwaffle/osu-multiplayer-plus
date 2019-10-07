@@ -1,13 +1,13 @@
 import "reflect-metadata";
 import { DiscordBot } from "./discord/discord-bot";
 import { Log } from "./utils/Log";
-import { startup } from "./startup";
+import { bootstrap } from "./bootstrap";
 
 Log.info("App starting...");
 
 setTimeout(async () => {
   try {
-    await startup();
+    await bootstrap();
 
     if (process.env.NODE_ENV !== "test") {
       const discordBot = new DiscordBot();

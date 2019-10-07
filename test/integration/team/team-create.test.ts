@@ -1,4 +1,4 @@
-import "../../../src/startup";
+import "../../../src/bootstrap";
 import "mocha";
 import { assert, expect } from "chai";
 import { TestHelpers } from "../../test-helpers";
