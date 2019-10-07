@@ -4,22 +4,12 @@ import { TYPES } from "../types";
 const { lazyInject } = getDecorators(iocContainer);
 import { ApiMultiplayer } from "../osu/types/api-multiplayer";
 import { GameReport } from "./reports/game.report";
-import { UserService } from "../domain/user/user.service";
 import { Log } from "../utils/Log";
-import { LobbyRepository } from "../domain/lobby/lobby.repository";
-import { Connection } from "typeorm";
-import { LobbyService } from "../domain/lobby/lobby.service";
 import { Lobby } from "../domain/lobby/lobby.entity";
 import { Match } from "../domain/match/match.entity";
-import { PlayerScore } from "../domain/score/player-score.entity";
-import { OsuUser } from "../domain/user/osu-user.entity";
-import { OsuUserRepository } from "../domain/user/osu-user.repository";
-import { IOsuApiFetcher } from "../osu/interfaces/osu-api-fetcher";
-import { IDbClient } from "../database/db-client";
 import { GameEventRegistrarCollection } from "./game-events/game-event-registrar-collection";
 import { GameEvent } from "./game-events/game-event";
 import { Game } from "../domain/game/game.entity";
-import { GameStatus } from "../domain/game/game-status";
 import { GameEventRegistrar } from "./game-events/game-event-registrar";
 import {
   LobbyCompletedBeatmapMessage,
@@ -28,271 +18,25 @@ import {
   LobbyBeatmapStatusMessageTypes
 } from "./lobby-beatmap-status-message";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
-import { PlayMode } from "./components/enums/play-mode";
-import { ScoringType } from "./components/enums/scoring-type";
-import { TeamMode } from "./components/enums/team-mode";
 import { BeatmapLobbyPlayedStatusGroup } from "./beatmap-lobby-played-status-group";
-import { Match as MatchComponent } from "./components/match";
-import { Lobby as LobbyComponent } from "./components/lobby";
+import { BeatmapLobbyGrouper } from "./beatmap-lobby-grouper";
+import { LobbyBeatmapStatusMessageBuilder } from "./lobby-beatmap-status-message-builder";
+import { MultiplayerEntitySaver } from "./multiplayer-entity-saver";
 
 export class MultiplayerResultsProcessor {
-  // @lazyInject(TYPES.UserService) private userService: UserService;
-  // @lazyInject(TYPES.TeamService) private teamService: TeamService;
-  // @lazyInject(TYPES.LobbyService) private lobbyService: LobbyService;
   // TODO: Don't get these from the ioc container - should be able to inject somehow
-  private userService: UserService = iocContainer.get<UserService>(TYPES.UserService);
-  private lobbyService: LobbyService = iocContainer.get<LobbyService>(TYPES.LobbyService);
-  private osuApi: IOsuApiFetcher = iocContainer.get<IOsuApiFetcher>(TYPES.IOsuApiFetcher);
   private gameEventRegistrarCollection: GameEventRegistrarCollection = iocContainer.get<GameEventRegistrarCollection>(TYPES.GameEventRegistrarCollection); //prettier-ignore
-  // protected readonly lobbyRepository: LobbyRepository = getCustomRepository(LobbyRepository);
-  // protected readonly osuUserRepository: OsuUserRepository = getCustomRepository(OsuUserRepository);
-
-  protected dbClient: IDbClient = iocContainer.get<IDbClient>(TYPES.IDbClient);
-  protected dbConn: Connection = this.dbClient.getConnection();
-
-  protected isProcessed: boolean;
 
   constructor(protected readonly input: ApiMultiplayer) {
     Log.info(`Initialized ${this.constructor.name}.`);
   }
 
-  /**
-   * Takes multiplayer results from the osu API and creates and saves database entities from those results.
-   *
-   * @returns {Promise<Game[]>} - The games (active games) that have added the lobby owner of the ApiMultiplayer input data.
-   * @memberof MultiplayerResultsProcessor
-   */
-  async saveMultiplayerEntities(): Promise<Game[]> {
-    try {
-      // ensure required API data exists
-      this.validateApiResultsInput();
-
-      // get existing entities from DB
-      //    find lobby using input.multiplayerId
-      let lobby: Lobby = await this.dbConn.manager.getCustomRepository(LobbyRepository).findOne(
-        { banchoMultiplayerId: this.input.multiplayerId },
-        {
-          relations: [
-            "gameLobbies",
-            "gameLobbies.game",
-            "matches",
-            "matches.playerScores",
-            "matches.playerScores.scoredBy",
-            "matches.playerScores.scoredBy.user"
-          ]
-        }
-      );
-      //      create lobby if not found
-      if (!lobby) {
-        lobby = this.lobbyService.create({ banchoMultiplayerId: this.input.multiplayerId });
-      }
-
-      const players: OsuUser[] = [];
-
-      //    find matches using Lobby.Match[].startTime + Lobby.banchoMultiplayerId
-      //    (this can only produce duplicate results if two matches in the same lobby start at the same time
-      //         - safe to assume this is impossible, unless the osu API royally messes up)
-      for (const apiMatch of this.input.matches) {
-        const matches: Match[] = lobby.matches.filter(
-          lobbyMatch =>
-            lobbyMatch.startTime === apiMatch.startTime &&
-            lobby.banchoMultiplayerId === this.input.multiplayerId &&
-            lobbyMatch.beatmapId === apiMatch.mapId
-        );
-        if (matches.length > 1) {
-          Log.warn(
-            "Duplicate match results found! This is bad. Probably because two maps had the same start-time in the same lobby. This should never happen! For now, we'll just select and use the last of these duplicates."
-          );
-        }
-        let match: Match = matches.slice(-1)[0]; // set to undefined if no matches exist
-        if (!match) {
-          //      create match if not found
-          // TODO: Extract match creation to MatchService
-          match = new Match();
-          match.aborted = false; // TODO
-          match.beatmapId = apiMatch.mapId.toString();
-          match.endTime = apiMatch.endTime;
-          match.ignored = false; // TODO
-          match.lobby = lobby;
-          match.mapNumber = apiMatch.mapNumber;
-          match.playerScores = [];
-          match.startTime = apiMatch.startTime;
-          match.teamMode = apiMatch.teamMode;
-          lobby.matches.push(match);
-        }
-
-        for (const apiScore of apiMatch.scores) {
-          //    find scores using Lobby.Match[].startTime + Lobby.Match.PlayerScores[].scoredBy(OsuUser).osuUserId + Lobby.Match.PlayerScores[].score (including score and bmid here is just for increased safety, in case two matches have the same startTime for some weird reason)
-          let score: PlayerScore = match.playerScores.find(
-            score =>
-              match.startTime === apiMatch.startTime &&
-              score.scoredBy.osuUserId === apiScore.osuUserId &&
-              score.score === apiScore.score &&
-              match.beatmapId === apiMatch.mapId
-          );
-          //      create score if not found
-          if (!score) {
-            //      find player using Lobby.Match[].PlayerScores[].scoredBy(OsuUser).osuUserId
-            let player: OsuUser;
-            if (!player) {
-              player = lobby.matches
-                .map(match => match.playerScores)
-                .map(scores => scores.find(score => score.scoredBy.osuUserId === apiScore.osuUserId))
-                .map(score => {
-                  if (score) return score.scoredBy;
-                })[0];
-            }
-            if (!player) {
-              //      find player in DB
-              player = await this.dbConn.manager.getCustomRepository(OsuUserRepository).findOne({ osuUserId: apiScore.osuUserId });
-            }
-            if (!player) {
-              //        get the player's osu username from the osu API
-              const apiOsuUser = await this.osuApi.getUserDataForUserId(apiScore.osuUserId);
-              //        create player if not found
-              player = this.userService.createOsuUser({
-                userId: apiOsuUser.userId,
-                username: apiOsuUser.username, // TODO: Handle user's changing username - maybe a nightly cron job to update active users?
-                countryCode: apiOsuUser.country
-              });
-              player.user = this.userService.createUser({});
-            }
-            if (player && !players.find(p => p.osuUserId === player.osuUserId)) {
-              // remember seen players to avoid creating duplicates
-              players.push(player);
-            }
-
-            // TODO: Extract PlayerScore creation to a service class
-            score = new PlayerScore();
-            score.ignored = false; // TODO
-            score.passed = apiScore.passed;
-            score.score = apiScore.score;
-            score.scoredBy = player;
-            score.scoredInMatch = match;
-            match.playerScores.push(score);
-          }
-        }
-      }
-
-      // save/update (cascade) entities
-      // TODO: ensure Lobby.GameLobbies isn't being erased - if it is, just add it to the relations when finding lobby
-      const savedLobby = await lobby.save();
-      const reloadedLobby: Lobby = await this.dbConn.manager
-        .getCustomRepository(LobbyRepository)
-        .findMultiplayerEntitiesForLobby(savedLobby.id);
-
-      const multiplayerGames: Game[] = reloadedLobby.gameLobbies.map(gl => gl.game).filter(g => GameStatus.isStartedStatus(g.status));
-      Log.methodSuccess(this.saveMultiplayerEntities, this.constructor.name);
-      return multiplayerGames;
-    } catch (error) {
-      Log.methodError(this.saveMultiplayerEntities, this.constructor.name, error);
-      throw error;
-    }
+  async saveMultiplayerEntities() {
+    return MultiplayerEntitySaver.saveMultiplayerEntities(this.input);
   }
 
-  private validateApiResultsInput() {
-    if (!this.input.multiplayerId) {
-      throw new Error("Multiplayer API result did not contain a multiplayer ID.");
-    }
-  }
-
-  /**
-   * Returns a list of beatmaps each containing lists of lobbies where the ebatmap is "played in lobbies" and "remaining to be played in lobbies".
-   * The lobbies are all lobbies currently being watched for a game (active lobby, being sacnend by the osu lobby scanner, and added to the game).
-   *
-   * @param {Game} game
-   * @returns {BeatmapLobbyPlayedStatusGroup[]}
-   */
-  buildBeatmapsGroupedByLobbyPlayedStatusesForGame(game: Game): BeatmapLobbyPlayedStatusGroup[] {
-    const matches: Match[] = _(game.gameLobbies)
-      .map(gameLobby => gameLobby.lobby)
-      .map(lobby => lobby.matches)
-      .flattenDeep()
-      .uniqBy(match => match.id)
-      .cloneDeep();
-
-    const lobbies: Lobby[] = _(game.gameLobbies)
-      .map(gameLobby => gameLobby.lobby)
-      .uniqBy(lobby => lobby.id)
-      .cloneDeep();
-
-    return this.buildBeatmapsGroupedByLobbyPlayedStatuses(matches, lobbies);
-  }
-
-  private buildBeatmapsGroupedByLobbyPlayedStatuses(matches: Match[], lobbies: Lobby[]): BeatmapLobbyPlayedStatusGroup[] {
-    try {
-      if (!matches || !matches.length) {
-        Log.methodFailure(
-          this.buildBeatmapsGroupedByLobbyPlayedStatuses,
-          this.constructor.name,
-          "Matches array arg was undefined or empty."
-        );
-        return new Array<BeatmapLobbyPlayedStatusGroup>();
-      }
-      if (!lobbies || !lobbies.length) {
-        Log.methodFailure(
-          this.buildBeatmapsGroupedByLobbyPlayedStatuses,
-          this.constructor.name,
-          "Lobbies array arg was undefined or empty."
-        );
-        return new Array<BeatmapLobbyPlayedStatusGroup>();
-      }
-
-      const r = _(matches)
-        .sortBy(match => match.startTime)
-        .groupBy(match =>
-          JSON.stringify({
-            beatmapId: match.beatmapId,
-            sameBeatmapNumber:
-              matches.filter(m => m.lobby.id === match.lobby.id && m.beatmapId === match.beatmapId).findIndex(m => m.id === match.id) + 1
-          })
-        )
-        .map((matches, matchesKey) => {
-          const keyAsObject = JSON.parse(matchesKey) as { beatmapId: string; sameBeatmapNumber: number };
-          return {
-            beatmapId: keyAsObject.beatmapId,
-            sameBeatmapNumber: keyAsObject.sameBeatmapNumber,
-            matches: matches,
-            lobbies: lobbies
-          };
-        })
-        .map<BeatmapLobbyPlayedStatusGroup>(o => {
-          // greatestPlayedCount = the most number of times the same beatmap has been played in the same lobby
-          // const greatestPlayedCount = Math.max(0, ...o.matches.map(m => m.lobby.matches.filter(lm => lm.beatmapId === m.beatmapId).length));
-          const greatestPlayedCount = Math.max(
-            0,
-            ...o.matches.map(m => o.lobbies.find(ol => ol.id === m.lobby.id).matches.filter(lm => lm.beatmapId === m.beatmapId).length)
-          );
-          if (greatestPlayedCount < 1) {
-            throw new Error(
-              `Value for 'greatestPlayedCount' was ${greatestPlayedCount}. This means the beatmap was probably not found ` +
-                `in any matches or lobbies. This should never happen :/`
-            );
-          }
-          // "played" and "remaining" depends on how many times a lobby has played the same map.
-          // e.g. If lobby 1 plays BM1, then lobby 2 plays BM1, then lobby 1 plays BM1 again, lobby 2 goes in "remaining"
-          //       because we're still waiting on lobby 2 to complete BM1 for the 2nd time (o.sameBeatmapNumber = 2)
-          const played = o.lobbies.filter(l => l.matches.filter(lm => lm.beatmapId === o.beatmapId)[o.sameBeatmapNumber - 1]);
-          const remaining = o.lobbies.filter(l => !played.some(pl => pl.id === l.id));
-
-          return {
-            beatmapId: o.beatmapId,
-            sameBeatmapNumber: o.sameBeatmapNumber,
-            matches: o.matches,
-            lobbies: {
-              greatestPlayedCount: greatestPlayedCount,
-              played: played,
-              remaining: remaining
-            }
-          };
-        })
-        .value();
-
-      return r;
-    } catch (error) {
-      Log.methodError(this.buildBeatmapsGroupedByLobbyPlayedStatuses, this.constructor.name, error);
-      throw error;
-    }
+  buildBeatmapsGroupedByLobbyPlayedStatusesForGame(game: Game) {
+    return BeatmapLobbyGrouper.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(game);
   }
 
   buildLobbyMatchReportMessages({
@@ -316,117 +60,41 @@ export class MultiplayerResultsProcessor {
       .uniqBy(l => l.id)
       .cloneDeep();
 
-    const completedMessages: LobbyCompletedBeatmapMessage[] = this.gatherCompletedMessages({ allMatches, beatmapsPlayed });
-    let waitingMessages: LobbyAwaitingBeatmapMessage[] = [];
+    const completedMessages: LobbyCompletedBeatmapMessage[] = LobbyBeatmapStatusMessageBuilder.gatherCompletedMessages({
+      allMatches,
+      beatmapsPlayed
+    });
+    const waitingMessages: LobbyAwaitingBeatmapMessage[] = LobbyBeatmapStatusMessageBuilder.gatherWaitingMessages({
+      beatmapsPlayed
+    });
+    const allLobbiesCompletedMessages: AllLobbiesCompletedBeatmapMessage[] = LobbyBeatmapStatusMessageBuilder.gatherAllLobbiesCompletedMessages(
+      { beatmapsPlayed }
+    );
+
     for (let i = 0; i < allMatches.length; i++) {
       // we filter out any matches not yet "seen by" each lobby, so we can generate groups of beatmaps up to this point in time
       const matchesUpToNow = allMatches.slice(0, i + 1);
       const allLobbiesCopy: Lobby[] = _(allLobbies).cloneDeep();
       allLobbiesCopy.forEach(l => (l.matches = l.matches.filter(lm => matchesUpToNow.some(m => m.id === lm.id))));
-      const beatmapsGroupedByLobbyPlayedStatus = this.buildBeatmapsGroupedByLobbyPlayedStatuses(matchesUpToNow, allLobbiesCopy);
-
-      // completedMessages = this.gatherCompletedMessages({ allMatches: matchesUpToNow, beatmapsPlayed: beatmapsGroupedByLobbyPlayedStatus });
-      const thisMatch = allMatches[i];
-      waitingMessages = this.gatherWaitingMessages({
-        forCompletedMatch: thisMatch,
-        beatmapsPlayed: beatmapsGroupedByLobbyPlayedStatus
+      const beatmapsPlayedUpToNow = BeatmapLobbyGrouper.buildBeatmapsGroupedByLobbyPlayedStatuses(matchesUpToNow, allLobbiesCopy);
+      const completedMessages: LobbyCompletedBeatmapMessage[] = LobbyBeatmapStatusMessageBuilder.gatherCompletedMessages({
+        allMatches: matchesUpToNow,
+        beatmapsPlayed: beatmapsPlayedUpToNow
       });
-    }
-    const allLobbiesCompletedMessages: AllLobbiesCompletedBeatmapMessage[] = [];
-    for (const bmp of beatmapsPlayed) {
-      if (!bmp.lobbies.remaining.length) {
-        const message: AllLobbiesCompletedBeatmapMessage = {
-          message: `All lobbies have completed beatmap ${bmp.beatmapId}#${bmp.sameBeatmapNumber}`,
-          sameBeatmapNumber: bmp.sameBeatmapNumber
-        };
-      }
+      const waitingMessages: LobbyAwaitingBeatmapMessage[] = LobbyBeatmapStatusMessageBuilder.gatherWaitingMessages({
+        beatmapsPlayed: beatmapsPlayedUpToNow
+      });
+      const allLobbiesCompletedMessages: AllLobbiesCompletedBeatmapMessage[] = LobbyBeatmapStatusMessageBuilder.gatherAllLobbiesCompletedMessages(
+        {
+          beatmapsPlayed: beatmapsPlayedUpToNow
+        }
+      );
     }
 
     // TODO: Filter out reportedMatches
 
     Log.warn("TODO - implement method", this.buildLobbyMatchReportMessages.name, this.constructor.name);
     return null;
-  }
-
-  private buildLobbyComponent(fromLobby: Lobby): LobbyComponent {
-    return { banchoLobbyId: fromLobby.banchoMultiplayerId, lobbyName: "TODO:LobbyName", resultsUrl: "TODO:LobbyResultsURL" };
-  }
-
-  private buildMatchComponent(fromMatchEntity: Match): MatchComponent {
-    return {
-      startTime: fromMatchEntity.startTime,
-      endTime: fromMatchEntity.endTime,
-      playMode: PlayMode.Standard,
-      scoringType: ScoringType.scoreV2,
-      teamType: TeamMode.HeadToHead,
-      forcedMods: 0,
-      beatmap: { mapId: fromMatchEntity.beatmapId, mapUrl: "TODO:MapURL", mapString: "TODO:MapString" },
-      status: "completed",
-      entityId: fromMatchEntity.id
-    }; // TODO: get PlayMode, ScoringType, TeamMode, Mods, status
-  }
-
-  private gatherCompletedMessages({
-    allMatches,
-    beatmapsPlayed
-  }: {
-    allMatches: Match[];
-    beatmapsPlayed: BeatmapLobbyPlayedStatusGroup[];
-  }): LobbyCompletedBeatmapMessage[] {
-    const completedMessages: LobbyCompletedBeatmapMessage[] = [];
-    for (const match of allMatches) {
-      if (!match.endTime) continue; // a match is only considered as "completed" when it has ended
-      const beatmapNumber: number = this.getSameBeatmapNumberPlayedInLobbyForMatch(beatmapsPlayed, match);
-      const message: LobbyCompletedBeatmapMessage = {
-        message: `Lobby ${match.lobby.id} completed beatmap ${match.beatmapId}#${beatmapNumber}.`,
-        lobby: this.buildLobbyComponent(match.lobby),
-        match: this.buildMatchComponent(match),
-        sameBeatmapNumber: beatmapNumber
-      };
-      completedMessages.push(message);
-    }
-    return _(completedMessages)
-      .sortBy(cm => cm.match.startTime)
-      .value();
-  }
-
-  private gatherWaitingMessages({
-    forCompletedMatch,
-    beatmapsPlayed
-  }: {
-    forCompletedMatch: Match;
-    beatmapsPlayed: BeatmapLobbyPlayedStatusGroup[];
-  }): LobbyAwaitingBeatmapMessage[] {
-    const waitingMessages: LobbyAwaitingBeatmapMessage[] = [];
-    for (const bmp of beatmapsPlayed) {
-      for (const rLobby of bmp.lobbies.remaining) {
-        const message: LobbyAwaitingBeatmapMessage = {
-          message: `Waiting on beatmap ${bmp.beatmapId}#${bmp.sameBeatmapNumber} from lobby ${rLobby.id}.`,
-          lobby: this.buildLobbyComponent(rLobby),
-          match: this.buildMatchComponent(forCompletedMatch),
-          sameBeatmapNumber: bmp.sameBeatmapNumber
-        };
-        waitingMessages.push(message);
-      }
-    }
-    return waitingMessages;
-  }
-
-  private getSameBeatmapNumberPlayedInLobbyForMatch(beatmapsPlayed: BeatmapLobbyPlayedStatusGroup[], match: Match): number {
-    try {
-      // This relies on the matches listed under each "beatmapPlayed" to be only listed there if the match was played for a specific "same beatmap number".
-      // i.e. The matches listed under "beatmapPlayed" should not contain every match played with that beatmap ID, instead it should only
-      //      list matches included for that beatmap ID *and* what number of times that specific beatmap ID has been played.
-      for (const bmp of beatmapsPlayed) {
-        if (bmp.matches.some(m => m.id === match.id)) {
-          return bmp.sameBeatmapNumber;
-        }
-      }
-      throw new Error("Target match not found.");
-    } catch (error) {
-      Log.methodError(this.getSameBeatmapNumberPlayedInLobbyForMatch, this.constructor.name, error);
-      throw error;
-    }
   }
 
   buildLeaderboardEvents(game: Game): GameEvent[] {

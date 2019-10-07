@@ -4,13 +4,16 @@ TODO:
     ✔ Fix `!obr removelobby` command not unwatching the lobby in the osu lobby scanner @created(19-08-30 23:29) @done(19-08-30 23:52)
     ☐ Remove all the comments starting with "GL:" from when we implemented the GameLobby entity @created(19-08-30 07:48)
     ✔ Completely rework adding/removing lobbies from games @created(19-08-28 20:27) @started(19-08-28 20:20) @done(19-08-30 07:41) @lasted(1d11h21m46s)
-    
+
     Storing add/remove values on a many-to-many GamesLobby table: https://github.com/typeorm/typeorm/issues/1224
     ☐ Remove GameStatus.UNKNOWN
     Using "UNKNOWN" feels lazy. If there's an error preventing a known-status being applied, we should just throw an error instead of resorting to an "UNKNOWN" status. Also having a game status as "UNKNOWN" means that status has to be handled in some way eventually, so why not just handle it that way to start with?
     ☐ Explore the osu! API - we need to know if submitting a map when you're in a multi will display the map in your "recent" played maps. This is mainly for MING MODE where we need to know - if it's displayed in your recent plays with an F (if failed in a multi). Does it only show F if you didn't recover in the multi, or will it show some letter (S,A,B,C,D) when you recover before the end of the map.
     ☐ Take a look at the new osu! API
     ✔ Use test Discord Commando database depending on env context @started(19-08-26 21:40) @done(19-08-27 08:11) @lasted(10h31m25s)
+    Livestreaming:
+        ☐ Setup vscode LiveShare for readonly access so stream viewers can jump around the code @created(19-10-06 21:51)
+            ☐ Need some way to make .env files inaccessible before we can allow this @created(19-10-06 21:51)
     Bugs:
         Critical:
         Important:
@@ -112,6 +115,10 @@ TODO:
         ☐ In class MultiplayerResultsProcessor @created(19-10-06 21:00)
             ☐ Extract everything responsible for building LobbyBeatmapStatusMessage objects into its own builder class @created(19-10-06 21:00)
             ☐ Extract everything not "processing multiplayer results" to somewhere-else @created(19-10-06 21:01)
+                ✔ Building the messages @created(19-10-06 21:22) @done(19-10-08 04:00)
+                ✔ Saving multiplayer entities @created(19-10-06 21:23) @done(19-10-08 04:00)
+                ✔ Building the beatmap lobby groups @created(19-10-06 21:23) @done(19-10-08 04:00)
+                ☐ Building event/leaderboard reports @created(19-10-06 21:23)
         ☐ Clean up the imports in every ts file @created(19-09-24 19:52)
         ✔ Get ConnectionManager instance from iocContainer instead of singleton getInstance() method @created(19-09-23 23:05) @done(19-09-24 15:33)
             ✘ Replace with inversify provider @created(19-09-24 00:18) @cancelled(19-09-24 15:34)
@@ -522,13 +529,24 @@ TODO:
             ☐ Example 1 @created(19-09-04 10:55)
                 Can each player get their own colour? This would help players locate themselves as the leaderboard shifts around.
                 e.g. https://i.imgur.com/9Fhz8yJ.png
-                e.g. 
-                    ---------------------------------------------
-                    | ⭐ Team X won the match!                  |
-                    | 🌟 Team X is on a winning streak of N!    | 
-                    | 💥 Team Y lost a life!                    | 
-                    | 💀 Team Y was eliminated!                 | 
-                    ---------------------------------------------
+
+                Game messages shown as soon as they happen, or in one big batch if we're catching up to the latest match (e.g. if a lobby was added after some maps have been played)...
+                    🦞 Lobby 1 completed BM1#1 15 minutes ago
+                    🦞 Lobby 2 completed BM1#1 14 minutes ago
+                    ✅ All lobbies have completed BM1#1 (Winner: Team X, Loser: Team Y, Eliminated: Team Y)
+                    🦞 Lobby 1 completed BM2#1 12 minutes ago
+                    🦞 Lobby 1 completed BM2#2 11 minutes ago
+                    ✅ All lobbies have completed BM2#2 (Tied: Team X and Team Y [no lives lost])
+                    🦞 Lobby 1 completed BM3#1 39 seconds ago
+                    ⌛ Waiting on BM1#1, BM1#2, BM2#2 from lobby(ies) 2 (, 3, and 4),
+
+                Shown after all lobbies complete the same map...
+                    --- Beatmap 123456 #1 finished in lobbies 1,2,3 ( Galneyrus = Raise My Sword [AAAAAAAAAA] ) ---
+                    | ⭐ Team X won the match!                       |
+                    | 🌟 Team X is on a winning streak of N!         | 
+                    | 💥 Team Y lost a life!                         | 
+                    | 💀 Team Y was eliminated!                      | 
+                    ---------------------------------------------------
                     Alive (4 maps remain)
                     ⬆ 01. Team 1 |🌟| 🤎🤎🤍 | Score: 123,456 | player1 [SS], player2 [S]
                     ⬇ 02. Team 3 |⬛| 🤎🤎🤍 | Score: 111,111👔 | p5 [S], player6 [A]
@@ -536,6 +554,7 @@ TODO:
                     Eliminated
                     ⬇ 04. Team 4 |💀| 🤍🤍🤍 | Score: 100,000 | player3 [D], player4 [B]
                       05. Team 5 |⬛| 🤍🤍🤍 | Score: 0 | player9 [🚫], player10 [F]
+
             ☐ Emoji indicators @created(19-09-04 09:44)
                 ☐ Match 
                     ☐ 5⭐ in map title line (5 star map)
@@ -555,7 +574,6 @@ TODO:
                         ☐     Team X scored N (do not output)
                         ☐     Player P scored N (do not output)
                         ☐     Player P achieved rank SS/S/A... (do not output)
-                        ☐ 
                         These events will be processed to determine the leaderboard output
                 ☐ Team Line
                     ☐ Team Performance Icon (in order of priority)
@@ -570,10 +588,12 @@ TODO:
                         ☐ 🌟 Team is on a 1st-place winning streak (won gte 2 times in a row)
                         ☐ ⭐ Team won the match!
                         ✘ 🌜 Team had their 1st-place streak ended by another team @cancelled(19-09-04 15:37)
-                            ^ Probably best to leave this one out to avoid confusion
+                        ^ Probably best to leave this one out to avoid confusion
                         ✘ 😭 Team score was exactly 0 @cancelled(19-09-09 08:33)
                         ✘ 😅 Team scored 2nd-last and the score was only 1% more than the last team's score @cancelled(19-09-04 15:36)
                         ✘ ♿ Team score was less than 5% of the highest team score @cancelled(19-09-04 15:36)
+                        ☐ 🥔 Player X is a potato
+                        ☐ 🥛 Player X is milk
                         ☐     Default empty space
                     ☐ Lives 
                         ☐ 🤎 One full-heart for each life remaining

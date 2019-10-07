@@ -9,12 +9,14 @@ interface LobbyBeatmapStatusMessage<T extends MessageType> {
   sameBeatmapNumber: number;
 }
 
-interface HasLobbyAndMatchProps {
+export interface LobbyCompletedBeatmapMessage extends LobbyBeatmapStatusMessage<"lobby_completed"> {
   lobby: Lobby;
   match: Match;
 }
 
-export interface LobbyCompletedBeatmapMessage extends HasLobbyAndMatchProps, LobbyBeatmapStatusMessage<"lobby_completed"> {}
-export interface LobbyAwaitingBeatmapMessage extends HasLobbyAndMatchProps, LobbyBeatmapStatusMessage<"awaiting"> {}
+export interface LobbyAwaitingBeatmapMessage extends LobbyBeatmapStatusMessage<"awaiting"> {
+  lobby: Lobby;
+}
+
 export interface AllLobbiesCompletedBeatmapMessage extends LobbyBeatmapStatusMessage<"all_lobbies_completed"> {}
 export type LobbyBeatmapStatusMessageTypes = LobbyCompletedBeatmapMessage | LobbyAwaitingBeatmapMessage | AllLobbiesCompletedBeatmapMessage;
