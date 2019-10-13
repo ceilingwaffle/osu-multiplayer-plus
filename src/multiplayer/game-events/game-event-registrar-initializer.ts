@@ -4,7 +4,7 @@ import { GameEventRegistrarCollection } from "./game-event-registrar-collection"
 import { GameRepository } from "../../domain/game/game.repository";
 import { GameStatus } from "../../domain/game/game-status";
 import { GameEvent } from "./game-event";
-import { TeamWonMatchGameEvent } from "./events/team-won-match.game-event";
+import { TeamWonVirtualBeatmapGameEvent } from "./events/team-won-virtual-beatmap.game-event";
 import { TeamEliminatedGameEvent } from "./events/team-eliminated.game-event";
 import { Log } from "../../utils/Log";
 import { Connection } from "typeorm";
@@ -38,7 +38,7 @@ export class GameEventRegistrarInitializer {
   static createGameEvents(): GameEvent[] {
     const events: GameEvent[] = [];
     // should be added in the order we want te events to displayed above the leaderboard
-    events.push(new TeamWonMatchGameEvent());
+    events.push(new TeamWonVirtualBeatmapGameEvent());
     events.push(new TeamEliminatedGameEvent());
     return events;
   }

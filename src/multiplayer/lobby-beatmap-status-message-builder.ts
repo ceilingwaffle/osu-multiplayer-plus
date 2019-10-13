@@ -1,6 +1,6 @@
 import { Match } from "../domain/match/match.entity";
 import { Lobby } from "../domain/lobby/lobby.entity";
-import { BeatmapLobbyPlayedStatusGroup } from "./beatmap-lobby-played-status-group";
+import { VirtualBeatmap } from "./virtual-beatmap";
 import { Match as MatchComponent } from "./components/match";
 import { Lobby as LobbyComponent } from "./components/lobby";
 import {
@@ -21,7 +21,7 @@ export class LobbyBeatmapStatusMessageBuilder {
     beatmapsPlayed
   }: {
     allMatches: Match[];
-    beatmapsPlayed: BeatmapLobbyPlayedStatusGroup[];
+    beatmapsPlayed: VirtualBeatmap[];
   }): LobbyCompletedBeatmapMessage[] {
     const completedMessages: LobbyCompletedBeatmapMessage[] = [];
     for (const match of allMatches) {
@@ -41,7 +41,7 @@ export class LobbyBeatmapStatusMessageBuilder {
       .value();
   }
 
-  static gatherWaitingMessages({ beatmapsPlayed }: { beatmapsPlayed: BeatmapLobbyPlayedStatusGroup[] }): LobbyAwaitingBeatmapMessage[] {
+  static gatherWaitingMessages({ beatmapsPlayed }: { beatmapsPlayed: VirtualBeatmap[] }): LobbyAwaitingBeatmapMessage[] {
     const waitingMessages: LobbyAwaitingBeatmapMessage[] = [];
     for (const bmp of beatmapsPlayed) {
       for (const rLobby of bmp.lobbies.remaining) {
@@ -56,11 +56,7 @@ export class LobbyBeatmapStatusMessageBuilder {
     return waitingMessages;
   }
 
-  static gatherAllLobbiesCompletedMessages({
-    beatmapsPlayed
-  }: {
-    beatmapsPlayed: BeatmapLobbyPlayedStatusGroup[];
-  }): AllLobbiesCompletedBeatmapMessage[] {
+  static gatherAllLobbiesCompletedMessages({ beatmapsPlayed }: { beatmapsPlayed: VirtualBeatmap[] }): AllLobbiesCompletedBeatmapMessage[] {
     const allLobbiesCompletedMessages: AllLobbiesCompletedBeatmapMessage[] = [];
     for (const bmp of beatmapsPlayed) {
       if (!bmp.lobbies.remaining.length) {
@@ -121,7 +117,7 @@ export class LobbyBeatmapStatusMessageBuilder {
     }; // TODO: get PlayMode, ScoringType, TeamMode, Mods, status
   }
 
-  private static getSameBeatmapNumberPlayedInLobbyForMatch(beatmapsPlayed: BeatmapLobbyPlayedStatusGroup[], match: Match): number {
+  private static getSameBeatmapNumberPlayedInLobbyForMatch(beatmapsPlayed: VirtualBeatmap[], match: Match): number {
     try {
       // This relies on the matches listed under each "beatmapPlayed" to be only listed there if the match was played for a specific "same beatmap number".
       // i.e. The matches listed under "beatmapPlayed" should not contain every match played with that beatmap ID, instead it should only

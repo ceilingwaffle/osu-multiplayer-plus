@@ -2,7 +2,7 @@ import { OsuLobbyScannerEventDataMap } from "../osu/interfaces/osu-lobby-scanner
 import { Log } from "../utils/Log";
 import { GameReport } from "./reports/game.report";
 import { MultiplayerResultsProcessor } from "./multiplayer-results-processor";
-import { BeatmapLobbyPlayedStatusGroup } from "./beatmap-lobby-played-status-group";
+import { VirtualBeatmap } from "./virtual-beatmap";
 import Emittery = require("emittery");
 import { ApiMultiplayer } from "../osu/types/api-multiplayer";
 import { Game } from "../domain/game/game.entity";
@@ -56,6 +56,26 @@ export class MultiplayerResultsListener {
           // TODO: build game report for game
           processor.buildGameReport(leaderboardEvents);
           // TODO: send reports only to games included in targetGameIds
+
+          /* 
+          - MultiplayerResultsListener -> Receives osu! api data
+                                       -> Processes the osu api data into multiplayer objects
+                                       -> emit "osuApiDataReceived" for game[], lobby, match[]
+                                       -> Processing the team calculations (winner, loser, eliminated, time completed, etc
+                                       -> Emits the team calculations event
+          - MessageBuilder        -> 
+                                  -> Build the LobbyCompletedBeatmapMessage (needs winner, loser, eliminated, time completed, etc)
+                                  -> Deliver the LobbyCompletedBeatmapMessage to the GameMessageTarget (needs message, game, )]
+          - DiscordMessageDeliverer -> Listens for event
+                                  -> 
+                                  ->
+
+- leaderboard (includes team scores/positions)
+- game events
+- game messages
+
+
+          */
         }
       }
       Log.methodSuccess(this.handleNewMultiplayerMatches, this.constructor.name);

@@ -1,3 +1,5 @@
+import "../bootstrap";
+
 export class Message {
   /**
    * The locale file to use.

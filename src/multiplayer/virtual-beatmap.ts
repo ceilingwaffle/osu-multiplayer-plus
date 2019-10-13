@@ -1,7 +1,7 @@
 import { Lobby } from "../domain/lobby/lobby.entity";
 import { Match } from "../domain/match/match.entity";
 
-export interface BeatmapLobbyPlayedStatusGroup {
+export interface VirtualBeatmap {
   beatmapId: string;
   sameBeatmapNumber: number;
   matches: Match[];

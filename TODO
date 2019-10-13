@@ -11,6 +11,9 @@ TODO:
     ☐ Explore the osu! API - we need to know if submitting a map when you're in a multi will display the map in your "recent" played maps. This is mainly for MING MODE where we need to know - if it's displayed in your recent plays with an F (if failed in a multi). Does it only show F if you didn't recover in the multi, or will it show some letter (S,A,B,C,D) when you recover before the end of the map.
     ☐ Take a look at the new osu! API
     ✔ Use test Discord Commando database depending on env context @started(19-08-26 21:40) @done(19-08-27 08:11) @lasted(10h31m25s)
+    Terminology:
+        Virtual Lobby - A group of lobbies added to a game
+        Virtual Beatmap - The same beatmap played (in order) across multiple lobbies of a game
     Livestreaming:
         ☐ Setup vscode LiveShare for readonly access so stream viewers can jump around the code @created(19-10-06 21:51)
             ☐ Need some way to make .env files inaccessible before we can allow this @created(19-10-06 21:51)
@@ -61,6 +64,11 @@ TODO:
         Notable osu people showing interest:
             ThePooN, RyuK, Musty98
     Testing:
+        Priorities:
+            - Coverage (maximize the number of situations tested + maximize "peace of mind")
+            - Readability (ability to see "at a glance" what a test is testing)
+            - Maintainability (how easy is it to modify a test if something like a method signature changes)
+            - Performance (minimize the time required to complete the tests)
         ☐ Test multiplayer-results-processor with postgres instead of sqlite - to test for potential DB-specific errors @created(19-10-03 19:43)
         ☐ Write tests for creating and reading game-matches-reported @created(19-10-03 14:08)
         ☐ Write tests for starting game (and test behaviour of OsuLobbyScannerService) @created(19-09-29 23:46)
@@ -112,6 +120,10 @@ TODO:
         ☐ Too many match results being downloaded from the osu API.
             Need some way of limiting the maximum number of matches downloaded per multiplayer (right now we're using 500kb/s for 150+ matches in a single multi when polling every 1s)
     Refactor:
+        ☐ For next big version @created(19-10-08 15:30)
+            ☐ Use io-ts with Either 
+            ☐ Use CQS/CQRS pattern (see nestjs/cqrs) 
+            ☐ Use NestJS 
         ☐ In class MultiplayerResultsProcessor @created(19-10-06 21:00)
             ☐ Extract everything responsible for building LobbyBeatmapStatusMessage objects into its own builder class @created(19-10-06 21:00)
             ☐ Extract everything not "processing multiplayer results" to somewhere-else @created(19-10-06 21:01)
@@ -507,6 +519,8 @@ TODO:
                             (I) players map rank achieved
                     ☐ -> GameReportBuilder to build GameReport objects from all the entities/objects
             Reporting Leaderboards on Multiple-Lobby Games:
+                ☐ Implement some kind of time limit for the maximum amount of time a game will wait to allow a lobby to complete a beatmap @created(19-10-14 01:02)
+                    If a lobby fails to submit a score for a virtual-beatmap within the time frame, assume all teams present in that lobby scored 0, then calculate results like normal.
                 ✘ Solution 1: @created(19-09-22 13:33) @cancelled(19-09-22 13:33)
                     Don't allow multiple-lobby games, and just deliver a report whenever a lobby map finishes.
                 ✘ Solution 2: @created(19-09-22 13:33) @cancelled(19-09-22 13:33)
@@ -560,17 +574,17 @@ TODO:
                     ☐ 5⭐ in map title line (5 star map)
                     ☐ Match Summary (may include more than one, listed in order of which is to be written first)
                         ☐ ⭐ Team X won the match! 
-                        ☐ 🌟 Team X is on a winning streak of N! 
+                        ☐ 🌟 Team X is on a winning streak of N! [] 
                         ☐ 💥 Team X lost a life!
                         ☐ 💀 Team X was eliminated!
-                        ✘     Team Y is now in the accuracy average lead @cancelled(19-09-22 21:02)
+                        ✘     Team Y is now in the accuracy average lead @cancelled(19-09-22 21:02) []
                         ☐ 🛑 Match aborted! No lives were lost. (Undo with !undoabort <matchId>)
                         ☐ 👔 Bottom tied! Teams X,Y(,..N-1) tied! No lives were lost.
                             If bottom teams tied (i.e. no loser can be determined)
                         ☐ 🏆 Game over! The winner is Team X!
                         ☐ 🚫 Player P from Team X quit
                         ☐     Team X now in leaderboard position N (do not output)
-                        ☐     Team X gained/lost N leaderboard positions (do not output)
+                        ☐     Team X gained/lost N leaderboard positions (do not output)  []  
                         ☐     Team X scored N (do not output)
                         ☐     Player P scored N (do not output)
                         ☐     Player P achieved rank SS/S/A... (do not output)

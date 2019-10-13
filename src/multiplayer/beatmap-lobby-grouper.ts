@@ -1,4 +1,4 @@
-import { BeatmapLobbyPlayedStatusGroup } from "./beatmap-lobby-played-status-group";
+import { VirtualBeatmap } from "./virtual-beatmap";
 import { Match } from "../domain/match/match.entity";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
 import { Lobby } from "../domain/lobby/lobby.entity";
@@ -11,9 +11,9 @@ export class BeatmapLobbyGrouper {
    * The lobbies are all lobbies currently being watched for a game (active lobby, being sacnend by the osu lobby scanner, and added to the game).
    *
    * @param {Game} game
-   * @returns {BeatmapLobbyPlayedStatusGroup[]}
+   * @returns {VirtualBeatmap[]}
    */
-  static buildBeatmapsGroupedByLobbyPlayedStatusesForGame(game: Game): BeatmapLobbyPlayedStatusGroup[] {
+  static buildBeatmapsGroupedByLobbyPlayedStatusesForGame(game: Game): VirtualBeatmap[] {
     const matches: Match[] = _(game.gameLobbies)
       .map(gameLobby => gameLobby.lobby)
       .map(lobby => lobby.matches)
@@ -29,15 +29,15 @@ export class BeatmapLobbyGrouper {
     return BeatmapLobbyGrouper.buildBeatmapsGroupedByLobbyPlayedStatuses(matches, lobbies);
   }
 
-  static buildBeatmapsGroupedByLobbyPlayedStatuses(matches: Match[], lobbies: Lobby[]): BeatmapLobbyPlayedStatusGroup[] {
+  static buildBeatmapsGroupedByLobbyPlayedStatuses(matches: Match[], lobbies: Lobby[]): VirtualBeatmap[] {
     try {
       if (!matches || !matches.length) {
         Log.methodFailure(this.buildBeatmapsGroupedByLobbyPlayedStatuses, this.name, "Matches array arg was undefined or empty.");
-        return new Array<BeatmapLobbyPlayedStatusGroup>();
+        return new Array<VirtualBeatmap>();
       }
       if (!lobbies || !lobbies.length) {
         Log.methodFailure(this.buildBeatmapsGroupedByLobbyPlayedStatuses, this.name, "Lobbies array arg was undefined or empty.");
-        return new Array<BeatmapLobbyPlayedStatusGroup>();
+        return new Array<VirtualBeatmap>();
       }
 
       const r = _(matches)
@@ -58,7 +58,7 @@ export class BeatmapLobbyGrouper {
             lobbies: lobbies
           };
         })
-        .map<BeatmapLobbyPlayedStatusGroup>(o => {
+        .map<VirtualBeatmap>(o => {
           // greatestPlayedCount = the most number of times the same beatmap has been played in the same lobby
           // const greatestPlayedCount = Math.max(0, ...o.matches.map(m => m.lobby.matches.filter(lm => lm.beatmapId === m.beatmapId).length));
           const greatestPlayedCount = Math.max(
@@ -101,5 +101,12 @@ export class BeatmapLobbyGrouper {
 
   static getNthMatchHavingBeatmapId({ searchMatches, beatmapId, n }: { searchMatches: Match[]; beatmapId: string; n: number }): Match {
     return searchMatches.filter(m => m.beatmapId === beatmapId)[n - 1];
+  }
+
+  static getLatestBeatmapCompletedByAllLobbiesForGame(game: Game): VirtualBeatmap {
+    const allBeatmaps = BeatmapLobbyGrouper.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(game);
+    // this assumes if no lobbies are listed under "remaining" then all the lobbies (added to this game) have played the map
+    const playedByAllLobbies = allBeatmaps.filter(b => !b.lobbies.remaining.length);
+    return playedByAllLobbies.length ? playedByAllLobbies.slice(-1)[0] : null;
   }
 }

@@ -8,7 +8,7 @@ import { Log } from "../utils/Log";
 import { Lobby } from "../domain/lobby/lobby.entity";
 import { Match } from "../domain/match/match.entity";
 import { GameEventRegistrarCollection } from "./game-events/game-event-registrar-collection";
-import { GameEvent } from "./game-events/game-event";
+import { GameEvent, getCompletedVirtualBeatmapsOfGameForGameEventType } from "./game-events/game-event";
 import { Game } from "../domain/game/game.entity";
 import { GameEventRegistrar } from "./game-events/game-event-registrar";
 import {
@@ -18,7 +18,7 @@ import {
   LobbyBeatmapStatusMessageTypes
 } from "./lobby-beatmap-status-message";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
-import { BeatmapLobbyPlayedStatusGroup } from "./beatmap-lobby-played-status-group";
+import { VirtualBeatmap } from "./virtual-beatmap";
 import { BeatmapLobbyGrouper } from "./beatmap-lobby-grouper";
 import { LobbyBeatmapStatusMessageBuilder } from "./lobby-beatmap-status-message-builder";
 import { MultiplayerEntitySaver } from "./multiplayer-entity-saver";
@@ -44,7 +44,7 @@ export class MultiplayerResultsProcessor {
     reportedMatches,
     allGameLobbies
   }: {
-    beatmapsPlayed: BeatmapLobbyPlayedStatusGroup[];
+    beatmapsPlayed: VirtualBeatmap[];
     reportedMatches: Match[];
     allGameLobbies: Lobby[];
   }): LobbyBeatmapStatusMessageTypes[] {
@@ -101,9 +101,14 @@ export class MultiplayerResultsProcessor {
     const registrar: GameEventRegistrar = this.gameEventRegistrarCollection.findOrCreate(game.id);
     const events: GameEvent[] = registrar.getEvents();
     const leaderboardEvents: GameEvent[] = [];
+
     for (const eventType in events) {
       const event: GameEvent = events[eventType];
-      if (event.happenedIn(game)) {
+      const completedVirtualBeatmaps: VirtualBeatmap | VirtualBeatmap[] = getCompletedVirtualBeatmapsOfGameForGameEventType({
+        eventType: event.type,
+        game
+      });
+      if (event.happenedIn({ game, virtualBeatmaps: completedVirtualBeatmaps })) {
         // event should have event.data defined if happenedIn === true
         leaderboardEvents.push(event);
       }

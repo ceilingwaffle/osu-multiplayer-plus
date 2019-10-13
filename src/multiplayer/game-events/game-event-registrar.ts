@@ -1,6 +1,8 @@
 import { Game } from "../../domain/game/game.entity";
 import { Log } from "../../utils/Log";
-import { GameEvent } from "./game-event";
+import { GameEvent, getCompletedVirtualBeatmapsOfGameForGameEventType } from "./game-event";
+import _ = require("lodash"); // do not convert to default import -- it will break!!
+import { VirtualBeatmap } from "../virtual-beatmap";
 
 export class GameEventRegistrar {
   /**
@@ -51,7 +53,13 @@ export class GameEventRegistrar {
   process(game: Game): void {
     for (const t in this.events) {
       const event = this.events[t];
-      if (event.happenedIn(game)) {
+
+      const completedVirtualBeatmaps: VirtualBeatmap | VirtualBeatmap[] = getCompletedVirtualBeatmapsOfGameForGameEventType({
+        eventType: event.type,
+        game
+      });
+
+      if (event.happenedIn({ game, virtualBeatmaps: completedVirtualBeatmaps })) {
         if (event.after) event.after();
       }
     }
