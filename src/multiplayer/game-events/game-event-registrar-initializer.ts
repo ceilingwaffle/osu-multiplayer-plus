@@ -4,7 +4,7 @@ import { GameEventRegistrarCollection } from "./game-event-registrar-collection"
 import { GameRepository } from "../../domain/game/game.repository";
 import { GameStatus } from "../../domain/game/game-status";
 import { GameEvent } from "./game-event";
-import { TeamWonVirtualMatchGameEvent } from "./events/team-won-virtual-beatmap.game-event";
+import { TeamWonVirtualMatchGameEvent } from "./events/team-won-virtual-match.game-event";
 import { TeamEliminatedGameEvent } from "./events/team-eliminated.game-event";
 import { Log } from "../../utils/Log";
 import { Connection } from "typeorm";
