@@ -1,8 +1,8 @@
 import { Game } from "../../domain/game/game.entity";
 import { Log } from "../../utils/Log";
-import { GameEvent, getCompletedVirtualBeatmapsOfGameForGameEventType } from "./game-event";
+import { GameEvent, getCompletedVirtualMatchesOfGameForGameEventType } from "./game-event";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
-import { VirtualBeatmap } from "../virtual-beatmap";
+import { VirtualMatch } from "../virtual-match";
 
 export class GameEventRegistrar {
   /**
@@ -54,12 +54,12 @@ export class GameEventRegistrar {
     for (const t in this.events) {
       const event = this.events[t];
 
-      const completedVirtualBeatmaps: VirtualBeatmap | VirtualBeatmap[] = getCompletedVirtualBeatmapsOfGameForGameEventType({
+      const completedVirtualMatches: VirtualMatch | VirtualMatch[] = getCompletedVirtualMatchesOfGameForGameEventType({
         eventType: event.type,
         game
       });
 
-      if (event.happenedIn({ game, virtualBeatmaps: completedVirtualBeatmaps })) {
+      if (event.happenedIn({ game, virtualMatches: completedVirtualMatches })) {
         if (event.after) event.after();
       }
     }

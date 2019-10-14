@@ -1,4 +1,4 @@
-import { VirtualBeatmap } from "./virtual-beatmap";
+import { VirtualMatch } from "./virtual-match";
 import { Team } from "../domain/team/team.entity";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
 
@@ -21,12 +21,12 @@ export class TeamScoreCalculator {
    * Returns -1 if no winner, otherwise some positive number of the winning team ID
    *
    * @static
-   * @param {VirtualBeatmap} completedMap
+   * @param {VirtualMatch} completedMap
    * @param {CalculatedTeamScore[]} teamScores
    * @returns {number}
    * @memberof TeamScoreCalculator
    */
-  static getWinningTeamIdOfVirtualBeatmap(completedMap: VirtualBeatmap, teamScores: CalculatedTeamScore[]): number {
+  static getWinningTeamIdOfVirtualMatch(completedMap: VirtualMatch, teamScores: CalculatedTeamScore[]): number {
     if (!completedMap || !completedMap.matches.length) {
       return -1;
     }

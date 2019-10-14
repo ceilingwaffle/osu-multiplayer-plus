@@ -1,19 +1,19 @@
-import { VirtualBeatmap } from "./virtual-beatmap";
+import { VirtualMatch } from "./virtual-match";
 import { Match } from "../domain/match/match.entity";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
 import { Lobby } from "../domain/lobby/lobby.entity";
 import { Log } from "../utils/Log";
 import { Game } from "../domain/game/game.entity";
 
-export class BeatmapLobbyGrouper {
+export class VirtualMatchCreator {
   /**
    * Returns a list of beatmaps each containing lists of lobbies where the ebatmap is "played in lobbies" and "remaining to be played in lobbies".
    * The lobbies are all lobbies currently being watched for a game (active lobby, being sacnend by the osu lobby scanner, and added to the game).
    *
    * @param {Game} game
-   * @returns {VirtualBeatmap[]}
+   * @returns {VirtualMatch[]}
    */
-  static buildBeatmapsGroupedByLobbyPlayedStatusesForGame(game: Game): VirtualBeatmap[] {
+  static buildVirtualMatchesForGame(game: Game): VirtualMatch[] {
     const matches: Match[] = _(game.gameLobbies)
       .map(gameLobby => gameLobby.lobby)
       .map(lobby => lobby.matches)
@@ -26,18 +26,18 @@ export class BeatmapLobbyGrouper {
       .uniqBy(lobby => lobby.id)
       .cloneDeep();
 
-    return BeatmapLobbyGrouper.buildBeatmapsGroupedByLobbyPlayedStatuses(matches, lobbies);
+    return VirtualMatchCreator.buildVirtualMatchesGroupedByLobbyPlayedStatuses(matches, lobbies);
   }
 
-  static buildBeatmapsGroupedByLobbyPlayedStatuses(matches: Match[], lobbies: Lobby[]): VirtualBeatmap[] {
+  static buildVirtualMatchesGroupedByLobbyPlayedStatuses(matches: Match[], lobbies: Lobby[]): VirtualMatch[] {
     try {
       if (!matches || !matches.length) {
-        Log.methodFailure(this.buildBeatmapsGroupedByLobbyPlayedStatuses, this.name, "Matches array arg was undefined or empty.");
-        return new Array<VirtualBeatmap>();
+        Log.methodFailure(this.buildVirtualMatchesGroupedByLobbyPlayedStatuses, this.name, "Matches array arg was undefined or empty.");
+        return new Array<VirtualMatch>();
       }
       if (!lobbies || !lobbies.length) {
-        Log.methodFailure(this.buildBeatmapsGroupedByLobbyPlayedStatuses, this.name, "Lobbies array arg was undefined or empty.");
-        return new Array<VirtualBeatmap>();
+        Log.methodFailure(this.buildVirtualMatchesGroupedByLobbyPlayedStatuses, this.name, "Lobbies array arg was undefined or empty.");
+        return new Array<VirtualMatch>();
       }
 
       const r = _(matches)
@@ -58,7 +58,7 @@ export class BeatmapLobbyGrouper {
             lobbies: lobbies
           };
         })
-        .map<VirtualBeatmap>(o => {
+        .map<VirtualMatch>(o => {
           // greatestPlayedCount = the most number of times the same beatmap has been played in the same lobby
           // const greatestPlayedCount = Math.max(0, ...o.matches.map(m => m.lobby.matches.filter(lm => lm.beatmapId === m.beatmapId).length));
           const greatestPlayedCount = Math.max(
@@ -75,7 +75,7 @@ export class BeatmapLobbyGrouper {
           // e.g. If lobby 1 plays BM1, then lobby 2 plays BM1, then lobby 1 plays BM1 again, lobby 2 goes in "remaining"
           //       because we're still waiting on lobby 2 to complete BM1 for the 2nd time (o.sameBeatmapNumber = 2)
           const played = o.lobbies.filter(l =>
-            BeatmapLobbyGrouper.getNthMatchHavingBeatmapId({ searchMatches: l.matches, beatmapId: o.beatmapId, n: o.sameBeatmapNumber })
+            VirtualMatchCreator.getNthMatchHavingBeatmapId({ searchMatches: l.matches, beatmapId: o.beatmapId, n: o.sameBeatmapNumber })
           );
           const remaining = o.lobbies.filter(l => !played.some(pl => pl.id === l.id));
 
@@ -94,7 +94,7 @@ export class BeatmapLobbyGrouper {
 
       return r;
     } catch (error) {
-      Log.methodError(this.buildBeatmapsGroupedByLobbyPlayedStatuses, this.name, error);
+      Log.methodError(this.buildVirtualMatchesGroupedByLobbyPlayedStatuses, this.name, error);
       throw error;
     }
   }
@@ -103,10 +103,10 @@ export class BeatmapLobbyGrouper {
     return searchMatches.filter(m => m.beatmapId === beatmapId)[n - 1];
   }
 
-  static getLatestBeatmapCompletedByAllLobbiesForGame(game: Game): VirtualBeatmap {
-    const allBeatmaps = BeatmapLobbyGrouper.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(game);
+  static getLatestVirtualMatchCompletedByAllLobbiesForGame(game: Game): VirtualMatch {
+    const allVirtualMatches = VirtualMatchCreator.buildVirtualMatchesForGame(game);
     // this assumes if no lobbies are listed under "remaining" then all the lobbies (added to this game) have played the map
-    const playedByAllLobbies = allBeatmaps.filter(b => !b.lobbies.remaining.length);
+    const playedByAllLobbies = allVirtualMatches.filter(b => !b.lobbies.remaining.length);
     return playedByAllLobbies.length ? playedByAllLobbies.slice(-1)[0] : null;
   }
 }

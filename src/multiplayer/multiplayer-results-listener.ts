@@ -2,7 +2,7 @@ import { OsuLobbyScannerEventDataMap } from "../osu/interfaces/osu-lobby-scanner
 import { Log } from "../utils/Log";
 import { GameReport } from "./reports/game.report";
 import { MultiplayerResultsProcessor } from "./multiplayer-results-processor";
-import { VirtualBeatmap } from "./virtual-beatmap";
+import { VirtualMatch } from "./virtual-match";
 import Emittery = require("emittery");
 import { ApiMultiplayer } from "../osu/types/api-multiplayer";
 import { Game } from "../domain/game/game.entity";

@@ -4,16 +4,16 @@ import { GameEvent } from "../game-event";
 import { GameEventType } from "../game-event-types";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
 import { CalculatedTeamScore, TeamScoreCalculator } from "../../team-score-calculator";
-import { VirtualBeatmap } from "../../virtual-beatmap";
+import { VirtualMatch } from "../../virtual-match";
 
-export class TeamWonVirtualBeatmapGameEvent extends AbstractGameEvent<{ teamId: number }> implements GameEvent {
+export class TeamWonVirtualMatchGameEvent extends AbstractGameEvent<{ teamId: number }> implements GameEvent {
   readonly type: GameEventType = "team_won_match";
 
-  happenedIn({ game, virtualBeatmaps }: { game: Game; virtualBeatmaps: VirtualBeatmap }): boolean {
+  happenedIn({ game, virtualMatches }: { game: Game; virtualMatches: VirtualMatch }): boolean {
     console.log(`Calling ${this.happenedIn.name} in ${this.constructor.name}`);
 
-    const latestCompletedMap: VirtualBeatmap = virtualBeatmaps;
-    if (!latestCompletedMap) {
+    const latestCompletedVirtualMatch: VirtualMatch = virtualMatches;
+    if (!latestCompletedVirtualMatch) {
       return false;
     }
 
@@ -23,7 +23,7 @@ export class TeamWonVirtualBeatmapGameEvent extends AbstractGameEvent<{ teamId: 
     // const allCompletedMaps = BeatmapLobbyGrouper.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(game);
     // const latestCompletedMap = BeatmapLobbyGrouper.getLatestBeatmapCompletedByAllLobbiesForGame(game);
 
-    const winningTeamId = TeamScoreCalculator.getWinningTeamIdOfVirtualBeatmap(latestCompletedMap, teamScores);
+    const winningTeamId = TeamScoreCalculator.getWinningTeamIdOfVirtualMatch(latestCompletedVirtualMatch, teamScores);
     if (winningTeamId < 1) {
       return false;
     }

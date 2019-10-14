@@ -3,7 +3,7 @@ import "mocha";
 import * as chai from "chai";
 import { assert, expect } from "chai";
 import { MultiplayerResultsProcessor } from "../../../src/multiplayer/multiplayer-results-processor";
-import { VirtualBeatmap } from "../../../src/multiplayer/virtual-beatmap";
+import { VirtualMatch } from "../../../src/multiplayer/virtual-match";
 import { ApiMultiplayer } from "../../../src/osu/types/api-multiplayer";
 import { TeamMode } from "../../../src/multiplayer/components/enums/team-mode";
 import { GameReport } from "../../../src/multiplayer/reports/game.report";
@@ -1628,7 +1628,7 @@ describe("When processing multiplayer results", function() {
           const processor1 = new MultiplayerResultsProcessor(lobby1ApiResults1);
           const games1: Game[] = await processor1.saveMultiplayerEntities();
           expect(games1).to.have.lengthOf(1);
-          const r1: VirtualBeatmap[] = processor1.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games1[0]);
+          const r1: VirtualMatch[] = processor1.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games1[0]);
           expect(r1.find(r => r.beatmapId === "BM1" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(1);
           expect(r1.find(r => r.beatmapId === "BM2" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(1);
           expect(r1.find(r => r.beatmapId === "BM3" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(1);
@@ -2259,7 +2259,7 @@ describe("When processing multiplayer results", function() {
 
           const gameEvents: GameEvent[] = processor7.buildLeaderboardEvents(games7[0]);
 
-          // TODO: Oct 14th - Calculate game events for each VirtualBeatmap
+          // TODO: Oct 14th - Calculate game events for each VirtualMatch
           //                - Test winning team ID after each call to the processor
 
           // TODO: assert actual messages object deep equals expected (and test correct beatmap number in message)

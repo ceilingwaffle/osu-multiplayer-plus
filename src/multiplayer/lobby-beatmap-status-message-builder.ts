@@ -1,6 +1,6 @@
 import { Match } from "../domain/match/match.entity";
 import { Lobby } from "../domain/lobby/lobby.entity";
-import { VirtualBeatmap } from "./virtual-beatmap";
+import { VirtualMatch } from "./virtual-match";
 import { Match as MatchComponent } from "./components/match";
 import { Lobby as LobbyComponent } from "./components/lobby";
 import {
@@ -9,7 +9,7 @@ import {
   AllLobbiesCompletedBeatmapMessage
 } from "./lobby-beatmap-status-message";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
-import { BeatmapLobbyGrouper } from "./beatmap-lobby-grouper";
+import { VirtualMatchCreator } from "./virtual-match-creator";
 import { PlayMode } from "./components/enums/play-mode";
 import { ScoringType } from "./components/enums/scoring-type";
 import { TeamMode } from "./components/enums/team-mode";
@@ -17,14 +17,14 @@ import { Log } from "../utils/Log";
 
 export class LobbyBeatmapStatusMessageBuilder {
   static gatherCompletedMessages({
-    allMatches,
-    beatmapsPlayed
+    matches,
+    virtualMatchesPlayed: beatmapsPlayed
   }: {
-    allMatches: Match[];
-    beatmapsPlayed: VirtualBeatmap[];
+    matches: Match[];
+    virtualMatchesPlayed: VirtualMatch[];
   }): LobbyCompletedBeatmapMessage[] {
     const completedMessages: LobbyCompletedBeatmapMessage[] = [];
-    for (const match of allMatches) {
+    for (const match of matches) {
       if (!match.endTime) continue; // a match is only considered as "completed" when it has ended
       if (!match.startTime) continue;
       const beatmapNumber: number = LobbyBeatmapStatusMessageBuilder.getSameBeatmapNumberPlayedInLobbyForMatch(beatmapsPlayed, match);
@@ -41,14 +41,14 @@ export class LobbyBeatmapStatusMessageBuilder {
       .value();
   }
 
-  static gatherWaitingMessages({ beatmapsPlayed }: { beatmapsPlayed: VirtualBeatmap[] }): LobbyAwaitingBeatmapMessage[] {
+  static gatherWaitingMessages({ virtualMatchesPlayed }: { virtualMatchesPlayed: VirtualMatch[] }): LobbyAwaitingBeatmapMessage[] {
     const waitingMessages: LobbyAwaitingBeatmapMessage[] = [];
-    for (const bmp of beatmapsPlayed) {
-      for (const rLobby of bmp.lobbies.remaining) {
+    for (const vMatch of virtualMatchesPlayed) {
+      for (const rLobby of vMatch.lobbies.remaining) {
         const message: LobbyAwaitingBeatmapMessage = {
-          message: `Waiting on beatmap ${bmp.beatmapId}#${bmp.sameBeatmapNumber} from lobby ${rLobby.id}.`,
+          message: `Waiting on beatmap ${vMatch.beatmapId}#${vMatch.sameBeatmapNumber} from lobby ${rLobby.id}.`,
           lobby: LobbyBeatmapStatusMessageBuilder.buildLobbyComponent(rLobby),
-          sameBeatmapNumber: bmp.sameBeatmapNumber
+          sameBeatmapNumber: vMatch.sameBeatmapNumber
         };
         waitingMessages.push(message);
       }
@@ -56,18 +56,22 @@ export class LobbyBeatmapStatusMessageBuilder {
     return waitingMessages;
   }
 
-  static gatherAllLobbiesCompletedMessages({ beatmapsPlayed }: { beatmapsPlayed: VirtualBeatmap[] }): AllLobbiesCompletedBeatmapMessage[] {
-    const allLobbiesCompletedMessages: AllLobbiesCompletedBeatmapMessage[] = [];
-    for (const bmp of beatmapsPlayed) {
-      if (!bmp.lobbies.remaining.length) {
+  static gatherAllLobbiesCompletedMessages({
+    virtualMatchesPlayed
+  }: {
+    virtualMatchesPlayed: VirtualMatch[];
+  }): AllLobbiesCompletedBeatmapMessage[] {
+    const messages: AllLobbiesCompletedBeatmapMessage[] = [];
+    for (const vMatch of virtualMatchesPlayed) {
+      if (!vMatch.lobbies.remaining.length) {
         const message: AllLobbiesCompletedBeatmapMessage = {
-          message: `All lobbies have completed beatmap ${bmp.beatmapId}#${bmp.sameBeatmapNumber}`,
-          sameBeatmapNumber: bmp.sameBeatmapNumber
+          message: `All lobbies have completed beatmap ${vMatch.beatmapId}#${vMatch.sameBeatmapNumber}`,
+          sameBeatmapNumber: vMatch.sameBeatmapNumber
         };
-        allLobbiesCompletedMessages.push(message);
+        messages.push(message);
       }
     }
-    return allLobbiesCompletedMessages;
+    return messages;
   }
 
   static gatherMessagesForEachPointInTime(
@@ -86,14 +90,17 @@ export class LobbyBeatmapStatusMessageBuilder {
       const matchesUpToNow = allMatches.slice(0, i + 1);
       const allLobbiesCopy: Lobby[] = _(allLobbies).cloneDeep();
       allLobbiesCopy.forEach(l => (l.matches = l.matches.filter(lm => matchesUpToNow.some(m => m.id === lm.id))));
-      const beatmapsPlayedUpToNow = BeatmapLobbyGrouper.buildBeatmapsGroupedByLobbyPlayedStatuses(matchesUpToNow, allLobbiesCopy);
+      const virtualMatchesPlayedUpToNow = VirtualMatchCreator.buildVirtualMatchesGroupedByLobbyPlayedStatuses(
+        matchesUpToNow,
+        allLobbiesCopy
+      );
       LobbyBeatmapStatusMessageBuilder.gatherCompletedMessages({
-        allMatches: matchesUpToNow,
-        beatmapsPlayed: beatmapsPlayedUpToNow
+        matches: matchesUpToNow,
+        virtualMatchesPlayed: virtualMatchesPlayedUpToNow
       });
-      LobbyBeatmapStatusMessageBuilder.gatherWaitingMessages({ beatmapsPlayed: beatmapsPlayedUpToNow });
+      LobbyBeatmapStatusMessageBuilder.gatherWaitingMessages({ virtualMatchesPlayed: virtualMatchesPlayedUpToNow });
       LobbyBeatmapStatusMessageBuilder.gatherAllLobbiesCompletedMessages({
-        beatmapsPlayed: beatmapsPlayedUpToNow
+        virtualMatchesPlayed: virtualMatchesPlayedUpToNow
       });
     }
     return { completedMessages, waitingMessages, allLobbiesCompletedMessages };
@@ -117,14 +124,14 @@ export class LobbyBeatmapStatusMessageBuilder {
     }; // TODO: get PlayMode, ScoringType, TeamMode, Mods, status
   }
 
-  private static getSameBeatmapNumberPlayedInLobbyForMatch(beatmapsPlayed: VirtualBeatmap[], match: Match): number {
+  private static getSameBeatmapNumberPlayedInLobbyForMatch(virtualMatchesPlayed: VirtualMatch[], match: Match): number {
     try {
       // This relies on the matches listed under each "beatmapPlayed" to be only listed there if the match was played for a specific "same beatmap number".
       // i.e. The matches listed under "beatmapPlayed" should not contain every match played with that beatmap ID, instead it should only
       //      list matches included for that beatmap ID *and* what number of times that specific beatmap ID has been played.
-      for (const bmp of beatmapsPlayed) {
-        if (bmp.matches.some(m => m.id === match.id)) {
-          return bmp.sameBeatmapNumber;
+      for (const vMatch of virtualMatchesPlayed) {
+        if (vMatch.matches.some(m => m.id === match.id)) {
+          return vMatch.sameBeatmapNumber;
         }
       }
       throw new Error("Target match not found.");

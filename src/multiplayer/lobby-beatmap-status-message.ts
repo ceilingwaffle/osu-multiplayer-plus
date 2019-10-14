@@ -1,7 +1,7 @@
 import { Lobby } from "./components/lobby";
 import { Match } from "./components/match";
 
-type MessageType = "lobby_completed" | "awaiting" | "all_lobbies_completed";
+type MessageType = "lobby_completed" | "lobby_awaiting" | "all_lobbies_completed";
 
 interface LobbyBeatmapStatusMessage<T extends MessageType> {
   type?: T;
@@ -14,7 +14,7 @@ export interface LobbyCompletedBeatmapMessage extends LobbyBeatmapStatusMessage<
   match: Match;
 }
 
-export interface LobbyAwaitingBeatmapMessage extends LobbyBeatmapStatusMessage<"awaiting"> {
+export interface LobbyAwaitingBeatmapMessage extends LobbyBeatmapStatusMessage<"lobby_awaiting"> {
   lobby: Lobby;
 }
 

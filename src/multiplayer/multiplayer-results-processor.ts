@@ -8,7 +8,7 @@ import { Log } from "../utils/Log";
 import { Lobby } from "../domain/lobby/lobby.entity";
 import { Match } from "../domain/match/match.entity";
 import { GameEventRegistrarCollection } from "./game-events/game-event-registrar-collection";
-import { GameEvent, getCompletedVirtualBeatmapsOfGameForGameEventType } from "./game-events/game-event";
+import { GameEvent, getCompletedVirtualMatchesOfGameForGameEventType } from "./game-events/game-event";
 import { Game } from "../domain/game/game.entity";
 import { GameEventRegistrar } from "./game-events/game-event-registrar";
 import {
@@ -18,8 +18,8 @@ import {
   LobbyBeatmapStatusMessageTypes
 } from "./lobby-beatmap-status-message";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
-import { VirtualBeatmap } from "./virtual-beatmap";
-import { BeatmapLobbyGrouper } from "./beatmap-lobby-grouper";
+import { VirtualMatch } from "./virtual-match";
+import { VirtualMatchCreator } from "./virtual-match-creator";
 import { LobbyBeatmapStatusMessageBuilder } from "./lobby-beatmap-status-message-builder";
 import { MultiplayerEntitySaver } from "./multiplayer-entity-saver";
 
@@ -36,7 +36,7 @@ export class MultiplayerResultsProcessor {
   }
 
   buildBeatmapsGroupedByLobbyPlayedStatusesForGame(game: Game) {
-    return BeatmapLobbyGrouper.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(game);
+    return VirtualMatchCreator.buildVirtualMatchesForGame(game);
   }
 
   buildLobbyMatchReportMessages({
@@ -44,7 +44,7 @@ export class MultiplayerResultsProcessor {
     reportedMatches,
     allGameLobbies
   }: {
-    beatmapsPlayed: VirtualBeatmap[];
+    beatmapsPlayed: VirtualMatch[];
     reportedMatches: Match[];
     allGameLobbies: Lobby[];
   }): LobbyBeatmapStatusMessageTypes[] {
@@ -61,14 +61,14 @@ export class MultiplayerResultsProcessor {
       .cloneDeep();
 
     const completedMessages: LobbyCompletedBeatmapMessage[] = LobbyBeatmapStatusMessageBuilder.gatherCompletedMessages({
-      allMatches,
-      beatmapsPlayed
+      matches: allMatches,
+      virtualMatchesPlayed: beatmapsPlayed
     });
     const waitingMessages: LobbyAwaitingBeatmapMessage[] = LobbyBeatmapStatusMessageBuilder.gatherWaitingMessages({
-      beatmapsPlayed
+      virtualMatchesPlayed: beatmapsPlayed
     });
     const allLobbiesCompletedMessages: AllLobbiesCompletedBeatmapMessage[] = LobbyBeatmapStatusMessageBuilder.gatherAllLobbiesCompletedMessages(
-      { beatmapsPlayed }
+      { virtualMatchesPlayed: beatmapsPlayed }
     );
 
     for (let i = 0; i < allMatches.length; i++) {
@@ -76,17 +76,17 @@ export class MultiplayerResultsProcessor {
       const matchesUpToNow = allMatches.slice(0, i + 1);
       const allLobbiesCopy: Lobby[] = _(allLobbies).cloneDeep();
       allLobbiesCopy.forEach(l => (l.matches = l.matches.filter(lm => matchesUpToNow.some(m => m.id === lm.id))));
-      const beatmapsPlayedUpToNow = BeatmapLobbyGrouper.buildBeatmapsGroupedByLobbyPlayedStatuses(matchesUpToNow, allLobbiesCopy);
+      const beatmapsPlayedUpToNow = VirtualMatchCreator.buildVirtualMatchesGroupedByLobbyPlayedStatuses(matchesUpToNow, allLobbiesCopy);
       const completedMessages: LobbyCompletedBeatmapMessage[] = LobbyBeatmapStatusMessageBuilder.gatherCompletedMessages({
-        allMatches: matchesUpToNow,
-        beatmapsPlayed: beatmapsPlayedUpToNow
+        matches: matchesUpToNow,
+        virtualMatchesPlayed: beatmapsPlayedUpToNow
       });
       const waitingMessages: LobbyAwaitingBeatmapMessage[] = LobbyBeatmapStatusMessageBuilder.gatherWaitingMessages({
-        beatmapsPlayed: beatmapsPlayedUpToNow
+        virtualMatchesPlayed: beatmapsPlayedUpToNow
       });
       const allLobbiesCompletedMessages: AllLobbiesCompletedBeatmapMessage[] = LobbyBeatmapStatusMessageBuilder.gatherAllLobbiesCompletedMessages(
         {
-          beatmapsPlayed: beatmapsPlayedUpToNow
+          virtualMatchesPlayed: beatmapsPlayedUpToNow
         }
       );
     }
@@ -104,11 +104,11 @@ export class MultiplayerResultsProcessor {
 
     for (const eventType in events) {
       const event: GameEvent = events[eventType];
-      const completedVirtualBeatmaps: VirtualBeatmap | VirtualBeatmap[] = getCompletedVirtualBeatmapsOfGameForGameEventType({
+      const completedVirtualMatches: VirtualMatch | VirtualMatch[] = getCompletedVirtualMatchesOfGameForGameEventType({
         eventType: event.type,
         game
       });
-      if (event.happenedIn({ game, virtualBeatmaps: completedVirtualBeatmaps })) {
+      if (event.happenedIn({ game, virtualMatches: completedVirtualMatches })) {
         // event should have event.data defined if happenedIn === true
         leaderboardEvents.push(event);
       }
