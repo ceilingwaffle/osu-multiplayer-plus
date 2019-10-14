@@ -2257,10 +2257,13 @@ describe("When processing multiplayer results", function() {
             allGameLobbies
           });
 
-          const gameEvents: GameEvent[] = processor7.buildLeaderboardEvents(games7[0]);
+          const gameEvents: GameEvent[] = processor7.buildLeaderboardEvents({ game: games7[0], reportedMatches });
 
-          // TODO: Oct 14th - Calculate game events for each VirtualMatch
-          //                - Test winning team ID after each call to the processor
+          // TODO: Oct 14th
+          //                ✅ Calculate game events for each VirtualMatch
+          //                - Assert only building events for unreported matches (do this after each set of api results)
+          //                - Assert correct winning team ID after each call to the processor
+          //                - Save reported matches in DB
 
           // TODO: assert actual messages object deep equals expected (and test correct beatmap number in message)
           //      test both completed and waiting messages

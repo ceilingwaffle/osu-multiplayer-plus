@@ -8,7 +8,7 @@ import { Log } from "../utils/Log";
 import { Lobby } from "../domain/lobby/lobby.entity";
 import { Match } from "../domain/match/match.entity";
 import { GameEventRegistrarCollection } from "./game-events/game-event-registrar-collection";
-import { GameEvent, getCompletedVirtualMatchesOfGameForGameEventType } from "./game-events/game-event";
+import { GameEvent } from "./game-events/game-event";
 import { Game } from "../domain/game/game.entity";
 import { GameEventRegistrar } from "./game-events/game-event-registrar";
 import {
@@ -97,22 +97,28 @@ export class MultiplayerResultsProcessor {
     return null;
   }
 
-  buildLeaderboardEvents(game: Game): GameEvent[] {
+  buildLeaderboardEvents({ game, reportedMatches }: { game: Game; reportedMatches: Match[] }): GameEvent[] {
     const registrar: GameEventRegistrar = this.gameEventRegistrarCollection.findOrCreate(game.id);
     const events: GameEvent[] = registrar.getEvents();
     const leaderboardEvents: GameEvent[] = [];
+    const unreportedCompletedVirtualMatches = VirtualMatchCreator.buildCompletedVirtualMatchesForGameForUnreportedMatches(
+      game,
+      reportedMatches
+    );
 
-    for (const eventType in events) {
-      const event: GameEvent = events[eventType];
-      const completedVirtualMatches: VirtualMatch | VirtualMatch[] = getCompletedVirtualMatchesOfGameForGameEventType({
-        eventType: event.type,
-        game
-      });
-      if (event.happenedIn({ game, virtualMatches: completedVirtualMatches })) {
-        // event should have event.data defined if happenedIn === true
-        leaderboardEvents.push(event);
+    for (const vMatch of unreportedCompletedVirtualMatches) {
+      for (const eventType in events) {
+        const event: GameEvent = events[eventType];
+        // we clone the event to prevent happenedIn() setting the event data on the same event multiple times
+        // (to ensure each leaderboard event has its own unique set of data)
+        const eventCopy: GameEvent = _.cloneDeep(event);
+        if (eventCopy.happenedIn({ game, targetVirtualMatch: vMatch, allVirtualMatches: unreportedCompletedVirtualMatches })) {
+          // event should have event.data defined if happenedIn === true
+          leaderboardEvents.push(eventCopy);
+        }
       }
     }
+
     return leaderboardEvents;
   }
 

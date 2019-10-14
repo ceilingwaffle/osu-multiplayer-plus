@@ -1,6 +1,6 @@
 import { Game } from "../../domain/game/game.entity";
 import { Log } from "../../utils/Log";
-import { GameEvent, getCompletedVirtualMatchesOfGameForGameEventType } from "./game-event";
+import { GameEvent } from "./game-event";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
 import { VirtualMatch } from "../virtual-match";
 
@@ -44,24 +44,24 @@ export class GameEventRegistrar {
     }
   }
 
-  /**
-   * Processes the given game data to determine if some event happened in that data,
-   * and any additional actions defined in the event to be performed if the event did happen.
-   *
-   * @param {Game} game
-   */
-  process(game: Game): void {
-    for (const t in this.events) {
-      const event = this.events[t];
+  // /**
+  //  * Processes the given game data to determine if some event happened in that data,
+  //  * and any additional actions defined in the event to be performed if the event did happen.
+  //  *
+  //  * @param {Game} game
+  //  */
+  // process(game: Game): void {
+  //   for (const t in this.events) {
+  //     const event = this.events[t];
 
-      const completedVirtualMatches: VirtualMatch | VirtualMatch[] = getCompletedVirtualMatchesOfGameForGameEventType({
-        eventType: event.type,
-        game
-      });
+  //     const completedVirtualMatches: VirtualMatch | VirtualMatch[] = getCompletedVirtualMatchesOfGameForGameEventType({
+  //       eventType: event.type,
+  //       game
+  //     });
 
-      if (event.happenedIn({ game, virtualMatches: completedVirtualMatches })) {
-        if (event.after) event.after();
-      }
-    }
-  }
+  //     if (event.happenedIn({ game, virtualMatches: completedVirtualMatches })) {
+  //       if (event.after) event.after();
+  //     }
+  //   }
+  // }
 }
