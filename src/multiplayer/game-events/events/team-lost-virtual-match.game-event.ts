@@ -6,18 +6,18 @@ import { TeamScoreCalculator } from "../../team-score-calculator";
 import { VirtualMatch } from "../../virtual-match";
 import { constants } from "../../../constants";
 
-export class TeamWonVirtualMatchGameEvent extends AbstractGameEvent<{ teamId: number; eventMatch: VirtualMatch }> implements GameEvent {
-  readonly type: GameEventType = "team_won_match";
+export class TeamLostVirtualMatchGameEvent extends AbstractGameEvent<{ teamId: number; eventMatch: VirtualMatch }> implements GameEvent {
+  readonly type: GameEventType = "team_lost_match";
 
   happenedIn({ targetVirtualMatch, game }: { targetVirtualMatch: VirtualMatch; game: Game }): boolean {
     // TODO: Write test for this event
     // console.log(`Calling ${this.happenedIn.name} in ${this.constructor.name}`);
     const teams = game.gameTeams.map(gt => gt.team);
-    const winningTeamId = TeamScoreCalculator.getWinningTeamIdOfVirtualMatch(targetVirtualMatch, teams);
-    if (winningTeamId < constants.MIN_ENTITY_ID_NUMBER) {
+    const losingTeamId = TeamScoreCalculator.getLosingTeamIdOfVirtualMatch(targetVirtualMatch, teams);
+    if (losingTeamId < constants.MIN_ENTITY_ID_NUMBER) {
       return false;
     }
-    this.data = { teamId: winningTeamId, eventMatch: targetVirtualMatch };
+    this.data = { teamId: losingTeamId, eventMatch: targetVirtualMatch };
     return true;
   }
 

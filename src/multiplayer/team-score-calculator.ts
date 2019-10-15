@@ -1,24 +1,43 @@
 import { VirtualMatch } from "./virtual-match";
 import { Team } from "../domain/team/team.entity";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
+import { constants } from "../constants";
 
-export interface CalculatedTeamScore {
+interface CalculatedTeamScore {
   teamId: number;
   osuUserIds: number[];
   score: number;
 }
 
 export class TeamScoreCalculator {
-  static buildTeamScoresObject(teams: Team[]): CalculatedTeamScore[] {
-    return _.map(teams, team => ({
-      teamId: team.id,
-      osuUserIds: team.teamOsuUsers.map(tou => tou.osuUser.id),
-      score: 0
-    }));
+  /**
+   * Returns the ID of the Team entity of the winner of a virtual-match. Otherwise 0 if no winner.
+   *
+   * @static
+   * @param {VirtualMatch} completedVirtualMatch
+   * @param {CalculatedTeamScore[]} teamScores
+   * @returns {number}
+   * @memberof TeamScoreCalculator
+   */
+  static getWinningTeamIdOfVirtualMatch(completedVirtualMatch: VirtualMatch, teams: Team[]): number {
+    // TODO: Handle tied scores
+    // TODO: Logging
+    if (!TeamScoreCalculator.isValidArgs(completedVirtualMatch, teams)) {
+      return TeamScoreCalculator.getFalsyTeamId();
+    }
+    const calculatedTeamScores = TeamScoreCalculator.calculateTeamScoresForVirtualMatch(completedVirtualMatch, teams);
+    if (!calculatedTeamScores || !calculatedTeamScores.length) {
+      return TeamScoreCalculator.getFalsyTeamId();
+    }
+    const winningTeam = _(calculatedTeamScores).maxBy(ts => ts.score);
+    if (!winningTeam) {
+      return TeamScoreCalculator.getFalsyTeamId();
+    }
+    return winningTeam.teamId;
   }
 
   /**
-   * Returns -1 if no winner, otherwise some positive number of the winning team ID
+   * Returns the ID of the Team entity of the loser of a virtual-match. Otherwise 0 if no loser.
    *
    * @static
    * @param {VirtualMatch} completedMap
@@ -26,33 +45,55 @@ export class TeamScoreCalculator {
    * @returns {number}
    * @memberof TeamScoreCalculator
    */
-  static getWinningTeamIdOfVirtualMatch(completedMap: VirtualMatch, teamScores: CalculatedTeamScore[]): number {
-    if (!completedMap || !completedMap.matches.length) {
-      return -1;
+  static getLosingTeamIdOfVirtualMatch(completedVirtualMatch: VirtualMatch, teams: Team[]): number {
+    // TODO: Handle tied scores
+    // TODO: Logging
+    if (!TeamScoreCalculator.isValidArgs(completedVirtualMatch, teams)) {
+      return TeamScoreCalculator.getFalsyTeamId();
     }
-
-    if (!teamScores || !teamScores.length) {
-      return -1;
+    const calculatedTeamScores = TeamScoreCalculator.calculateTeamScoresForVirtualMatch(completedVirtualMatch, teams);
+    if (!calculatedTeamScores || !calculatedTeamScores.length) {
+      return TeamScoreCalculator.getFalsyTeamId();
     }
+    const losingTeam = _(calculatedTeamScores).minBy(ts => ts.score);
+    if (!losingTeam) {
+      return TeamScoreCalculator.getFalsyTeamId();
+    }
+    return losingTeam.teamId;
+  }
 
-    // calculate team scores for each match
+  private static isValidArgs(completedVirtualMatch: VirtualMatch, teams: Team[]) {
+    return !(!completedVirtualMatch || !completedVirtualMatch.matches.length || !teams || !teams.length);
+  }
+
+  private static getFalsyTeamId(): number {
+    return constants.MIN_ENTITY_ID_NUMBER - 1;
+  }
+
+  private static calculateTeamScoresForVirtualMatch(completedMap: VirtualMatch, teams: Team[]): CalculatedTeamScore[] {
+    const teamScores: CalculatedTeamScore[] = [];
+
     for (const match of completedMap.matches) {
       for (const playerScore of match.playerScores) {
         const osuUserId = playerScore.scoredBy.id;
-        for (const teamScore of teamScores) {
-          if (teamScore.osuUserIds.includes(osuUserId)) {
-            teamScore.score += playerScore.score;
+        for (const team of teams) {
+          const osuUserIds = team.teamOsuUsers.map(tou => tou.osuUser.id);
+          if (osuUserIds.includes(osuUserId)) {
+            let targetTeamScore = teamScores.find(ts => ts.teamId === team.id);
+            if (!targetTeamScore) {
+              teamScores.push({
+                teamId: team.id,
+                osuUserIds: osuUserIds,
+                score: playerScore.score
+              });
+            } else {
+              targetTeamScore.score += playerScore.score;
+            }
           }
         }
       }
     }
 
-    // determine winning team ID of last-completed beatmap
-    const winningTeam = _(teamScores).maxBy(ts => ts.score);
-    if (!winningTeam) {
-      return -1;
-    }
-
-    return winningTeam.teamId;
+    return teamScores;
   }
 }

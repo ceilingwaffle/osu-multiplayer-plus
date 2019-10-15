@@ -9,6 +9,7 @@ import { TeamEliminatedGameEvent } from "./events/team-eliminated.game-event";
 import { Log } from "../../utils/Log";
 import { Connection } from "typeorm";
 import { IDbClient } from "../../database/db-client";
+import { TeamLostVirtualMatchGameEvent } from "./events/team-lost-virtual-match.game-event";
 
 export class GameEventRegistrarInitializer {
   static async initGameEventRegistrarsFromActiveDatabaseGames(): Promise<void> {
@@ -39,7 +40,8 @@ export class GameEventRegistrarInitializer {
     const events: GameEvent[] = [];
     // should be added in the order we want te events to displayed above the leaderboard
     events.push(new TeamWonVirtualMatchGameEvent());
-    events.push(new TeamEliminatedGameEvent());
+    events.push(new TeamLostVirtualMatchGameEvent());
+    // events.push(new TeamEliminatedGameEvent());
     return events;
   }
 }
