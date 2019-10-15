@@ -15,13 +15,22 @@ import {
   LobbyCompletedBeatmapMessage,
   LobbyAwaitingBeatmapMessage,
   AllLobbiesCompletedBeatmapMessage,
-  LobbyBeatmapStatusMessageTypes
+  LobbyBeatmapStatusMessage,
+  LobbyBeatmapStatusMessageGroup
 } from "./lobby-beatmap-status-message";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
 import { VirtualMatch } from "./virtual-match";
-import { VirtualMatchCreator } from "./virtual-match-creator";
+import { VirtualMatchCreator, SameBeatmapKey } from "./virtual-match-creator";
 import { LobbyBeatmapStatusMessageBuilder } from "./lobby-beatmap-status-message-builder";
 import { MultiplayerEntitySaver } from "./multiplayer-entity-saver";
+import { MessageType } from "./lobby-beatmap-status-message";
+
+export interface VirtualMatchGameEventGroup {
+  beatmapId: string;
+  sameBeatmapNumber: number;
+  events: GameEvent[];
+  messages?: LobbyBeatmapStatusMessageGroup;
+}
 
 export class MultiplayerResultsProcessor {
   // TODO: Don't get these from the ioc container - should be able to inject somehow
@@ -40,104 +49,161 @@ export class MultiplayerResultsProcessor {
   }
 
   buildLobbyMatchReportMessages({
-    beatmapsPlayed,
+    virtualMatchesPlayed,
     reportedMatches,
     allGameLobbies
   }: {
-    beatmapsPlayed: VirtualMatch[];
+    virtualMatchesPlayed: VirtualMatch[];
     reportedMatches: Match[];
     allGameLobbies: Lobby[];
-  }): LobbyBeatmapStatusMessageTypes[] {
+  }): LobbyBeatmapStatusMessageGroup {
     // creating clones of both the matches and the lobbies just for safety - in case they get modified anywhere
-    const allMatches: Match[] = _(beatmapsPlayed)
+    const allMatches: Match[] = _(virtualMatchesPlayed)
       .map(bmp => bmp.matches)
       .flatten()
       .uniqBy(match => match.id)
       .sortBy(match => match.startTime)
       .cloneDeep();
 
-    const allLobbies = _(allGameLobbies)
-      .uniqBy(l => l.id)
-      .cloneDeep();
+    // const allLobbies = _(allGameLobbies)
+    //   .uniqBy(l => l.id)
+    //   .cloneDeep();
 
     const completedMessages: LobbyCompletedBeatmapMessage[] = LobbyBeatmapStatusMessageBuilder.gatherCompletedMessages({
       matches: allMatches,
-      virtualMatchesPlayed: beatmapsPlayed
-    });
+      virtualMatchesPlayed
+    }).filter(filterOutMessagesForReportedMatches(reportedMatches));
     const waitingMessages: LobbyAwaitingBeatmapMessage[] = LobbyBeatmapStatusMessageBuilder.gatherWaitingMessages({
-      virtualMatchesPlayed: beatmapsPlayed
-    });
+      virtualMatchesPlayed
+    }).filter(filterOutMessagesForReportedMatches(reportedMatches));
     const allLobbiesCompletedMessages: AllLobbiesCompletedBeatmapMessage[] = LobbyBeatmapStatusMessageBuilder.gatherAllLobbiesCompletedMessages(
-      { virtualMatchesPlayed: beatmapsPlayed }
-    );
+      { virtualMatchesPlayed }
+    ).filter(filterOutMessagesForReportedMatches(reportedMatches));
 
-    for (let i = 0; i < allMatches.length; i++) {
-      // we filter out any matches not yet "seen by" each lobby, so we can generate groups of beatmaps up to this point in time
-      const matchesUpToNow = allMatches.slice(0, i + 1);
-      const allLobbiesCopy: Lobby[] = _(allLobbies).cloneDeep();
-      allLobbiesCopy.forEach(l => (l.matches = l.matches.filter(lm => matchesUpToNow.some(m => m.id === lm.id))));
-      const beatmapsPlayedUpToNow = VirtualMatchCreator.buildVirtualMatchesGroupedByLobbyPlayedStatuses(matchesUpToNow, allLobbiesCopy);
-      const completedMessages: LobbyCompletedBeatmapMessage[] = LobbyBeatmapStatusMessageBuilder.gatherCompletedMessages({
-        matches: matchesUpToNow,
-        virtualMatchesPlayed: beatmapsPlayedUpToNow
-      });
-      const waitingMessages: LobbyAwaitingBeatmapMessage[] = LobbyBeatmapStatusMessageBuilder.gatherWaitingMessages({
-        virtualMatchesPlayed: beatmapsPlayedUpToNow
-      });
-      const allLobbiesCompletedMessages: AllLobbiesCompletedBeatmapMessage[] = LobbyBeatmapStatusMessageBuilder.gatherAllLobbiesCompletedMessages(
-        {
-          virtualMatchesPlayed: beatmapsPlayedUpToNow
-        }
-      );
-    }
+    // for (let i = 0; i < allMatches.length; i++) {
+    //   // we filter out any matches not yet "seen by" each lobby, so we can generate virtual matches up to this point in time
+    //   const matchesUpToNow = allMatches.slice(0, i + 1);
+    //   const allLobbiesCopy: Lobby[] = _(allLobbies).cloneDeep();
+    //   allLobbiesCopy.forEach(l => (l.matches = l.matches.filter(lm => matchesUpToNow.some(m => m.id === lm.id))));
+    //   const virtualMatchesPlayedUpToNow = VirtualMatchCreator.buildVirtualMatchesGroupedByLobbyPlayedStatuses(
+    //     matchesUpToNow,
+    //     allLobbiesCopy
+    //   );
+    //   const completedMessages: LobbyCompletedBeatmapMessage[] = LobbyBeatmapStatusMessageBuilder.gatherCompletedMessages({
+    //     matches: matchesUpToNow,
+    //     virtualMatchesPlayed: virtualMatchesPlayedUpToNow
+    //   }).filter(filterOutMessagesForReportedMatches(reportedMatches));
+    //   const waitingMessages: LobbyAwaitingBeatmapMessage[] = LobbyBeatmapStatusMessageBuilder.gatherWaitingMessages({
+    //     virtualMatchesPlayed: virtualMatchesPlayedUpToNow
+    //   }).filter(filterOutMessagesForReportedMatches(reportedMatches));
+    //   const allLobbiesCompletedMessages: AllLobbiesCompletedBeatmapMessage[] = LobbyBeatmapStatusMessageBuilder.gatherAllLobbiesCompletedMessages(
+    //     {
+    //       virtualMatchesPlayed: virtualMatchesPlayedUpToNow
+    //     }
+    //   ).filter(filterOutMessagesForReportedMatches(reportedMatches));
+    // }
 
-    // TODO: Filter out reportedMatches
+    const map = new Map<MessageType, LobbyBeatmapStatusMessage<MessageType>[]>();
+    map.set("lobby_completed", completedMessages);
+    map.set("lobby_awaiting", waitingMessages);
+    map.set("all_lobbies_completed", allLobbiesCompletedMessages);
 
-    Log.warn("TODO - implement method", this.buildLobbyMatchReportMessages.name, this.constructor.name);
-    return null;
+    return map;
   }
 
-  buildGameEvents({ game, reportedMatches }: { game: Game; reportedMatches: Match[] }): GameEvent[] {
+  buildGameEventsGroupedByVirtualMatches({
+    game,
+    reportedMatches,
+    messages
+  }: {
+    game: Game;
+    reportedMatches: Match[];
+    messages: LobbyBeatmapStatusMessageGroup;
+  }): VirtualMatchGameEventGroup[] {
+    const gameEvents = this.buildUnreportedGameEventsForGame({ game, reportedMatches });
+    const groups = this.buildVirtualMatchGameEventGroupsFromGameEvents(gameEvents);
+    this.addMessagesToVirtualMatchGameEventGroups(groups, messages);
+    return groups;
+  }
+
+  private addMessagesToVirtualMatchGameEventGroups(groups: VirtualMatchGameEventGroup[], messages: LobbyBeatmapStatusMessageGroup): void {
+    if (!messages) return;
+
+    messages.forEach((messages, messagesType) => {
+      groups.forEach(vmg => {
+        if (!vmg.messages) vmg.messages = new Map<typeof messagesType, LobbyBeatmapStatusMessage<MessageType>[]>();
+        if (vmg.messages.has(messagesType)) {
+          vmg.messages.get(messagesType).push(...messages.filter(message => message.type === messagesType));
+        } else {
+          vmg.messages.set(
+            messagesType,
+            messages.filter(msg => msg.sameBeatmapNumber === vmg.sameBeatmapNumber && msg.beatmapId === vmg.beatmapId)
+          );
+        }
+      });
+    });
+  }
+
+  private buildUnreportedGameEventsForGame({ game, reportedMatches }: { game: Game; reportedMatches: Match[] }): GameEvent[] {
+    const unreportedVirtualMatches = VirtualMatchCreator.buildAllVirtualMatchesForGameForUnreportedMatches({
+      game,
+      reportedMatches
+    });
+    // const unreportedCompletedVirtualMatches = VirtualMatchCreator.buildCompletedVirtualMatchesForGameForUnreportedMatches({
+    //   game,
+    //   reportedMatches
+    // });
+    const processedEvents: GameEvent[] = this.buildAndProcessGameEventsForVirtualMatches({
+      game,
+      virtualMatches: unreportedVirtualMatches
+    });
+    return processedEvents;
+  }
+
+  private buildAndProcessGameEventsForVirtualMatches({ game, virtualMatches }: { game: Game; virtualMatches: VirtualMatch[] }) {
     const registrar: GameEventRegistrar = this.gameEventRegistrarCollection.findOrCreate(game.id);
     const registeredEvents: GameEvent[] = registrar.getEvents();
     const processedEvents: GameEvent[] = [];
-    const unreportedCompletedVirtualMatches = VirtualMatchCreator.buildCompletedVirtualMatchesForGameForUnreportedMatches(
-      game,
-      reportedMatches
-    );
-
-    for (const vMatch of unreportedCompletedVirtualMatches) {
+    for (const vMatch of virtualMatches) {
       for (const eventType in registeredEvents) {
         const event: GameEvent = registeredEvents[eventType];
         // we clone the event to prevent happenedIn() setting the event data on the same event multiple times
         // (to ensure each game event has its own unique set of data)
+
+        // TODO: Do not process event if any entries listed under VirtualMatch.remaining + Log skipping with this reason.
+
         const eventCopy: GameEvent = _.cloneDeep(event);
-        if (eventCopy.happenedIn({ game, targetVirtualMatch: vMatch, allVirtualMatches: unreportedCompletedVirtualMatches })) {
+        if (eventCopy.happenedIn({ game, targetVirtualMatch: vMatch, allVirtualMatches: virtualMatches })) {
           // event should have event.data defined if happenedIn === true
           processedEvents.push(eventCopy);
         }
       }
     }
-
-    // TODO
-    const a = _(processedEvents)
-      .groupBy(a => {
-        if (a.data) {
-          return VirtualMatchCreator.createSameBeatmapKeyString({
-            beatmapId: a.data.eventMatch.beatmapId,
-            sameBeatmapNumber: a.data.eventMatch.sameBeatmapNumber
-          });
-        }
-      })
-      .value();
-
     return processedEvents;
   }
 
-  buildGameReport(leaderboardEvents: GameEvent[]): GameReport {
-    Log.warn("TODO: Implement method of MultiplayerResultsProcessor.");
-    return null;
+  private buildVirtualMatchGameEventGroupsFromGameEvents(processedEvents: GameEvent[]): VirtualMatchGameEventGroup[] {
+    return _(processedEvents)
+      .groupBy(event => {
+        if (event.data) {
+          return VirtualMatchCreator.createSameBeatmapKeyString({
+            beatmapId: event.data.eventMatch.beatmapId,
+            sameBeatmapNumber: event.data.eventMatch.sameBeatmapNumber
+          });
+        }
+      })
+      .map((events, groupKey) => {
+        const keyObject = VirtualMatchCreator.createSameBeatmapKeyObjectFromKeyString(groupKey);
+        return { beatmapId: keyObject.beatmapId, sameBeatmapNumber: keyObject.sameBeatmapNumber, events: events };
+      })
+      .toArray()
+      .value();
   }
+
+  // buildGameReport(gameEvents: GameEvent[]): GameReport {
+  //   Log.warn("TODO: Implement method of MultiplayerResultsProcessor.");
+  //   return null;
+  // }
 
   // async buildGameReports(forGames: Game[]): Promise<GameReport[]> {
   //   try {
@@ -246,4 +312,9 @@ export class MultiplayerResultsProcessor {
   //   //
   //   return false;
   // }
+}
+function filterOutMessagesForReportedMatches(
+  reportedMatches: Match[]
+): (value: LobbyBeatmapStatusMessage<MessageType>, index: number, array: LobbyBeatmapStatusMessage<MessageType>[]) => unknown {
+  return message => !reportedMatches.find(rm => message.match && message.match.entityId && message.match.entityId === rm.id);
 }

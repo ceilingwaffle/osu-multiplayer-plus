@@ -16,6 +16,19 @@ import { TeamMode } from "./components/enums/team-mode";
 import { Log } from "../utils/Log";
 
 export class LobbyBeatmapStatusMessageBuilder {
+  /**
+   * Builds messages for individual beatmaps (matches) considered "completed" in a lobby.
+   *
+   * @static
+   * @param {{
+   *     matches: Match[];
+   *     virtualMatchesPlayed: VirtualMatch[];
+   *   }} {
+   *     matches,
+   *     virtualMatchesPlayed: beatmapsPlayed
+   *   }
+   * @returns {LobbyCompletedBeatmapMessage[]}
+   */
   static gatherCompletedMessages({
     matches,
     virtualMatchesPlayed: beatmapsPlayed
@@ -32,7 +45,8 @@ export class LobbyBeatmapStatusMessageBuilder {
         message: `Lobby ${match.lobby.id} completed beatmap ${match.beatmapId}#${beatmapNumber}.`,
         lobby: LobbyBeatmapStatusMessageBuilder.buildLobbyComponent(match.lobby),
         match: LobbyBeatmapStatusMessageBuilder.buildMatchComponent(match),
-        sameBeatmapNumber: beatmapNumber
+        sameBeatmapNumber: beatmapNumber,
+        beatmapId: match.beatmapId
       };
       completedMessages.push(message);
     }
@@ -48,7 +62,8 @@ export class LobbyBeatmapStatusMessageBuilder {
         const message: LobbyAwaitingBeatmapMessage = {
           message: `Waiting on beatmap ${vMatch.beatmapId}#${vMatch.sameBeatmapNumber} from lobby ${rLobby.id}.`,
           lobby: LobbyBeatmapStatusMessageBuilder.buildLobbyComponent(rLobby),
-          sameBeatmapNumber: vMatch.sameBeatmapNumber
+          sameBeatmapNumber: vMatch.sameBeatmapNumber,
+          beatmapId: vMatch.beatmapId
         };
         waitingMessages.push(message);
       }
@@ -66,7 +81,8 @@ export class LobbyBeatmapStatusMessageBuilder {
       if (!vMatch.lobbies.remaining.length) {
         const message: AllLobbiesCompletedBeatmapMessage = {
           message: `All lobbies have completed beatmap ${vMatch.beatmapId}#${vMatch.sameBeatmapNumber}`,
-          sameBeatmapNumber: vMatch.sameBeatmapNumber
+          sameBeatmapNumber: vMatch.sameBeatmapNumber,
+          beatmapId: vMatch.beatmapId
         };
         messages.push(message);
       }

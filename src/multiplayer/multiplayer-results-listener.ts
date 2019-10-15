@@ -1,7 +1,7 @@
 import { OsuLobbyScannerEventDataMap } from "../osu/interfaces/osu-lobby-scanner-events";
 import { Log } from "../utils/Log";
 import { GameReport } from "./reports/game.report";
-import { MultiplayerResultsProcessor } from "./multiplayer-results-processor";
+import { MultiplayerResultsProcessor, VirtualMatchGameEventGroup } from "./multiplayer-results-processor";
 import { VirtualMatch } from "./virtual-match";
 import Emittery = require("emittery");
 import { ApiMultiplayer } from "../osu/types/api-multiplayer";
@@ -12,7 +12,7 @@ import { injectable } from "inversify";
 import { GameRepository } from "../domain/game/game.repository";
 import { getCustomRepository } from "typeorm";
 import { Lobby } from "../domain/lobby/lobby.entity";
-import { LobbyBeatmapStatusMessageTypes } from "./lobby-beatmap-status-message";
+import { LobbyBeatmapStatusMessageTypes, LobbyBeatmapStatusMessageGroup } from "./lobby-beatmap-status-message";
 
 @injectable()
 export class MultiplayerResultsListener {
@@ -46,15 +46,20 @@ export class MultiplayerResultsListener {
 
         for (const game of multiplayerGames) {
           const reportedMatches: Match[] = (await this.gameRepository.getReportedMatchesForGame(game.id)) || [];
-          const leaderboardEvents: GameEvent[] = [];
+          const gameEvents: VirtualMatchGameEventGroup[] = [];
           const bmLobbyGroups = processor.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(game);
           const allGameLobbies: Lobby[] = game.gameLobbies.map(gl => gl.lobby);
-          const lobbyBeatmapStatusMessages: LobbyBeatmapStatusMessageTypes[] =
-            processor.buildLobbyMatchReportMessages({ beatmapsPlayed: bmLobbyGroups, reportedMatches, allGameLobbies }) || [];
-          // TODO: Deliver messages
-          leaderboardEvents.push(...processor.buildGameEvents({ game, reportedMatches }));
+          const lobbyBeatmapStatusMessages: LobbyBeatmapStatusMessageGroup = processor.buildLobbyMatchReportMessages({
+            virtualMatchesPlayed: bmLobbyGroups,
+            reportedMatches,
+            allGameLobbies
+          });
+          // TODO: Deliver messages and events
+          gameEvents.push(
+            ...processor.buildGameEventsGroupedByVirtualMatches({ game, reportedMatches, messages: lobbyBeatmapStatusMessages })
+          );
           // TODO: build game report for game
-          processor.buildGameReport(leaderboardEvents);
+          // processor.buildGameReport(gameEvents);
           // TODO: send reports only to games included in targetGameIds
 
           /* 

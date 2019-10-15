@@ -12,8 +12,12 @@ TODO:
     ☐ Take a look at the new osu! API
     ✔ Use test Discord Commando database depending on env context @started(19-08-26 21:40) @done(19-08-27 08:11) @lasted(10h31m25s)
     Terminology:
-        Virtual Lobby - A group of lobbies added to a game
-        Virtual Beatmap - The same beatmap played (in order) across multiple lobbies of a game
+        Virtual Lobby: 
+            A group of lobbies added to a game
+        Virtual Match: 
+            A superset of matches played across multiple lobbies added to a game, where each match has played the same beatmap the same nth number of times in the lobby.
+        Completed Virtual Match: 
+            A virtual match containing a match for all lobbies added to a game (i.e. all lobbies have finished playing the same beatmap the same nth number of times).
     Livestreaming:
         ☐ Setup vscode LiveShare for readonly access so stream viewers can jump around the code @created(19-10-06 21:51)
             ☐ Need some way to make .env files inaccessible before we can allow this @created(19-10-06 21:51)

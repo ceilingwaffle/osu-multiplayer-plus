@@ -20,7 +20,13 @@ export class VirtualMatchCreator {
    * @param {Match[]} reportedMatches
    * @returns {VirtualMatch[]}
    */
-  static buildCompletedVirtualMatchesForGameForUnreportedMatches(game: Game, reportedMatches: Match[]): VirtualMatch[] {
+  static buildCompletedVirtualMatchesForGameForUnreportedMatches({
+    game,
+    reportedMatches
+  }: {
+    game: Game;
+    reportedMatches: Match[];
+  }): VirtualMatch[] {
     const allVirtualMatches = VirtualMatchCreator.buildVirtualMatchesForGame(game);
     const completedVirtualMatches = VirtualMatchCreator.removeIncompleteVirtualMatches(allVirtualMatches);
     const completedAndUnreported = VirtualMatchCreator.removeVirtualMatchesContainingRealMatches({
@@ -28,6 +34,21 @@ export class VirtualMatchCreator {
       realMatches: reportedMatches
     });
     return completedAndUnreported;
+  }
+
+  static buildAllVirtualMatchesForGameForUnreportedMatches({
+    game,
+    reportedMatches
+  }: {
+    game: Game;
+    reportedMatches: Match[];
+  }): VirtualMatch[] {
+    const allVirtualMatches = VirtualMatchCreator.buildVirtualMatchesForGame(game);
+    const allUnreportedVirtualMatches = VirtualMatchCreator.removeVirtualMatchesContainingRealMatches({
+      virtualMatches: allVirtualMatches,
+      realMatches: reportedMatches
+    });
+    return allUnreportedVirtualMatches;
   }
 
   /**

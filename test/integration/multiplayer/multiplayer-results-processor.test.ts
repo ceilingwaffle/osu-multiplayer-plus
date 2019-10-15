@@ -2,7 +2,7 @@ import "../../../src/bootstrap";
 import "mocha";
 import * as chai from "chai";
 import { assert, expect } from "chai";
-import { MultiplayerResultsProcessor } from "../../../src/multiplayer/multiplayer-results-processor";
+import { MultiplayerResultsProcessor, VirtualMatchGameEventGroup } from "../../../src/multiplayer/multiplayer-results-processor";
 import { VirtualMatch } from "../../../src/multiplayer/virtual-match";
 import { ApiMultiplayer } from "../../../src/osu/types/api-multiplayer";
 import { TeamMode } from "../../../src/multiplayer/components/enums/team-mode";
@@ -41,7 +41,8 @@ import {
   LobbyAwaitingBeatmapMessage,
   LobbyCompletedBeatmapMessage,
   AllLobbiesCompletedBeatmapMessage,
-  LobbyBeatmapStatusMessageTypes
+  LobbyBeatmapStatusMessageTypes,
+  LobbyBeatmapStatusMessageGroup
 } from "../../../src/multiplayer/lobby-beatmap-status-message";
 import _ = require("lodash"); // do not convert to default import or this will break
 import { GameEvent } from "../../../src/multiplayer/game-events/game-event";
@@ -2251,13 +2252,17 @@ describe("When processing multiplayer results", function() {
           const gameRepository: GameRepository = getCustomRepository(GameRepository);
           const reportedMatches: Match[] = await gameRepository.getReportedMatchesForGame(games7[0].id);
           const allGameLobbies: Lobby[] = games7[0].gameLobbies.map(gl => gl.lobby);
-          const messages: LobbyBeatmapStatusMessageTypes[] = processor7.buildLobbyMatchReportMessages({
-            beatmapsPlayed: blg7,
+          const messages: LobbyBeatmapStatusMessageGroup = processor7.buildLobbyMatchReportMessages({
+            virtualMatchesPlayed: blg7,
             reportedMatches,
             allGameLobbies
           });
 
-          const gameEvents: GameEvent[] = processor7.buildGameEvents({ game: games7[0], reportedMatches });
+          const gameEvents: VirtualMatchGameEventGroup[] = processor7.buildGameEventsGroupedByVirtualMatches({
+            game: games7[0],
+            reportedMatches,
+            messages
+          });
 
           // TODO: Oct 14th
           //                ✅ Calculate game events for each VirtualMatch
