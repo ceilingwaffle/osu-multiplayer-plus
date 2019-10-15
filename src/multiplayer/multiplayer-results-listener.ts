@@ -52,7 +52,7 @@ export class MultiplayerResultsListener {
           const lobbyBeatmapStatusMessages: LobbyBeatmapStatusMessageTypes[] =
             processor.buildLobbyMatchReportMessages({ beatmapsPlayed: bmLobbyGroups, reportedMatches, allGameLobbies }) || [];
           // TODO: Deliver messages
-          leaderboardEvents.push(...processor.buildLeaderboardEvents({ game, reportedMatches }));
+          leaderboardEvents.push(...processor.buildGameEvents({ game, reportedMatches }));
           // TODO: build game report for game
           processor.buildGameReport(leaderboardEvents);
           // TODO: send reports only to games included in targetGameIds

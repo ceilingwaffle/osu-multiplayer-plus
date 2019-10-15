@@ -5,6 +5,11 @@ import { Lobby } from "../domain/lobby/lobby.entity";
 import { Log } from "../utils/Log";
 import { Game } from "../domain/game/game.entity";
 
+export interface SameBeatmapKey {
+  beatmapId: string;
+  sameBeatmapNumber: number;
+}
+
 export class VirtualMatchCreator {
   /**
    * Returns a list of virtual matches for all virtual matches completed in this game so far,
@@ -61,15 +66,9 @@ export class VirtualMatchCreator {
 
       const r = _(matches)
         .sortBy(match => match.startTime)
-        .groupBy(match =>
-          JSON.stringify({
-            beatmapId: match.beatmapId,
-            sameBeatmapNumber:
-              matches.filter(m => m.lobby.id === match.lobby.id && m.beatmapId === match.beatmapId).findIndex(m => m.id === match.id) + 1
-          })
-        )
-        .map((matches, matchesKey) => {
-          const keyAsObject = JSON.parse(matchesKey) as { beatmapId: string; sameBeatmapNumber: number };
+        .groupBy(match => VirtualMatchCreator.createSameBeatmapKeyStringForMatch(match, matches))
+        .map((matches, matchesKey): SameBeatmapKey & { matches: Match[]; lobbies: Lobby[] } => {
+          const keyAsObject = VirtualMatchCreator.createSameBeatmapKeyObjectFromKeyString(matchesKey);
           return {
             beatmapId: keyAsObject.beatmapId,
             sameBeatmapNumber: keyAsObject.sameBeatmapNumber,
@@ -116,6 +115,31 @@ export class VirtualMatchCreator {
       Log.methodError(this.buildVirtualMatchesGroupedByLobbyPlayedStatuses, this.name, error);
       throw error;
     }
+  }
+
+  private static createSameBeatmapKeyStringForMatch(match: Match, matches: Match[]): string {
+    const obj = VirtualMatchCreator.createSameBeatmapKeyObjectForMatch(match, matches);
+    const str = VirtualMatchCreator.createSameBeatmapKeyString(obj);
+    return str;
+  }
+
+  private static createSameBeatmapKeyObjectForMatch(match: Match, matches: Match[]): SameBeatmapKey {
+    return {
+      beatmapId: match.beatmapId,
+      sameBeatmapNumber:
+        matches.filter(m => m.lobby.id === match.lobby.id && m.beatmapId === match.beatmapId).findIndex(m => m.id === match.id) + 1
+    };
+  }
+
+  static createSameBeatmapKeyString({ beatmapId, sameBeatmapNumber }: SameBeatmapKey): string {
+    return JSON.stringify({ beatmapId, sameBeatmapNumber });
+  }
+
+  static createSameBeatmapKeyObjectFromKeyString(key: string): SameBeatmapKey {
+    return JSON.parse(key) as {
+      beatmapId: string;
+      sameBeatmapNumber: number;
+    };
   }
 
   static getNthMatchHavingBeatmapId({ searchMatches, beatmapId, n }: { searchMatches: Match[]; beatmapId: string; n: number }): Match {

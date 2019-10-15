@@ -2257,7 +2257,7 @@ describe("When processing multiplayer results", function() {
             allGameLobbies
           });
 
-          const gameEvents: GameEvent[] = processor7.buildLeaderboardEvents({ game: games7[0], reportedMatches });
+          const gameEvents: GameEvent[] = processor7.buildGameEvents({ game: games7[0], reportedMatches });
 
           // TODO: Oct 14th
           //                ✅ Calculate game events for each VirtualMatch

@@ -97,29 +97,41 @@ export class MultiplayerResultsProcessor {
     return null;
   }
 
-  buildLeaderboardEvents({ game, reportedMatches }: { game: Game; reportedMatches: Match[] }): GameEvent[] {
+  buildGameEvents({ game, reportedMatches }: { game: Game; reportedMatches: Match[] }): GameEvent[] {
     const registrar: GameEventRegistrar = this.gameEventRegistrarCollection.findOrCreate(game.id);
-    const events: GameEvent[] = registrar.getEvents();
-    const leaderboardEvents: GameEvent[] = [];
+    const registeredEvents: GameEvent[] = registrar.getEvents();
+    const processedEvents: GameEvent[] = [];
     const unreportedCompletedVirtualMatches = VirtualMatchCreator.buildCompletedVirtualMatchesForGameForUnreportedMatches(
       game,
       reportedMatches
     );
 
     for (const vMatch of unreportedCompletedVirtualMatches) {
-      for (const eventType in events) {
-        const event: GameEvent = events[eventType];
+      for (const eventType in registeredEvents) {
+        const event: GameEvent = registeredEvents[eventType];
         // we clone the event to prevent happenedIn() setting the event data on the same event multiple times
-        // (to ensure each leaderboard event has its own unique set of data)
+        // (to ensure each game event has its own unique set of data)
         const eventCopy: GameEvent = _.cloneDeep(event);
         if (eventCopy.happenedIn({ game, targetVirtualMatch: vMatch, allVirtualMatches: unreportedCompletedVirtualMatches })) {
           // event should have event.data defined if happenedIn === true
-          leaderboardEvents.push(eventCopy);
+          processedEvents.push(eventCopy);
         }
       }
     }
 
-    return leaderboardEvents;
+    // TODO
+    const a = _(processedEvents)
+      .groupBy(a => {
+        if (a.data) {
+          return VirtualMatchCreator.createSameBeatmapKeyString({
+            beatmapId: a.data.eventMatch.beatmapId,
+            sameBeatmapNumber: a.data.eventMatch.sameBeatmapNumber
+          });
+        }
+      })
+      .value();
+
+    return processedEvents;
   }
 
   buildGameReport(leaderboardEvents: GameEvent[]): GameReport {

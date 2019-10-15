@@ -1,21 +1,20 @@
 import { GameEventType } from "./game-event-types";
-import { GameEventData } from "./game-event-data";
 import { VirtualMatch } from "../virtual-match";
-import { VirtualMatchCreator } from "../virtual-match-creator";
 import { Game } from "../../domain/game/game.entity";
 
-export interface GameEvent extends GameEventData {
+export interface GameEvent {
   readonly type: GameEventType;
   happenedIn: ({
-    targetVirtualMatch,
     game,
+    targetVirtualMatch,
     allVirtualMatches
   }: {
-    targetVirtualMatch: VirtualMatch;
     game: Game;
+    targetVirtualMatch: VirtualMatch;
     allVirtualMatches?: VirtualMatch[];
   }) => boolean;
   after?: () => void;
+  data: any extends { eventMatch: VirtualMatch } ? { eventMatch: VirtualMatch } : never;
 }
 
 // export const getCompletedVirtualMatchesOfGameForGameEventType = ({

@@ -1,8 +1,9 @@
 import { AbstractGameEvent } from "../abstract-game-event";
 import { GameEvent } from "../game-event";
 import { GameEventType } from "../game-event-types";
+import { VirtualMatch } from "../../virtual-match";
 
-export class TeamEliminatedGameEvent extends AbstractGameEvent<{ teamId: number }> implements GameEvent {
+export class TeamEliminatedGameEvent extends AbstractGameEvent<{ teamId: number; eventMatch: VirtualMatch }> implements GameEvent {
   readonly type: GameEventType = "team_eliminated";
 
   happenedIn(): boolean {
@@ -11,7 +12,7 @@ export class TeamEliminatedGameEvent extends AbstractGameEvent<{ teamId: number 
     // yes - build the data, attach the data to this event object, return true
     // no - return false
     const eliminatedTeamId = 1;
-    this.data = { teamId: eliminatedTeamId };
+    // this.data = { teamId: eliminatedTeamId };
     return true;
   }
 }

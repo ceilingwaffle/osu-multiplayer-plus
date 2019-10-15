@@ -6,7 +6,7 @@ import _ = require("lodash"); // do not convert to default import -- it will bre
 import { CalculatedTeamScore, TeamScoreCalculator } from "../../team-score-calculator";
 import { VirtualMatch } from "../../virtual-match";
 
-export class TeamWonVirtualMatchGameEvent extends AbstractGameEvent<{ teamId: number; virtualMatch: VirtualMatch }> implements GameEvent {
+export class TeamWonVirtualMatchGameEvent extends AbstractGameEvent<{ teamId: number; eventMatch: VirtualMatch }> implements GameEvent {
   readonly type: GameEventType = "team_won_match";
 
   happenedIn({ targetVirtualMatch, game }: { targetVirtualMatch: VirtualMatch; game: Game }): boolean {
@@ -28,7 +28,7 @@ export class TeamWonVirtualMatchGameEvent extends AbstractGameEvent<{ teamId: nu
       return false;
     }
 
-    this.data = { teamId: winningTeamId, virtualMatch: targetVirtualMatch };
+    this.data = { teamId: winningTeamId, eventMatch: targetVirtualMatch };
 
     // TODO: Write test for this
     return true;
