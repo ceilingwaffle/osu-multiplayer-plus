@@ -28,7 +28,7 @@ import { MessageType } from "./lobby-beatmap-status-message";
 export interface VirtualMatchGameEventGroup {
   beatmapId: string;
   sameBeatmapNumber: number;
-  events: GameEvent[];
+  events?: GameEvent[];
   messages?: LobbyBeatmapStatusMessageGroup;
 }
 
@@ -120,31 +120,58 @@ export class MultiplayerResultsProcessor {
     reportedMatches: Match[];
     messages: LobbyBeatmapStatusMessageGroup;
   }): VirtualMatchGameEventGroup[] {
-    const gameEvents = this.buildUnreportedGameEventsForGame({ game, reportedMatches });
-    const groups = this.buildVirtualMatchGameEventGroupsFromGameEvents(gameEvents);
-    this.addMessagesToVirtualMatchGameEventGroups(groups, messages);
-    return groups;
+    const gameEvents = this.buildAndProcessUnreportedGameEventsForGame({ game, reportedMatches });
+    const gameEventVMGroups = this.buildVirtualMatchGroupsFromGameEvents({ processedEvents: gameEvents });
+    const messageVMGroups = this.buildVirtualMatchGroupsFromMessages({ messages });
+    const vmGroups = this.mergeVirtualMatchGameEventGroups(gameEventVMGroups, messageVMGroups);
+    return vmGroups;
   }
 
-  private addMessagesToVirtualMatchGameEventGroups(groups: VirtualMatchGameEventGroup[], messages: LobbyBeatmapStatusMessageGroup): void {
-    if (!messages) return;
-
-    messages.forEach((messages, messagesType) => {
-      groups.forEach(vmg => {
-        if (!vmg.messages) vmg.messages = new Map<typeof messagesType, LobbyBeatmapStatusMessage<MessageType>[]>();
-        if (vmg.messages.has(messagesType)) {
-          vmg.messages.get(messagesType).push(...messages.filter(message => message.type === messagesType));
-        } else {
-          vmg.messages.set(
-            messagesType,
-            messages.filter(msg => msg.sameBeatmapNumber === vmg.sameBeatmapNumber && msg.beatmapId === vmg.beatmapId)
-          );
-        }
-      });
-    });
+  private mergeVirtualMatchGameEventGroups(
+    group1: VirtualMatchGameEventGroup[],
+    group2: VirtualMatchGameEventGroup[]
+  ): VirtualMatchGameEventGroup[] {
+    // if (!groups.length) return;
+    // if (groups.length === 1) return groups[0];
+    // https://stackoverflow.com/questions/39246101/deep-merge-using-lodash
+    var result = _.values(
+      _.merge(
+        _.keyBy(group1, o =>
+          VirtualMatchCreator.createSameBeatmapKeyString({ beatmapId: o.beatmapId, sameBeatmapNumber: o.sameBeatmapNumber })
+        ),
+        _.keyBy(group2, o =>
+          VirtualMatchCreator.createSameBeatmapKeyString({ beatmapId: o.beatmapId, sameBeatmapNumber: o.sameBeatmapNumber })
+        )
+      )
+    );
+    return result;
   }
 
-  private buildUnreportedGameEventsForGame({ game, reportedMatches }: { game: Game; reportedMatches: Match[] }): GameEvent[] {
+  // private addMessagesToVirtualMatchGameEventGroups({
+  //   groups,
+  //   messages
+  // }: {
+  //   groups: VirtualMatchGameEventGroup[];
+  //   messages: LobbyBeatmapStatusMessageGroup;
+  // }): void {
+  //   if (!messages) return;
+
+  //   messages.forEach((messages, messagesType) => {
+  //     groups.forEach(vmg => {
+  //       if (!vmg.messages) vmg.messages = new Map<typeof messagesType, LobbyBeatmapStatusMessage<MessageType>[]>();
+  //       if (vmg.messages.has(messagesType)) {
+  //         vmg.messages.get(messagesType).push(...messages.filter(message => message.type === messagesType));
+  //       } else {
+  //         vmg.messages.set(
+  //           messagesType,
+  //           messages.filter(msg => msg.sameBeatmapNumber === vmg.sameBeatmapNumber && msg.beatmapId === vmg.beatmapId)
+  //         );
+  //       }
+  //     });
+  //   });
+  // }
+
+  private buildAndProcessUnreportedGameEventsForGame({ game, reportedMatches }: { game: Game; reportedMatches: Match[] }): GameEvent[] {
     const unreportedVirtualMatches = VirtualMatchCreator.buildAllVirtualMatchesForGameForUnreportedMatches({
       game,
       reportedMatches
@@ -160,11 +187,20 @@ export class MultiplayerResultsProcessor {
     return processedEvents;
   }
 
-  private buildAndProcessGameEventsForVirtualMatches({ game, virtualMatches }: { game: Game; virtualMatches: VirtualMatch[] }) {
+  private buildAndProcessGameEventsForVirtualMatches({
+    game,
+    virtualMatches
+  }: {
+    game: Game;
+    virtualMatches: VirtualMatch[];
+  }): GameEvent[] {
     const registrar: GameEventRegistrar = this.gameEventRegistrarCollection.findOrCreate(game.id);
     const registeredEvents: GameEvent[] = registrar.getEvents();
     const processedEvents: GameEvent[] = [];
     for (const vMatch of virtualMatches) {
+      if (!this.virtualMatchReadyToProcessGameEvents(vMatch)) {
+        continue;
+      }
       for (const eventType in registeredEvents) {
         const event: GameEvent = registeredEvents[eventType];
         // we clone the event to prevent happenedIn() setting the event data on the same event multiple times
@@ -182,7 +218,12 @@ export class MultiplayerResultsProcessor {
     return processedEvents;
   }
 
-  private buildVirtualMatchGameEventGroupsFromGameEvents(processedEvents: GameEvent[]): VirtualMatchGameEventGroup[] {
+  private virtualMatchReadyToProcessGameEvents(virtualMatch: VirtualMatch): boolean {
+    // only ready to process if all lobbies have completed the match
+    return virtualMatch.lobbies.remaining.length < 1;
+  }
+
+  private buildVirtualMatchGroupsFromGameEvents({ processedEvents }: { processedEvents: GameEvent[] }): VirtualMatchGameEventGroup[] {
     return _(processedEvents)
       .groupBy(event => {
         if (event.data) {
@@ -194,10 +235,72 @@ export class MultiplayerResultsProcessor {
       })
       .map((events, groupKey) => {
         const keyObject = VirtualMatchCreator.createSameBeatmapKeyObjectFromKeyString(groupKey);
-        return { beatmapId: keyObject.beatmapId, sameBeatmapNumber: keyObject.sameBeatmapNumber, events: events };
+        return {
+          beatmapId: keyObject.beatmapId,
+          sameBeatmapNumber: keyObject.sameBeatmapNumber,
+          events: events
+        };
       })
       .toArray()
       .value();
+  }
+
+  buildVirtualMatchGroupsFromMessages({ messages }: { messages: LobbyBeatmapStatusMessageGroup }): VirtualMatchGameEventGroup[] {
+    const groups: VirtualMatchGameEventGroup[][] = [];
+    messages.forEach((messages, messagesType) => {
+      const a: VirtualMatchGameEventGroup[] = _(messages)
+        .groupBy(message => {
+          if (message.message && message.message.length) {
+            return VirtualMatchCreator.createSameBeatmapKeyString({
+              beatmapId: message.beatmapId,
+              sameBeatmapNumber: message.sameBeatmapNumber
+            });
+          }
+        })
+        .map((messages, groupKey) => {
+          const keyObject = VirtualMatchCreator.createSameBeatmapKeyObjectFromKeyString(groupKey);
+          const messagesMap = new Map<MessageType, LobbyBeatmapStatusMessage<MessageType>[]>();
+          messagesMap.set(messagesType, messages);
+          return { beatmapId: keyObject.beatmapId, sameBeatmapNumber: keyObject.sameBeatmapNumber, messages: messagesMap };
+        })
+        .toArray()
+        .value();
+
+      groups.push(a);
+    });
+
+    // merge groups
+    const merged: VirtualMatchGameEventGroup[] = [];
+
+    groups.forEach(g => {
+      g.forEach(group => {
+        let foundMerged = merged.find(m => m.beatmapId === group.beatmapId && m.sameBeatmapNumber === group.sameBeatmapNumber);
+        if (!foundMerged) {
+          foundMerged = {
+            beatmapId: group.beatmapId,
+            sameBeatmapNumber: group.sameBeatmapNumber,
+            messages: group.messages || new Map<MessageType, LobbyBeatmapStatusMessage<MessageType>[]>()
+          };
+          merged.push(foundMerged);
+        }
+
+        group.messages.forEach((gMsgs, gMsgType) => {
+          if (foundMerged.messages.has(gMsgType)) {
+            gMsgs.forEach(gMsg => {
+              // avoid adding the same message more than once
+              const msgGroup = foundMerged.messages.get(gMsgType);
+              if (!msgGroup.find(aa => gMsg.beatmapId === aa.beatmapId && gMsg.sameBeatmapNumber === aa.sameBeatmapNumber)) {
+                msgGroup.push(gMsg);
+              }
+            });
+          } else {
+            foundMerged.messages.set(gMsgType, gMsgs);
+          }
+        });
+      });
+    });
+
+    return merged;
   }
 
   // buildGameReport(gameEvents: GameEvent[]): GameReport {
