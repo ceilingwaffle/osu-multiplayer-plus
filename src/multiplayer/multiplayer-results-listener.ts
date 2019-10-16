@@ -1,7 +1,8 @@
 import { OsuLobbyScannerEventDataMap } from "../osu/interfaces/osu-lobby-scanner-events";
 import { Log } from "../utils/Log";
 import { GameReport } from "./reports/game.report";
-import { MultiplayerResultsProcessor, VirtualMatchGameEventGroup } from "./multiplayer-results-processor";
+import { MultiplayerResultsProcessor } from "./multiplayer-results-processor";
+import { VirtualMatchReportGroup } from "./virtual-match-report-group";
 import { VirtualMatch } from "./virtual-match";
 import Emittery = require("emittery");
 import { ApiMultiplayer } from "../osu/types/api-multiplayer";
@@ -46,16 +47,16 @@ export class MultiplayerResultsListener {
 
         for (const game of multiplayerGames) {
           const reportedMatches: Match[] = (await this.gameRepository.getReportedMatchesForGame(game.id)) || [];
-          const gameEvents: VirtualMatchGameEventGroup[] = [];
-          const bmLobbyGroups = processor.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(game);
+          const virtualMatchReportGroups: VirtualMatchReportGroup[] = [];
+          const virtualMatches: VirtualMatch[] = processor.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(game);
           const allGameLobbies: Lobby[] = game.gameLobbies.map(gl => gl.lobby);
           const lobbyBeatmapStatusMessages: LobbyBeatmapStatusMessageGroup = processor.buildLobbyMatchReportMessages({
-            virtualMatchesPlayed: bmLobbyGroups,
+            virtualMatchesPlayed: virtualMatches,
             reportedMatches,
             allGameLobbies
           });
           // TODO: Deliver messages and events
-          gameEvents.push(
+          virtualMatchReportGroups.push(
             ...processor.buildGameEventsGroupedByVirtualMatches({ game, reportedMatches, messages: lobbyBeatmapStatusMessages })
           );
           // TODO: build game report for game

@@ -4,11 +4,7 @@ import _ = require("lodash"); // do not convert to default import -- it will bre
 import { Lobby } from "../domain/lobby/lobby.entity";
 import { Log } from "../utils/Log";
 import { Game } from "../domain/game/game.entity";
-
-export interface SameBeatmapKey {
-  beatmapId: string;
-  sameBeatmapNumber: number;
-}
+import { VirtualMatchKey } from "./virtual-match-key";
 
 export class VirtualMatchCreator {
   /**
@@ -88,7 +84,7 @@ export class VirtualMatchCreator {
       const r = _(matches)
         .sortBy(match => match.startTime)
         .groupBy(match => VirtualMatchCreator.createSameBeatmapKeyStringForMatch(match, matches))
-        .map((matches, matchesKey): SameBeatmapKey & { matches: Match[]; lobbies: Lobby[] } => {
+        .map((matches, matchesKey): VirtualMatchKey & { matches: Match[]; lobbies: Lobby[] } => {
           const keyAsObject = VirtualMatchCreator.createSameBeatmapKeyObjectFromKeyString(matchesKey);
           return {
             beatmapId: keyAsObject.beatmapId,
@@ -144,7 +140,7 @@ export class VirtualMatchCreator {
     return str;
   }
 
-  private static createSameBeatmapKeyObjectForMatch(match: Match, matches: Match[]): SameBeatmapKey {
+  private static createSameBeatmapKeyObjectForMatch(match: Match, matches: Match[]): VirtualMatchKey {
     return {
       beatmapId: match.beatmapId,
       sameBeatmapNumber:
@@ -152,11 +148,11 @@ export class VirtualMatchCreator {
     };
   }
 
-  static createSameBeatmapKeyString({ beatmapId, sameBeatmapNumber }: SameBeatmapKey): string {
+  static createSameBeatmapKeyString({ beatmapId, sameBeatmapNumber }: VirtualMatchKey): string {
     return JSON.stringify({ beatmapId, sameBeatmapNumber });
   }
 
-  static createSameBeatmapKeyObjectFromKeyString(key: string): SameBeatmapKey {
+  static createSameBeatmapKeyObjectFromKeyString(key: string): VirtualMatchKey {
     return JSON.parse(key) as {
       beatmapId: string;
       sameBeatmapNumber: number;

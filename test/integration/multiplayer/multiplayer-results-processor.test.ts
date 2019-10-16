@@ -2,7 +2,8 @@ import "../../../src/bootstrap";
 import "mocha";
 import * as chai from "chai";
 import { assert, expect } from "chai";
-import { MultiplayerResultsProcessor, VirtualMatchGameEventGroup } from "../../../src/multiplayer/multiplayer-results-processor";
+import { MultiplayerResultsProcessor } from "../../../src/multiplayer/multiplayer-results-processor";
+import { VirtualMatchReportGroup } from "../../../src/multiplayer/virtual-match-report-group";
 import { VirtualMatch } from "../../../src/multiplayer/virtual-match";
 import { ApiMultiplayer } from "../../../src/osu/types/api-multiplayer";
 import { TeamMode } from "../../../src/multiplayer/components/enums/team-mode";
@@ -2258,7 +2259,7 @@ describe("When processing multiplayer results", function() {
             allGameLobbies
           });
 
-          const gameEvents: VirtualMatchGameEventGroup[] = processor7.buildGameEventsGroupedByVirtualMatches({
+          const gameEvents: VirtualMatchReportGroup[] = processor7.buildGameEventsGroupedByVirtualMatches({
             game: games7[0],
             reportedMatches,
             messages
@@ -2268,7 +2269,7 @@ describe("When processing multiplayer results", function() {
           //                ✅ Calculate game events for each VirtualMatch
           //                - Assert only building events for unreported matches (do this after each set of api results)
           //                - Assert correct winning team ID after each call to the processor
-          //                - Save reported matches in DB
+          //                - Save reported matches in DB (also include what message was reported e.g. awaiting some lobby / all lobbies completed)
 
           // TODO: assert actual messages object deep equals expected (and test correct beatmap number in message)
           //      test both completed and waiting messages

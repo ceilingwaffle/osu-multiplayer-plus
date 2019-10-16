@@ -20,17 +20,11 @@ import {
 } from "./lobby-beatmap-status-message";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
 import { VirtualMatch } from "./virtual-match";
-import { VirtualMatchCreator, SameBeatmapKey } from "./virtual-match-creator";
+import { VirtualMatchCreator } from "./virtual-match-creator";
 import { LobbyBeatmapStatusMessageBuilder } from "./lobby-beatmap-status-message-builder";
 import { MultiplayerEntitySaver } from "./multiplayer-entity-saver";
 import { MessageType } from "./lobby-beatmap-status-message";
-
-export interface VirtualMatchGameEventGroup {
-  beatmapId: string;
-  sameBeatmapNumber: number;
-  events?: GameEvent[];
-  messages?: LobbyBeatmapStatusMessageGroup;
-}
+import { VirtualMatchReportGroup } from "./virtual-match-report-group";
 
 export class MultiplayerResultsProcessor {
   // TODO: Don't get these from the ioc container - should be able to inject somehow
@@ -119,18 +113,15 @@ export class MultiplayerResultsProcessor {
     game: Game;
     reportedMatches: Match[];
     messages: LobbyBeatmapStatusMessageGroup;
-  }): VirtualMatchGameEventGroup[] {
+  }): VirtualMatchReportGroup[] {
     const gameEvents = this.buildAndProcessUnreportedGameEventsForGame({ game, reportedMatches });
     const gameEventVMGroups = this.buildVirtualMatchGroupsFromGameEvents({ processedEvents: gameEvents });
     const messageVMGroups = this.buildVirtualMatchGroupsFromMessages({ messages });
-    const vmGroups = this.mergeVirtualMatchGameEventGroups(gameEventVMGroups, messageVMGroups);
+    const vmGroups = this.mergeVirtualMatchReportGroups(gameEventVMGroups, messageVMGroups);
     return vmGroups;
   }
 
-  private mergeVirtualMatchGameEventGroups(
-    group1: VirtualMatchGameEventGroup[],
-    group2: VirtualMatchGameEventGroup[]
-  ): VirtualMatchGameEventGroup[] {
+  private mergeVirtualMatchReportGroups(group1: VirtualMatchReportGroup[], group2: VirtualMatchReportGroup[]): VirtualMatchReportGroup[] {
     // if (!groups.length) return;
     // if (groups.length === 1) return groups[0];
     // https://stackoverflow.com/questions/39246101/deep-merge-using-lodash
@@ -223,7 +214,7 @@ export class MultiplayerResultsProcessor {
     return virtualMatch.lobbies.remaining.length < 1;
   }
 
-  private buildVirtualMatchGroupsFromGameEvents({ processedEvents }: { processedEvents: GameEvent[] }): VirtualMatchGameEventGroup[] {
+  private buildVirtualMatchGroupsFromGameEvents({ processedEvents }: { processedEvents: GameEvent[] }): VirtualMatchReportGroup[] {
     return _(processedEvents)
       .groupBy(event => {
         if (event.data) {
@@ -245,10 +236,10 @@ export class MultiplayerResultsProcessor {
       .value();
   }
 
-  buildVirtualMatchGroupsFromMessages({ messages }: { messages: LobbyBeatmapStatusMessageGroup }): VirtualMatchGameEventGroup[] {
-    const groups: VirtualMatchGameEventGroup[][] = [];
+  buildVirtualMatchGroupsFromMessages({ messages }: { messages: LobbyBeatmapStatusMessageGroup }): VirtualMatchReportGroup[] {
+    const groups: VirtualMatchReportGroup[][] = [];
     messages.forEach((messages, messagesType) => {
-      const a: VirtualMatchGameEventGroup[] = _(messages)
+      const a: VirtualMatchReportGroup[] = _(messages)
         .groupBy(message => {
           if (message.message && message.message.length) {
             return VirtualMatchCreator.createSameBeatmapKeyString({
@@ -270,7 +261,7 @@ export class MultiplayerResultsProcessor {
     });
 
     // merge groups
-    const merged: VirtualMatchGameEventGroup[] = [];
+    const merged: VirtualMatchReportGroup[] = [];
 
     groups.forEach(g => {
       g.forEach(group => {
