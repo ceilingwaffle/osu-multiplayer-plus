@@ -27,18 +27,18 @@ export class GameRepository extends Repository<Game> {
       .getOne();
   }
 
-  async getReportedMatchesForGame(gameId: number): Promise<Match[]> {
-    try {
-      const game = await this.findOne({ id: gameId }, { relations: ["gameMatchesReported", "gameMatchesReported.match"] });
-      if (!game || !game.gameMatchesReported || !game.gameMatchesReported.length) return null;
-      const matches: Match[] = game.gameMatchesReported.filter(gmr => gmr.match).map(gmr => gmr.match);
-      Log.methodSuccess(this.getReportedMatchesForGame, this.constructor.name);
-      return matches;
-    } catch (error) {
-      Log.methodError(this.getReportedMatchesForGame, this.constructor.name, error);
-      throw error;
-    }
-  }
+  // async getReportedMatchesForGame(gameId: number): Promise<Match[]> {
+  //   try {
+  //     const game = await this.findOne({ id: gameId }, { relations: ["gameMatchesReported", "gameMatchesReported.match"] });
+  //     if (!game || !game.gameMatchesReported || !game.gameMatchesReported.length) return null;
+  //     const matches: Match[] = game.gameMatchesReported.filter(gmr => gmr.match).map(gmr => gmr.match);
+  //     Log.methodSuccess(this.getReportedMatchesForGame, this.constructor.name);
+  //     return matches;
+  //   } catch (error) {
+  //     Log.methodError(this.getReportedMatchesForGame, this.constructor.name, error);
+  //     throw error;
+  //   }
+  // }
 
   private getFindGameQb(gameId: number): SelectQueryBuilder<Game> {
     return (

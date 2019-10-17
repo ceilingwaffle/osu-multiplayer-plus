@@ -3,10 +3,18 @@ import { LobbyBeatmapStatusMessage, MessageType } from "./lobby-beatmap-status-m
 import { GameRepository } from "../domain/game/game.repository";
 import { getCustomRepository } from "typeorm";
 import { VirtualMatch } from "./virtual-match";
+import { VirtualMatchReportData } from "./virtual-match-report-data";
+import { Game } from "../domain/game/game.entity";
 
 export class MultiplayerResultsReporter {
   private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
 
+  static reportVirtualMatchesIfReady(args: { virtualMatchReportDatas: VirtualMatchReportData[]; game: Game }) {
+    // filter out events and messages already delivered
+    // args.game.gameMatchesReported;
+
+    throw new Error("TODO: Implement method of MultiplayerResultsReporter.");
+  }
   // .filter(filterOutMessagesForReportedMatches(reportedMatches))
 
   /**

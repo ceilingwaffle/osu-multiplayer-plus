@@ -22,6 +22,7 @@ import { LobbyBeatmapStatusMessageGroup } from "../../../src/multiplayer/lobby-b
 import { context } from "./context/spreadsheet-context";
 import { processedState } from "./context/spreadsheet-processed-state";
 import { VirtualMatchReportData } from "../../../src/multiplayer/virtual-match-report-data";
+import { MultiplayerResultsReporter } from '../../../src/multiplayer/multiplayer-results-reporter';
 
 chai.use(chaiExclude);
 
@@ -111,6 +112,7 @@ describe("When processing multiplayer results", function() {
             .to.deep.equal(processedState.lobby1ApiResults1);
 
           const processedData1: VirtualMatchReportData[] = processor1.buildVirtualMatchReportGroupsForGame(games1[0]);
+          const reported = MultiplayerResultsReporter.reportVirtualMatchesIfReady({virtualMatchReportDatas: processedData1, game: games1[0]})
 
           const processor2 = new MultiplayerResultsProcessor(context.osuApiResults.lobby2ApiResults1);
           const games2: Game[] = await processor2.saveMultiplayerEntities();

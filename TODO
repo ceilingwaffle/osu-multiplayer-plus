@@ -124,6 +124,8 @@ TODO:
         ☐ Too many match results being downloaded from the osu API.
             Need some way of limiting the maximum number of matches downloaded per multiplayer (right now we're using 500kb/s for 150+ matches in a single multi when polling every 1s)
     Refactor:
+        ☐ Replace object in method args with (args: {...}) @created(19-10-17 15:53)
+            to simplify the Document This comments, and reduce the character count in the method signatures
         ☐ For next big version @created(19-10-08 15:30)
             ☐ Use io-ts with Either 
             ☐ Use CQS/CQRS pattern (see nestjs/cqrs) 

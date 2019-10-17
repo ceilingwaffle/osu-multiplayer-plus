@@ -34,8 +34,8 @@ export class MultiplayerResultsProcessor {
     Log.info(`Initialized ${this.constructor.name}.`);
   }
 
-  async saveMultiplayerEntities() {
-    return MultiplayerEntitySaver.saveMultiplayerEntities(this.input);
+  async saveMultiplayerEntities(): Promise<Game[]> {
+    return await MultiplayerEntitySaver.saveMultiplayerEntities(this.input);
   }
 
   buildBeatmapsGroupedByLobbyPlayedStatusesForGame(game: Game) {

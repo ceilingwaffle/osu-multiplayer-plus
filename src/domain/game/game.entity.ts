@@ -28,9 +28,6 @@ export class Game extends CreationTimestampedEntity {
   @Column("simple-json", { nullable: true })
   messageTargets: GameMessageTarget[];
 
-  @ManyToMany(type => Match)
-  reportedMatches;
-
   @Column({ default: GameStatus.UNKNOWN.getKey() })
   status: string;
 

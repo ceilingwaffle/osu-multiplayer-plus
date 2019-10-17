@@ -39,6 +39,9 @@ export class LobbyRepository extends Repository<Lobby> {
       .leftJoinAndSelect("playerScores.scoredBy", "scoredBy") // 13
       .leftJoinAndSelect("scoredBy.user", "user") // 14
 
+      .leftJoinAndSelect("game.gameMatchesReported", "gameMatchesReported")
+      .leftJoinAndSelect("gameMatchesReported.match", "gameMatchesReported_match")
+
       .where("lobby.id = :lobbyId", { lobbyId: lobbyId })
       .getOne();
 
