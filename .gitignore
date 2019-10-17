@@ -12,7 +12,9 @@ design/
 .nyc_output/
 .env
 .DS_Store
+*.sqlite
 **/*.sqlite
 **/*.sqlite-journal
 **/*.log
 bash.exe.stackdump
+.vsls.json
