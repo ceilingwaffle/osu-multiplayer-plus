@@ -21,6 +21,7 @@ import { getCustomRepository } from "typeorm";
 import { LobbyBeatmapStatusMessageGroup } from "../../../src/multiplayer/lobby-beatmap-status-message";
 import { context } from "./context/spreadsheet-context";
 import { processedState } from "./context/spreadsheet-processed-state";
+import { VirtualMatchReportData } from "../../../src/multiplayer/virtual-match-report-data";
 
 chai.use(chaiExclude);
 
@@ -109,6 +110,8 @@ describe("When processing multiplayer results", function() {
             .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
             .to.deep.equal(processedState.lobby1ApiResults1);
 
+          const processedData1: VirtualMatchReportData[] = processor1.buildVirtualMatchReportGroupsForGame(games1[0]);
+
           const processor2 = new MultiplayerResultsProcessor(context.osuApiResults.lobby2ApiResults1);
           const games2: Game[] = await processor2.saveMultiplayerEntities();
           expect(games2).to.have.lengthOf(1);
@@ -122,6 +125,8 @@ describe("When processing multiplayer results", function() {
           expect(r2)
             .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
             .to.deep.equal(processedState.lobby2ApiResults1);
+
+          const processedData2: VirtualMatchReportData[] = processor2.buildVirtualMatchReportGroupsForGame(games2[0]);
 
           const processor3 = new MultiplayerResultsProcessor(context.osuApiResults.lobby2ApiResults2);
           const games3: Game[] = await processor3.saveMultiplayerEntities();
@@ -137,6 +142,8 @@ describe("When processing multiplayer results", function() {
             .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
             .to.deep.equal(processedState.lobby2ApiResults2);
 
+          const processedData3: VirtualMatchReportData[] = processor3.buildVirtualMatchReportGroupsForGame(games3[0]);
+
           const processor4 = new MultiplayerResultsProcessor(context.osuApiResults.lobby1ApiResults2);
           const games4: Game[] = await processor4.saveMultiplayerEntities();
           expect(games4).to.have.lengthOf(1);
@@ -150,6 +157,8 @@ describe("When processing multiplayer results", function() {
           expect(r4)
             .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
             .to.deep.equal(processedState.lobby1ApiResults2);
+
+          const processedData4: VirtualMatchReportData[] = processor4.buildVirtualMatchReportGroupsForGame(games4[0]);
 
           const processor5 = new MultiplayerResultsProcessor(context.osuApiResults.lobby2ApiResults3);
           const games5: Game[] = await processor5.saveMultiplayerEntities();
@@ -166,6 +175,8 @@ describe("When processing multiplayer results", function() {
             .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
             .to.deep.equal(processedState.lobby2ApiResults3);
 
+          const processedData5: VirtualMatchReportData[] = processor5.buildVirtualMatchReportGroupsForGame(games5[0]);
+
           const processor6 = new MultiplayerResultsProcessor(context.osuApiResults.lobby1ApiResults3);
           const games6: Game[] = await processor6.saveMultiplayerEntities();
           expect(games6).to.have.lengthOf(1);
@@ -180,6 +191,8 @@ describe("When processing multiplayer results", function() {
           expect(r6)
             .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
             .to.deep.equal(processedState.lobby1ApiResults3);
+
+          const processedData6: VirtualMatchReportData[] = processor6.buildVirtualMatchReportGroupsForGame(games6[0]);
 
           const processor7 = new MultiplayerResultsProcessor(context.osuApiResults.lobby2ApiResults4);
           const games7: Game[] = await processor7.saveMultiplayerEntities();
@@ -197,13 +210,7 @@ describe("When processing multiplayer results", function() {
             .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
             .to.deep.equal(processedState.lobby2ApiResults4);
 
-          const reportedMatches: Match[] = await gameRepository.getReportedMatchesForGame(games7[0].id);
-          const allGameLobbies: Lobby[] = games7[0].gameLobbies.map(gl => gl.lobby);
-          const messages: LobbyBeatmapStatusMessageGroup = processor7.buildLobbyMatchReportMessages({
-            virtualMatchesPlayed: blg7,
-            reportedMatches,
-            allGameLobbies
-          });
+          const processedData7: VirtualMatchReportData[] = processor7.buildVirtualMatchReportGroupsForGame(games7[0]);
 
           // TODO: Oct 14th
           //                ✅ Calculate game events for each VirtualMatch

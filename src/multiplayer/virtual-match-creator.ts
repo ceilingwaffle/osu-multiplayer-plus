@@ -7,45 +7,45 @@ import { Game } from "../domain/game/game.entity";
 import { VirtualMatchKey } from "./virtual-match-key";
 
 export class VirtualMatchCreator {
-  /**
-   * Returns a list of virtual matches for all virtual matches completed in this game so far,
-   * and only those virtual matches not containing a real match that we've already delivered a game report for.
-   *
-   * @static
-   * @param {Game} game
-   * @param {Match[]} reportedMatches
-   * @returns {VirtualMatch[]}
-   */
-  static buildCompletedVirtualMatchesForGameForUnreportedMatches({
-    game,
-    reportedMatches
-  }: {
-    game: Game;
-    reportedMatches: Match[];
-  }): VirtualMatch[] {
-    const allVirtualMatches = VirtualMatchCreator.buildVirtualMatchesForGame(game);
-    const completedVirtualMatches = VirtualMatchCreator.removeIncompleteVirtualMatches(allVirtualMatches);
-    const completedAndUnreported = VirtualMatchCreator.removeVirtualMatchesContainingRealMatches({
-      virtualMatches: completedVirtualMatches,
-      realMatches: reportedMatches
-    });
-    return completedAndUnreported;
-  }
+  // /**
+  //  * Returns a list of virtual matches for all virtual matches completed in this game so far,
+  //  * and only those virtual matches not containing a real match that we've already delivered a game report for.
+  //  *
+  //  * @static
+  //  * @param {Game} game
+  //  * @param {Match[]} reportedMatches
+  //  * @returns {VirtualMatch[]}
+  //  */
+  // static buildCompletedVirtualMatchesForGameForUnreportedMatches({
+  //   game,
+  //   reportedMatches
+  // }: {
+  //   game: Game;
+  //   reportedMatches: Match[];
+  // }): VirtualMatch[] {
+  //   const allVirtualMatches = VirtualMatchCreator.buildVirtualMatchesForGame(game);
+  //   const completedVirtualMatches = VirtualMatchCreator.removeIncompleteVirtualMatches(allVirtualMatches);
+  //   const completedAndUnreported = VirtualMatchCreator.removeVirtualMatchesContainingRealMatches({
+  //     virtualMatches: completedVirtualMatches,
+  //     realMatches: reportedMatches
+  //   });
+  //   return completedAndUnreported;
+  // }
 
-  static buildAllVirtualMatchesForGameForUnreportedMatches({
-    game,
-    reportedMatches
-  }: {
-    game: Game;
-    reportedMatches: Match[];
-  }): VirtualMatch[] {
-    const allVirtualMatches = VirtualMatchCreator.buildVirtualMatchesForGame(game);
-    const allUnreportedVirtualMatches = VirtualMatchCreator.removeVirtualMatchesContainingRealMatches({
-      virtualMatches: allVirtualMatches,
-      realMatches: reportedMatches
-    });
-    return allUnreportedVirtualMatches;
-  }
+  // static buildAllVirtualMatchesForGameForUnreportedMatches({
+  //   game,
+  //   reportedMatches
+  // }: {
+  //   game: Game;
+  //   reportedMatches: Match[];
+  // }): VirtualMatch[] {
+  //   const allVirtualMatches = VirtualMatchCreator.buildVirtualMatchesForGame(game);
+  //   const allUnreportedVirtualMatches = VirtualMatchCreator.removeVirtualMatchesContainingRealMatches({
+  //     virtualMatches: allVirtualMatches,
+  //     realMatches: reportedMatches
+  //   });
+  //   return allUnreportedVirtualMatches;
+  // }
 
   /**
    * Returns a list of beatmaps each containing lists of lobbies where the ebatmap is "played in lobbies" and "remaining to be played in lobbies".
@@ -170,31 +170,31 @@ export class VirtualMatchCreator {
   //   return playedByAllLobbies.length ? playedByAllLobbies.slice(-1)[0] : null;
   // }
 
-  private static removeIncompleteVirtualMatches(virtualMatches: VirtualMatch[]): VirtualMatch[] {
-    // this assumes if no lobbies are listed under "remaining" then that match has been completed by all game lobbies
-    return virtualMatches.filter(b => !b.lobbies.remaining.length);
-  }
+  // private static removeIncompleteVirtualMatches(virtualMatches: VirtualMatch[]): VirtualMatch[] {
+  //   // this assumes if no lobbies are listed under "remaining" then that match has been completed by all game lobbies
+  //   return virtualMatches.filter(b => !b.lobbies.remaining.length);
+  // }
 
-  /**
-   * Returns virtual matches not containing any of the given real matches
-   *
-   * @static
-   * @param {{
-   *     virtualMatches: VirtualMatch[];
-   *     realMatches: Match[];
-   *   }} {
-   *     virtualMatches,
-   *     realMatches
-   *   }
-   * @returns {VirtualMatch[]}
-   */
-  private static removeVirtualMatchesContainingRealMatches({
-    virtualMatches,
-    realMatches
-  }: {
-    virtualMatches: VirtualMatch[];
-    realMatches: Match[];
-  }): VirtualMatch[] {
-    return virtualMatches.filter(vm => !vm.matches.some(vmm => realMatches.some(rm => vmm.id === rm.id)));
-  }
+  // /**
+  //  * Returns virtual matches not containing any of the given real matches
+  //  *
+  //  * @static
+  //  * @param {{
+  //  *     virtualMatches: VirtualMatch[];
+  //  *     realMatches: Match[];
+  //  *   }} {
+  //  *     virtualMatches,
+  //  *     realMatches
+  //  *   }
+  //  * @returns {VirtualMatch[]}
+  //  */
+  // private static removeVirtualMatchesContainingRealMatches({
+  //   virtualMatches,
+  //   realMatches
+  // }: {
+  //   virtualMatches: VirtualMatch[];
+  //   realMatches: Match[];
+  // }): VirtualMatch[] {
+  //   return virtualMatches.filter(vm => !vm.matches.some(vmm => realMatches.some(rm => vmm.id === rm.id)));
+  // }
 }

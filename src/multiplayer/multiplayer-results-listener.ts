@@ -2,7 +2,7 @@ import { OsuLobbyScannerEventDataMap } from "../osu/interfaces/osu-lobby-scanner
 import { Log } from "../utils/Log";
 import { GameReport } from "./reports/game.report";
 import { MultiplayerResultsProcessor } from "./multiplayer-results-processor";
-import { VirtualMatchReportGroup } from "./virtual-match-report-group";
+import { VirtualMatchReportData } from "./virtual-match-report-data";
 import { VirtualMatch } from "./virtual-match";
 import Emittery = require("emittery");
 import { ApiMultiplayer } from "../osu/types/api-multiplayer";
@@ -46,19 +46,8 @@ export class MultiplayerResultsListener {
         const multiplayerGames: Game[] = await processor.saveMultiplayerEntities();
 
         for (const game of multiplayerGames) {
-          const reportedMatches: Match[] = (await this.gameRepository.getReportedMatchesForGame(game.id)) || [];
-          const virtualMatchReportGroups: VirtualMatchReportGroup[] = [];
-          const virtualMatches: VirtualMatch[] = processor.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(game);
-          const allGameLobbies: Lobby[] = game.gameLobbies.map(gl => gl.lobby);
-          const lobbyBeatmapStatusMessages: LobbyBeatmapStatusMessageGroup = processor.buildLobbyMatchReportMessages({
-            virtualMatchesPlayed: virtualMatches,
-            reportedMatches,
-            allGameLobbies
-          });
+          const virtualMatchReportDatas: VirtualMatchReportData[] = await processor.buildVirtualMatchReportGroupsForGame(game);
           // TODO: Deliver messages and events
-          virtualMatchReportGroups.push(
-            ...processor.buildGameEventsGroupedByVirtualMatches({ game, reportedMatches, messages: lobbyBeatmapStatusMessages })
-          );
           // TODO: build game report for game
           // processor.buildGameReport(gameEvents);
           // TODO: send reports only to games included in targetGameIds
@@ -79,8 +68,6 @@ export class MultiplayerResultsListener {
 - leaderboard (includes team scores/positions)
 - game events
 - game messages
-
-
           */
         }
       }
