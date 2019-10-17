@@ -23,6 +23,12 @@ TODO:
             ☐ Need some way to make .env files inaccessible before we can allow this @created(19-10-06 21:51)
     Bugs:
         Critical:
+            ☐ Problem: !startgame called without first adding teams, causing error: @created(19-10-17 23:51)
+                [2019-10-17T23:32:52.712] [ERROR] default - Method unexpected-error: buildVirtualMatchReportGroupsForGame MultiplayerResultsProcessor TypeError: Cannot read property 'teamOsuUsers' of null        
+                at Function.calculateTeamScoresForVirtualMatch (C:\C\projects\OsuBrBot2\src\multiplayer\team-score-calculator.ts:80:35)
+                ☐ Fix 1: Deny !startgame command if no teams added @created(19-10-17 23:56)
+                ☐ Fix 2: Check for undefined teamsOsuUsers in TeamScoreCalculator (do this anyway) @created(19-10-17 23:56)
+                ☐ We should also deny the !addteam command if a game has already started, but the code should be flexible enough to support future scenarios where teams can be added after a game has been started, and the results are re-calculated to include the new teams. @created(19-10-17 23:54)
         Important:
             ☐ !creategame should change the target game of the requesting user to that game. @created(19-09-19 13:00)
         Optimize:
