@@ -26,9 +26,8 @@ String.prototype.toSentenceCase = function(): string {
   return sentence;
 };
 
-Message.enableSentenceCaseOutput();
-
 export const bootstrap = async (): Promise<void> => {
+  Message.enableSentenceCaseOutput();
   await iocContainer.initDatabaseClientConnection();
   await GameEventRegistrarInitializer.initGameEventRegistrarsFromActiveDatabaseGames();
 };
