@@ -10,6 +10,7 @@ export interface LobbyBeatmapStatusMessage<T extends MessageType> {
   beatmapId: string;
   lobby?: Lobby;
   match?: Match;
+  /** The timestamp of when the event happened */
   time: number;
 }
 
@@ -22,13 +23,8 @@ export interface LobbyAwaitingBeatmapMessage extends LobbyBeatmapStatusMessage<"
   lobby: Lobby;
 }
 
-export interface AllLobbiesCompletedBeatmapMessage extends LobbyBeatmapStatusMessage<"all_lobbies_completed"> {}
-export type LobbyBeatmapStatusMessageTypes = LobbyCompletedBeatmapMessage | LobbyAwaitingBeatmapMessage | AllLobbiesCompletedBeatmapMessage;
-
-// export interface LobbyBeatmapStatusMessageGroup {
-//   completedBeatmaps: LobbyCompletedBeatmapMessage[];
-//   awaitingBeatmaps: LobbyAwaitingBeatmapMessage[];
-//   allLobbiesCompleted: AllLobbiesCompletedBeatmapMessage[];
-// }
-
 export type LobbyBeatmapStatusMessageGroup = Map<MessageType, LobbyBeatmapStatusMessage<MessageType>[]>;
+
+export interface AllLobbiesCompletedBeatmapMessage extends LobbyBeatmapStatusMessage<"all_lobbies_completed"> {}
+
+export type LobbyBeatmapStatusMessageTypes = LobbyCompletedBeatmapMessage | LobbyAwaitingBeatmapMessage | AllLobbiesCompletedBeatmapMessage;

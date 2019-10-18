@@ -2,7 +2,11 @@ import { VirtualMatch } from "../virtual-match";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
 import { Match } from "../../domain/match/match.entity";
 
-export type RequiredGameEventDataProps = { timeOfEvent: number; eventMatch: VirtualMatch };
+export type RequiredGameEventDataProps = {
+  eventMatch: VirtualMatch;
+  /** The timestamp of when the event happened */
+  timeOfEvent: number;
+};
 export type CustomGameEventDataProps<T> = T & RequiredGameEventDataProps;
 
 export abstract class AbstractGameEvent<DataType> {

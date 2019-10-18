@@ -14,6 +14,8 @@ export class MultiplayerResultsReporter {
 
     // TODO: Deliver report items?
 
+    const b = _.sortBy(toBeReported, t => t.time);
+
     const a = true;
 
     // throw new Error("TODO: Implement method of MultiplayerResultsReporter.");
@@ -49,7 +51,8 @@ export class MultiplayerResultsReporter {
             type: "game_event",
             subType: e.type,
             beatmapId: e.data.eventMatch.beatmapId,
-            sameBeatmapNumber: e.data.eventMatch.sameBeatmapNumber
+            sameBeatmapNumber: e.data.eventMatch.sameBeatmapNumber,
+            time: e.data.timeOfEvent
           };
           reportable.push(reportedContext);
         });
@@ -61,7 +64,8 @@ export class MultiplayerResultsReporter {
               type: "message",
               subType: msg.type,
               beatmapId: msg.beatmapId,
-              sameBeatmapNumber: msg.sameBeatmapNumber
+              sameBeatmapNumber: msg.sameBeatmapNumber,
+              time: msg.time
             };
             reportable.push(reportedContext);
           });

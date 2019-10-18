@@ -47,6 +47,7 @@ export type ReportedContextType = "message" | "game_event";
 export type ReportedContext<T extends ReportedContextType> = VirtualMatchKey & {
   type: T;
   subType: T extends "message" ? MessageType : T extends "game_event" ? GameEventType : never;
+  time: number;
 };
 
 // const foo: ReportedContext<"message"> = {
