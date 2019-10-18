@@ -5,6 +5,7 @@ import { Match } from "../match/match.entity";
 import { Realm } from "../realm/realm.entity";
 import { MessageType } from "../../multiplayer/lobby-beatmap-status-message";
 import { GameEventType } from "../../multiplayer/game-events/game-event-types";
+import { VirtualMatchKey } from "../../multiplayer/virtual-match-key";
 
 export enum ReportedType {
   "message" = "message",
@@ -35,7 +36,7 @@ export class GameMatchReported extends CreationTimestampedEntity {
   reportedType: ReportedType;
 
   @Column("simple-json")
-  reportedContext: { type: "message" | "game_event"; subType: MessageType | GameEventType; sameBeatmapNumber: number; beatmapId: string };
+  reportedContext: ReportedContext<ReportedContextType>;
 
   @ManyToOne(type => Realm, { nullable: true })
   reportedToRealms: Realm[];
@@ -43,11 +44,9 @@ export class GameMatchReported extends CreationTimestampedEntity {
 
 export type ReportedContextType = "message" | "game_event";
 
-export type ReportedContext<T extends ReportedContextType> = {
-  type?: T;
+export type ReportedContext<T extends ReportedContextType> = VirtualMatchKey & {
+  type: T;
   subType: T extends "message" ? MessageType : T extends "game_event" ? GameEventType : never;
-  sameBeatmapNumber: number;
-  beatmapId: string;
 };
 
 // const foo: ReportedContext<"message"> = {

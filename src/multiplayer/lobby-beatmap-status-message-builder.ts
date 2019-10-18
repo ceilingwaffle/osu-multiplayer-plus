@@ -46,7 +46,8 @@ export class LobbyBeatmapStatusMessageBuilder {
         lobby: LobbyBeatmapStatusMessageBuilder.buildLobbyComponent(match.lobby),
         match: LobbyBeatmapStatusMessageBuilder.buildMatchComponent(match),
         sameBeatmapNumber: beatmapNumber,
-        beatmapId: match.beatmapId
+        beatmapId: match.beatmapId,
+        type: "lobby_completed"
       };
       completedMessages.push(message);
     }
@@ -63,7 +64,8 @@ export class LobbyBeatmapStatusMessageBuilder {
           message: `Waiting on beatmap ${vMatch.beatmapId}#${vMatch.sameBeatmapNumber} from lobby ${rLobby.id}.`,
           lobby: LobbyBeatmapStatusMessageBuilder.buildLobbyComponent(rLobby),
           sameBeatmapNumber: vMatch.sameBeatmapNumber,
-          beatmapId: vMatch.beatmapId
+          beatmapId: vMatch.beatmapId,
+          type: "lobby_awaiting"
         };
         waitingMessages.push(message);
       }
@@ -82,7 +84,8 @@ export class LobbyBeatmapStatusMessageBuilder {
         const message: AllLobbiesCompletedBeatmapMessage = {
           message: `All lobbies have completed beatmap ${vMatch.beatmapId}#${vMatch.sameBeatmapNumber}`,
           sameBeatmapNumber: vMatch.sameBeatmapNumber,
-          beatmapId: vMatch.beatmapId
+          beatmapId: vMatch.beatmapId,
+          type: "all_lobbies_completed"
         };
         messages.push(message);
       }
