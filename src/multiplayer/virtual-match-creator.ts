@@ -176,27 +176,4 @@ export class VirtualMatchCreator {
   //   // this assumes if no lobbies are listed under "remaining" then that match has been completed by all game lobbies
   //   return virtualMatches.filter(b => !b.lobbies.remaining.length);
   // }
-
-  // /**
-  //  * Returns virtual matches not containing any of the given real matches
-  //  *
-  //  * @static
-  //  * @param {{
-  //  *     virtualMatches: VirtualMatch[];
-  //  *     realMatches: Match[];
-  //  *   }} {
-  //  *     virtualMatches,
-  //  *     realMatches
-  //  *   }
-  //  * @returns {VirtualMatch[]}
-  //  */
-  // private static removeVirtualMatchesContainingRealMatches({
-  //   virtualMatches,
-  //   realMatches
-  // }: {
-  //   virtualMatches: VirtualMatch[];
-  //   realMatches: Match[];
-  // }): VirtualMatch[] {
-  //   return virtualMatches.filter(vm => !vm.matches.some(vmm => realMatches.some(rm => vmm.id === rm.id)));
-  // }
 }

@@ -37,8 +37,6 @@ export class MultiplayerResultsReporter {
     return toBeReported;
   }
 
-  // .filter(filterOutMessagesForReportedMatches(reportedMatches))
-
   private static getAllReportableItemsForGame(args: {
     virtualMatchReportDatas: VirtualMatchReportData[];
   }): ReportedContext<ReportedContextType>[] {
@@ -118,32 +116,16 @@ export class MultiplayerResultsReporter {
     return reported;
   }
 
-  /**
-   * Returns virtual matches not containing any of the given real matches
-   *
-   * @static
-   * @param {{
-   *     virtualMatches: VirtualMatch[];
-   *     realMatches: Match[];
-   *   }} {
-   *     virtualMatches,
-   *     realMatches
-   *   }
-   * @returns {VirtualMatch[]}
-   */
-  private static removeVirtualMatchesContainingRealMatches({
-    virtualMatches,
-    realMatches
-  }: {
-    virtualMatches: VirtualMatch[];
-    realMatches: Match[];
-  }): VirtualMatch[] {
-    return virtualMatches.filter(vm => !vm.matches.some(vmm => realMatches.some(rm => vmm.id === rm.id)));
-  }
+  // /**
+  //  * Returns virtual matches not containing any of the given real matches
+  //  */
+  // private static removeVirtualMatchesContainingRealMatches(args: { virtualMatches: VirtualMatch[]; realMatches: Match[] }): VirtualMatch[] {
+  //   return args.virtualMatches.filter(vm => !vm.matches.some(vmm => args.realMatches.some(rm => vmm.id === rm.id)));
+  // }
 }
 
-function filterOutMessagesForReportedMatches(
-  reportedMatches: Match[]
-): (value: LobbyBeatmapStatusMessage<MessageType>, index: number, array: LobbyBeatmapStatusMessage<MessageType>[]) => unknown {
-  return message => !reportedMatches.find(rm => message.match && message.match.entityId && message.match.entityId === rm.id);
-}
+// function filterOutMessagesForReportedMatches(
+//   reportedMatches: Match[]
+// ): (value: LobbyBeatmapStatusMessage<MessageType>, index: number, array: LobbyBeatmapStatusMessage<MessageType>[]) => unknown {
+//   return message => !reportedMatches.find(rm => message.match && message.match.entityId && message.match.entityId === rm.id);
+// }
