@@ -3,11 +3,12 @@ import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity
 import { Game } from "./game.entity";
 import { Match } from "../match/match.entity";
 import { Realm } from "../realm/realm.entity";
-import { MessageType } from "../../multiplayer/lobby-beatmap-status-message";
+import { MessageType, LobbyBeatmapStatusMessage } from "../../multiplayer/lobby-beatmap-status-message";
 import { GameEventType } from "../../multiplayer/game-events/game-event-types";
 import { VirtualMatchKey } from "../../multiplayer/virtual-match-key";
+import { GameEvent } from "../../multiplayer/game-events/game-event";
 
-export enum ReportedType {
+export enum ReportableType {
   "message" = "message",
   "event" = "event"
 }
@@ -32,26 +33,25 @@ export class GameMatchReported extends CreationTimestampedEntity {
   @ManyToOne(type => Match, match => match.gameMatchesReported)
   match: Match;
 
-  @Column({ type: "simple-enum", enum: ReportedType })
-  reportedType: ReportedType;
+  @Column({ type: "simple-enum", enum: ReportableType })
+  reportedType: ReportableType;
 
   @Column("simple-json")
-  reportedContext: ReportedContext<ReportedContextType>;
+  reportedContext: ReportableContext<ReportableContextType>;
 
   @ManyToOne(type => Realm, { nullable: true })
   reportedToRealms: Realm[];
 }
 
-export type ReportedContextType = "message" | "game_event";
+export type ReportableContextType = "message" | "game_event";
 
-export type ReportedContext<T extends ReportedContextType> = VirtualMatchKey & {
+export type ReportableContext<T extends ReportableContextType> = VirtualMatchKey & {
+  /** Message or GameEvent */
   type: T;
+  /** The specific type of Message or GameEvent */
   subType: T extends "message" ? MessageType : T extends "game_event" ? GameEventType : never;
+  /** The original message/event object */
+  item: T extends "message" ? LobbyBeatmapStatusMessage<MessageType> : T extends "game_event" ? GameEvent : never;
+  /** The time in which the message/event occurred */
   time: number;
 };
-
-// const foo: ReportedContext<"message"> = {
-//   sameBeatmapNumber: 1,
-//   beatmapId: "foo",
-//   subType: "all_lobbies_completed"
-// };

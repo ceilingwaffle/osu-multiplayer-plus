@@ -23,8 +23,8 @@ export interface LobbyAwaitingBeatmapMessage extends LobbyBeatmapStatusMessage<"
   lobby: Lobby;
 }
 
-export type LobbyBeatmapStatusMessageGroup = Map<MessageType, LobbyBeatmapStatusMessage<MessageType>[]>;
-
 export interface AllLobbiesCompletedBeatmapMessage extends LobbyBeatmapStatusMessage<"all_lobbies_completed"> {}
+
+export type LobbyBeatmapStatusMessageGroup = Map<MessageType, LobbyBeatmapStatusMessage<MessageType>[]>;
 
 export type LobbyBeatmapStatusMessageTypes = LobbyCompletedBeatmapMessage | LobbyAwaitingBeatmapMessage | AllLobbiesCompletedBeatmapMessage;

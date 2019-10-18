@@ -105,7 +105,7 @@ describe("When processing multiplayer results", function() {
               .to.deep.equal(processedState.lobby1ApiResults1);
 
             const processedData1: VirtualMatchReportData[] = processor1.buildVirtualMatchReportGroupsForGame(games1[0]);
-            const reported = MultiplayerResultsReporter.reportVirtualMatchesIfNotYetReportedForGame({
+            const toBeReported = MultiplayerResultsReporter.getItemsToBeReported({
               virtualMatchReportDatas: processedData1,
               game: games1[0]
             });
@@ -295,8 +295,7 @@ describe("When processing multiplayer results", function() {
               .to.deep.equal(processedState.lobby2ApiResults4);
 
             const processedData7: VirtualMatchReportData[] = processor7.buildVirtualMatchReportGroupsForGame(games7[0]);
-
-            const reported = MultiplayerResultsReporter.reportVirtualMatchesIfNotYetReportedForGame({
+            const toBeReported = MultiplayerResultsReporter.getItemsToBeReported({
               virtualMatchReportDatas: processedData7,
               game: games7[0]
             });

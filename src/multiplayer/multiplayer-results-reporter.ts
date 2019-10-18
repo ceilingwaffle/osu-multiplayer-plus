@@ -3,53 +3,40 @@ import { LobbyBeatmapStatusMessage, MessageType } from "./lobby-beatmap-status-m
 import { VirtualMatch } from "./virtual-match";
 import { VirtualMatchReportData } from "./virtual-match-report-data";
 import { Game } from "../domain/game/game.entity";
-import { ReportedContext, ReportedContextType } from "../domain/game/game-match-reported.entity";
+import { ReportableContext, ReportableContextType } from "../domain/game/game-match-reported.entity";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
 
 export class MultiplayerResultsReporter {
-  static reportVirtualMatchesIfNotYetReportedForGame(args: { virtualMatchReportDatas: VirtualMatchReportData[]; game: Game }) {
-    const toBeReported: ReportedContext<ReportedContextType>[] = MultiplayerResultsReporter.getItemsToBeReported(args);
-
-    // TODO: Test that toBeReported correctly filtered out some items (after we implement the ReportedMatch saving)
-
-    // TODO: Deliver report items?
-
-    const b = _.sortBy(toBeReported, t => t.time);
-
-    const a = true;
-
-    // throw new Error("TODO: Implement method of MultiplayerResultsReporter.");
-  }
-
-  private static getItemsToBeReported(args: {
+  static getItemsToBeReported(args: {
     virtualMatchReportDatas: VirtualMatchReportData[];
     game: Game;
-  }): ReportedContext<ReportedContextType>[] {
-    const reportable: ReportedContext<ReportedContextType>[] = MultiplayerResultsReporter.getAllReportableItemsForGame({
+  }): ReportableContext<ReportableContextType>[] {
+    const reportable: ReportableContext<ReportableContextType>[] = MultiplayerResultsReporter.getAllReportableItemsForGame({
       virtualMatchReportDatas: args.virtualMatchReportDatas
     });
-    const reported: ReportedContext<ReportedContextType>[] = MultiplayerResultsReporter.getAlreadyReportedItemsForGame({
+    const reported: ReportableContext<ReportableContextType>[] = MultiplayerResultsReporter.getAlreadyReportedItemsForGame({
       virtualMatchReportDatas: args.virtualMatchReportDatas,
       game: args.game
     });
-    const toBeReported: ReportedContext<ReportedContextType>[] = _.differenceWith<
-      ReportedContext<ReportedContextType>,
-      ReportedContext<ReportedContextType>
+    const toBeReported: ReportableContext<ReportableContextType>[] = _.differenceWith<
+      ReportableContext<ReportableContextType>,
+      ReportableContext<ReportableContextType>
     >(reportable, reported, _.isEqual);
     return toBeReported;
   }
 
   private static getAllReportableItemsForGame(args: {
     virtualMatchReportDatas: VirtualMatchReportData[];
-  }): ReportedContext<ReportedContextType>[] {
-    const reportable: ReportedContext<ReportedContextType>[] = [];
+  }): ReportableContext<ReportableContextType>[] {
+    const reportable: ReportableContext<ReportableContextType>[] = [];
 
     args.virtualMatchReportDatas.forEach(vmrData => {
       if (vmrData.events) {
         vmrData.events.forEach(e => {
-          const reportedContext: ReportedContext<"game_event"> = {
+          const reportedContext: ReportableContext<"game_event"> = {
             type: "game_event",
             subType: e.type,
+            item: e,
             beatmapId: e.data.eventMatch.beatmapId,
             sameBeatmapNumber: e.data.eventMatch.sameBeatmapNumber,
             time: e.data.timeOfEvent
@@ -60,9 +47,10 @@ export class MultiplayerResultsReporter {
       if (vmrData.messages) {
         vmrData.messages.forEach(msgs => {
           msgs.forEach(msg => {
-            const reportedContext: ReportedContext<"message"> = {
+            const reportedContext: ReportableContext<"message"> = {
               type: "message",
               subType: msg.type,
+              item: msg,
               beatmapId: msg.beatmapId,
               sameBeatmapNumber: msg.sameBeatmapNumber,
               time: msg.time
@@ -79,8 +67,8 @@ export class MultiplayerResultsReporter {
   private static getAlreadyReportedItemsForGame(args: {
     virtualMatchReportDatas: VirtualMatchReportData[];
     game: Game;
-  }): ReportedContext<ReportedContextType>[] {
-    const reported: ReportedContext<ReportedContextType>[] = [];
+  }): ReportableContext<ReportableContextType>[] {
+    const reported: ReportableContext<ReportableContextType>[] = [];
 
     args.game.gameMatchesReported.forEach(gmr => {
       const reportedContext = gmr.reportedContext;
