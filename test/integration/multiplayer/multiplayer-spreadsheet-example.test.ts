@@ -2,21 +2,18 @@ import "../../../src/bootstrap";
 import "mocha";
 import * as chai from "chai";
 import { expect } from "chai";
+import chaiExclude from "chai-exclude";
 import iocContainer from "../../../src/inversify.config";
 import TYPES from "../../../src/types";
 import { IDbClient } from "../../../src/database/db-client";
 import { MultiplayerResultsProcessor } from "../../../src/multiplayer/multiplayer-results-processor";
 import { VirtualMatch } from "../../../src/multiplayer/virtual-match";
 import { TestHelpers } from "../../test-helpers";
-import chaiExclude from "chai-exclude";
 import { GameController } from "../../../src/domain/game/game.controller";
 import { LobbyController } from "../../../src/domain/lobby/lobby.controller";
 import { Game } from "../../../src/domain/game/game.entity";
 import { AddTeamsDto } from "../../../src/domain/team/dto/add-team.dto";
 import { TeamController } from "../../../src/domain/team/team.controller";
-import { GameRepository } from "../../../src/domain/game/game.repository";
-import { getCustomRepository } from "typeorm";
-import { LobbyBeatmapStatusMessageGroup } from "../../../src/multiplayer/lobby-beatmap-status-message";
 import { context } from "./context/spreadsheet-context";
 import { processedState } from "./context/spreadsheet-processed-state";
 import { VirtualMatchReportData } from "../../../src/multiplayer/virtual-match-report-data";
@@ -298,6 +295,11 @@ describe("When processing multiplayer results", function() {
               .to.deep.equal(processedState.lobby2ApiResults4);
 
             const processedData7: VirtualMatchReportData[] = processor7.buildVirtualMatchReportGroupsForGame(games7[0]);
+
+            const reported = MultiplayerResultsReporter.reportVirtualMatchesIfReady({
+              virtualMatchReportDatas: processedData7,
+              game: games7[0]
+            });
 
             return resolve();
           } catch (error) {
