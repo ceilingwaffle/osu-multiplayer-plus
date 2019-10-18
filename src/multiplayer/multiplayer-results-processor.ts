@@ -3,7 +3,6 @@ import getDecorators from "inversify-inject-decorators";
 import { TYPES } from "../types";
 const { lazyInject } = getDecorators(iocContainer);
 import { ApiMultiplayer } from "../osu/types/api-multiplayer";
-import { GameReport } from "./reports/game.report";
 import { Log } from "../utils/Log";
 import { Lobby } from "../domain/lobby/lobby.entity";
 import { Match } from "../domain/match/match.entity";

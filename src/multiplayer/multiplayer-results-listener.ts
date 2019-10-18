@@ -1,6 +1,5 @@
 import { OsuLobbyScannerEventDataMap } from "../osu/interfaces/osu-lobby-scanner-events";
 import { Log } from "../utils/Log";
-import { GameReport } from "./reports/game.report";
 import { MultiplayerResultsProcessor } from "./multiplayer-results-processor";
 import { VirtualMatchReportData } from "./virtual-match-report-data";
 import { VirtualMatch } from "./virtual-match";
