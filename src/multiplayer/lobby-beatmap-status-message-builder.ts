@@ -1,7 +1,7 @@
 import { Match } from "../domain/match/match.entity";
 import { Lobby } from "../domain/lobby/lobby.entity";
 import { VirtualMatch } from "./virtual-match";
-import { Match as MatchComponent } from "./components/match";
+import { Match as MatchComponent, sortByMatchOldestToLatest } from "./components/match";
 import { Lobby as LobbyComponent } from "./components/lobby";
 import {
   LobbyCompletedBeatmapMessage,
@@ -47,12 +47,13 @@ export class LobbyBeatmapStatusMessageBuilder {
         match: LobbyBeatmapStatusMessageBuilder.buildMatchComponent(match),
         sameBeatmapNumber: beatmapNumber,
         beatmapId: match.beatmapId,
-        type: "lobby_completed"
+        type: "lobby_completed",
+        time: match.endTime
       };
       completedMessages.push(message);
     }
     return _(completedMessages)
-      .sortBy(cm => cm.match.startTime)
+      .sortBy(cm => sortByMatchOldestToLatest(cm.match))
       .value();
   }
 
@@ -65,7 +66,8 @@ export class LobbyBeatmapStatusMessageBuilder {
           lobby: LobbyBeatmapStatusMessageBuilder.buildLobbyComponent(rLobby),
           sameBeatmapNumber: vMatch.sameBeatmapNumber,
           beatmapId: vMatch.beatmapId,
-          type: "lobby_awaiting"
+          type: "lobby_awaiting",
+          time: Date.now()
         };
         waitingMessages.push(message);
       }
@@ -85,7 +87,8 @@ export class LobbyBeatmapStatusMessageBuilder {
           message: `All lobbies have completed beatmap ${vMatch.beatmapId}#${vMatch.sameBeatmapNumber}`,
           sameBeatmapNumber: vMatch.sameBeatmapNumber,
           beatmapId: vMatch.beatmapId,
-          type: "all_lobbies_completed"
+          type: "all_lobbies_completed",
+          time: Date.now()
         };
         messages.push(message);
       }
@@ -125,11 +128,11 @@ export class LobbyBeatmapStatusMessageBuilder {
     return { completedMessages, waitingMessages, allLobbiesCompletedMessages };
   }
 
-  private static buildLobbyComponent(fromLobby: Lobby): LobbyComponent {
+  static buildLobbyComponent(fromLobby: Lobby): LobbyComponent {
     return { banchoLobbyId: fromLobby.banchoMultiplayerId, lobbyName: "TODO:LobbyName", resultsUrl: "TODO:LobbyResultsURL" };
   }
 
-  private static buildMatchComponent(fromMatchEntity: Match): MatchComponent {
+  static buildMatchComponent(fromMatchEntity: Match): MatchComponent {
     return {
       startTime: fromMatchEntity.startTime,
       endTime: fromMatchEntity.endTime,

@@ -10,6 +10,7 @@ export interface LobbyBeatmapStatusMessage<T extends MessageType> {
   beatmapId: string;
   lobby?: Lobby;
   match?: Match;
+  time: number;
 }
 
 export interface LobbyCompletedBeatmapMessage extends LobbyBeatmapStatusMessage<"lobby_completed"> {

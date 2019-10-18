@@ -25,6 +25,7 @@ import { LobbyBeatmapStatusMessageBuilder } from "./lobby-beatmap-status-message
 import { MultiplayerEntitySaver } from "./multiplayer-entity-saver";
 import { MessageType } from "./lobby-beatmap-status-message";
 import { VirtualMatchReportData } from "./virtual-match-report-data";
+import { sortByMatchOldestToLatest } from "./components/match";
 
 export class MultiplayerResultsProcessor {
   // TODO: Don't get these from the ioc container - should be able to inject somehow
@@ -66,7 +67,7 @@ export class MultiplayerResultsProcessor {
       .map(bmp => bmp.matches)
       .flatten()
       .uniqBy(match => match.id)
-      .sortBy(match => match.startTime)
+      .sortBy(match => sortByMatchOldestToLatest(LobbyBeatmapStatusMessageBuilder.buildMatchComponent(match)))
       .cloneDeep();
 
     const completedMessages: LobbyCompletedBeatmapMessage[] = LobbyBeatmapStatusMessageBuilder.gatherCompletedMessages({

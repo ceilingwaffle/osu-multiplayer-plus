@@ -1,6 +1,7 @@
 import { GameEventType } from "./game-event-types";
 import { VirtualMatch } from "../virtual-match";
 import { Game } from "../../domain/game/game.entity";
+import { CustomGameEventDataProps, RequiredGameEventDataProps } from "./abstract-game-event";
 
 export interface GameEvent {
   readonly type: GameEventType;
@@ -14,7 +15,7 @@ export interface GameEvent {
     allVirtualMatches?: VirtualMatch[];
   }) => boolean;
   after?: () => void;
-  data: any extends { eventMatch: VirtualMatch } ? { eventMatch: VirtualMatch } : never;
+  data: any extends CustomGameEventDataProps<RequiredGameEventDataProps> ? CustomGameEventDataProps<RequiredGameEventDataProps> : never;
 }
 
 // export const getCompletedVirtualMatchesOfGameForGameEventType = ({

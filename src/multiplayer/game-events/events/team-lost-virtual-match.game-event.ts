@@ -6,7 +6,7 @@ import { TeamScoreCalculator } from "../../team-score-calculator";
 import { VirtualMatch } from "../../virtual-match";
 import { constants } from "../../../constants";
 
-export class TeamLostVirtualMatchGameEvent extends AbstractGameEvent<{ teamId: number; eventMatch: VirtualMatch }> implements GameEvent {
+export class TeamLostVirtualMatchGameEvent extends AbstractGameEvent<{ teamId: number }> implements GameEvent {
   readonly type: GameEventType = "team_lost_match";
 
   happenedIn({ targetVirtualMatch, game }: { targetVirtualMatch: VirtualMatch; game: Game }): boolean {
@@ -17,7 +17,12 @@ export class TeamLostVirtualMatchGameEvent extends AbstractGameEvent<{ teamId: n
     if (losingTeamId < constants.MIN_ENTITY_ID_NUMBER) {
       return false;
     }
-    this.data = { teamId: losingTeamId, eventMatch: targetVirtualMatch };
+    this.data = {
+      teamId: losingTeamId,
+      eventMatch: targetVirtualMatch,
+      // the team lost at the time of the final lobby completing the map
+      timeOfEvent: this.getTimeOfLatestMatch(this.getLatestMatchFromVirtualMatch(targetVirtualMatch))
+    };
     return true;
   }
 

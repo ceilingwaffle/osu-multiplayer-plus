@@ -5,6 +5,8 @@ import { Lobby } from "../domain/lobby/lobby.entity";
 import { Log } from "../utils/Log";
 import { Game } from "../domain/game/game.entity";
 import { VirtualMatchKey } from "./virtual-match-key";
+import { sortByMatchOldestToLatest } from "./components/match";
+import { LobbyBeatmapStatusMessageBuilder } from "./lobby-beatmap-status-message-builder";
 
 export class VirtualMatchCreator {
   // /**
@@ -82,7 +84,7 @@ export class VirtualMatchCreator {
       }
 
       const r = _(matches)
-        .sortBy(match => match.startTime)
+        .sortBy(match => sortByMatchOldestToLatest(LobbyBeatmapStatusMessageBuilder.buildMatchComponent(match)))
         .groupBy(match => VirtualMatchCreator.createSameBeatmapKeyStringForMatch(match, matches))
         .map((matches, matchesKey): VirtualMatchKey & { matches: Match[]; lobbies: Lobby[] } => {
           const keyAsObject = VirtualMatchCreator.createSameBeatmapKeyObjectFromKeyString(matchesKey);

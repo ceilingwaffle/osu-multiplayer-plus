@@ -7,7 +7,7 @@ import { ReportedContext, ReportedContextType } from "../domain/game/game-match-
 import _ = require("lodash"); // do not convert to default import -- it will break!!
 
 export class MultiplayerResultsReporter {
-  static reportVirtualMatchesIfReady(args: { virtualMatchReportDatas: VirtualMatchReportData[]; game: Game }) {
+  static reportVirtualMatchesIfNotYetReportedForGame(args: { virtualMatchReportDatas: VirtualMatchReportData[]; game: Game }) {
     const toBeReported: ReportedContext<ReportedContextType>[] = MultiplayerResultsReporter.getItemsToBeReported(args);
 
     // TODO: Test that toBeReported correctly filtered out some items (after we implement the ReportedMatch saving)

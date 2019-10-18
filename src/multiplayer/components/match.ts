@@ -16,3 +16,8 @@ export interface Match {
   status: MatchStatus;
   entityId?: number;
 }
+
+/** Lodash sort by oldest time (first) to latest time (last) */
+export function sortByMatchOldestToLatest(match: Match): number {
+  return match.endTime || match.startTime || match.entityId;
+}
