@@ -372,8 +372,8 @@ describe("When processing multiplayer results", function() {
             }
           ];
 
-          // const actualReports: GameReport[] = await processor.buildGameReports(actualGames);
-          // expect(actualReports).to.deep.equal(expectedReports);
+          const actualReports: GameReport[] = await processor.buildGameReports(actualGames);
+          expect(actualReports).to.deep.equal(expectedReports);
 
           return resolve();
         } catch (error) {
