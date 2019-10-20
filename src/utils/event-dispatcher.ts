@@ -37,7 +37,7 @@ export class EventDispatcher implements IEventDispatcher {
   /**
    * Subscribes handlers to handle events asyncronously.
    * If any handler in the group fails, any subsequent subscribed-handlers will not run.
-   * Add handlers in the order that they should be executed.
+   * Execute multiple calls to subscribe() in the order that each group of event handlers should be executed.
    *
    * @template E
    * @param {...EventHandler<E>[]} handlers
@@ -45,17 +45,17 @@ export class EventDispatcher implements IEventDispatcher {
    */
   subscribe<E extends IEvent>(...handlers: EventHandler<E>[]): boolean {
     const sizeBefore = this.asyncEventHandlers.size;
-    const sizeAfter = this.asyncEventHandlers.add(handlers).size;
-    const result = sizeAfter > sizeBefore;
-    if (!result) {
+    const afterAdding = this.asyncEventHandlers.add(handlers);
+    const addedCount = afterAdding.size - sizeBefore;
+    if (addedCount < 1) {
       handlers.forEach(handler => {
         throw new Error(`Failed to subscribe event handler ${handler.constructor.name}.`);
       });
     }
-    handlers.forEach(handler => {
+    for (const handler of handlers) {
       Log.info(`Subscribed event handler ${handler.constructor.name}.`);
-    });
-    return result;
+    }
+    return true;
   }
 
   async dispatch(event: IEvent): Promise<void> {
