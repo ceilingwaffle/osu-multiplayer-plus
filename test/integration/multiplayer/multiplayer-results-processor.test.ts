@@ -103,284 +103,284 @@ describe("When processing multiplayer results", function() {
   // });
 
   xdescribe("with a number of results", function() {
-    it("should process and save 1 API result containing 1 match result", function() {
-      return new Promise(async (resolve, reject) => {
-        try {
-          // 2 teams
-          // 1 player per team
-          // (2 players total)
-          // 1 API fetch
-          // 1 match per API fetch
-          // (1 match total)
-          // all players submitting a score
-          // (2 scores total)
-          // all scores passing
-          // match completed (not aborted)
-          // MatchEvent = match_end
+    // it("should process and save 1 API result containing 1 match result", function() {
+    //   return new Promise(async (resolve, reject) => {
+    //     try {
+    //       // 2 teams
+    //       // 1 player per team
+    //       // (2 players total)
+    //       // 1 API fetch
+    //       // 1 match per API fetch
+    //       // (1 match total)
+    //       // all players submitting a score
+    //       // (2 scores total)
+    //       // all scores passing
+    //       // match completed (not aborted)
+    //       // MatchEvent = match_end
 
-          // add teams
-          const inTeams: string[][] = [["3336000"], ["3336001"]];
-          const allUserIds = Helpers.flatten2Dto1D(inTeams);
-          const addTeamsDto: AddTeamsDto = {
-            osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(inTeams)
-          };
-          const teamController = iocContainer.get<TeamController>(TYPES.TeamController);
-          const addTeamsResponse = await teamController.create({ teamDto: addTeamsDto, requestDto: discordRequest });
-          expect(addTeamsResponse.success).to.be.true;
+    //       // add teams
+    //       const inTeams: string[][] = [["3336000"], ["3336001"]];
+    //       const allUserIds = Helpers.flatten2Dto1D(inTeams);
+    //       const addTeamsDto: AddTeamsDto = {
+    //         osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(inTeams)
+    //       };
+    //       const teamController = iocContainer.get<TeamController>(TYPES.TeamController);
+    //       const addTeamsResponse = await teamController.create({ teamDto: addTeamsDto, requestDto: discordRequest });
+    //       expect(addTeamsResponse.success).to.be.true;
 
-          // TODO: Get these omega objects from a json file instead
-          const input: ApiMultiplayer = {
-            multiplayerId: addLobby1Request.banchoMultiplayerId, // Lobby.banchoMultiplayerId
-            matches: [
-              {
-                mapNumber: 1, // GameLobby.startingMapNumber
-                multiplayerId: addLobby1Request.banchoMultiplayerId, // Lobby.banchoMultiplayerId
-                mapId: "4178", // Match.beatmapId
-                startTime: new Date().getTime() - 300, // Match.startTime
-                endTime: new Date().getTime(), // Match.endTime
-                teamMode: TeamMode.HeadToHead, // Match.teamMode
-                event: "match_end",
-                scores: [
-                  {
-                    osuUserId: "3336000", // Match.PlayerScores[].scoredBy(OsuUser).osuUserId
-                    score: 100000, // Match.PlayerScores[].score
-                    passed: true // Match.PlayerScores[].passed
-                  },
-                  {
-                    osuUserId: "3336001",
-                    score: 100001,
-                    passed: true
-                  }
-                ]
-              }
-            ]
-          };
+    //       // TODO: Get these omega objects from a json file instead
+    //       const input: ApiMultiplayer = {
+    //         multiplayerId: addLobby1Request.banchoMultiplayerId, // Lobby.banchoMultiplayerId
+    //         matches: [
+    //           {
+    //             mapNumber: 1, // GameLobby.startingMapNumber
+    //             multiplayerId: addLobby1Request.banchoMultiplayerId, // Lobby.banchoMultiplayerId
+    //             mapId: "4178", // Match.beatmapId
+    //             startTime: new Date().getTime() - 300, // Match.startTime
+    //             endTime: new Date().getTime(), // Match.endTime
+    //             teamMode: TeamMode.HeadToHead, // Match.teamMode
+    //             event: "match_end",
+    //             scores: [
+    //               {
+    //                 osuUserId: "3336000", // Match.PlayerScores[].scoredBy(OsuUser).osuUserId
+    //                 score: 100000, // Match.PlayerScores[].score
+    //                 passed: true // Match.PlayerScores[].passed
+    //               },
+    //               {
+    //                 osuUserId: "3336001",
+    //                 score: 100001,
+    //                 passed: true
+    //               }
+    //             ]
+    //           }
+    //         ]
+    //       };
 
-          const expectedGamesData: DataPropertiesOnly<GameEntity[]> = [
-            {
-              id: 1,
-              countFailedScores: createGameRequest.countFailedScores === "true",
-              endedAt: null,
-              status: GameStatus.IDLE_NEWGAME.getKey(),
-              teamLives: createGameRequest.teamLives,
-              gameLobbies: [
-                {
-                  startingMapNumber: 1,
-                  removedAt: null,
-                  lobby: {
-                    id: 1,
-                    banchoMultiplayerId: addLobby1Request.banchoMultiplayerId,
-                    status: LobbyStatus.AWAITING_FIRST_SCAN.getKey(),
-                    matches: [
-                      {
-                        id: 1,
-                        mapNumber: 1,
-                        beatmapId: "4178",
-                        startTime: input.matches[0].startTime,
-                        endTime: input.matches[0].endTime,
-                        aborted: false,
-                        ignored: false,
-                        teamMode: TeamMode.HeadToHead,
-                        playerScores: [
-                          {
-                            id: 1,
-                            ignored: false,
-                            passed: true,
-                            score: 100000,
-                            scoredBy: {
-                              id: 1,
-                              countryCode: "AU",
-                              osuUserId: "3336000",
-                              osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336000"),
-                              user: {
-                                id: 2
-                              }
-                            }
-                          },
-                          {
-                            id: 2,
-                            ignored: false,
-                            passed: true,
-                            score: 100001,
-                            scoredBy: {
-                              id: 2,
-                              countryCode: "AU",
-                              osuUserId: "3336001",
-                              osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336001"),
-                              user: {
-                                id: 3
-                              }
-                            }
-                          }
-                        ]
-                      }
-                    ]
-                  }
-                }
-              ],
-              gameTeams: [
-                {
-                  colorName: "red",
-                  colorValue: "#ff0000",
-                  removedAt: null,
-                  startingLives: createGameRequest.teamLives,
-                  teamNumber: 1,
-                  team: {
-                    id: 1,
-                    name: null,
-                    teamOsuUsers: [
-                      {
-                        id: 1,
-                        removedAt: null,
-                        osuUser: {
-                          id: 1,
-                          countryCode: "AU",
-                          osuUserId: "3336000",
-                          osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336000")
-                        }
-                      }
-                    ]
-                  }
-                },
-                {
-                  colorName: "blue",
-                  colorValue: "#0000ff",
-                  removedAt: null,
-                  startingLives: createGameRequest.teamLives,
-                  teamNumber: 2,
-                  team: {
-                    id: 2,
-                    name: null,
-                    teamOsuUsers: [
-                      {
-                        id: 2,
-                        removedAt: null,
-                        osuUser: {
-                          id: 2,
-                          countryCode: "AU",
-                          osuUserId: "3336001",
-                          osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336001")
-                        }
-                      }
-                    ]
-                  }
-                }
-              ],
-              messageTargets: [
-                {
-                  authorId: discordRequest.authorId,
-                  channelId: discordRequest.originChannelId,
-                  channelType: "initial-channel",
-                  commType: discordRequest.commType
-                }
-              ]
-            }
-          ];
+    //       const expectedGamesData: DataPropertiesOnly<GameEntity[]> = [
+    //         {
+    //           id: 1,
+    //           countFailedScores: createGameRequest.countFailedScores === "true",
+    //           endedAt: null,
+    //           status: GameStatus.IDLE_NEWGAME.getKey(),
+    //           teamLives: createGameRequest.teamLives,
+    //           gameLobbies: [
+    //             {
+    //               startingMapNumber: 1,
+    //               removedAt: null,
+    //               lobby: {
+    //                 id: 1,
+    //                 banchoMultiplayerId: addLobby1Request.banchoMultiplayerId,
+    //                 status: LobbyStatus.AWAITING_FIRST_SCAN.getKey(),
+    //                 matches: [
+    //                   {
+    //                     id: 1,
+    //                     mapNumber: 1,
+    //                     beatmapId: "4178",
+    //                     startTime: input.matches[0].startTime,
+    //                     endTime: input.matches[0].endTime,
+    //                     aborted: false,
+    //                     ignored: false,
+    //                     teamMode: TeamMode.HeadToHead,
+    //                     playerScores: [
+    //                       {
+    //                         id: 1,
+    //                         ignored: false,
+    //                         passed: true,
+    //                         score: 100000,
+    //                         scoredBy: {
+    //                           id: 1,
+    //                           countryCode: "AU",
+    //                           osuUserId: "3336000",
+    //                           osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336000"),
+    //                           user: {
+    //                             id: 2
+    //                           }
+    //                         }
+    //                       },
+    //                       {
+    //                         id: 2,
+    //                         ignored: false,
+    //                         passed: true,
+    //                         score: 100001,
+    //                         scoredBy: {
+    //                           id: 2,
+    //                           countryCode: "AU",
+    //                           osuUserId: "3336001",
+    //                           osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336001"),
+    //                           user: {
+    //                             id: 3
+    //                           }
+    //                         }
+    //                       }
+    //                     ]
+    //                   }
+    //                 ]
+    //               }
+    //             }
+    //           ],
+    //           gameTeams: [
+    //             {
+    //               colorName: "red",
+    //               colorValue: "#ff0000",
+    //               removedAt: null,
+    //               startingLives: createGameRequest.teamLives,
+    //               teamNumber: 1,
+    //               team: {
+    //                 id: 1,
+    //                 name: null,
+    //                 teamOsuUsers: [
+    //                   {
+    //                     id: 1,
+    //                     removedAt: null,
+    //                     osuUser: {
+    //                       id: 1,
+    //                       countryCode: "AU",
+    //                       osuUserId: "3336000",
+    //                       osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336000")
+    //                     }
+    //                   }
+    //                 ]
+    //               }
+    //             },
+    //             {
+    //               colorName: "blue",
+    //               colorValue: "#0000ff",
+    //               removedAt: null,
+    //               startingLives: createGameRequest.teamLives,
+    //               teamNumber: 2,
+    //               team: {
+    //                 id: 2,
+    //                 name: null,
+    //                 teamOsuUsers: [
+    //                   {
+    //                     id: 2,
+    //                     removedAt: null,
+    //                     osuUser: {
+    //                       id: 2,
+    //                       countryCode: "AU",
+    //                       osuUserId: "3336001",
+    //                       osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336001")
+    //                     }
+    //                   }
+    //                 ]
+    //               }
+    //             }
+    //           ],
+    //           messageTargets: [
+    //             {
+    //               authorId: discordRequest.authorId,
+    //               channelId: discordRequest.originChannelId,
+    //               channelType: "initial-channel",
+    //               commType: discordRequest.commType
+    //             }
+    //           ]
+    //         }
+    //       ];
 
-          const processor = new MultiplayerResultsProcessor(input);
-          const actualGames: Game[] = await processor.saveMultiplayerEntities();
+    //       const processor = new MultiplayerResultsProcessor(input);
+    //       const actualGames: Game[] = await processor.saveMultiplayerEntities();
 
-          expect(actualGames).excludingEvery(["createdAt", "updatedAt"]).to.deep.equal(expectedGamesData); // prettier-ignore
+    //       expect(actualGames).excludingEvery(["createdAt", "updatedAt"]).to.deep.equal(expectedGamesData); // prettier-ignore
 
-          const expectedReports: GameReport[] = [
-            {
-              lobby: {
-                banchoLobbyId: input.multiplayerId,
-                lobbyName: null,
-                resultsUrl: null
-              },
-              matches: [
-                {
-                  startTime: input.matches[0].startTime,
-                  endTime: input.matches[0].endTime,
-                  playMode: PlayMode.Standard,
-                  scoringType: ScoringType.score,
-                  teamType: TeamMode.HeadToHead,
-                  forcedMods: Mods.None,
-                  beatmap: { mapId: null, mapUrl: null, mapString: "" },
-                  status: "completed"
-                }
-              ],
-              leaderboardLines: [
-                {
-                  team: {
-                    id: 1,
-                    number: 1,
-                    colorName: "",
-                    colorValue: "",
-                    position: 2,
-                    members: [
-                      {
-                        osuUserId: "3336000",
-                        osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336000"),
-                        countryCode: "AU",
-                        countryEmoji: "🇦🇺"
-                      }
-                    ]
-                  },
-                  teamStatus: {
-                    isEliminated: false,
-                    justEliminated: false,
-                    lives: createGameRequest.teamLives - 1 // team 1 scored lower than team 2, so they lose a life
-                  },
-                  teamScore: {
-                    teamScore: 100000,
-                    playerScores: [
-                      {
-                        osuUserId: "3336000",
-                        passed: true,
-                        score: 100000,
-                        mods: null
-                      }
-                    ]
-                  }
-                },
-                {
-                  team: {
-                    id: 2,
-                    number: 2,
-                    colorName: "",
-                    colorValue: "",
-                    position: 1,
-                    members: [
-                      {
-                        osuUserId: "3336001",
-                        osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336001"),
-                        countryCode: "AU",
-                        countryEmoji: "🇦🇺"
-                      }
-                    ]
-                  },
-                  teamStatus: {
-                    isEliminated: false,
-                    justEliminated: false,
-                    lives: createGameRequest.teamLives
-                  },
-                  teamScore: {
-                    teamScore: 100001,
-                    playerScores: [
-                      {
-                        osuUserId: "3336001",
-                        passed: true,
-                        score: 100001,
-                        mods: null
-                      }
-                    ]
-                  }
-                }
-              ]
-            }
-          ];
+    //       const expectedReports: GameReport[] = [
+    //         {
+    //           lobby: {
+    //             banchoLobbyId: input.multiplayerId,
+    //             lobbyName: null,
+    //             resultsUrl: null
+    //           },
+    //           matches: [
+    //             {
+    //               startTime: input.matches[0].startTime,
+    //               endTime: input.matches[0].endTime,
+    //               playMode: PlayMode.Standard,
+    //               scoringType: ScoringType.score,
+    //               teamType: TeamMode.HeadToHead,
+    //               forcedMods: Mods.None,
+    //               beatmap: { mapId: null, mapUrl: null, mapString: "" },
+    //               status: "completed"
+    //             }
+    //           ],
+    //           leaderboardLines: [
+    //             {
+    //               team: {
+    //                 id: 1,
+    //                 number: 1,
+    //                 colorName: "",
+    //                 colorValue: "",
+    //                 position: 2,
+    //                 members: [
+    //                   {
+    //                     osuUserId: "3336000",
+    //                     osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336000"),
+    //                     countryCode: "AU",
+    //                     countryEmoji: "🇦🇺"
+    //                   }
+    //                 ]
+    //               },
+    //               teamStatus: {
+    //                 isEliminated: false,
+    //                 justEliminated: false,
+    //                 lives: createGameRequest.teamLives - 1 // team 1 scored lower than team 2, so they lose a life
+    //               },
+    //               teamScore: {
+    //                 teamScore: 100000,
+    //                 playerScores: [
+    //                   {
+    //                     osuUserId: "3336000",
+    //                     passed: true,
+    //                     score: 100000,
+    //                     mods: null
+    //                   }
+    //                 ]
+    //               }
+    //             },
+    //             {
+    //               team: {
+    //                 id: 2,
+    //                 number: 2,
+    //                 colorName: "",
+    //                 colorValue: "",
+    //                 position: 1,
+    //                 members: [
+    //                   {
+    //                     osuUserId: "3336001",
+    //                     osuUsername: FakeOsuApiFetcher.getFakeBanchoUsername("3336001"),
+    //                     countryCode: "AU",
+    //                     countryEmoji: "🇦🇺"
+    //                   }
+    //                 ]
+    //               },
+    //               teamStatus: {
+    //                 isEliminated: false,
+    //                 justEliminated: false,
+    //                 lives: createGameRequest.teamLives
+    //               },
+    //               teamScore: {
+    //                 teamScore: 100001,
+    //                 playerScores: [
+    //                   {
+    //                     osuUserId: "3336001",
+    //                     passed: true,
+    //                     score: 100001,
+    //                     mods: null
+    //                   }
+    //                 ]
+    //               }
+    //             }
+    //           ]
+    //         }
+    //       ];
 
-          const actualReports: GameReport[] = await processor.buildGameReports(actualGames);
-          expect(actualReports).to.deep.equal(expectedReports);
+    //       const actualReports: GameReport[] = await processor.buildGameReports(actualGames);
+    //       expect(actualReports).to.deep.equal(expectedReports);
 
-          return resolve();
-        } catch (error) {
-          return reject(error);
-        }
-      });
-    });
+    //       return resolve();
+    //     } catch (error) {
+    //       return reject(error);
+    //     }
+    //   });
+    // });
 
     it("should process the same API result twice without saving duplicates", function() {
       return new Promise(async (resolve, reject) => {
