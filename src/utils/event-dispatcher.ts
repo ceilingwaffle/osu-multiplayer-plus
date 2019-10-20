@@ -13,13 +13,19 @@ export interface IEventHandler<E extends IEvent> {
 // source: https://dev.to/krumpet/generic-type-guard-in-typescript-258l
 type Constructor<T> = { new (...args: any[]): T };
 
-interface EventAndHandler {
+interface EventWithHandler {
   event: IEvent;
   handler: IEventHandler<IEvent>;
 }
 
-export class Dispatcher {
-  events: Set<EventAndHandler> = new Set<EventAndHandler>();
+export interface IEventDispatcher {
+  subscribe<E extends IEvent>(event: E, handler: IEventHandler<E>): boolean;
+  dispatch(eventClass: Constructor<IEvent>): void;
+  unsubscribe(eventClass: Constructor<IEvent>): boolean;
+}
+
+export class EventDispatcher implements IEventDispatcher {
+  events: Set<EventWithHandler> = new Set<EventWithHandler>();
 
   subscribe<E extends IEvent>(event: E, handler: IEventHandler<E>): boolean {
     const sizeBefore = this.events.size;

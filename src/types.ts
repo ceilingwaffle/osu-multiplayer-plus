@@ -14,7 +14,8 @@ export const TYPES = {
   // IsValidBanchoMultiplayerIdConstraint: Symbol.for("IsValidBanchoMultiplayerIdConstraint")
   GameEventRegistrarCollection: Symbol.for("GameEventRegistrarCollection"),
   IDbClient: Symbol.for("IDbClient"),
-  MultiplayerResultsListener: Symbol.for("MultiplayerResultsListener")
+  MultiplayerResultsListener: Symbol.for("MultiplayerResultsListener"),
+  IEventDispatcher: Symbol.for("IEventDispatcher")
 };
 
 export default TYPES;

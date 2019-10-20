@@ -21,6 +21,7 @@ import { GameEventRegistrarCollection } from "./multiplayer/game-events/game-eve
 import { Connection } from "typeorm";
 import { IDbClient, DbClient } from "./database/db-client";
 import { MultiplayerResultsListener } from "./multiplayer/multiplayer-results-listener";
+import { IEventDispatcher, EventDispatcher } from "./utils/event-dispatcher";
 
 // const iocContainer = new Container();
 // autoProvide(iocContainer, entities);
@@ -38,35 +39,38 @@ export class IOCKernel extends Container {
     // this.load(buildProviderModule());
   }
 
+  // prettier-ignore
   private declareDependencies() {
     // game
-    this.bind<GameController>(TYPES.GameController).to(GameController).inSingletonScope(); // prettier-ignore
-    this.bind<GameService>(TYPES.GameService).to(GameService).inSingletonScope(); // prettier-ignore
+    this.bind<GameController>(TYPES.GameController).to(GameController).inSingletonScope();
+    this.bind<GameService>(TYPES.GameService).to(GameService).inSingletonScope();
     // user
-    this.bind<UserController>(TYPES.UserController).to(UserController).inSingletonScope(); // prettier-ignore
-    this.bind<UserService>(TYPES.UserService).to(UserService).inSingletonScope(); // prettier-ignore
+    this.bind<UserController>(TYPES.UserController).to(UserController).inSingletonScope();
+    this.bind<UserService>(TYPES.UserService).to(UserService).inSingletonScope();
     // lobby
-    this.bind<LobbyController>(TYPES.LobbyController).to(LobbyController).inSingletonScope(); // prettier-ignore
-    this.bind<LobbyService>(TYPES.LobbyService).to(LobbyService).inSingletonScope(); // prettier-ignore
+    this.bind<LobbyController>(TYPES.LobbyController).to(LobbyController).inSingletonScope();
+    this.bind<LobbyService>(TYPES.LobbyService).to(LobbyService).inSingletonScope();
     // team
-    this.bind<TeamService>(TYPES.TeamService).to(TeamService).inSingletonScope(); // prettier-ignore
-    this.bind<TeamController>(TYPES.TeamController).to(TeamController).inSingletonScope(); // prettier-ignore
+    this.bind<TeamService>(TYPES.TeamService).to(TeamService).inSingletonScope();
+    this.bind<TeamController>(TYPES.TeamController).to(TeamController).inSingletonScope();
     // ...
-    this.bind<RequesterFactory>(TYPES.RequesterFactory).to(RequesterFactory).inSingletonScope(); // prettier-ignore
-    this.bind<Permissions>(TYPES.Permissions).to(Permissions).inSingletonScope(); // prettier-ignore
-    // this.bind<IsValidBanchoMultiplayerIdConstraint>(TYPES.IsValidBanchoMultiplayerIdConstraint).to(IsValidBanchoMultiplayerIdConstraint); // prettier-ignore
-    this.bind<GameEventRegistrarCollection>(TYPES.GameEventRegistrarCollection).to(GameEventRegistrarCollection).inSingletonScope(); // prettier-ignore
-    this.bind<IDbClient>(TYPES.IDbClient).to(DbClient).inSingletonScope(); // prettier-ignore
+    this.bind<RequesterFactory>(TYPES.RequesterFactory).to(RequesterFactory).inSingletonScope();
+    this.bind<Permissions>(TYPES.Permissions).to(Permissions).inSingletonScope();
+    // this.bind<IsValidBanchoMultiplayerIdConstraint>(TYPES.IsValidBanchoMultiplayerIdConstraint).to(IsValidBanchoMultiplayerIdConstraint);
+    this.bind<GameEventRegistrarCollection>(TYPES.GameEventRegistrarCollection).to(GameEventRegistrarCollection).inSingletonScope();
+    this.bind<IDbClient>(TYPES.IDbClient).to(DbClient).inSingletonScope();
 
-    this.bind<IOsuLobbyScanner>(TYPES.IOsuLobbyScanner).to(OsuLobbyScannerService).inSingletonScope(); // prettier-ignore
-    this.bind<MultiplayerResultsListener>(TYPES.MultiplayerResultsListener).to(MultiplayerResultsListener).inSingletonScope(); // prettier-ignore
+    this.bind<IOsuLobbyScanner>(TYPES.IOsuLobbyScanner).to(OsuLobbyScannerService).inSingletonScope();
+    this.bind<MultiplayerResultsListener>(TYPES.MultiplayerResultsListener).to(MultiplayerResultsListener).inSingletonScope();
+
+    this.bind<IEventDispatcher>(TYPES.IEventDispatcher).to(EventDispatcher).inSingletonScope();
 
     if (process.env.NODE_ENV === "test") {
-      this.bind<IOsuApiFetcher>(TYPES.IOsuApiFetcher).to(FakeOsuApiFetcher).inSingletonScope(); // prettier-ignore
-      // this.bind<IOsuLobbyScanner>(TYPES.IOsuLobbyScanner).to(FakeOsuLobbyScanner).inSingletonScope(); // prettier-ignore
+      this.bind<IOsuApiFetcher>(TYPES.IOsuApiFetcher).to(FakeOsuApiFetcher).inSingletonScope();
+      // this.bind<IOsuLobbyScanner>(TYPES.IOsuLobbyScanner).to(FakeOsuLobbyScanner).inSingletonScope();
     } else {
-      this.bind<IOsuApiFetcher>(TYPES.IOsuApiFetcher).to(NodesuApiFetcher).inSingletonScope(); // prettier-ignore
-      // this.bind<IOsuLobbyScanner>(TYPES.IOsuLobbyScanner).to(OsuLobbyScannerService).inSingletonScope(); // prettier-ignore
+      this.bind<IOsuApiFetcher>(TYPES.IOsuApiFetcher).to(NodesuApiFetcher).inSingletonScope();
+      // this.bind<IOsuLobbyScanner>(TYPES.IOsuLobbyScanner).to(OsuLobbyScannerService).inSingletonScope();
     }
   }
 
