@@ -49,9 +49,13 @@ export type ReportableContext<T extends ReportableContextType> = VirtualMatchKey
   /** Message or GameEvent */
   type: T;
   /** The specific type of Message or GameEvent */
-  subType: T extends "message" ? MessageType : T extends "game_event" ? GameEventType : never;
+  subType: T extends "message" ? MessageType 
+         : T extends "game_event" ? GameEventType 
+         : never; // prettier-ignore
   /** The original message/event object */
-  item: T extends "message" ? LobbyBeatmapStatusMessage<MessageType> : T extends "game_event" ? GameEvent : never;
+  item: T extends "message" ? LobbyBeatmapStatusMessage<MessageType> 
+      : T extends "game_event" ? GameEvent 
+      : never; // prettier-ignore
   /** The time in which the message/event occurred */
   time: number;
 };
