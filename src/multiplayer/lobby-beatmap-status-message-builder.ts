@@ -129,7 +129,12 @@ export class LobbyBeatmapStatusMessageBuilder {
   }
 
   static buildLobbyComponent(fromLobby: Lobby): LobbyComponent {
-    return { banchoLobbyId: fromLobby.banchoMultiplayerId, lobbyName: "TODO:LobbyName", resultsUrl: "TODO:LobbyResultsURL" };
+    return {
+      banchoLobbyId: fromLobby.banchoMultiplayerId,
+      lobbyName: "TODO:LobbyName",
+      resultsUrl: "TODO:LobbyResultsURL",
+      scoreType: ScoringType.combo
+    };
   }
 
   static buildMatchComponent(fromMatchEntity: Match): MatchComponent {
@@ -140,7 +145,7 @@ export class LobbyBeatmapStatusMessageBuilder {
       scoringType: ScoringType.scoreV2,
       teamType: TeamMode.HeadToHead,
       forcedMods: 0,
-      beatmap: { mapId: fromMatchEntity.beatmapId, mapUrl: "TODO:MapURL", mapString: "TODO:MapString" },
+      beatmap: { mapId: fromMatchEntity.beatmapId, mapUrl: "TODO:MapURL", mapString: "TODO:MapString", stars: 99 },
       status: "completed",
       entityId: fromMatchEntity.id
     }; // TODO: get PlayMode, ScoringType, TeamMode, Mods, status

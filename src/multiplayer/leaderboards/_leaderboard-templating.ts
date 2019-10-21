@@ -1,3 +1,10 @@
+import { LeaderboardLine } from "./leaderboard-line";
+import { ScoringType } from "../components/enums/scoring-type";
+import { Leaderboard } from "./leaderboard";
+import { PlayMode } from "../components/enums/play-mode";
+import { MultiTeamType } from "nodesu";
+import { Mods } from "../components/enums/mods";
+
 // const spendingTemplate = fs.readFileSync("templates/spending.mustache", "utf8");
 // const spendingData = {
 //   title: "Joe",
@@ -11,35 +18,54 @@
 // https://i.imgur.com/EubsZyK.png
 // const leaderboardTemplate = fs.readFileSync("templates/leaderboard.mustache", "utf8").trim();
 var leaderboardData: Leaderboard = {
+  beatmapId: "1234",
+  sameBeatmapNumber: 1,
   beatmapsRemaining: 4,
   beatmapPlayed: {
     stars: 5,
-    beatmapString: "Galneryus - Raise My Sword [AAAAAAA]"
+    mapString: "Galneryus - Raise My Sword [AAAAAAA]",
+    mapId: "1234",
+    mapUrl: "https://osu.ppy.sh/b/1234"
   },
   lobby: {
-    multiplayerId: "12345678",
-    scoreType: "score_v2"
+    banchoLobbyId: "12345678",
+    scoreType: ScoringType.scoreV2,
+    lobbyName: "My Cool Lobby Name",
+    resultsUrl: "https://osu.ppy.sh/mp/12345678"
   },
   match: {
-    aborted: false
+    startTime: 1,
+    endTime: 1,
+    playMode: PlayMode.Standard,
+    scoringType: ScoringType.scoreV2,
+    teamType: MultiTeamType.headToHead,
+    forcedMods: Mods.None,
+    beatmap: {
+      stars: 5,
+      mapString: "Galneryus - Raise My Sword [AAAAAAA]",
+      mapId: "1234",
+      mapUrl: "https://osu.ppy.sh/b/1234"
+    },
+    status: "completed",
+    entityId: 1
   },
-  events: [
-    {
-      eventEmoji: "⭐",
-      eventType: "team_won",
-      eventDescription: "Team X won the match!"
-    },
-    {
-      eventEmoji: "💥",
-      eventType: "team_lost",
-      eventDescription: "Team Y lost a life!"
-    },
-    {
-      eventEmoji: "💀",
-      eventType: "team_eliminated",
-      eventDescription: "Team Y lost all their lives and was eliminated!"
-    }
-  ],
+  // events: [
+  //   {
+  //     eventEmoji: "⭐",
+  //     eventType: "team_won",
+  //     eventDescription: "Team X won the match!"
+  //   },
+  //   {
+  //     eventEmoji: "💥",
+  //     eventType: "team_lost",
+  //     eventDescription: "Team Y lost a life!"
+  //   },
+  //   {
+  //     eventEmoji: "💀",
+  //     eventType: "team_eliminated",
+  //     eventDescription: "Team Y lost all their lives and was eliminated!"
+  //   }
+  // ],
   leaderboardLines: [
     {
       team: {
@@ -78,7 +104,7 @@ var leaderboardData: Leaderboard = {
       },
       event: {
         eventEmoji: "⭐",
-        eventType: "team_won",
+        eventType: "team_won_match",
         eventDescription: "Team X won the match!"
       },
       lives: {
@@ -145,7 +171,7 @@ var leaderboardData: Leaderboard = {
 // const leaderboardOutput = Mustache.render(leaderboardTemplate, leaderboardData);
 const leaderboardOutput = `\`\`\`
   Played: 
-     ${leaderboardData.beatmapPlayed.beatmapString} (${leaderboardData.beatmapPlayed.stars}⭐}) (#1) 
+     ${leaderboardData.beatmapPlayed.mapString} (${leaderboardData.beatmapPlayed.stars}⭐}) (#1) 
   
   ${leaderboardData.leaderboardLines.find(ll => ll.alive) ? "Alive\n" : ""} \
   ${leaderboardData.leaderboardLines
@@ -159,73 +185,6 @@ const leaderboardOutput = `\`\`\`
     .join("\n")}
   \`\`\``;
 console.log(leaderboardOutput);
-
-type EventTypes = "team_won" | "team_lost" | "team_eliminated";
-type RankTypes = "SS" | "S" | "A" | "B" | "C" | "D" | "F" | "DNS";
-type ScoreTypes = "score_v1" | "score_v2";
-
-interface Leaderboard {
-  beatmapsRemaining?: number;
-  beatmapPlayed: Beatmap;
-  events: GameEvent[];
-  lobby: LobbyInfo;
-  match: MatchInfo;
-  leaderboardLines: LeaderboardLine[];
-}
-
-interface LobbyInfo {
-  multiplayerId: string;
-  scoreType: ScoreTypes;
-}
-
-interface MatchInfo {
-  aborted: boolean;
-}
-
-interface Beatmap {
-  stars: number;
-  beatmapString: string;
-}
-
-interface GameEvent {
-  eventEmoji: string;
-  eventType: EventTypes;
-  eventDescription: string;
-}
-
-interface LeaderboardLine {
-  team: {
-    teamName: string;
-    teamNumber: number;
-    players: {
-      osuUsername: string;
-      scoreSubmitted: boolean;
-      score: {
-        score: number;
-        rankAchieved: RankTypes;
-        accuracy: number;
-        highestScoreInTeam: boolean;
-      };
-    }[];
-  };
-  alive: boolean;
-  position: {
-    currentPosition: number;
-    previousPosition: number;
-    gainedPosition: boolean;
-    lostPosition: boolean;
-    samePosition: boolean;
-  };
-  event?: GameEvent;
-  lives: {
-    currentLives: number;
-    startingLives: number;
-  };
-  teamScore: {
-    teamScore: number;
-    tiedWithTeamNumbers: number[];
-  };
-}
 
 function genLeaderboardLines(ll: LeaderboardLine, lines: LeaderboardLine[]): string {
   return `\
