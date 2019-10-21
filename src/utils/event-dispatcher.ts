@@ -1,5 +1,6 @@
 import { Log } from "./log";
 import { Helpers } from "./helpers";
+import { injectable } from "inversify";
 
 export interface IEvent {
   constructor: any;
@@ -20,11 +21,12 @@ export abstract class EventHandler<E extends IEvent> implements IEventHandler<E>
 type Constructor<T> = { new (...args: any[]): T };
 
 export interface IEventDispatcher {
-  subscribe<E extends IEvent>(handler: IEventHandler<E>): boolean;
-  dispatch(event: IEvent, payload: any): Promise<void>;
-  unsubscribe(eventClass: Constructor<IEvent>): boolean;
+  subscribe<E extends IEvent>(handler: IEventHandler<E>): void;
+  dispatch(event: IEvent): Promise<void>;
+  unsubscribe(eventClass: Constructor<IEvent>): void;
 }
 
+@injectable()
 export class EventDispatcher implements IEventDispatcher {
   /**
    * All handlers in each array of handlers run asynchronously (at the same time).
@@ -43,7 +45,7 @@ export class EventDispatcher implements IEventDispatcher {
    * @param {...EventHandler<E>[]} handlers
    * @returns {boolean}
    */
-  subscribe<E extends IEvent>(...handlers: EventHandler<E>[]): boolean {
+  subscribe<E extends IEvent>(...handlers: EventHandler<E>[]): void {
     const sizeBefore = this.asyncEventHandlers.size;
     const afterAdding = this.asyncEventHandlers.add(handlers);
     const addedCount = afterAdding.size - sizeBefore;
@@ -55,26 +57,27 @@ export class EventDispatcher implements IEventDispatcher {
     for (const handler of handlers) {
       Log.info(`Subscribed event handler ${handler.constructor.name}.`);
     }
-    return true;
   }
 
   async dispatch(event: IEvent): Promise<void> {
     Log.info(`Dispatching event ${event.constructor.name}...`);
-    const handlers = Array.from(this.asyncEventHandlers).map(sameEventHandlers =>
+    const sameEventHandlerGroups = Array.from(this.asyncEventHandlers).map(sameEventHandlers =>
       sameEventHandlers.filter(handler => handler.eventClass.name === event.constructor.name)
     );
-    handlerGroup: for (const sameEventHandlers of handlers) {
-      const handles = sameEventHandlers.map(seh => ({
-        handler: seh,
-        eventClass: seh.eventClass,
-        handleFn: seh.handle
+    handlerGroupLoop: for (const sameEventHandlers of sameEventHandlerGroups) {
+      const handlers = sameEventHandlers.map(handler => ({
+        handler: handler,
+        eventClass: handler.eventClass,
+        handleFn: handler.handle
       }));
-      const results = await Promise.all(handles.map(handling => handling.handleFn(event)));
+      const results = await Promise.all(handlers.map(handler => handler.handleFn(event)));
       for (const [i, result] of results.entries()) {
-        const handle = handles[i];
+        const handle = handlers[i];
         if (!result) {
-          Log.info(`Failed to handle ${handle.eventClass.name} with handler ${handle.handler.constructor.name}. Stopping futher events.`);
-          break handlerGroup;
+          Log.info(
+            `Failed to handle ${handle.eventClass.name} with handler ${handle.handler.constructor.name}. Halting subsequent events.`
+          );
+          break handlerGroupLoop;
         }
         Log.info(`Handled event ${handle.eventClass.name} with handler ${handle.handler.constructor.name}.`);
       }
@@ -94,99 +97,103 @@ export class EventDispatcher implements IEventDispatcher {
   //   return result;
   // }
 
-  unsubscribe(eventClass: Constructor<IEvent>): boolean {
+  unsubscribe(eventClass: Constructor<IEvent>): void {
     throw new Error("Method not implemented.");
   }
 }
 
-/** example concrete classes */
-class LeaderboardReadyEvent implements IEvent {
-  constructor(public winnerTeamId: number) {}
-}
+// /** example concrete classes */
+// class LeaderboardReadyEvent implements IEvent {
+//   constructor(public winnerTeamId: number) {}
+// }
 
-class SomeOtherEvent implements IEvent {
-  constructor(public someString: string) {}
-}
+// class SomeOtherEvent implements IEvent {
+//   constructor(public someString: string) {}
+// }
 
-class SomePlainClass {}
+// class SomePlainClass {}
 
-class DiscordLeaderboardDeliverer extends EventHandler<LeaderboardReadyEvent> {
-  async handle(event: LeaderboardReadyEvent): Promise<boolean> {
-    Log.info(`Delivering LeaderboardReadyEvent to Discord - winnerTeamId ${event.winnerTeamId}`);
-    return new Promise(async (resolve, reject) => {
-      try {
-        setTimeout(() => {
-          return resolve(true);
-        }, Helpers.getRandomInt(300, 800));
-      } catch (error) {
-        return reject(error);
-      }
-    });
-  }
-}
+// class DiscordLeaderboardDeliverer extends EventHandler<LeaderboardReadyEvent> {
+//   async handle(event: LeaderboardReadyEvent): Promise<boolean> {
+//     Log.info(`Delivering LeaderboardReadyEvent to Discord - winnerTeamId ${event.winnerTeamId}`);
+//     return new Promise(async (resolve, reject) => {
+//       try {
+//         setTimeout(() => {
+//           Log.debug("Success DiscordLeaderboardDeliverer");
+//           return resolve(true);
+//         }, Helpers.getRandomInt(300, 800));
+//       } catch (error) {
+//         return reject(error);
+//       }
+//     });
+//   }
+// }
 
-class WebLeaderboardDeliverer extends EventHandler<LeaderboardReadyEvent> {
-  async handle(event: LeaderboardReadyEvent): Promise<boolean> {
-    Log.info(`Delivering LeaderboardReadyEvent to Web - winnerTeamId ${event.winnerTeamId}`);
-    return new Promise(async (resolve, reject) => {
-      try {
-        setTimeout(() => {
-          const shouldRandomlyFail = Helpers.getRandomInt(1, 2) === 1 ? true : false;
-          if (shouldRandomlyFail) {
-            Log.warn("Failing WebLeaderboardDeliverer");
-            return resolve(false);
-          } else {
-            return resolve(true);
-          }
-        }, Helpers.getRandomInt(300, 800));
-      } catch (error) {
-        return reject(error);
-      }
-    });
-  }
-}
+// class WebLeaderboardDeliverer extends EventHandler<LeaderboardReadyEvent> {
+//   async handle(event: LeaderboardReadyEvent): Promise<boolean> {
+//     Log.info(`Delivering LeaderboardReadyEvent to Web - winnerTeamId ${event.winnerTeamId}`);
+//     return new Promise(async (resolve, reject) => {
+//       try {
+//         setTimeout(() => {
+//           const shouldRandomlyFail = Helpers.getRandomInt(1, 2) === 1 ? true : false;
+//           if (shouldRandomlyFail) {
+//             Log.warn("Failing WebLeaderboardDeliverer");
+//             return resolve(false);
+//           } else {
+//             Log.debug("Success WebLeaderboardDeliverer");
+//             return resolve(true);
+//           }
+//         }, Helpers.getRandomInt(300, 800));
+//       } catch (error) {
+//         return reject(error);
+//       }
+//     });
+//   }
+// }
 
-class LeaderboardDeliveredLogger extends EventHandler<LeaderboardReadyEvent> {
-  async handle(event: LeaderboardReadyEvent): Promise<boolean> {
-    Log.info(`Logging delivery success of LeaderboardReadyEvent with winnerTeamId ${event.winnerTeamId}`);
-    return new Promise(async (resolve, reject) => {
-      try {
-        setTimeout(() => {
-          return resolve(true);
-        }, Helpers.getRandomInt(300, 800));
-      } catch (error) {
-        return reject(error);
-      }
-    });
-  }
-}
+// class LeaderboardDeliveredLogger extends EventHandler<LeaderboardReadyEvent> {
+//   async handle(event: LeaderboardReadyEvent): Promise<boolean> {
+//     Log.info(`Logging delivery success of LeaderboardReadyEvent with winnerTeamId ${event.winnerTeamId}`);
+//     return new Promise(async (resolve, reject) => {
+//       try {
+//         setTimeout(() => {
+//           Log.debug("Success LeaderboardDeliveredLogger");
+//           return resolve(true);
+//         }, Helpers.getRandomInt(300, 800));
+//       } catch (error) {
+//         return reject(error);
+//       }
+//     });
+//   }
+// }
 
-class SomeOtherEventHandler extends EventHandler<SomeOtherEvent> {
-  async handle(event: SomeOtherEvent): Promise<boolean> {
-    Log.info(`Handling SomeOtherEventHandler with someString ${event.someString}`);
-    return new Promise(async (resolve, reject) => {
-      try {
-        setTimeout(() => {
-          return resolve(true);
-        }, Helpers.getRandomInt(300, 800));
-      } catch (error) {
-        return reject(error);
-      }
-    });
-  }
-}
+// class SomeOtherEventHandler extends EventHandler<SomeOtherEvent> {
+//   async handle(event: SomeOtherEvent): Promise<boolean> {
+//     Log.info(`Handling SomeOtherEventHandler with someString ${event.someString}`);
+//     return new Promise(async (resolve, reject) => {
+//       try {
+//         setTimeout(() => {
+//           return resolve(true);
+//         }, Helpers.getRandomInt(300, 800));
+//       } catch (error) {
+//         return reject(error);
+//       }
+//     });
+//   }
+// }
 
-setTimeout(async () => {
-  /** example implementation */
-  const dispatcher = new EventDispatcher();
-  const discordLeaderboardDeliverer = new DiscordLeaderboardDeliverer(LeaderboardReadyEvent);
-  const webLeaderboardDeliverer = new WebLeaderboardDeliverer(LeaderboardReadyEvent);
-  const leaderboardDeliveredLogger = new LeaderboardDeliveredLogger(LeaderboardReadyEvent);
-  dispatcher.subscribe<LeaderboardReadyEvent>(discordLeaderboardDeliverer, webLeaderboardDeliverer);
-  dispatcher.subscribe<LeaderboardReadyEvent>(leaderboardDeliveredLogger);
-  dispatcher.subscribe<SomeOtherEvent>(new SomeOtherEventHandler(SomeOtherEvent));
-  // await Promise.all([dispatcher.dispatch(new LeaderboardReadyEvent(111)), dispatcher.dispatch(new LeaderboardReadyEvent(222))]);
-  await dispatcher.dispatch(new LeaderboardReadyEvent(111));
-  // await dispatcher.dispatch(new LeaderboardReadyEvent(222));
-  // dispatcher.dispatch(new SomeOtherEvent("abc123"));
-}, 1);
+// setTimeout(async () => {
+//   /** example implementation */
+//   const dispatcher = new EventDispatcher();
+//   dispatcher.subscribe<LeaderboardReadyEvent>(
+//     new WebLeaderboardDeliverer(LeaderboardReadyEvent),
+//     new DiscordLeaderboardDeliverer(LeaderboardReadyEvent)
+//   );
+//   // TODO: re-think if this is what we really want. Logger will not execute if web deliverer fails.
+//   dispatcher.subscribe<LeaderboardReadyEvent>(new LeaderboardDeliveredLogger(LeaderboardReadyEvent));
+//   dispatcher.subscribe<SomeOtherEvent>(new SomeOtherEventHandler(SomeOtherEvent));
+//   // await Promise.all([dispatcher.dispatch(new LeaderboardReadyEvent(111)), dispatcher.dispatch(new LeaderboardReadyEvent(222))]);
+//   await dispatcher.dispatch(new LeaderboardReadyEvent(111));
+//   // await dispatcher.dispatch(new LeaderboardReadyEvent(222));
+//   // dispatcher.dispatch(new SomeOtherEvent("abc123"));
+// }, 1);

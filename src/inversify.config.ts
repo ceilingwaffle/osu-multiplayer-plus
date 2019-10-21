@@ -73,11 +73,6 @@ export class IOCKernel extends Container {
       // this.bind<IOsuLobbyScanner>(TYPES.IOsuLobbyScanner).to(OsuLobbyScannerService).inSingletonScope();
     }
   }
-
-  async initDatabaseClientConnection(): Promise<Connection> {
-    const dbClient = this.get<IDbClient>(TYPES.IDbClient);
-    return await dbClient.connectIfNotConnected();
-  }
 }
 
 const iocContainer = new IOCKernel();

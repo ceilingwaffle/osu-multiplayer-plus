@@ -80,6 +80,7 @@ TODO:
             - Maintainability (how easy is it to modify a test if something like a method signature changes)
             - Performance (minimize the time required to complete the tests)
         ☐ Test multiplayer-results-processor with postgres instead of sqlite - to test for potential DB-specific errors @created(19-10-03 19:43)
+        ☐ Unit test EventDispatcher class @created(19-10-21 05:02)
         ☐ Write tests for creating and reading game-matches-reported @created(19-10-03 14:08)
         ☐ Write tests for starting game (and test behaviour of OsuLobbyScannerService) @created(19-09-29 23:46)
         ☐ Remove fake of IOsuLobbyScanner and instead somehow inject the ApiMultiplayer object into the return of FakeOsuApiFetcher.fetchMultiplayerResults() @created(19-09-23 16:12)

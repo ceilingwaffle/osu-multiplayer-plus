@@ -1,7 +1,13 @@
 import iocContainer from "./inversify.config";
+import TYPES from "./types";
 import { GameEventRegistrarInitializer } from "./multiplayer/game-events/game-event-registrar-initializer";
 import { Message } from "./utils/message";
 import * as path from "path";
+import { Connection } from "typeorm";
+import { IDbClient } from "./database/db-client";
+import { IEventDispatcher } from "./utils/event-dispatcher";
+import { DiscordMultiplayerResultsDeliverableEventHandler } from "./discord/discord-multiplayer-results-deliverable.event-handler";
+import { MultiplayerResultsDeliverableEvent } from "./multiplayer/events/multiplayer-results-deliverable.event";
 
 require("dotenv").config({
   path: path.resolve(__dirname, "../.env"),
@@ -26,8 +32,19 @@ String.prototype.toSentenceCase = function(): string {
   return sentence;
 };
 
+const registerEventHandlers = () => {
+  const dispatcher = iocContainer.get<IEventDispatcher>(TYPES.IEventDispatcher);
+  dispatcher.subscribe(new DiscordMultiplayerResultsDeliverableEventHandler());
+};
+
+const initDatabaseClientConnection = async (): Promise<Connection> => {
+  const dbClient = iocContainer.get<IDbClient>(TYPES.IDbClient);
+  return await dbClient.connectIfNotConnected();
+};
+
 export const bootstrap = async (): Promise<void> => {
   Message.enableSentenceCaseOutput();
-  await iocContainer.initDatabaseClientConnection();
+  registerEventHandlers();
+  await initDatabaseClientConnection();
   await GameEventRegistrarInitializer.initGameEventRegistrarsFromActiveDatabaseGames();
 };
