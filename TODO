@@ -23,6 +23,8 @@ TODO:
             ☐ Need some way to make .env files inaccessible before we can allow this @created(19-10-06 21:51)
     Bugs:
         Critical:
+            ☐ Problem: Error "integer NaN" being thrown in SQL query during mp entity saving (probably during match insertions) @created(19-10-22 00:17)
+                Recreate: !creategame !addlobby 5.. !addlobby 4.. !startgame 
             ☐ Problem: !startgame called without first adding teams, causing error: @created(19-10-17 23:51)
                 [2019-10-17T23:32:52.712] [ERROR] default - Method unexpected-error: buildVirtualMatchReportGroupsForGame MultiplayerResultsProcessor TypeError: Cannot read property 'teamOsuUsers' of null        
                 at Function.calculateTeamScoresForVirtualMatch (C:\C\projects\OsuBrBot2\src\multiplayer\team-score-calculator.ts:80:35)
@@ -432,6 +434,7 @@ TODO:
                 ☐ Show leadboard position per team
                 ☐ Show team scores
                     TO do this, we need to memory scan the tournament client osu! instances
+                    (The IPC text file generated is limited to only using scores from 2 teams, so we need to memory scan each of the osu!.exe processes to get scores for each of the player windows)
                     ☐ We need scores from each of the tournament client windows 
                     ☐ Need to output these to a text file, or transmit over TCP, or IPC, or websockets 
                     ☐ The local bot generates team-scores from memory scanning:
