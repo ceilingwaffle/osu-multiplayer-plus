@@ -10,8 +10,8 @@ export class MultiplayerResultsReporter {
   static getItemsToBeReported(args: {
     virtualMatchReportDatas: VirtualMatchReportData[];
     game: Game;
-  }): ReportableContext<ReportableContextType>[] {
-    const reportable: ReportableContext<ReportableContextType>[] = MultiplayerResultsReporter.getAllReportableItemsForGame({
+  }): { allReportables: ReportableContext<ReportableContextType>[]; toBeReported: ReportableContext<ReportableContextType>[] } {
+    const allReportables: ReportableContext<ReportableContextType>[] = MultiplayerResultsReporter.getAllReportableItemsForGame({
       virtualMatchReportDatas: args.virtualMatchReportDatas
     });
     const reported: ReportableContext<ReportableContextType>[] = MultiplayerResultsReporter.getAlreadyReportedItemsForGame({
@@ -21,8 +21,9 @@ export class MultiplayerResultsReporter {
     const toBeReported: ReportableContext<ReportableContextType>[] = _.differenceWith<
       ReportableContext<ReportableContextType>,
       ReportableContext<ReportableContextType>
-    >(reportable, reported, _.isEqual);
-    return toBeReported;
+    >(allReportables, reported, _.isEqual);
+
+    return { allReportables, toBeReported };
   }
 
   private static getAllReportableItemsForGame(args: {
@@ -58,6 +59,9 @@ export class MultiplayerResultsReporter {
             reportable.push(reportedContext);
           });
         });
+      }
+      if (vmrData.leaderboards) {
+        throw new Error("TODO: Implement method of MultiplayerResultsReporter.");
       }
     });
 
@@ -99,6 +103,9 @@ export class MultiplayerResultsReporter {
           ) {
             reported.push(reportedContext);
           }
+        } else if (reportedContext.type === "leaderboard") {
+          // get the virtual match key of the latest-reported virtual match from the already-reported reportables
+          throw new Error("TODO: Implement method of MultiplayerResultsReporter.");
         } else {
           const _exhaustiveCheck: never = reportedContext.type;
         }

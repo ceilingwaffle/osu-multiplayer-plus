@@ -20,6 +20,7 @@ import { VirtualMatchReportData } from "../../../src/multiplayer/virtual-match-r
 import { MultiplayerResultsReporter } from "../../../src/multiplayer/multiplayer-results-reporter";
 import { ReportableContext, ReportableContextType } from "../../../src/domain/game/game-match-reported.entity";
 import { MultiplayerResultsDeliverer } from "../../../src/multiplayer/multiplayer-results-deliverer";
+import { LeaderboardBuilder } from "../../../src/multiplayer/leaderboards/leaderboard-builder";
 
 chai.use(chaiExclude);
 
@@ -107,12 +108,13 @@ describe("When processing multiplayer results", function() {
               .to.deep.equal(processedState.lobby1ApiResults1);
 
             const processedData1: VirtualMatchReportData[] = processor1.buildVirtualMatchReportGroupsForGame(games1[0]);
-            const toBeReported: ReportableContext<ReportableContextType>[] = MultiplayerResultsReporter.getItemsToBeReported({
+
+            const { allReportables, toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({
               virtualMatchReportDatas: processedData1,
               game: games1[0]
             });
 
-            await MultiplayerResultsDeliverer.deliver({ reportables: toBeReported });
+            // await MultiplayerResultsDeliverer.deliver({ reportables: toBeReported }); // leaderboard
             // TODO: Test the delivery in another test file. Just using it here for now to inspect the call stack.
 
             return resolve();
@@ -300,10 +302,16 @@ describe("When processing multiplayer results", function() {
               .to.deep.equal(processedState.lobby2ApiResults4);
 
             const processedData7: VirtualMatchReportData[] = processor7.buildVirtualMatchReportGroupsForGame(games7[0]);
-            const toBeReported: ReportableContext<ReportableContextType>[] = MultiplayerResultsReporter.getItemsToBeReported({
+
+            const { allReportables, toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({
               virtualMatchReportDatas: processedData7,
               game: games7[0]
             });
+
+            // const leaderboard: ReportableContext<"leaderboard"> = LeaderboardBuilder.buildLeaderboard(allReportables);
+            // allReportables.push(leaderboard);
+
+            await MultiplayerResultsDeliverer.deliver({ reportables: toBeReported }); // leaderboard
 
             return resolve();
           } catch (error) {
