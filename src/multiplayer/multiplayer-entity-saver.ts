@@ -71,19 +71,19 @@ export class MultiplayerEntitySaver {
             "Duplicate match results found! This is bad. Probably because two maps had the same start-time in the same lobby. This should never happen! For now, we'll just select and use the last of these duplicates."
           );
         }
-        let match: Match = matches.slice(-1)[0]; // set to undefined if no matches exist
+        let match: Match = matches.slice(-1)[0]; // undefined if no matches exist
         if (!match) {
           //      create match if not found
           // TODO: Extract match creation to MatchService
           match = new Match();
-          match.aborted = false; // TODO
+          match.aborted = false; // TODO: If this match has endTime == null, and the following match has endTime != null, then this match was aborted
           match.beatmapId = apiMatch.mapId.toString();
-          match.endTime = apiMatch.endTime;
+          match.endTime = isNaN(apiMatch.endTime) ? null : apiMatch.endTime;
           match.ignored = false; // TODO
           match.lobby = lobby;
-          match.mapNumber = apiMatch.mapNumber;
+          match.mapNumber = apiMatch.mapNumber; // TODO: should have the same map number as the previous match if the previous match was aborted
           match.playerScores = [];
-          match.startTime = apiMatch.startTime;
+          match.startTime = isNaN(apiMatch.startTime) ? null : apiMatch.startTime;
           match.teamMode = apiMatch.teamMode;
           lobby.matches.push(match);
         }
