@@ -28,6 +28,7 @@ import { GameTeam } from "./game-team.entity";
 import { successPromise } from "../../utils/either";
 import { TeamOsuUserRepository } from "./team-osu-user.repository";
 import { IDbClient } from "../../database/db-client";
+import _ = require("lodash"); // do not convert to default import -- it will break!!
 
 @injectable()
 export class TeamService {
@@ -254,9 +255,9 @@ export class TeamService {
   }): Promise<Team[]> {
     // get any existing teams made up of exactly the same group of users
     let osuBanchoUserIdsGroupedInTeams: number[][] = teamsOfApiOsuUsers.map(t => t.map(u => u.userId));
-    const existingTeams: Team[] = await this.dbConn.manager
-      .getCustomRepository(TeamRepository)
-      .findTeamsOfBanchoOsuUserIdGroups(osuBanchoUserIdsGroupedInTeams);
+    const allTeams: Team[] = await this.dbConn.manager.getCustomRepository(TeamRepository).getAllTeams();
+    const existingTeams: Team[] = this.filterExistingTeams(allTeams, osuBanchoUserIdsGroupedInTeams);
+
     // create the teams
     let teamsToBeAddedToGame: Team[] = [].concat(existingTeams);
     const unsavedNewTeams: Team[] = this.createTeamsIfNew({
@@ -265,38 +266,65 @@ export class TeamService {
       existingTeams,
       addedBy: requestingUser
     });
-    if (unsavedNewTeams.length) {
-      // save the teams
-      // (osu users already saved/fetched and existing as properties within "unsavedNewTeams")
-      const savedNewTeamIds: number[] = await this.dbConn.manager.getCustomRepository(TeamRepository).chunkSave({
-        values: unsavedNewTeams,
-        entityType: Team
-      });
-      let teamOsuUsers = [];
-      for (const t in unsavedNewTeams) {
-        const team = unsavedNewTeams[t];
-        teamOsuUsers.push(
-          // ...team.teamOsuUsers.map(tou => ({ teamId: savedNewTeamIds[t], osuUserId: tou.osuUser.id, addedById: team.createdBy.id }))
-          ...team.teamOsuUsers.map(tou => ({ team: team, osuUser: tou.osuUser, addedBy: team.createdBy }))
-        ); // ...tou within {},
-      }
-      // save teamOsuUsers
-      const savedTeamOsuUserIds = await this.dbConn.manager.getCustomRepository(TeamOsuUserRepository).chunkSave({
-        values: teamOsuUsers,
-        entityType: TeamOsuUser
-      });
 
-      // const reloadedNewTeams = await this.dbConn.manager.getCustomRepository(TeamRepository).findByIdsWithRelations({
-      //   ids: savedNewTeamIds,
-      //   returnWithRelations: ["teamOsuUsers", "teamOsuUsers.osuUser"]
-      // });
-      const reloadedNewTeams = await this.dbConn.manager.getCustomRepository(TeamRepository).findByIds(savedNewTeamIds, {
-        relations: ["teamOsuUsers", "teamOsuUsers.osuUser", "gameTeams"]
-      });
-      teamsToBeAddedToGame = teamsToBeAddedToGame.concat(reloadedNewTeams);
+    if (!unsavedNewTeams.length) {
+      return teamsToBeAddedToGame;
     }
 
+    // TODO: Optimize N-1
+    const saved = await Team.save(unsavedNewTeams);
+    const savedNewTeamIds = saved.map(team => team.id);
+    const reloadedNewTeams = await this.dbConn.manager.getCustomRepository(TeamRepository).findByIds(savedNewTeamIds, {
+      relations: ["teamOsuUsers", "teamOsuUsers.osuUser", "gameTeams"]
+    });
+    teamsToBeAddedToGame = teamsToBeAddedToGame.concat(reloadedNewTeams);
+
     return teamsToBeAddedToGame;
+
+    // if (unsavedNewTeams.length) {
+    //   // save the teams
+    //   // (osu users already saved/fetched and existing as properties within "unsavedNewTeams")
+    //   const savedNewTeamIds: number[] = await this.dbConn.manager.getCustomRepository(TeamRepository).chunkSave({
+    //     values: unsavedNewTeams,
+    //     entityType: Team
+    //   });
+    //   let teamOsuUsers = [];
+    //   for (const t in unsavedNewTeams) {
+    //     const team = unsavedNewTeams[t];
+    //     teamOsuUsers.push(
+    //       // ...team.teamOsuUsers.map(tou => ({ teamId: savedNewTeamIds[t], osuUserId: tou.osuUser.id, addedById: team.createdBy.id }))
+    //       ...team.teamOsuUsers.map(tou => ({ team: team, osuUser: tou.osuUser, addedBy: team.createdBy }))
+    //     ); // ...tou within {},
+    //   }
+    //   // save teamOsuUsers
+    //   const savedTeamOsuUserIds = await this.dbConn.manager.getCustomRepository(TeamOsuUserRepository).chunkSave({
+    //     values: teamOsuUsers,
+    //     entityType: TeamOsuUser
+    //   });
+
+    //   // const reloadedNewTeams = await this.dbConn.manager.getCustomRepository(TeamRepository).findByIdsWithRelations({
+    //   //   ids: savedNewTeamIds,
+    //   //   returnWithRelations: ["teamOsuUsers", "teamOsuUsers.osuUser"]
+    //   // });
+    //   const reloadedNewTeams = await this.dbConn.manager.getCustomRepository(TeamRepository).findByIds(savedNewTeamIds, {
+    //     relations: ["teamOsuUsers", "teamOsuUsers.osuUser", "gameTeams"]
+    //   });
+    //   teamsToBeAddedToGame = teamsToBeAddedToGame.concat(reloadedNewTeams);
+    // }
+  }
+
+  private filterExistingTeams(haystackTeams: Team[], needleTeams: number[][]): Team[] {
+    return haystackTeams.filter(t => {
+      const teamOsuUserBanchoIds = t.teamOsuUsers.map(tou => tou.osuUser.osuUserId);
+      for (const group of needleTeams) {
+        const checkAgainstIds = group.map(uid => uid.toString());
+        // below is true if the two arrays contain identical elements
+        if (_.xor(teamOsuUserBanchoIds, checkAgainstIds).length === 0) {
+          return true;
+        }
+      }
+      return false;
+    });
   }
 
   /**
@@ -381,6 +409,7 @@ export class TeamService {
       }
     }
     if (!teamFound) {
+      // issue: teamOsuUser has no osuUser
       const newTeam = this.createTeamFromOsuUsers({ banchoOsuUserIdGroup: userIdGroupSorted, osuUsers, addedBy });
       return newTeam;
     }

@@ -195,17 +195,16 @@ export class UserService {
       //    create the osu users that don't exist
       const newUnsavedOsuUsers: OsuUser[] = this.createOsuUsersNotInList({ createThese: apiOsuUsers, notInThese: existingOsuUsers });
       const newUnsavedUsers: User[] = this.createUsers({ times: newUnsavedOsuUsers.length });
-      //    save the created users (Q2)
-      const savedUserIds: number[] = await this.dbConn.manager
-        .getCustomRepository(UserRepository)
-        .chunkSave({ values: newUnsavedUsers, entityType: User });
+      //    save the created users
+      // TODO: Optimize N-1
+      const savedUsers: User[] = await User.save(newUnsavedUsers);
+      const savedUserIds: number[] = savedUsers.map(user => user.id);
       this.updateOsuUsersWithUserIds(newUnsavedOsuUsers, savedUserIds);
-      //    save the created osu users (Q3)
-      const savedOsuUserIds: number[] = await this.dbConn.manager.getCustomRepository(OsuUserRepository).chunkSave({
-        values: newUnsavedOsuUsers,
-        entityType: OsuUser
-      });
-      //    select all from db (Q4)
+      //    save the created osu users
+      // TODO: Optimize N-1
+      const savedOsuUsers: OsuUser[] = await OsuUser.save(newUnsavedOsuUsers);
+      const savedOsuUserIds: number[] = savedOsuUsers.map(osuUser => osuUser.id);
+      //    select all from db
       // TODO: Test to see if we actually need union here. SQL might just ignore duplicate ids.
       const allOsuUserIds = union(existingOsuUsers.map(u => u.id), savedOsuUserIds);
       const reloadedOsuUsers: OsuUser[] = await this.dbConn.manager.getCustomRepository(OsuUserRepository).findByIds(allOsuUserIds, {

@@ -565,12 +565,12 @@ describe("When saving multiplayer results", function() {
           const processor1 = new MultiplayerResultsProcessor(input);
           const actualGames1: Game[] = await processor1.saveMultiplayerEntities();
 
-          // TODO: "startedAt", "lobby", "gameMatchesReported" should be tested. Just being lazy.
-          expect(actualGames1).excludingEvery(["createdAt", "updatedAt", "startedAt", "lobby", "gameMatchesReported"]).to.deep.equal(expectedGamesData); // prettier-ignore
+          // TODO: "startedAt", "lobby", "gameMatchesReported", "teamOsuUsers" should be tested
+          expect(actualGames1).excludingEvery(["createdAt", "updatedAt", "startedAt", "lobby", "gameMatchesReported", "teamOsuUsers"]).to.deep.equal(expectedGamesData); // prettier-ignore
 
           const processor2 = new MultiplayerResultsProcessor(input);
           const actualGames2 = await processor2.saveMultiplayerEntities();
-          expect(actualGames2).excludingEvery(["createdAt", "updatedAt", "startedAt", "lobby", "gameMatchesReported"]).to.deep.equal(expectedGamesData); // prettier-ignore
+          expect(actualGames2).excludingEvery(["createdAt", "updatedAt", "startedAt", "lobby", "gameMatchesReported", "teamOsuUsers"]).to.deep.equal(expectedGamesData); // prettier-ignore
 
           // ensure database records were only inserted once
           expect(await LobbyEntity.count()).to.equal(1);
@@ -767,7 +767,8 @@ describe("When saving multiplayer results", function() {
           const processor = new MultiplayerResultsProcessor(apiResults1);
           const actualGames1 = await processor.saveMultiplayerEntities();
 
-          expect(actualGames1).excludingEvery(["createdAt", "updatedAt", "startedAt", "lobby", "gameMatchesReported"]).to.deep.equal(expectedGamesData1); // prettier-ignore
+          // TODO: "startedAt", "lobby", "gameMatchesReported", "teamOsuUsers" should be tested
+          expect(actualGames1).excludingEvery(["createdAt", "updatedAt", "startedAt", "lobby", "gameMatchesReported", "teamOsuUsers"]).to.deep.equal(expectedGamesData1); // prettier-ignore
 
           const apiResults2: ApiMultiplayer = {
             multiplayerId: addLobby1Request.banchoMultiplayerId, // Lobby.banchoMultiplayerId
@@ -920,8 +921,8 @@ describe("When saving multiplayer results", function() {
 
           const processor2 = new MultiplayerResultsProcessor(apiResults2);
           const actualGamesData2: Game[] = await processor2.saveMultiplayerEntities();
-
-          expect(actualGamesData2).excludingEvery(["createdAt", "updatedAt", "startedAt", "lobby", "gameMatchesReported"]).to.deep.equal(expectedGamesData2); // prettier-ignore
+          // TODO: "startedAt", "lobby", "gameMatchesReported", "teamOsuUsers" should be tested
+          expect(actualGamesData2).excludingEvery(["createdAt", "updatedAt", "startedAt", "lobby", "gameMatchesReported", "teamOsuUsers"]).to.deep.equal(expectedGamesData2); // prettier-ignore
 
           return resolve();
         } catch (error) {
@@ -1037,7 +1038,8 @@ describe("When saving multiplayer results", function() {
           const actualGames1 = await processor1.saveMultiplayerEntities();
           const processor2 = new MultiplayerResultsProcessor(input);
           const actualGames2 = await processor2.saveMultiplayerEntities();
-          expect(actualGames2).excludingEvery(["createdAt", "updatedAt", "startedAt", "lobby", "gameMatchesReported"]).to.deep.equal(expectedGamesData); // prettier-ignore
+          // TODO: "startedAt", "lobby", "gameMatchesReported", "teamOsuUsers" should be tested
+          expect(actualGames2).excludingEvery(["createdAt", "updatedAt", "startedAt", "lobby", "gameMatchesReported", "teamOsuUsers"]).to.deep.equal(expectedGamesData); // prettier-ignore
 
           // ensure database records were only inserted once
           expect(await LobbyEntity.count()).to.equal(1);

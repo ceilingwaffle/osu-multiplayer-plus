@@ -15,7 +15,7 @@ import { User } from "../user/user.entity";
  */
 @Entity("teams_osu_users")
 export class TeamOsuUser extends CreationTimestampedEntity {
-  @Column({ nullable: false })
+  @Generated("increment")
   id: number;
 
   @ManyToOne(type => Team, team => team.teamOsuUsers, { primary: true })

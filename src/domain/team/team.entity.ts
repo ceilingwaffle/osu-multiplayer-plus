@@ -19,7 +19,7 @@ export class Team extends CreationTimestampedEntity {
   @JoinColumn() // { name: "created_by_user_id" }
   createdBy: User;
 
-  @OneToMany(type => TeamOsuUser, teamOsuUser => teamOsuUser.team, { cascade: ["insert"] })
+  @OneToMany(type => TeamOsuUser, teamOsuUser => teamOsuUser.team, { cascade: ["insert", "update"] })
   teamOsuUsers: TeamOsuUser[];
 
   @OneToMany(type => GameTeam, gameTeam => gameTeam.team, { cascade: ["insert"] })
