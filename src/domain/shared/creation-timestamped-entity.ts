@@ -2,9 +2,11 @@ import { BaseEntity, Column, BeforeInsert, BeforeUpdate } from "typeorm";
 import { Helpers } from "../../utils/helpers";
 
 export abstract class CreationTimestampedEntity extends BaseEntity {
+  // @ValidateIf(o => o.createdAt)
   @Column({ name: "created_at", nullable: true })
   public createdAt: number;
 
+  // @ValidateIf(o => o.updatedAt)
   @Column({ name: "updated_at", nullable: true })
   public updatedAt: number;
 

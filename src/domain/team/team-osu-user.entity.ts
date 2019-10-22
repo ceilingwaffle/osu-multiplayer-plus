@@ -30,6 +30,7 @@ export class TeamOsuUser extends CreationTimestampedEntity {
   @JoinColumn()
   addedBy: User;
 
+  // @ValidateIf(teamOsuUser => teamOsuUser.removedAt)
   @Column({ nullable: true })
   removedAt: number;
 

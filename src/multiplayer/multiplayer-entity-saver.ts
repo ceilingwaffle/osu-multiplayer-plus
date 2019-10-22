@@ -147,6 +147,11 @@ export class MultiplayerEntitySaver {
       const reloadedLobby: Lobby = await dbConn.manager.getCustomRepository(LobbyRepository).findMultiplayerEntitiesForLobby(savedLobby.id);
 
       const multiplayerGames: Game[] = reloadedLobby.gameLobbies.map(gl => gl.game).filter(g => GameStatus.isStartedStatus(g.status));
+      multiplayerGames.forEach(game => {
+        // filter out any gameTeams not having a team for some reason
+        game.gameTeams = game.gameTeams.filter(gameTeam => gameTeam.team);
+      });
+
       Log.methodSuccess(this.saveMultiplayerEntities, this.constructor.name);
       return multiplayerGames;
     } catch (error) {

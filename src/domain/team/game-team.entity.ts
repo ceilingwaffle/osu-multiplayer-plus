@@ -55,6 +55,7 @@ export class GameTeam extends CreationTimestampedEntity {
   @ManyToOne(type => User)
   removedBy: User;
 
+  // @ValidateIf(gameTeam => gameTeam.removedAt)
   @Column({ nullable: true })
   removedAt: number;
 }

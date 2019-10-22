@@ -2,6 +2,7 @@ import { VirtualMatch } from "./virtual-match";
 import { Team } from "../domain/team/team.entity";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
 import { constants } from "../constants";
+import { Log } from "../utils/Log";
 
 interface CalculatedTeamScore {
   teamId: number;
@@ -73,10 +74,17 @@ export class TeamScoreCalculator {
   private static calculateTeamScoresForVirtualMatch(completedMap: VirtualMatch, teams: Team[]): CalculatedTeamScore[] {
     const teamScores: CalculatedTeamScore[] = [];
 
+    if (teams.some(team => !team)) {
+      Log.warn(`Undefined/falsy team in ${TeamScoreCalculator.name}. Possibly because no teams have been added for this game?`);
+    }
+
     for (const match of completedMap.matches) {
       for (const playerScore of match.playerScores) {
         const osuUserId = playerScore.scoredBy.id;
         for (const team of teams) {
+          if (!team) {
+            continue;
+          }
           const osuUserIds = team.teamOsuUsers.map(tou => tou.osuUser.id);
           if (osuUserIds.includes(osuUserId)) {
             let targetTeamScore = teamScores.find(ts => ts.teamId === team.id);

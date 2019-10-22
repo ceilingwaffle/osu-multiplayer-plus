@@ -9,6 +9,7 @@ import { MultiplayerResultsListener } from "../multiplayer/multiplayer-results-l
 import { OsuLobbyScannerWatcher } from "./watcher";
 import Emittery = require("emittery"); // don't convert this to an import or we'll get an Object.TypeError error
 import cloneDeep = require("lodash/cloneDeep");
+import _ = require("lodash"); // do not convert to default import -- it will break!!
 
 decorate(injectable(), Emittery);
 @injectable()
@@ -246,7 +247,7 @@ export class OsuLobbyScannerService implements IOsuLobbyScanner {
       // TODO: Update Lobby status to UNKNOWN if connection/API issue
       Log.info(`Scanning mp ${multiplayerId}...`);
       const results = await this.osuApi.fetchMultiplayerResults(multiplayerId);
-      if (this.containsNewMatches(results)) {
+      if (this.containsNewMatchesForAnyGame(results, watcher.activeGameIds)) {
         results.targetGameIds = watcher.activeGameIds;
         watcher.latestResults = results;
         await this.mpResultsListener.eventEmitter.emit("newMultiplayerMatches", results);
@@ -313,7 +314,7 @@ export class OsuLobbyScannerService implements IOsuLobbyScanner {
    * @param {ApiMultiplayer} multi The multiplayer results being checked for new results
    * @returns {boolean} true if the given multiplayer results contain new results
    */
-  private containsNewMatches(multi: ApiMultiplayer): boolean {
+  private containsNewMatchesForAnyGame(multi: ApiMultiplayer, gameIds: Set<number>): boolean {
     // TODO: unit test containsNewMatches
     try {
       // return true;
@@ -322,10 +323,20 @@ export class OsuLobbyScannerService implements IOsuLobbyScanner {
       if (!multi.matches.length) return false; // there can be no new matches if there are no matches
       const watcher = this.watchers[multi.multiplayerId];
       if (!watcher) {
-        Log.methodFailure(this.containsNewMatches, this.constructor.name, "Watcher is undefined. Returning false.");
+        Log.methodFailure(this.containsNewMatchesForAnyGame, this.constructor.name, "Watcher is undefined. Returning false.");
         return false;
       }
       if (!watcher.latestResults) return true;
+
+      // if (!this.allGameIdsActiveOnWatcher(watcher.latestResults.targetGameIds, gameIds)) {
+      //   // may not actually contain new matches, but a game has been added since the scanner started for this lobby, so we should deliver the results to that game
+      //   Log.methodSuccess(
+      //     this.containsNewMatchesForAnyGame,
+      //     `A new game was added to the lobby scanner for mp ${multi.multiplayerId} - should deliver results.`,
+      //     { mpid: multi.multiplayerId, newResults: true }
+      //   );
+      //   return true;
+      // }
 
       const latestKnownMatch = watcher.latestResults.matches.slice(-1)[0];
       const checkingMatch = multi.matches.slice(-1)[0];
@@ -337,11 +348,24 @@ export class OsuLobbyScannerService implements IOsuLobbyScanner {
 
       // const answer = latestST !== checkingST && latestET !== checkingET;
       const answer = latestET !== checkingET;
-      Log.methodSuccess(this.containsNewMatches, { mpid: multi.multiplayerId, newResults: answer });
+      Log.methodSuccess(this.containsNewMatchesForAnyGame, { mpid: multi.multiplayerId, newResults: answer });
       return answer;
     } catch (error) {
-      Log.methodError(this.containsNewMatches, this.constructor.name, error);
+      Log.methodError(this.containsNewMatchesForAnyGame, this.constructor.name, error);
       throw error;
     }
   }
+
+  // /**
+  //  * Returns true if every element in gameIds is present in targetGameIds.
+  //  *
+  //  * @private
+  //  * @param {Set<number>} targetGameIds
+  //  * @param {Set<number>} gameIds
+  //  * @returns {boolean}
+  //  */
+  // private allGameIdsActiveOnWatcher(targetGameIds: Set<number>, gameIds: Set<number>): boolean {
+  //   // return _.xor(Array.from(targetGameIds), Array.from(gameIds)).length === 0;
+  //   return Array.from(gameIds).every(gid => Array.from(targetGameIds).includes(gid));
+  // }
 }

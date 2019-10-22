@@ -41,6 +41,7 @@ export class GameMatchReported extends CreationTimestampedEntity {
   @Column("simple-json")
   reportedContext: ReportableContext<ReportableContextType>;
 
+  // @ValidateIf(gameMatch => gameMatch.reportedToRealms)
   @ManyToOne(type => Realm, { nullable: true })
   reportedToRealms: Realm[];
 }

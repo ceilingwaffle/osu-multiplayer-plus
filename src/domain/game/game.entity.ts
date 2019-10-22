@@ -25,6 +25,7 @@ export class Game extends CreationTimestampedEntity {
   @Column()
   countFailedScores: boolean;
 
+  // @ValidateIf(game => game.messageTargets)
   @Column("simple-json", { nullable: true })
   messageTargets: GameMessageTarget[];
 
@@ -35,6 +36,7 @@ export class Game extends CreationTimestampedEntity {
   @JoinColumn({ name: "ended_by_user_id" })
   endedBy: User;
 
+  // @ValidateIf(game => game.endedAt)
   @Column({ name: "ended_at", nullable: true })
   endedAt: number;
 
@@ -42,6 +44,7 @@ export class Game extends CreationTimestampedEntity {
   @JoinColumn({ name: "started_by_user_id" })
   startedBy: User;
 
+  // @ValidateIf(game => game.startedAt)
   @Column({ name: "started_at", nullable: true })
   startedAt: number;
 

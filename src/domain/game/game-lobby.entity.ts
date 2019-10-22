@@ -24,6 +24,7 @@ export class GameLobby extends CreationTimestampedEntity {
    *
    * @type {number}
    */
+  // @ValidateIf(gameLobby => gameLobby.removedAt)
   @Column({ nullable: true })
   removedAt: number;
 

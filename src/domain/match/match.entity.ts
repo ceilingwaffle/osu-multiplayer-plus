@@ -1,7 +1,7 @@
 import { Entity, PrimaryGeneratedColumn, ManyToOne, OneToMany, Column, JoinColumn, Unique, JoinTable } from "typeorm";
 import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity";
 import { Lobby } from "../lobby/lobby.entity";
-import { IsInt, IsPositive } from "class-validator";
+import { IsInt, IsPositive, IsNumberString, ValidateIf } from "class-validator";
 import { PlayerScore } from "../score/player-score.entity";
 import { GameMatchReported } from "../game/game-match-reported.entity";
 
@@ -16,7 +16,7 @@ export class Match extends CreationTimestampedEntity {
   @Column()
   mapNumber: number;
 
-  @IsInt()
+  @IsNumberString()
   @IsPositive()
   @Column()
   beatmapId: string;
@@ -28,6 +28,7 @@ export class Match extends CreationTimestampedEntity {
   startTime: number;
 
   /** The end-time timestamp in milliseconds (null if match has not yet been recorded as ended) */
+  @ValidateIf(match => match.endTime)
   @IsInt()
   @IsPositive()
   @Column({ type: "bigint", unsigned: true, nullable: true })
