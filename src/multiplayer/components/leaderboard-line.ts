@@ -6,6 +6,7 @@ export interface LeaderboardLine {
     teamName: string;
     teamNumber: number;
     players: {
+      osuUserId: string;
       osuUsername: string;
       scoreSubmitted: boolean;
       score: {

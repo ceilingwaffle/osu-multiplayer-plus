@@ -6,7 +6,6 @@ import { MultiplayerResultsProcessor } from "../../../src/multiplayer/multiplaye
 import { ApiMultiplayer } from "../../../src/osu/types/api-multiplayer";
 import { TeamMode } from "../../../src/multiplayer/components/enums/team-mode";
 import { GameReport } from "../../../src/multiplayer/reports/game.report";
-import { LeaderboardLine } from "../../../src/multiplayer/components/leaderboard-line";
 import { TestHelpers } from "../../test-helpers";
 import { Lobby as LobbyEntity } from "../../../src/domain/lobby/lobby.entity";
 import { LobbyStatus } from "../../../src/domain/lobby/lobby-status";
@@ -34,6 +33,7 @@ import { AddTeamsDto } from "../../../src/domain/team/dto/add-team.dto";
 import { TeamController } from "../../../src/domain/team/team.controller";
 import { Game as GameEntity } from "../../../src/domain/game/game.entity";
 import { GameStatus } from "../../../src/domain/game/game-status";
+import { LeaderboardLine } from "../../../src/multiplayer/components/leaderboard-line";
 
 chai.use(chaiExclude);
 
@@ -1299,7 +1299,7 @@ describe("When saving multiplayer results", function() {
 });
 
 function getLeaderboardLineOfUser(reports: GameReport[], targetUserId: string): LeaderboardLine {
-  const lines = reports[0].leaderboardLines.filter(ll => ll.team.members.map(m => m.osuUserId).includes(targetUserId));
+  const lines = reports[0].leaderboardLines.filter(ll => ll.team.players.map(m => m.osuUserId).includes(targetUserId));
   if (lines.length < 1) throw new Error("Player does not exist in any leaderboard lines.");
   if (lines.length > 1) throw new Error("Player should not exist in more than one leaderboard line.");
   return lines[0];
