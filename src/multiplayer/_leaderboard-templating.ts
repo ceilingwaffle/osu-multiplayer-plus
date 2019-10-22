@@ -1,9 +1,9 @@
-import { LeaderboardLine } from "./leaderboard-line";
-import { ScoringType } from "../components/enums/scoring-type";
-import { Leaderboard } from "./leaderboard";
-import { PlayMode } from "../components/enums/play-mode";
+import { LeaderboardLine } from "./components/leaderboard-line";
+import { ScoringType } from "./components/enums/scoring-type";
+import { Leaderboard } from "./components/leaderboard";
+import { PlayMode } from "./components/enums/play-mode";
 import { MultiTeamType } from "nodesu";
-import { Mods } from "../components/enums/mods";
+import { Mods } from "./components/enums/mods";
 
 // const spendingTemplate = fs.readFileSync("templates/spending.mustache", "utf8");
 // const spendingData = {
