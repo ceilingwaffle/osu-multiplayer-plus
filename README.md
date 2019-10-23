@@ -6,7 +6,7 @@ osu! Multiplayer Plus is a discord bot for adding special game-modes to normal o
 - Battle Royale <span style="color:#AAA">(work in progress)</span>
 - Best of x <span style="color:#AAA">(planned)</span>
 - Tournaments <span style="color:#AAA">(planned)</span>
-...and more to come!
+- ...and more to come!
 
 ## Getting Started
 
