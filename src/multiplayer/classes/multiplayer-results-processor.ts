@@ -12,7 +12,7 @@ import { Game } from "../../domain/game/game.entity";
 import { GameEventRegistrar } from "../game-events/classes/game-event-registrar";
 import { LobbyBeatmapStatusMessageGroup } from "../messages/types/lobby-beatmap-status-message-group";
 import { LobbyAwaitingBeatmapMessage } from "../messages/lobby-awaiting-beatmap-message";
-import { LobbyBeatmapStatusMessage } from "../messages/interfaces/lobby-beatmap-status-message";
+import { LobbyBeatmapStatusMessage } from "../messages/classes/lobby-beatmap-status-message";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
 import { VirtualMatch } from "../virtual-match/virtual-match";
 import { VirtualMatchCreator } from "../virtual-match/virtual-match-creator";

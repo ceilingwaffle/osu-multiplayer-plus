@@ -2,7 +2,7 @@ import { Lobby } from "../../components/lobby";
 import { Match } from "../../components/match";
 import { MessageType } from "../types/message-type";
 
-export interface LobbyBeatmapStatusMessage<T extends MessageType> {
+export abstract class LobbyBeatmapStatusMessage<T extends MessageType> {
   type: T;
   message: string;
   sameBeatmapNumber: number;

@@ -1,6 +1,6 @@
 import { Match } from "../../domain/match/match.entity";
 import { MessageType } from "../messages/types/message-type";
-import { LobbyBeatmapStatusMessage } from "../messages/interfaces/lobby-beatmap-status-message";
+import { LobbyBeatmapStatusMessage } from "../messages/classes/lobby-beatmap-status-message";
 import { VirtualMatch } from "../virtual-match/virtual-match";
 import { VirtualMatchReportData } from "../virtual-match/virtual-match-report-data";
 import { Game } from "../../domain/game/game.entity";

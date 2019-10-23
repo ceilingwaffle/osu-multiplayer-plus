@@ -4,7 +4,7 @@ import { Game } from "./game.entity";
 import { Match } from "../match/match.entity";
 import { Realm } from "../realm/realm.entity";
 import { MessageType } from "../../multiplayer/messages/types/message-type";
-import { LobbyBeatmapStatusMessage } from "../../multiplayer/messages/interfaces/lobby-beatmap-status-message";
+import { LobbyBeatmapStatusMessage } from "../../multiplayer/messages/classes/lobby-beatmap-status-message";
 import { GameEventType } from "../../multiplayer/game-events/types/game-event-types";
 import { VirtualMatchKey } from "../../multiplayer/virtual-match/virtual-match-key";
 import { IGameEvent } from "../../multiplayer/game-events/interfaces/game-event-interface";
