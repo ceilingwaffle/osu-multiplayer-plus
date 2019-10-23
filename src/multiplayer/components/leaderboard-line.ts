@@ -25,7 +25,7 @@ export interface LeaderboardLine {
     lostPosition: boolean;
     samePosition: boolean;
   };
-  event?: GameEventIcon;
+  eventIcon?: GameEventIcon;
   lives: {
     currentLives: number;
     startingLives: number;

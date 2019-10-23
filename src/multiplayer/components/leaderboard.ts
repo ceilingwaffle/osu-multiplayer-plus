@@ -8,7 +8,7 @@ import { Beatmap } from "./beatmap";
 export interface Leaderboard extends VirtualMatchKey {
   beatmapsRemaining?: number;
   beatmapPlayed: Beatmap;
-  lobby: Lobby;
-  match: Match;
+  // lobby: Lobby;
+  // match: Match;
   leaderboardLines: LeaderboardLine[];
 }

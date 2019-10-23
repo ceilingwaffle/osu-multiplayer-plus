@@ -102,7 +102,7 @@ var leaderboardData: Leaderboard = {
         gainedPosition: false,
         lostPosition: false
       },
-      event: {
+      eventIcon: {
         eventEmoji: "⭐",
         eventType: "team_won_match",
         eventDescription: "Team X won the match!"
@@ -151,7 +151,7 @@ var leaderboardData: Leaderboard = {
         gainedPosition: false,
         lostPosition: false
       },
-      event: {
+      eventIcon: {
         eventEmoji: "💀",
         eventType: "team_eliminated",
         eventDescription: "Team Y lost all their lives and was eliminated!"
@@ -189,7 +189,7 @@ console.log(leaderboardOutput);
 function genLeaderboardLines(ll: LeaderboardLine, lines: LeaderboardLine[]): string {
   return `\
   ${genPositionChange(ll)} ${genPosition(ll, lines)}. Team ${genTeamNumber(ll, lines)} \
-  |${ll.event ? ll.event.eventEmoji : "⬛"}| \
+  |${ll.eventIcon ? ll.eventIcon.eventEmoji : "⬛"}| \
   ${"🤎".repeat(ll.lives.currentLives)}${"🤍".repeat(ll.lives.startingLives - ll.lives.currentLives)} | \
   Score: ${ll.teamScore.teamScore}${ll.teamScore.tiedWithTeamNumbers.length ? "👔" : ""} | \
   ${ll.team.players

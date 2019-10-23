@@ -20,7 +20,7 @@ import { VirtualMatchReportData } from "../../../src/multiplayer/virtual-match-r
 import { MultiplayerResultsReporter } from "../../../src/multiplayer/multiplayer-results-reporter";
 import { ReportableContext, ReportableContextType } from "../../../src/domain/game/game-match-reported.entity";
 import { MultiplayerResultsDeliverer } from "../../../src/multiplayer/multiplayer-results-deliverer";
-import { LeaderboardBuilder } from "../../../src/multiplayer/leaderboards/leaderboard-builder";
+import { LeaderboardBuilder } from "../../../src/multiplayer/leaderboard-builder";
 
 chai.use(chaiExclude);
 
@@ -308,8 +308,11 @@ describe("When processing multiplayer results", function() {
               game: games7[0]
             });
 
-            // const leaderboard: ReportableContext<"leaderboard"> = LeaderboardBuilder.buildLeaderboard(allReportables);
-            // allReportables.push(leaderboard);
+            const leaderboard: ReportableContext<"leaderboard"> = LeaderboardBuilder.buildLeaderboard({
+              game: games7[0],
+              reportables: allReportables
+            });
+            allReportables.push(leaderboard);
 
             await MultiplayerResultsDeliverer.deliver({ reportables: toBeReported }); // leaderboard
 
