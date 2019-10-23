@@ -5,7 +5,7 @@ import { ApiMultiplayer } from "./types/api-multiplayer";
 import { dynamic, SetIntervalAsyncTimer, clearIntervalAsync } from "set-interval-async";
 import { injectable, inject, decorate } from "inversify";
 import TYPES from "../types";
-import { MultiplayerResultsListener } from "../multiplayer/multiplayer-results-listener";
+import { MultiplayerResultsListener } from "../multiplayer/classes/multiplayer-results-listener";
 import { OsuLobbyScannerWatcher } from "./watcher";
 import Emittery = require("emittery"); // don't convert this to an import or we'll get an Object.TypeError error
 import cloneDeep = require("lodash/cloneDeep");

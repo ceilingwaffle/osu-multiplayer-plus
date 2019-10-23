@@ -33,8 +33,8 @@ import { CommunicationClientType } from "../../communication-types";
 import { PermissionsFailure } from "../../permissions/permissions.failure";
 import { Permissions } from "../../permissions/permissions";
 import { UserRepository } from "../user/user.repository";
-import { GameEventRegistrarInitializer } from "../../multiplayer/game-events/game-event-registrar-initializer";
-import { GameEventRegistrarCollection } from "../../multiplayer/game-events/game-event-registrar-collection";
+import { GameEventRegistrarInitializer } from "../../multiplayer/game-events/classes/game-event-registrar-initializer";
+import { GameEventRegistrarCollection } from "../../multiplayer/game-events/classes/game-event-registrar-collection";
 import { IDbClient } from "../../database/db-client";
 import { StartGameDto } from "./dto/start-game.dto";
 

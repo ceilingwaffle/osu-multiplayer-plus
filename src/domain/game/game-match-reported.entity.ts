@@ -3,12 +3,13 @@ import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity
 import { Game } from "./game.entity";
 import { Match } from "../match/match.entity";
 import { Realm } from "../realm/realm.entity";
-import { MessageType, LobbyBeatmapStatusMessage } from "../../multiplayer/lobby-beatmap-status-message";
-import { GameEventType } from "../../multiplayer/game-events/game-event-types";
-import { VirtualMatchKey } from "../../multiplayer/virtual-match-key";
-import { GameEvent } from "../../multiplayer/game-events/game-event";
-import { GameModeType } from "../../multiplayer/game-modes/game-mode-types";
-import { GameMode } from "../../multiplayer/game-modes/game-mode";
+import { MessageType } from "../../multiplayer/messages/types/message-type";
+import { LobbyBeatmapStatusMessage } from "../../multiplayer/messages/interfaces/lobby-beatmap-status-message";
+import { GameEventType } from "../../multiplayer/game-events/types/game-event-types";
+import { VirtualMatchKey } from "../../multiplayer/virtual-match/virtual-match-key";
+import { IGameEvent } from "../../multiplayer/game-events/interfaces/game-event-interface";
+import { GameModeType } from "./modes/game-mode-types";
+import { GameMode } from "./modes/game-mode";
 
 export enum ReportableType {
   "message" = "message",
@@ -58,7 +59,7 @@ export type ReportableContext<T extends ReportableContextType> = VirtualMatchKey
          : never; // prettier-ignore
   /** The original message/event object */
   item: T extends "message" ? LobbyBeatmapStatusMessage<MessageType> 
-      : T extends "game_event" ? GameEvent 
+      : T extends "game_event" ? IGameEvent 
       : T extends "leaderboard" ? GameMode 
       : never; // prettier-ignore
   /** The time in which the message/event occurred */

@@ -1,13 +1,12 @@
 import iocContainer from "./inversify.config";
 import TYPES from "./types";
-import { GameEventRegistrarInitializer } from "./multiplayer/game-events/game-event-registrar-initializer";
+import { GameEventRegistrarInitializer } from "./multiplayer/game-events/classes/game-event-registrar-initializer";
 import { Message } from "./utils/message";
 import * as path from "path";
 import { Connection } from "typeorm";
 import { IDbClient } from "./database/db-client";
-import { IEventDispatcher } from "./utils/event-dispatcher";
-import { DiscordMultiplayerResultsDeliverableEventHandler } from "./discord/discord-multiplayer-results-deliverable.event-handler";
-import { MultiplayerResultsDeliverableEvent } from "./multiplayer/events/multiplayer-results-deliverable.event";
+import { IEventDispatcher } from "./events/interfaces/event-dispatcher";
+import { DiscordMultiplayerResultsDeliverableEventHandler } from "./events/handlers/discord-multiplayer-results-deliverable.event-handler";
 
 require("dotenv").config({
   path: path.resolve(__dirname, "../.env"),

@@ -1,4 +1,4 @@
-import { VirtualMatchKey } from "../virtual-match-key";
+import { VirtualMatchKey } from "../virtual-match/virtual-match-key";
 import { LeaderboardLine } from "./leaderboard-line";
 import { Match } from "./match";
 import { Lobby } from "./lobby";

@@ -14,14 +14,13 @@ import { TeamService } from "./domain/team/team.service";
 import { NodesuApiFetcher } from "./osu/nodesu-api-fetcher";
 import { IOsuApiFetcher } from "./osu/interfaces/osu-api-fetcher";
 import { FakeOsuApiFetcher } from "../test/classes/fake-osu-api-fetcher";
-import { IsValidBanchoMultiplayerIdConstraint } from "./osu/validators/bancho-multiplayer-id.validator";
 import { IOsuLobbyScanner } from "./osu/interfaces/osu-lobby-scanner";
 import { OsuLobbyScannerService } from "./osu/osu-lobby-scanner-service";
-import { GameEventRegistrarCollection } from "./multiplayer/game-events/game-event-registrar-collection";
-import { Connection } from "typeorm";
+import { GameEventRegistrarCollection } from "./multiplayer/game-events/classes/game-event-registrar-collection";
 import { IDbClient, DbClient } from "./database/db-client";
-import { MultiplayerResultsListener } from "./multiplayer/multiplayer-results-listener";
-import { IEventDispatcher, EventDispatcher } from "./utils/event-dispatcher";
+import { MultiplayerResultsListener } from "./multiplayer/classes/multiplayer-results-listener";
+import { IEventDispatcher } from "./events/interfaces/event-dispatcher";
+import { EventDispatcher } from "./events/classes/event-dispatcher";
 
 // const iocContainer = new Container();
 // autoProvide(iocContainer, entities);

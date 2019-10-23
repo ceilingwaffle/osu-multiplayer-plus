@@ -2,7 +2,7 @@ import "../../../src/bootstrap";
 import "mocha";
 import * as chai from "chai";
 import { assert, expect } from "chai";
-import { MultiplayerResultsProcessor } from "../../../src/multiplayer/multiplayer-results-processor";
+import { MultiplayerResultsProcessor } from "../../../src/multiplayer/classes/multiplayer-results-processor";
 import { ApiMultiplayer } from "../../../src/osu/types/api-multiplayer";
 import { TeamMode } from "../../../src/multiplayer/components/enums/team-mode";
 import { GameReport } from "../../../src/multiplayer/reports/game.report";

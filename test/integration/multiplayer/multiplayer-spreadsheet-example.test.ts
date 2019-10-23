@@ -6,8 +6,8 @@ import chaiExclude from "chai-exclude";
 import iocContainer from "../../../src/inversify.config";
 import TYPES from "../../../src/types";
 import { IDbClient } from "../../../src/database/db-client";
-import { MultiplayerResultsProcessor } from "../../../src/multiplayer/multiplayer-results-processor";
-import { VirtualMatch } from "../../../src/multiplayer/virtual-match";
+import { MultiplayerResultsProcessor } from "../../../src/multiplayer/classes/multiplayer-results-processor";
+import { VirtualMatch } from "../../../src/multiplayer/virtual-match/virtual-match";
 import { TestHelpers } from "../../test-helpers";
 import { GameController } from "../../../src/domain/game/game.controller";
 import { LobbyController } from "../../../src/domain/lobby/lobby.controller";
@@ -16,11 +16,11 @@ import { AddTeamsDto } from "../../../src/domain/team/dto/add-team.dto";
 import { TeamController } from "../../../src/domain/team/team.controller";
 import { context } from "./context/spreadsheet-context";
 import { processedState } from "./context/spreadsheet-processed-state";
-import { VirtualMatchReportData } from "../../../src/multiplayer/virtual-match-report-data";
-import { MultiplayerResultsReporter } from "../../../src/multiplayer/multiplayer-results-reporter";
+import { VirtualMatchReportData } from "../../../src/multiplayer/virtual-match/virtual-match-report-data";
+import { MultiplayerResultsReporter } from "../../../src/multiplayer/classes/multiplayer-results-reporter";
 import { ReportableContext, ReportableContextType } from "../../../src/domain/game/game-match-reported.entity";
-import { MultiplayerResultsDeliverer } from "../../../src/multiplayer/multiplayer-results-deliverer";
-import { LeaderboardBuilder } from "../../../src/multiplayer/leaderboard-builder";
+import { MultiplayerResultsDeliverer } from "../../../src/multiplayer/classes/multiplayer-results-deliverer";
+import { LeaderboardBuilder } from "../../../src/multiplayer/leaderboard/leaderboard-builder";
 
 chai.use(chaiExclude);
 
