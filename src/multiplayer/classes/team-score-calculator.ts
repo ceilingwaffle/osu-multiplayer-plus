@@ -71,7 +71,7 @@ export class TeamScoreCalculator {
     return constants.MIN_ENTITY_ID_NUMBER - 1;
   }
 
-  private static calculateTeamScoresForVirtualMatch(completedMap: VirtualMatch, teams: Team[]): CalculatedTeamScore[] {
+  static calculateTeamScoresForVirtualMatch(completedMap: VirtualMatch, teams: Team[]): CalculatedTeamScore[] {
     const teamScores: CalculatedTeamScore[] = [];
 
     if (teams.some(team => !team)) {

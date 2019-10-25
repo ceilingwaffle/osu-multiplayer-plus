@@ -423,12 +423,16 @@ describe("When saving multiplayer results", function() {
                   {
                     osuUserId: "3336000", // Match.PlayerScores[].scoredBy(OsuUser).osuUserId
                     score: 100000, // Match.PlayerScores[].score
-                    passed: true // Match.PlayerScores[].passed
+                    passed: true, // Match.PlayerScores[].passed
+                    scoreLetterGrade: "A",
+                    accuracy: 12.34
                   },
                   {
                     osuUserId: "3336001",
                     score: 100001,
-                    passed: true
+                    passed: true,
+                    scoreLetterGrade: "A",
+                    accuracy: 12.34
                   }
                 ]
               }
@@ -626,12 +630,16 @@ describe("When saving multiplayer results", function() {
                   {
                     osuUserId: "3336000", // Match.PlayerScores[].scoredBy(OsuUser).osuUserId
                     score: 100000, // Match.PlayerScores[].score
-                    passed: true // Match.PlayerScores[].passed
+                    passed: true, // Match.PlayerScores[].passed
+                    scoreLetterGrade: "A",
+                    accuracy: 12.34
                   },
                   {
                     osuUserId: "3336001",
                     score: 100001,
-                    passed: true
+                    passed: true,
+                    scoreLetterGrade: "A",
+                    accuracy: 12.34
                   }
                 ]
               }
@@ -785,12 +793,16 @@ describe("When saving multiplayer results", function() {
                   {
                     osuUserId: "3336000", // Match.PlayerScores[].scoredBy(OsuUser).osuUserId
                     score: 200000, // Match.PlayerScores[].score
-                    passed: true // Match.PlayerScores[].passed
+                    passed: true, // Match.PlayerScores[].passed
+                    scoreLetterGrade: "A",
+                    accuracy: 12.34
                   },
                   {
                     osuUserId: "3336001",
                     score: 200001,
-                    passed: true
+                    passed: true,
+                    scoreLetterGrade: "A",
+                    accuracy: 12.34
                   }
                 ]
               }
@@ -1160,12 +1172,16 @@ describe("When saving multiplayer results", function() {
                   {
                     osuUserId: "3336000",
                     score: 100000,
-                    passed: true
+                    passed: true,
+                    scoreLetterGrade: "A",
+                    accuracy: 12.34
                   },
                   {
                     osuUserId: "3336001",
                     score: 100001,
-                    passed: true
+                    passed: true,
+                    scoreLetterGrade: "A",
+                    accuracy: 12.34
                   }
                 ]
               }
@@ -1190,12 +1206,16 @@ describe("When saving multiplayer results", function() {
                   {
                     osuUserId: "3336100",
                     score: 100000,
-                    passed: true
+                    passed: true,
+                    scoreLetterGrade: "A",
+                    accuracy: 12.34
                   },
                   {
                     osuUserId: "3336101",
                     score: 100001,
-                    passed: true
+                    passed: true,
+                    scoreLetterGrade: "A",
+                    accuracy: 12.34
                   }
                 ]
               },
@@ -1212,12 +1232,16 @@ describe("When saving multiplayer results", function() {
                   {
                     osuUserId: "3336100",
                     score: 100000,
-                    passed: true
+                    passed: true,
+                    scoreLetterGrade: "A",
+                    accuracy: 12.34
                   },
                   {
                     osuUserId: "3336101",
                     score: 100001,
-                    passed: true
+                    passed: true,
+                    scoreLetterGrade: "A",
+                    accuracy: 12.34
                   }
                 ]
               }

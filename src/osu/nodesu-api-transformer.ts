@@ -54,7 +54,9 @@ export class NodesuApiTransformer {
         scores.push({
           osuUserId: apiScore.userId.toString(),
           score: apiScore.score,
-          passed: apiScore.pass
+          passed: apiScore.pass,
+          scoreLetterGrade: "plain_S", // TODO: Calculate score letter grade from score (300's, 100's, etc)
+          accuracy: 69.69 // TODO: Calculate accuracy from score
         });
       }
 

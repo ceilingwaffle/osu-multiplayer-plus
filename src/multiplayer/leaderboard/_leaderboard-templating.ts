@@ -78,7 +78,7 @@ var leaderboardData: Leaderboard = {
             scoreSubmitted: true,
             score: {
               score: 110000,
-              rankAchieved: "B",
+              scoreLetterGrade: "B",
               accuracy: 93.0,
               highestScoreInTeam: true
             }
@@ -89,7 +89,7 @@ var leaderboardData: Leaderboard = {
             scoreSubmitted: true,
             score: {
               score: 90000,
-              rankAchieved: "C",
+              scoreLetterGrade: "C",
               accuracy: 81.0,
               highestScoreInTeam: false
             }
@@ -129,7 +129,7 @@ var leaderboardData: Leaderboard = {
             scoreSubmitted: true,
             score: {
               score: 40000,
-              rankAchieved: "C",
+              scoreLetterGrade: "C",
               accuracy: 86.5,
               highestScoreInTeam: true
             }
@@ -140,7 +140,7 @@ var leaderboardData: Leaderboard = {
             scoreSubmitted: true,
             score: {
               score: 0,
-              rankAchieved: "F",
+              scoreLetterGrade: "F",
               accuracy: 0.0,
               highestScoreInTeam: false
             }
@@ -197,7 +197,7 @@ function genLeaderboardLines(ll: LeaderboardLine, lines: LeaderboardLine[]): str
   ${"🤎".repeat(ll.lives.currentLives)}${"🤍".repeat(ll.lives.startingLives - ll.lives.currentLives)} | \
   Score: ${ll.teamScore.teamScore}${ll.teamScore.tiedWithTeamNumbers.length ? "👔" : ""} | \
   ${ll.team.players
-    .map(p => `${p.osuUsername}: ${p.score.highestScoreInTeam ? `*${p.score.score}*` : `${p.score.score}`} [${p.score.rankAchieved}]`)
+    .map(p => `${p.osuUsername}: ${p.score.highestScoreInTeam ? `*${p.score.score}*` : `${p.score.score}`} [${p.score.scoreLetterGrade}]`)
     .join(", ")}
   `;
 }

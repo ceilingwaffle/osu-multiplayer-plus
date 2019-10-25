@@ -218,6 +218,9 @@ TODO:
                 e.g. DigitalHypno's tournament pool spreadsheet - https://docs.google.com/spreadsheets/d/1Pm1ihvelNLk5hyAxDir5o8UgPuqE9CEsJ00jBv3OLs4/edit#gid=1437326481
                     -- Average player rank should determine pool difficulty
             ☐ Users can create their own games, but no rewards will be granted (since this could be abused for farming prestige)
+        ☐ Twitch bot that streamer players can add to their chat to send updates after each map with the latest results, who's in the lead, etc. @created(19-10-25 21:55)
+            ☐ Streamer should authenticate their Twitch account before the bot gets added to their chat @created(19-10-25 21:56)
+            ☐ Bot should have a !removeme command so streamers can remove the bot from their chat @created(19-10-25 21:57)
         Auto-Scheduled Tournaments:
             ☐ Users should sign up with their osu account up to 1 week before the tournament is scheduled to begin @created(19-09-26 13:15)
             ☐ Users should "check in" 1 hour before the tournament is scheduled to begin @created(19-09-26 13:15)

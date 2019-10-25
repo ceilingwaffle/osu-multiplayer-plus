@@ -1,21 +1,11 @@
 import { GameEventIcon } from "./game-event-icon";
-import { MapRank } from "./types/map-rank";
+import { ScoreLetterGrade } from "./types/score-letter-grade";
 
 export interface LeaderboardLine {
   team: {
     teamName: string;
     teamNumber: number;
-    players: {
-      osuUserId: string;
-      osuUsername: string;
-      scoreSubmitted: boolean;
-      score: {
-        score: number;
-        rankAchieved: MapRank;
-        accuracy: number;
-        highestScoreInTeam: boolean;
-      };
-    }[];
+    players: LeaderboardLinePlayer[];
   };
   alive: boolean;
   position: {
@@ -33,5 +23,17 @@ export interface LeaderboardLine {
   teamScore: {
     teamScore: number;
     tiedWithTeamNumbers: number[];
+  };
+}
+
+export interface LeaderboardLinePlayer {
+  osuUserId: string;
+  osuUsername: string;
+  scoreSubmitted: boolean;
+  score: {
+    score: number;
+    scoreLetterGrade: ScoreLetterGrade;
+    accuracy: number;
+    highestScoreInTeam: boolean;
   };
 }

@@ -136,6 +136,8 @@ export class MultiplayerEntitySaver {
             score.score = apiScore.score;
             score.scoredBy = player;
             score.scoredInMatch = match;
+            score.scoreLetterGrade = apiScore.scoreLetterGrade;
+            score.accuracy = apiScore.accuracy;
             match.playerScores.push(score);
           }
         }
