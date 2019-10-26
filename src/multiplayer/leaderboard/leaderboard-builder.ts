@@ -82,11 +82,11 @@ export class LeaderboardBuilder {
               return {
                 osuUserId: tou.osuUser.osuUserId,
                 osuUsername: tou.osuUser.osuUsername,
-                scoreSubmitted: !!playerScore.score,
+                scoreSubmitted: !!playerScore,
                 score: {
-                  score: playerScore.score || 0,
-                  scoreLetterGrade: playerScore.scoreLetterGrade,
-                  accuracy: playerScore.accuracy,
+                  score: playerScore ? playerScore.score || 0 : 0,
+                  scoreLetterGrade: playerScore ? playerScore.scoreLetterGrade : undefined,
+                  accuracy: playerScore ? playerScore.accuracy : undefined,
                   // may have multiple highest-scoring players if they all tied the highest score
                   highestScoreInTeam: !!highestScoringTeamPlayerScores.find(sps => sps.scoredBy.osuUserId === tou.osuUser.osuUserId)
                 }
@@ -106,11 +106,11 @@ export class LeaderboardBuilder {
             samePosition: true // TODO
           },
           lives: {
-            currentLives: 1, // TODO
-            startingLives: 1 // TODO
+            currentLives: 111, // TODO
+            startingLives: 111 // TODO
           },
           teamScore: {
-            teamScore: 1, // TODO
+            teamScore: 11111, // TODO
             tiedWithTeamNumbers: [] // TODO
           }
         };
@@ -143,13 +143,8 @@ export class LeaderboardBuilder {
     const teamPlayerScoresLowestToHighest = _(virtualMatch.matches)
       .map(m => m.playerScores)
       .flattenDeep()
-      .map(ps => {
-        const teamOsuUser = team.teamOsuUsers.find(tou2 => {
-          tou2.osuUser.osuUserId === ps.scoredBy.osuUserId;
-        });
-        if (teamOsuUser) return ps;
-      })
-      .flattenDeep()
+      .filter(playerScore => !!team.teamOsuUsers.find(tou => tou.osuUser.osuUserId === playerScore.scoredBy.osuUserId))
+      // .flattenDeep()
       .sort((a, b) => a.score - b.score)
       .value();
 
@@ -173,16 +168,23 @@ export class LeaderboardBuilder {
     args: { game: Game; reportables: ReportableContext<ReportableContextType>[] },
     teamScores: Map<number, number>
   ) {
-    (event.item as TeamScoredLowestGameEvent).data.eventMatch.matches.forEach(match => {
-      match.playerScores.forEach(playerScore => {
-        const gameTeam = args.game.gameTeams.find(gameTeam =>
-          gameTeam.team.teamOsuUsers.find(tou => tou.osuUser.osuUserId === playerScore.scoredBy.osuUserId)
-        );
-        const teamId = gameTeam.team.id;
-        const teamScore = teamScores.get(teamId) || 0;
-        teamScores.set(teamId, teamScore + playerScore.score);
+    if (!event || !event.item) {
+      return;
+    }
+    // Just using the team_scored_lowest event here to avoid calculating the same match more than once.
+    // This could really be any event, as long as that event occurs only once per virtual match.
+    if (event.subType === "team_scored_lowest") {
+      (event.item as TeamScoredLowestGameEvent).data.eventMatch.matches.forEach(match => {
+        match.playerScores.forEach(playerScore => {
+          const gameTeam = args.game.gameTeams.find(gameTeam =>
+            gameTeam.team.teamOsuUsers.find(tou => tou.osuUser.osuUserId === playerScore.scoredBy.osuUserId)
+          );
+          const teamId = gameTeam.team.id;
+          const teamScore = teamScores.get(teamId) || 0;
+          teamScores.set(teamId, teamScore + playerScore.score);
+        });
       });
-    });
+    }
   }
 
   private static updateTeamLives(

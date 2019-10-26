@@ -55,7 +55,7 @@ export class TeamScoredLowestGameEvent extends GameEvent<{ teamId: number }> imp
       .filter(vm => {
         // remove any virtual matches occurring after the target virtual match
         const vmLatestMatch = vm.matches.sort((m1, m2) => this.compareFnMatchesOldestToLatest(m1, m2)).slice(-1)[0];
-        return this.compareFnMatchesOldestToLatest(vmLatestMatch, targetVmLatestMatch) > 0;
+        return this.compareFnMatchesOldestToLatest(vmLatestMatch, targetVmLatestMatch) <= 0;
       })
       .sort((vm1, vm2) => {
         // const vm1LatestMatch = vm1.matches.sort((m1, m2) => this.compareFnMatchesOldestToLatest(m1, m2)).slice(-1)[0];
@@ -76,18 +76,26 @@ export class TeamScoredLowestGameEvent extends GameEvent<{ teamId: number }> imp
       }
 
       const losingTeamId = TeamScoreCalculator.calculateLowestScoringTeamIdOfVirtualMatch(virtualMatch, teamsRemovingEliminated);
-      if (!losingTeamId) {
-        // in the case of tied scores, no team should lose
-        return vmTeamScoresAccumulator;
-      }
 
       vmTeamScoresAccumulator.set(
         VirtualMatchCreator.createSameBeatmapKeyString({
           beatmapId: virtualMatch.beatmapId,
           sameBeatmapNumber: virtualMatch.sameBeatmapNumber
         }),
-        { losingTeamId: losingTeamId }
+        { losingTeamId: losingTeamId, tiedScore: false }
       );
+
+      if (!losingTeamId) {
+        // in the case of tied scores, no team should lose
+        let losingTeamRecords = vmTeamScoresAccumulator.get(
+          VirtualMatchCreator.createSameBeatmapKeyString({
+            beatmapId: virtualMatch.beatmapId,
+            sameBeatmapNumber: virtualMatch.sameBeatmapNumber
+          })
+        );
+        losingTeamRecords.tiedScore = true;
+        return vmTeamScoresAccumulator;
+      }
 
       let losingTeamRecords = teamLosses.get(losingTeamId);
       if (!losingTeamRecords) {
@@ -104,7 +112,7 @@ export class TeamScoredLowestGameEvent extends GameEvent<{ teamId: number }> imp
       }
 
       return vmTeamScoresAccumulator;
-    }, new Map<string, { losingTeamId: number }>());
+    }, new Map<string, { losingTeamId: number; tiedScore: boolean }>());
 
     // determine the losing team ID of the target virtual match
     const teamStatusForTargetVirtualMatch = losingTeamsForVirtualMatches.get(
@@ -116,6 +124,7 @@ export class TeamScoredLowestGameEvent extends GameEvent<{ teamId: number }> imp
     const losingTeamId = teamStatusForTargetVirtualMatch ? teamStatusForTargetVirtualMatch.losingTeamId : undefined;
 
     this.data = {
+      // if teamId is undefined, it means there was no loser, probably because there was only one team remaining alive, or because teams tied
       teamId: losingTeamId,
       eventMatch: targetVirtualMatch,
       // the team lost at the time of the final lobby completing the map
