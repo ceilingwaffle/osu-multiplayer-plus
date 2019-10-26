@@ -5,13 +5,38 @@ import { CreateGameDto } from "../../../../src/domain/game/dto/create-game.dto";
 import { DiscordRequestDto } from "../../../../src/requests/dto/discord-request.dto";
 import { AddLobbyDto } from "../../../../src/domain/lobby/dto/add-lobby.dto";
 
+// 7 virtual matches complete
+// 1 virtual match incomplete (BM5#3)
+// starting lives = 2 per team
+
+// total lives lost should be 7
+// team 3 should be the winner
+// teams 1,2,4 should be eliminated
 const values = {
   banchoMultiplayerIds: {
     lobby1: "1234",
     lobby2: "5678"
   },
   teams: {
-    _2v2: [["p1", "p2"], ["p3", "p4"]]
+    _2v2: [["p1", "p2"], ["p3", "p4"]],
+    _2v2v2v2: {
+      T1: {
+        P1: "p1", // L1
+        P2: "p2" // L1
+      },
+      T2: {
+        P3: "p3", // L1
+        P4: "p4" // L1
+      },
+      T3: {
+        P5: "p5", // L1
+        P6: "p6" // L2
+      },
+      T4: {
+        P7: "p7", // L2
+        P8: "p8" // L2
+      }
+    }
   }
 };
 
@@ -51,15 +76,36 @@ const lobby1ApiResults1: ApiMultiplayer = {
       event: "match_end",
       scores: [
         {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[0][0]).toString(),
-          score: 100000,
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T1.P1).toString(),
+          score: 70,
           passed: true,
           scoreLetterGrade: "A",
           accuracy: 12.34
         },
         {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[1][0]).toString(),
-          score: 100001,
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T1.P2).toString(),
+          score: 30,
+          passed: true,
+          scoreLetterGrade: "A",
+          accuracy: 12.34
+        },
+        {
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T2.P3).toString(),
+          score: 100,
+          passed: true,
+          scoreLetterGrade: "A",
+          accuracy: 12.34
+        },
+        {
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T2.P4).toString(),
+          score: 100,
+          passed: true,
+          scoreLetterGrade: "A",
+          accuracy: 12.34
+        },
+        {
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T3.P5).toString(),
+          score: 50,
           passed: true,
           scoreLetterGrade: "A",
           accuracy: 12.34
@@ -76,15 +122,36 @@ const lobby1ApiResults1: ApiMultiplayer = {
       event: "match_end",
       scores: [
         {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[0][0]).toString(),
-          score: 100000,
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T1.P1).toString(),
+          score: 200,
           passed: true,
           scoreLetterGrade: "A",
           accuracy: 12.34
         },
         {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[0][0]).toString(),
-          score: 100001,
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T1.P2).toString(),
+          score: 200,
+          passed: true,
+          scoreLetterGrade: "A",
+          accuracy: 12.34
+        },
+        {
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T2.P3).toString(),
+          score: 250,
+          passed: true,
+          scoreLetterGrade: "A",
+          accuracy: 12.34
+        },
+        {
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T2.P4).toString(),
+          score: 50,
+          passed: true,
+          scoreLetterGrade: "A",
+          accuracy: 12.34
+        },
+        {
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T3.P5).toString(),
+          score: 100,
           passed: true,
           scoreLetterGrade: "A",
           accuracy: 12.34
@@ -101,15 +168,36 @@ const lobby1ApiResults1: ApiMultiplayer = {
       event: "match_end",
       scores: [
         {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[0][0]).toString(),
-          score: 100000,
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T1.P1).toString(),
+          score: 250,
           passed: true,
           scoreLetterGrade: "A",
           accuracy: 12.34
         },
         {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[0][0]).toString(),
-          score: 100001,
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T1.P2).toString(),
+          score: 250,
+          passed: true,
+          scoreLetterGrade: "A",
+          accuracy: 12.34
+        },
+        {
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T2.P3).toString(),
+          score: 200,
+          passed: true,
+          scoreLetterGrade: "A",
+          accuracy: 12.34
+        },
+        {
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T2.P4).toString(),
+          score: 200,
+          passed: true,
+          scoreLetterGrade: "A",
+          accuracy: 12.34
+        },
+        {
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T3.P5).toString(),
+          score: 150,
           passed: true,
           scoreLetterGrade: "A",
           accuracy: 12.34
@@ -126,15 +214,36 @@ const lobby1ApiResults1: ApiMultiplayer = {
       event: "match_end",
       scores: [
         {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[0][0]).toString(),
-          score: 100000,
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T1.P1).toString(),
+          score: 60,
           passed: true,
           scoreLetterGrade: "A",
           accuracy: 12.34
         },
         {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[0][0]).toString(),
-          score: 100001,
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T1.P2).toString(),
+          score: 40,
+          passed: true,
+          scoreLetterGrade: "A",
+          accuracy: 12.34
+        },
+        {
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T2.P3).toString(),
+          score: 150,
+          passed: true,
+          scoreLetterGrade: "A",
+          accuracy: 12.34
+        },
+        {
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T2.P4).toString(),
+          score: 150,
+          passed: true,
+          scoreLetterGrade: "A",
+          accuracy: 12.34
+        },
+        {
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T3.P5).toString(),
+          score: 100,
           passed: true,
           scoreLetterGrade: "A",
           accuracy: 12.34
@@ -150,16 +259,24 @@ const lobby1ApiResults1: ApiMultiplayer = {
       teamMode: TeamMode.HeadToHead,
       event: "match_end",
       scores: [
+        // T1.P1 and T1.P2 left the lobby and therefore did not submit scores
         {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[0][0]).toString(),
-          score: 100000,
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T2.P3).toString(),
+          score: 300,
           passed: true,
           scoreLetterGrade: "A",
           accuracy: 12.34
         },
         {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[1][0]).toString(),
-          score: 100001,
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T2.P4).toString(),
+          score: 300,
+          passed: true,
+          scoreLetterGrade: "A",
+          accuracy: 12.34
+        },
+        {
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T3.P5).toString(),
+          score: 100,
           passed: true,
           scoreLetterGrade: "A",
           accuracy: 12.34
@@ -182,15 +299,22 @@ const lobby2ApiResults1: ApiMultiplayer = {
       event: "match_end",
       scores: [
         {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[0][1]).toString(),
-          score: 100000,
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T3.P6).toString(),
+          score: 100,
           passed: true,
           scoreLetterGrade: "A",
           accuracy: 12.34
         },
         {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[1][1]).toString(),
-          score: 100001,
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T4.P7).toString(),
+          score: 20,
+          passed: true,
+          scoreLetterGrade: "A",
+          accuracy: 12.34
+        },
+        {
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T4.P8).toString(),
+          score: 80,
           passed: true,
           scoreLetterGrade: "A",
           accuracy: 12.34
@@ -207,15 +331,22 @@ const lobby2ApiResults1: ApiMultiplayer = {
       event: "match_end",
       scores: [
         {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[0][1]).toString(),
-          score: 100000,
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T3.P6).toString(),
+          score: 250,
           passed: true,
           scoreLetterGrade: "A",
           accuracy: 12.34
         },
         {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[1][1]).toString(),
-          score: 100001,
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T4.P7).toString(),
+          score: 0,
+          passed: true,
+          scoreLetterGrade: "A",
+          accuracy: 12.34
+        },
+        {
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T4.P8).toString(),
+          score: 400,
           passed: true,
           scoreLetterGrade: "A",
           accuracy: 12.34
@@ -232,15 +363,22 @@ const lobby2ApiResults1: ApiMultiplayer = {
       event: "match_end",
       scores: [
         {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[0][1]).toString(),
-          score: 100000,
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T3.P6).toString(),
+          score: 100,
           passed: true,
           scoreLetterGrade: "A",
           accuracy: 12.34
         },
         {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[1][1]).toString(),
-          score: 100001,
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T4.P7).toString(),
+          score: 200,
+          passed: true,
+          scoreLetterGrade: "A",
+          accuracy: 12.34
+        },
+        {
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T4.P8).toString(),
+          score: 200,
           passed: true,
           scoreLetterGrade: "A",
           accuracy: 12.34
@@ -257,15 +395,22 @@ const lobby2ApiResults1: ApiMultiplayer = {
       event: "match_end",
       scores: [
         {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[0][1]).toString(),
-          score: 100000,
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T3.P6).toString(),
+          score: 100,
           passed: true,
           scoreLetterGrade: "A",
           accuracy: 12.34
         },
         {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[1][1]).toString(),
-          score: 100001,
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T4.P7).toString(),
+          score: 100,
+          passed: true,
+          scoreLetterGrade: "A",
+          accuracy: 12.34
+        },
+        {
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T4.P8).toString(),
+          score: 100,
           passed: true,
           scoreLetterGrade: "A",
           accuracy: 12.34
@@ -289,15 +434,22 @@ const lobby2ApiResults2: ApiMultiplayer = {
       event: "match_end",
       scores: [
         {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[0][1]).toString(),
-          score: 100000,
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T3.P6).toString(),
+          score: 150,
           passed: true,
           scoreLetterGrade: "A",
           accuracy: 12.34
         },
         {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[1][1]).toString(),
-          score: 100001,
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T4.P7).toString(),
+          score: 0,
+          passed: true,
+          scoreLetterGrade: "A",
+          accuracy: 12.34
+        },
+        {
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T4.P8).toString(),
+          score: 0,
           passed: true,
           scoreLetterGrade: "A",
           accuracy: 12.34
@@ -314,15 +466,22 @@ const lobby2ApiResults2: ApiMultiplayer = {
       event: "match_end",
       scores: [
         {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[0][1]).toString(),
-          score: 100000,
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T3.P6).toString(),
+          score: 100,
           passed: true,
           scoreLetterGrade: "A",
           accuracy: 12.34
         },
         {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[1][1]).toString(),
-          score: 100001,
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T4.P7).toString(),
+          score: 150,
+          passed: true,
+          scoreLetterGrade: "A",
+          accuracy: 12.34
+        },
+        {
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T4.P8).toString(),
+          score: 150,
           passed: true,
           scoreLetterGrade: "A",
           accuracy: 12.34
@@ -346,15 +505,36 @@ const lobby1ApiResults2: ApiMultiplayer = {
       event: "match_end",
       scores: [
         {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[0][0]).toString(),
-          score: 100000,
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T1.P1).toString(),
+          score: 150,
           passed: true,
           scoreLetterGrade: "A",
           accuracy: 12.34
         },
         {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[1][0]).toString(),
-          score: 100001,
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T1.P2).toString(),
+          score: 150,
+          passed: true,
+          scoreLetterGrade: "A",
+          accuracy: 12.34
+        },
+        {
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T2.P3).toString(),
+          score: 50,
+          passed: true,
+          scoreLetterGrade: "A",
+          accuracy: 12.34
+        },
+        {
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T2.P4).toString(),
+          score: 50,
+          passed: true,
+          scoreLetterGrade: "A",
+          accuracy: 12.34
+        },
+        {
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T3.P5).toString(),
+          score: 100,
           passed: true,
           scoreLetterGrade: "A",
           accuracy: 12.34
@@ -378,15 +558,22 @@ const lobby1ApiResults3: ApiMultiplayer = {
       event: "match_end",
       scores: [
         {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[0][0]).toString(),
-          score: 100000,
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T2.P3).toString(),
+          score: 50,
           passed: true,
           scoreLetterGrade: "A",
           accuracy: 12.34
         },
         {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[1][0]).toString(),
-          score: 100001,
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T2.P4).toString(),
+          score: 50,
+          passed: true,
+          scoreLetterGrade: "A",
+          accuracy: 12.34
+        },
+        {
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T3.P5).toString(),
+          score: 20,
           passed: true,
           scoreLetterGrade: "A",
           accuracy: 12.34
@@ -410,15 +597,8 @@ const lobby2ApiResults3: ApiMultiplayer = {
       event: "match_end",
       scores: [
         {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[0][1]).toString(),
-          score: 100000,
-          passed: true,
-          scoreLetterGrade: "A",
-          accuracy: 12.34
-        },
-        {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[1][1]).toString(),
-          score: 100001,
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T3.P6).toString(),
+          score: 80,
           passed: true,
           scoreLetterGrade: "A",
           accuracy: 12.34
@@ -442,15 +622,8 @@ const lobby2ApiResults4: ApiMultiplayer = {
       event: "match_end",
       scores: [
         {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[0][1]).toString(),
-          score: 100000,
-          passed: true,
-          scoreLetterGrade: "A",
-          accuracy: 12.34
-        },
-        {
-          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2[1][1]).toString(),
-          score: 100001,
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T3.P6).toString(),
+          score: 400,
           passed: true,
           scoreLetterGrade: "A",
           accuracy: 12.34
