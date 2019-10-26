@@ -100,9 +100,7 @@ var leaderboardData: Leaderboard = {
       position: {
         currentPosition: 1,
         previousPosition: 1,
-        samePosition: true,
-        gainedPosition: false,
-        lostPosition: false
+        change: "same"
       },
       eventIcon: {
         eventEmoji: "⭐",
@@ -151,9 +149,7 @@ var leaderboardData: Leaderboard = {
       position: {
         currentPosition: 2,
         previousPosition: 2,
-        samePosition: true,
-        gainedPosition: false,
-        lostPosition: false
+        change: "same"
       },
       eventIcon: {
         eventEmoji: "💀",
