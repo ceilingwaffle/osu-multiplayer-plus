@@ -271,14 +271,18 @@ export class LeaderboardBuilder {
     // This could really be any event, as long as that event occurs only once per virtual match.
     if (event.subType === "team_scored_lowest") {
       (event.item as TeamScoredLowestGameEvent).data.eventMatch.matches.forEach(match => {
-        match.playerScores.forEach(playerScore => {
+        for (const playerScore of match.playerScores) {
           const gameTeam = args.game.gameTeams.find(gameTeam =>
             gameTeam.team.teamOsuUsers.find(tou => tou.osuUser.osuUserId === playerScore.scoredBy.osuUserId)
           );
+          if (!gameTeam) {
+            // Disregard a player's score if that player has not been added to any team for this game.
+            continue;
+          }
           const teamId = gameTeam.team.id;
           const teamScore = teamScores.get(teamId) || 0;
           teamScores.set(teamId, teamScore + playerScore.score);
-        });
+        }
       });
     }
   }
