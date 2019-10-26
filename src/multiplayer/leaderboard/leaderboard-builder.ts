@@ -9,6 +9,7 @@ import { Log } from "../../utils/Log";
 import { Team } from "../../domain/team/team.entity";
 import { VirtualMatch } from "../virtual-match/virtual-match";
 import { PlayerScore as PlayerScoreEntity } from "../../domain/score/player-score.entity";
+import { VirtualMatchKey } from "../virtual-match/virtual-match-key";
 
 /**
  * Key: teamID
@@ -29,7 +30,11 @@ export class LeaderboardBuilder {
    * @param {{ game: Game; reportables: ReportableContext<ReportableContextType>[] }} args
    * @returns {ReportableContext<"leaderboard">}
    */
-  static buildLeaderboard(args: { game: Game; reportables: ReportableContext<ReportableContextType>[] }): ReportableContext<"leaderboard"> {
+  static buildLeaderboard(args: {
+    game: Game;
+    reportables: ReportableContext<ReportableContextType>[];
+    virtualMatches: VirtualMatch[];
+  }): ReportableContext<"leaderboard"> {
     const gameSettings: GameSettings = {
       countFailedScores: args.game.countFailedScores,
       startingTeamLives: args.game.teamLives
@@ -56,6 +61,12 @@ export class LeaderboardBuilder {
     });
     const teamScoredLowestReportables = eventReportables.filter(r => r.subType === "team_scored_lowest");
     const lastReportable = teamScoredLowestReportables.slice(-1)[0];
+
+    if (!lastReportable || !lastReportable.item) {
+      Log.error("Error occurred trying to read reportable game events.");
+      return undefined;
+    }
+
     const teamScoresForLastEvent: TeamValue<number> = new Map<number, number>();
     const lastVirtualMatch = (lastReportable.item as TeamScoredLowestGameEvent).data.eventMatch;
 
@@ -81,7 +92,7 @@ export class LeaderboardBuilder {
                 m.playerScores.find(ps => ps.scoredBy.osuUserId === tou.osuUser.osuUserId)
               );
               const playerScore = thisPlayerScores.length && thisPlayerScores[0] ? thisPlayerScores[0] : null;
-              const highestScoringTeamPlayerScores = LeaderboardBuilder.getHighestScoringPlayerScoresOfVirtualMatch(
+              const highestScoringTeamPlayerScores = LeaderboardBuilder.getHighestPlayerScoresOfVirtualMatchForTeam(
                 gt.team,
                 lastVirtualMatch
               );
@@ -147,6 +158,12 @@ export class LeaderboardBuilder {
           prevTeamLives = _(latestTeamLives).cloneDeep();
         }
       });
+
+    // these are the positions from first to last (highest scoring to lowest scoring) for each team in each virtual match
+    const virtualMatchPositions: TeamValue<{ vmPosition: number } & VirtualMatchKey> = new Map<
+      number,
+      { vmPosition: number } & VirtualMatchKey
+    >();
 
     let prevTeamScoresTotal: TeamValue<number> = new Map<number, number>();
     const latestTeamScoresTotal: TeamValue<number> = new Map<number, number>();
@@ -231,11 +248,11 @@ export class LeaderboardBuilder {
 
     const teamLostCount = teamLosingEvents.length;
 
-    // team is NOT alive if they lost more times than
-    return teamLostCount >= startingTeamLives;
+    // team is NOT alive if they lost at least the same number as the lives they started with
+    return teamLostCount < startingTeamLives;
   }
 
-  static getHighestScoringPlayerScoresOfVirtualMatch(team: Team, virtualMatch: VirtualMatch): PlayerScoreEntity[] {
+  static getHighestPlayerScoresOfVirtualMatchForTeam(team: Team, virtualMatch: VirtualMatch): PlayerScoreEntity[] {
     const teamPlayerScoresLowestToHighest = _(virtualMatch.matches)
       .map(m => m.playerScores)
       .flattenDeep()
@@ -245,14 +262,15 @@ export class LeaderboardBuilder {
       .value();
 
     if (!teamPlayerScoresLowestToHighest || !teamPlayerScoresLowestToHighest.length) {
-      Log.warn("No highest score could be determined for team. This should never happen.");
-      return null;
+      // no players from the target team scored in the target virtual match
+      return [];
     }
+
     // check for tied scores
     const highestOrTiedScorePlayerScore = teamPlayerScoresLowestToHighest.slice(-1)[0];
     if (!highestOrTiedScorePlayerScore) {
-      Log.warn("No highest score could be determined for team... This should never happen.");
-      return null;
+      // no players from the target team scored in the target virtual match
+      return [];
     }
     const highestScore = highestOrTiedScorePlayerScore.score;
     const highestScoringTeamPlayerScores = teamPlayerScoresLowestToHighest.filter(sps => sps.score === highestScore);

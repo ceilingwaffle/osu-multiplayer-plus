@@ -50,9 +50,9 @@ describe("When processing multiplayer results", function() {
             });
             expect(createdLobbyResponse.success).to.be.true;
 
-            // add 2v2 teams to game 1
+            // add 2v2v2v2 teams to game 1
             const addTeamsDto: AddTeamsDto = {
-              osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(context.values.teams._2v2)
+              osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormatFromObject(context.values.teams._2v2v2v2)
             };
             const addTeamsResponse = await teamController.create({ teamDto: addTeamsDto, requestDto: context.requests.discordRequest1 });
             expect(addTeamsResponse.success).to.be.true;
@@ -211,7 +211,8 @@ describe("When processing multiplayer results", function() {
 
             const leaderboard: ReportableContext<"leaderboard"> = LeaderboardBuilder.buildLeaderboard({
               game: games4[0],
-              reportables: allReportables
+              reportables: allReportables,
+              virtualMatches: r4
             });
             allReportables.push(leaderboard);
 
@@ -324,7 +325,8 @@ describe("When processing multiplayer results", function() {
 
             const leaderboard: ReportableContext<"leaderboard"> = LeaderboardBuilder.buildLeaderboard({
               game: games7[0],
-              reportables: allReportables
+              reportables: allReportables,
+              virtualMatches: blg7
             });
             allReportables.push(leaderboard);
 

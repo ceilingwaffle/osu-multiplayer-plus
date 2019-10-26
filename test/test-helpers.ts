@@ -119,8 +119,42 @@ export class TestHelpers {
     Log.warn(`FAKING RESPONSE FROM ${this.name}.${methodName}`);
   }
 
-  static convertToTeamDtoArgFormat(inTeams: string[][]) {
+  static convertToTeamDtoArgFormatFrom2DArray(inTeams: string[][]): string[] {
     return [].concat(...inTeams.map(teamGroup => teamGroup.map(uid => uid).concat("|"))).slice(0, -1);
+  }
+
+  static convertToTeamDtoArgFormatFromObject(teamsObj: {
+    T1: {
+      P1: string;
+      P2: string;
+    };
+    T2: {
+      P3: string;
+      P4: string;
+    };
+    T3: {
+      P5: string;
+      P6: string;
+    };
+    T4: {
+      P7: string;
+      P8: string;
+    };
+  }): string[] {
+    // TODO: Make this method general enough to handle any format of team compositions
+    return [
+      teamsObj.T1.P1,
+      teamsObj.T1.P2,
+      "|",
+      teamsObj.T2.P3,
+      teamsObj.T2.P4,
+      "|",
+      teamsObj.T3.P5,
+      teamsObj.T3.P6,
+      "|",
+      teamsObj.T4.P7,
+      teamsObj.T4.P8
+    ];
   }
 
   static async dropDatabaseAndReloadEntities(entities: TestContextEntities[], conn: Connection) {

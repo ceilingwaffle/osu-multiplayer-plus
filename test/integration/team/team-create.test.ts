@@ -89,7 +89,7 @@ describe("When adding teams to a game", function() {
         const allUserIds = Helpers.flatten2Dto1D(inTeams);
         const createGameDto: CreateGameDto = {};
         const addTeamsDto: AddTeamsDto = {
-          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(inTeams)
+          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormatFrom2DArray(inTeams)
         };
         const requestDto: DiscordRequestDto = {
           commType: "discord",
@@ -147,7 +147,7 @@ describe("When adding teams to a game", function() {
         const allUserIds = Helpers.flatten2Dto1D(inTeams);
         const createGameDto: CreateGameDto = {};
         const addTeamsDto: AddTeamsDto = {
-          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(inTeams)
+          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormatFrom2DArray(inTeams)
         };
         const requestDto: DiscordRequestDto = {
           commType: "discord",
@@ -203,7 +203,7 @@ describe("When adding teams to a game", function() {
         const allUserIds = Helpers.flatten2Dto1D(inTeams);
         const createGameDto: CreateGameDto = {};
         const addTeamsDto: AddTeamsDto = {
-          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(inTeams)
+          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormatFrom2DArray(inTeams)
         };
         const requestDto: DiscordRequestDto = {
           commType: "discord",
@@ -267,7 +267,7 @@ describe("When adding teams to a game", function() {
         const allUserIds = Helpers.flatten2Dto1D(inTeams);
         const createGameDto: CreateGameDto = {};
         const addTeamsDto: AddTeamsDto = {
-          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(inTeams)
+          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormatFrom2DArray(inTeams)
         };
         const requestDto: DiscordRequestDto = {
           commType: "discord",
@@ -331,10 +331,10 @@ describe("When adding teams to a game", function() {
         const teamGroups2: string[][] = [["3336000", "3336002"]];
         const createGameDto: CreateGameDto = {};
         const addTeamsDto1: AddTeamsDto = {
-          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(teamGroups1)
+          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormatFrom2DArray(teamGroups1)
         };
         const addTeamsDto2: AddTeamsDto = {
-          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(teamGroups2)
+          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormatFrom2DArray(teamGroups2)
         };
         const requestDto: DiscordRequestDto = {
           commType: "discord",
@@ -369,10 +369,10 @@ describe("When adding teams to a game", function() {
         const teamGroups2: string[][] = [["Mark", "Tony"]];
         const createGameDto: CreateGameDto = {};
         const addTeamsDto1: AddTeamsDto = {
-          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(teamGroups1)
+          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormatFrom2DArray(teamGroups1)
         };
         const addTeamsDto2: AddTeamsDto = {
-          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(teamGroups2)
+          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormatFrom2DArray(teamGroups2)
         };
         const requestDto: DiscordRequestDto = {
           commType: "discord",
@@ -437,7 +437,7 @@ describe("When adding teams to a game", function() {
         const createGame1Dto: CreateGameDto = { teamLives: 186 };
         const createGame2Dto: CreateGameDto = { teamLives: 581 };
         const addTeams1Dto: AddTeamsDto = {
-          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(inTeams)
+          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormatFrom2DArray(inTeams)
         };
         const requestDto: DiscordRequestDto = {
           commType: "discord",
@@ -497,7 +497,7 @@ describe("When adding teams to a game", function() {
         const createGame1Dto: CreateGameDto = {};
         const createGame2Dto: CreateGameDto = {};
         const addTeamsDto: AddTeamsDto = {
-          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(teams)
+          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormatFrom2DArray(teams)
         };
         const requestDto: DiscordRequestDto = {
           commType: "discord",
@@ -555,7 +555,7 @@ describe("When adding teams to a game", function() {
 
         const createGame1Dto: CreateGameDto = {};
         const addTeamsDto: AddTeamsDto = {
-          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(teams)
+          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormatFrom2DArray(teams)
         };
         const requestDto: DiscordRequestDto = {
           commType: "discord",
@@ -593,7 +593,7 @@ describe("When adding teams to a game", function() {
 
         const createGame1Dto: CreateGameDto = {};
         const addTeamsDto: AddTeamsDto = {
-          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(teams)
+          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormatFrom2DArray(teams)
         };
         const requestDto: DiscordRequestDto = {
           commType: "discord",
@@ -631,7 +631,7 @@ describe("When adding teams to a game", function() {
         const allUserIds = Helpers.flatten2Dto1D(inTeams);
         const createGameDto: CreateGameDto = {};
         const addTeamsDto: AddTeamsDto = {
-          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(inTeams)
+          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormatFrom2DArray(inTeams)
         };
         const requestDto: DiscordRequestDto = {
           commType: "discord",
@@ -694,7 +694,7 @@ describe("When adding teams to a game", function() {
         const inTeams: string[][] = [["3336000"], ["3336001"]];
         const createGameDto: CreateGameDto = {};
         const addTeamsDto: AddTeamsDto = {
-          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(inTeams)
+          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormatFrom2DArray(inTeams)
         };
         const requestDto: DiscordRequestDto = {
           commType: "discord",
@@ -739,7 +739,7 @@ describe("When adding teams to a game", function() {
         // arrange
         const inTeams: string[][] = [["3336000"]];
         const addTeamsDto: AddTeamsDto = {
-          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(inTeams)
+          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormatFrom2DArray(inTeams)
         };
         const requestDto: DiscordRequestDto = {
           commType: "discord",
@@ -771,7 +771,7 @@ describe("When adding teams to a game", function() {
         const inTeams: string[][] = [["3336000"]];
         const createGameDto: CreateGameDto = {};
         const addTeamsDto: AddTeamsDto = {
-          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(inTeams)
+          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormatFrom2DArray(inTeams)
         };
         const user1Request: DiscordRequestDto = {
           commType: "discord",
@@ -819,7 +819,7 @@ describe("When adding teams to a game", function() {
         const inTeams: string[][] = [["3336000"]];
         const createGameDto: CreateGameDto = {};
         const addTeamsDto: AddTeamsDto = {
-          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(inTeams)
+          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormatFrom2DArray(inTeams)
         };
         const user1Request: DiscordRequestDto = {
           commType: "discord",
@@ -881,10 +881,10 @@ describe("When adding teams to a game", function() {
         const teamsInRequest1: string[][] = [["3336000", "3336001"]];
         const teamsInRequest2: string[][] = [["3336000", "3336002"]];
         const addTeam1Request: AddTeamsDto = {
-          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(teamsInRequest1)
+          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormatFrom2DArray(teamsInRequest1)
         };
         const addTeam2Request: AddTeamsDto = {
-          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(teamsInRequest2)
+          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormatFrom2DArray(teamsInRequest2)
         };
 
         // act
@@ -927,7 +927,7 @@ describe("When adding teams to a game", function() {
         const teamsInRequest: string[][] = [["3336000", "3336001"], ["3336000", "3336002"]];
         const createGameDto: CreateGameDto = {};
         const addTeamsDto: AddTeamsDto = {
-          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(teamsInRequest)
+          osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormatFrom2DArray(teamsInRequest)
         };
         const userRequest: DiscordRequestDto = {
           commType: "discord",

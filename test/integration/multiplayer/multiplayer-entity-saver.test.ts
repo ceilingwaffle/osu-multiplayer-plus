@@ -402,7 +402,7 @@ describe("When saving multiplayer results", function() {
           const inTeams: string[][] = [["3336000"], ["3336001"]];
           const allUserIds = Helpers.flatten2Dto1D(inTeams);
           const addTeamsDto: AddTeamsDto = {
-            osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(inTeams)
+            osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormatFrom2DArray(inTeams)
           };
           const teamController = iocContainer.get<TeamController>(TYPES.TeamController);
           const addTeamsResponse = await teamController.create({ teamDto: addTeamsDto, requestDto: discordRequest });
@@ -609,7 +609,7 @@ describe("When saving multiplayer results", function() {
           const inTeams: string[][] = [["3336000"], ["3336001"]];
           const allUserIds = Helpers.flatten2Dto1D(inTeams);
           const addTeamsDto: AddTeamsDto = {
-            osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(inTeams)
+            osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormatFrom2DArray(inTeams)
           };
           const teamController = iocContainer.get<TeamController>(TYPES.TeamController);
           const addTeamsResponse = await teamController.create({ teamDto: addTeamsDto, requestDto: discordRequest });
@@ -951,7 +951,7 @@ describe("When saving multiplayer results", function() {
           const inTeams: string[][] = [["3336000"], ["3336001"]];
           const allUserIds = Helpers.flatten2Dto1D(inTeams);
           const addTeamsDto: AddTeamsDto = {
-            osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(inTeams)
+            osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormatFrom2DArray(inTeams)
           };
           const teamController = iocContainer.get<TeamController>(TYPES.TeamController);
           const addTeamsResponse = await teamController.create({ teamDto: addTeamsDto, requestDto: discordRequest });
@@ -1140,7 +1140,7 @@ describe("When saving multiplayer results", function() {
           // add teams to game 1
           const inTeams: string[][] = [["3336000"], ["3336001"], ["3336100"], ["3336101"]];
           const addTeamsDto: AddTeamsDto = {
-            osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormat(inTeams)
+            osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormatFrom2DArray(inTeams)
           };
           const teamController = iocContainer.get<TeamController>(TYPES.TeamController);
           const addTeamsResponse = await teamController.create({ teamDto: addTeamsDto, requestDto: discordRequest });

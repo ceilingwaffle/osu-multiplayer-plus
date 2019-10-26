@@ -69,50 +69,57 @@ export class TeamScoredLowestGameEvent extends GameEvent<{ teamId: number }> imp
     const teamLosses: Map<number, { lossCount: number; eliminated: boolean }> = new Map();
 
     // mark teams as eliminated one by one
-    const losingTeamsForVirtualMatches = _(virtualMatchesSorted).reduce((vmTeamScoresAccumulator, virtualMatch, _i, _list) => {
-      if (teamsRemovingEliminated.length < 2) {
-        Log.debug("Only one team remains alive. Game should be ended now.");
+    const losingTeamsForVirtualMatches = _(virtualMatchesSorted).reduce(
+      (vmTeamScoresAccumulator, virtualMatch, _i, _list) => {
+        if (teamsRemovingEliminated.length < 2) {
+          Log.debug("Only one team remains alive. Game should be ended now.");
+          return vmTeamScoresAccumulator;
+        }
+        const lowestScoringTeamIds = TeamScoreCalculator.calculateLowestScoringTeamIdsOfVirtualMatch(virtualMatch, teamsRemovingEliminated);
+        if (!lowestScoringTeamIds || lowestScoringTeamIds.length < 1) {
+          return vmTeamScoresAccumulator;
+        }
+        const lowestScoringTeamId = lowestScoringTeamIds[0];
+        if (lowestScoringTeamIds.length === 1) {
+          vmTeamScoresAccumulator.set(
+            VirtualMatchCreator.createSameBeatmapKeyString({
+              beatmapId: virtualMatch.beatmapId,
+              sameBeatmapNumber: virtualMatch.sameBeatmapNumber
+            }),
+            { losingTeamId: lowestScoringTeamId, tiedScore: false }
+          );
+        } else {
+          // tied scores means no team loses a life
+          vmTeamScoresAccumulator.set(
+            VirtualMatchCreator.createSameBeatmapKeyString({
+              beatmapId: virtualMatch.beatmapId,
+              sameBeatmapNumber: virtualMatch.sameBeatmapNumber
+            }),
+            { losingTeamId: undefined, tiedScore: true }
+          );
+          return vmTeamScoresAccumulator;
+        }
+
+        // update loss count for the losing team
+        let losingTeamRecords = teamLosses.get(lowestScoringTeamId);
+        if (!losingTeamRecords) {
+          teamLosses.set(lowestScoringTeamId, { lossCount: 1, eliminated: game.teamLives <= 1 });
+          losingTeamRecords = teamLosses.get(lowestScoringTeamId);
+        } else {
+          losingTeamRecords.lossCount++;
+          losingTeamRecords.eliminated = losingTeamRecords.lossCount >= startingLives;
+        }
+
+        // remove losing team from teams array if they are eliminated
+        if (losingTeamRecords.eliminated) {
+          teamsRemovingEliminated = teamsRemovingEliminated.filter(team => team.id !== lowestScoringTeamId);
+        }
+
         return vmTeamScoresAccumulator;
-      }
-
-      const losingTeamId = TeamScoreCalculator.calculateLowestScoringTeamIdOfVirtualMatch(virtualMatch, teamsRemovingEliminated);
-
-      vmTeamScoresAccumulator.set(
-        VirtualMatchCreator.createSameBeatmapKeyString({
-          beatmapId: virtualMatch.beatmapId,
-          sameBeatmapNumber: virtualMatch.sameBeatmapNumber
-        }),
-        { losingTeamId: losingTeamId, tiedScore: false }
-      );
-
-      if (!losingTeamId) {
-        // in the case of tied scores, no team should lose
-        let losingTeamRecords = vmTeamScoresAccumulator.get(
-          VirtualMatchCreator.createSameBeatmapKeyString({
-            beatmapId: virtualMatch.beatmapId,
-            sameBeatmapNumber: virtualMatch.sameBeatmapNumber
-          })
-        );
-        losingTeamRecords.tiedScore = true;
-        return vmTeamScoresAccumulator;
-      }
-
-      let losingTeamRecords = teamLosses.get(losingTeamId);
-      if (!losingTeamRecords) {
-        teamLosses.set(losingTeamId, { lossCount: 1, eliminated: game.teamLives <= 1 });
-        losingTeamRecords = teamLosses.get(losingTeamId);
-      } else {
-        losingTeamRecords.lossCount++;
-        losingTeamRecords.eliminated = losingTeamRecords.lossCount >= startingLives;
-      }
-
-      // remove losing team from teams array if they are eliminated
-      if (losingTeamRecords.eliminated) {
-        teamsRemovingEliminated = teamsRemovingEliminated.filter(team => team.id !== losingTeamId);
-      }
-
-      return vmTeamScoresAccumulator;
-    }, new Map<string, { losingTeamId: number; tiedScore: boolean }>());
+      },
+      // virtualMatchKey, value
+      new Map<string, { losingTeamId: number; tiedScore: boolean }>()
+    );
 
     // determine the losing team ID of the target virtual match
     const teamStatusForTargetVirtualMatch = losingTeamsForVirtualMatches.get(

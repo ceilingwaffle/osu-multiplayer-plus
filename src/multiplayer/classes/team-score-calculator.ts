@@ -37,30 +37,25 @@ export class TeamScoreCalculator {
     return winningTeam.teamId;
   }
 
-  /**
-   * Returns the ID of the Team entity of the loser of a virtual-match. Otherwise 0 if no loser.
-   *
-   * @static
-   * @param {VirtualMatch} completedMap
-   * @param {CalculatedTeamScore[]} teamScores
-   * @returns {number}
-   * @memberof TeamScoreCalculator
-   */
-  static calculateLowestScoringTeamIdOfVirtualMatch(completedVirtualMatch: VirtualMatch, teams: Team[]): number {
-    // TODO: Handle tied scores
+  /** Returns the ID of the Team entity of the loser of a virtual-match.
+   *  Returns Multiple team ID's if lowest scores are tied.
+   *  Returns undefined if no loser. */
+  static calculateLowestScoringTeamIdsOfVirtualMatch(completedVirtualMatch: VirtualMatch, teams: Team[]): number[] | undefined {
     // TODO: Logging
     if (!TeamScoreCalculator.isValidArgs(completedVirtualMatch, teams)) {
-      return TeamScoreCalculator.getFalsyTeamId();
+      return undefined;
     }
     const calculatedTeamScores = TeamScoreCalculator.calculateTeamScoresForVirtualMatch(completedVirtualMatch, teams);
     if (!calculatedTeamScores || !calculatedTeamScores.length) {
-      return TeamScoreCalculator.getFalsyTeamId();
+      return undefined;
     }
     const losingTeam = _(calculatedTeamScores).minBy(ts => ts.score);
     if (!losingTeam) {
-      return TeamScoreCalculator.getFalsyTeamId();
+      return undefined;
     }
-    return losingTeam.teamId;
+    // check for tied scores
+    const tiedWithLowestCount = calculatedTeamScores.filter(ts => ts.score === losingTeam.score);
+    return tiedWithLowestCount.map(ts => ts.teamId);
   }
 
   private static isValidArgs(completedVirtualMatch: VirtualMatch, teams: Team[]) {
