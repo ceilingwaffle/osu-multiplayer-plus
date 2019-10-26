@@ -203,6 +203,20 @@ describe("When processing multiplayer results", function() {
               .to.deep.equal(processedState.lobby1ApiResults2);
 
             const processedData4: VirtualMatchReportData[] = processor4.buildVirtualMatchReportGroupsForGame(games4[0]);
+
+            const { allReportables, toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({
+              virtualMatchReportDatas: processedData4,
+              game: games4[0]
+            });
+
+            const leaderboard: ReportableContext<"leaderboard"> = LeaderboardBuilder.buildLeaderboard({
+              game: games4[0],
+              reportables: allReportables
+            });
+            allReportables.push(leaderboard);
+
+            // await MultiplayerResultsDeliverer.deliver({ reportables: toBeReported }); // leaderboard
+
             return resolve();
           } catch (error) {
             return reject(error);
@@ -314,7 +328,7 @@ describe("When processing multiplayer results", function() {
             });
             allReportables.push(leaderboard);
 
-            await MultiplayerResultsDeliverer.deliver({ reportables: toBeReported }); // leaderboard
+            // await MultiplayerResultsDeliverer.deliver({ reportables: toBeReported }); // leaderboard
 
             return resolve();
           } catch (error) {

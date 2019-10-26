@@ -114,8 +114,8 @@ var leaderboardData: Leaderboard = {
         startingLives: 2
       },
       teamScore: {
-        teamScore: 200000,
-        tiedWithTeamNumbers: []
+        teamScore: 200000
+        // tiedWithTeamNumbers: []
       }
     },
     {
@@ -165,8 +165,8 @@ var leaderboardData: Leaderboard = {
         startingLives: 2
       },
       teamScore: {
-        teamScore: 40000,
-        tiedWithTeamNumbers: []
+        teamScore: 40000
+        // tiedWithTeamNumbers: []
       }
     }
   ]
@@ -191,11 +191,13 @@ const leaderboardOutput = `\`\`\`
 console.log(leaderboardOutput);
 
 function genLeaderboardLines(ll: LeaderboardLine, lines: LeaderboardLine[]): string {
+  // TODO: Check for tied scores // ${ll.teamScore.tiedWithTeamNumbers.length ? "👔" : ""}
+
   return `\
   ${genPositionChange(ll)} ${genPosition(ll, lines)}. Team ${genTeamNumber(ll, lines)} \
   |${ll.eventIcon ? ll.eventIcon.eventEmoji : "⬛"}| \
   ${"🤎".repeat(ll.lives.currentLives)}${"🤍".repeat(ll.lives.startingLives - ll.lives.currentLives)} | \
-  Score: ${ll.teamScore.teamScore}${ll.teamScore.tiedWithTeamNumbers.length ? "👔" : ""} | \
+  Score: ${ll.teamScore.teamScore} | \ 
   ${ll.team.players
     .map(p => `${p.osuUsername}: ${p.score.highestScoreInTeam ? `*${p.score.score}*` : `${p.score.score}`} [${p.score.scoreLetterGrade}]`)
     .join(", ")}

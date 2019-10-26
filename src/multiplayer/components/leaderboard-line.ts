@@ -10,10 +10,8 @@ export interface LeaderboardLine {
   alive: boolean;
   position: {
     currentPosition: number;
-    previousPosition: number;
-    gainedPosition: boolean;
-    lostPosition: boolean;
-    samePosition: boolean;
+    previousPosition?: number;
+    change?: LeaderboardLinePositionChange;
   };
   eventIcon?: GameEventIcon;
   lives: {
@@ -22,7 +20,7 @@ export interface LeaderboardLine {
   };
   teamScore: {
     teamScore: number;
-    tiedWithTeamNumbers: number[];
+    // tiedWithTeamNumbers: number[];
   };
 }
 
@@ -37,3 +35,5 @@ export interface LeaderboardLinePlayer {
     highestScoreInTeam: boolean;
   };
 }
+
+export type LeaderboardLinePositionChange = "gained" | "lost" | "same";

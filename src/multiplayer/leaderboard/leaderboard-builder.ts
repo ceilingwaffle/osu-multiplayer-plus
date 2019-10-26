@@ -3,7 +3,7 @@ import { Game } from "../../domain/game/game.entity";
 import { IGameEvent } from "../game-events/interfaces/game-event-interface";
 import { TeamScoredLowestGameEvent } from "../game-events/team-scored-lowest.game-event";
 import { Leaderboard } from "../components/leaderboard";
-import { LeaderboardLine, LeaderboardLinePlayer } from "../components/leaderboard-line";
+import { LeaderboardLine, LeaderboardLinePlayer, LeaderboardLinePositionChange } from "../components/leaderboard-line";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
 import { Log } from "../../utils/Log";
 import { Team } from "../../domain/team/team.entity";
@@ -16,6 +16,11 @@ import { PlayerScore as PlayerScoreEntity } from "../../domain/score/player-scor
  * */
 type TeamValue<T> = Map<number, T>;
 
+interface GameSettings {
+  countFailedScores: boolean;
+  startingTeamLives: number;
+}
+
 export class LeaderboardBuilder {
   /**
    * Builds the latest leaderboard from all the reportables of a game.
@@ -25,7 +30,7 @@ export class LeaderboardBuilder {
    * @returns {ReportableContext<"leaderboard">}
    */
   static buildLeaderboard(args: { game: Game; reportables: ReportableContext<ReportableContextType>[] }): ReportableContext<"leaderboard"> {
-    const gameSettings = {
+    const gameSettings: GameSettings = {
       countFailedScores: args.game.countFailedScores,
       startingTeamLives: args.game.teamLives
     };
@@ -49,17 +54,18 @@ export class LeaderboardBuilder {
     eventReportables.forEach(event => {
       LeaderboardBuilder.updateTeamScores(event, args, teamScoresTotal);
     });
-    const lastEvent = eventReportables.filter(r => r.subType === "team_scored_lowest").slice(-1)[0];
+    const teamScoredLowestReportables = eventReportables.filter(r => r.subType === "team_scored_lowest");
+    const lastReportable = teamScoredLowestReportables.slice(-1)[0];
     const teamScoresForLastEvent: TeamValue<number> = new Map<number, number>();
-    LeaderboardBuilder.updateTeamScores(lastEvent, args, teamScoresForLastEvent);
+    const lastVirtualMatch = (lastReportable.item as TeamScoredLowestGameEvent).data.eventMatch;
 
-    const lastVirtualMatch = (lastEvent.item as TeamScoredLowestGameEvent).data.eventMatch;
+    LeaderboardBuilder.updateTeamScores(lastReportable, args, teamScoresForLastEvent);
 
     const leaderboard: Leaderboard = {
-      beatmapId: (lastEvent.item as TeamScoredLowestGameEvent).data.eventMatch.beatmapId,
-      sameBeatmapNumber: (lastEvent.item as TeamScoredLowestGameEvent).data.eventMatch.sameBeatmapNumber,
+      beatmapId: (lastReportable.item as TeamScoredLowestGameEvent).data.eventMatch.beatmapId,
+      sameBeatmapNumber: (lastReportable.item as TeamScoredLowestGameEvent).data.eventMatch.sameBeatmapNumber,
       beatmapPlayed: {
-        mapId: (lastEvent.item as TeamScoredLowestGameEvent).data.eventMatch.beatmapId,
+        mapId: (lastReportable.item as TeamScoredLowestGameEvent).data.eventMatch.beatmapId,
         // TODO: Build beatmap from beatmapID
         mapUrl: null,
         mapString: null,
@@ -98,20 +104,13 @@ export class LeaderboardBuilder {
             gt.team,
             events.filter(e => e.type === "team_scored_lowest").map(e => e as TeamScoredLowestGameEvent)
           ),
-          position: {
-            currentPosition: 1, // TODO
-            previousPosition: 1, // TODO
-            gainedPosition: false, // TODO
-            lostPosition: false, // TODO
-            samePosition: true // TODO
-          },
+          position: LeaderboardBuilder.getTeamPositionals(gt.team.id, teamScoredLowestReportables, gameSettings, args),
           lives: {
-            currentLives: 111, // TODO
-            startingLives: 111 // TODO
+            currentLives: teamLives.get(gt.team.id),
+            startingLives: gameSettings.startingTeamLives
           },
           teamScore: {
-            teamScore: 11111, // TODO
-            tiedWithTeamNumbers: [] // TODO
+            teamScore: teamScoresForLastEvent.get(gt.team.id)
           }
         };
       })
@@ -124,6 +123,103 @@ export class LeaderboardBuilder {
     };
 
     throw new Error("TODO: Implement method of LeaderboardBuilder.");
+  }
+
+  static getTeamPositionals(
+    teamId: number,
+    eventReportables: ReportableContext<ReportableContextType>[],
+    gameSettings: GameSettings,
+    args: { game: Game; reportables: ReportableContext<ReportableContextType>[] }
+  ): {
+    currentPosition: number;
+    previousPosition?: number;
+    change?: LeaderboardLinePositionChange;
+  } {
+    // determine team position on leaderboard from second-last event
+    let prevTeamLives: TeamValue<number> = new Map<number, number>();
+    const latestTeamLives: TeamValue<number> = new Map<number, number>();
+    eventReportables
+      .filter(event => event.type === "game_event" && event.subType === "team_scored_lowest")
+      .forEach((event, index, all) => {
+        LeaderboardBuilder.updateTeamLives(event, latestTeamLives, gameSettings);
+        if (index === all.length - 2) {
+          // clone a snapshot of the state of the team lives of the second-last event
+          prevTeamLives = _(latestTeamLives).cloneDeep();
+        }
+      });
+
+    let prevTeamScoresTotal: TeamValue<number> = new Map<number, number>();
+    const latestTeamScoresTotal: TeamValue<number> = new Map<number, number>();
+    eventReportables
+      .filter(event => event.type === "game_event" && event.subType === "team_scored_lowest")
+      .forEach((event, index, all) => {
+        LeaderboardBuilder.updateTeamScores(event, args, latestTeamScoresTotal);
+        if (index === all.length - 2) {
+          // clone a snapshot of the state of the team lives of the second-last event
+          prevTeamScoresTotal = _(latestTeamScoresTotal).cloneDeep();
+        }
+      });
+
+    const prevPosition = LeaderboardBuilder.getCurrentLeaderboardPositionOfTeam(teamId, prevTeamLives, prevTeamScoresTotal);
+
+    if (!prevPosition) {
+      return {
+        currentPosition: latestTeamLives.get(teamId)
+      };
+    }
+
+    const latestPosition = LeaderboardBuilder.getCurrentLeaderboardPositionOfTeam(teamId, latestTeamLives, latestTeamScoresTotal);
+
+    return {
+      currentPosition: latestPosition,
+      previousPosition: prevPosition,
+      change: prevPosition - latestPosition > 0 ? "gained" : prevPosition - latestPosition === 0 ? "same" : "lost"
+    };
+  }
+
+  static getCurrentLeaderboardPositionOfTeam(
+    teamId: number,
+    allTeamLives: Map<number, number>,
+    allTeamScoresTotal: Map<number, number>
+  ): number | undefined {
+    // position is determined by number of lives remaining.
+    // if same number of lives remaining, fallback to total team score
+
+    const positionsBestToWorst = new Map<number, { position?: number; lives?: number; totalScore?: number }>();
+
+    allTeamLives.forEach((teamLives, teamId, _allTeamLives) => {
+      const found = positionsBestToWorst.get(teamId);
+      if (!found) positionsBestToWorst.set(teamId, { lives: teamLives });
+      else found.lives = teamLives;
+    });
+    allTeamScoresTotal.forEach((teamTotalScore, teamId, _allTeamScoresTotal) => {
+      const found = positionsBestToWorst.get(teamId);
+      if (!found) positionsBestToWorst.set(teamId, { totalScore: teamTotalScore });
+      else found.totalScore = teamTotalScore;
+    });
+
+    const positionsBestToWorstArray = Array.from(positionsBestToWorst).sort((a, b) => {
+      // sort by scores highest to lowest
+      if (b[1] && b[1].lives && a[1] && a[1].lives) {
+        const livesDiff = b[1].lives - a[1].lives;
+        if (livesDiff !== 0) return livesDiff;
+      }
+      if (b[1] && b[1].totalScore && a[1] && a[1].totalScore) {
+        const scoresDiff = b[1].totalScore - a[1].totalScore;
+        return scoresDiff;
+      }
+      return 0;
+      // TODO - improve this. Not perfect, since teams may (very rarely) have identical total scores.
+    });
+
+    positionsBestToWorstArray.forEach((position, index) => (position[1].position = index + 1));
+
+    const teamPosition = positionsBestToWorstArray.find(position => teamId === position[0]);
+    if (!teamPosition || !teamPosition[1] || teamPosition[1].position < 1) {
+      return undefined;
+    }
+
+    return teamPosition[1].position;
   }
 
   static isTeamAlive(startingTeamLives: number, team: Team, events: TeamScoredLowestGameEvent[]): boolean {
