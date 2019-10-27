@@ -10,12 +10,13 @@ import { Team } from "../../domain/team/team.entity";
 import { VirtualMatch } from "../virtual-match/virtual-match";
 import { PlayerScore as PlayerScoreEntity } from "../../domain/score/player-score.entity";
 import { VirtualMatchKey } from "../virtual-match/virtual-match-key";
+import { TeamID } from "../components/types/team-id";
 
 /**
  * Key: teamID
  * Value: some corresponding team value (e.g. team score)
  * */
-type TeamValue<T> = Map<number, T>;
+type TeamValue<T> = Map<TeamID, T>;
 
 interface GameSettings {
   countFailedScores: boolean;
@@ -47,7 +48,7 @@ export class LeaderboardBuilder {
     const events = eventReportables.map(reportable => reportable.item as IGameEvent);
 
     // team lives
-    const teamLives: TeamValue<number> = new Map<number, number>();
+    const teamLives: TeamValue<number> = new Map<TeamID, number>();
     eventReportables.forEach(event => {
       if (event.type === "game_event" && event.subType === "team_scored_lowest") {
         LeaderboardBuilder.updateTeamLives(event, teamLives, gameSettings);
@@ -55,7 +56,7 @@ export class LeaderboardBuilder {
     });
 
     // team scores
-    const teamScoresTotal: TeamValue<number> = new Map<number, number>();
+    const teamScoresTotal: TeamValue<number> = new Map<TeamID, number>();
     eventReportables.forEach(event => {
       LeaderboardBuilder.updateTeamScores(event, args, teamScoresTotal);
     });
@@ -67,7 +68,7 @@ export class LeaderboardBuilder {
       return undefined;
     }
 
-    const teamScoresForLastEvent: TeamValue<number> = new Map<number, number>();
+    const teamScoresForLastEvent: TeamValue<number> = new Map<TeamID, number>();
     const lastVirtualMatch = (lastReportable.item as TeamScoredLowestGameEvent).data.eventMatch;
 
     LeaderboardBuilder.updateTeamScores(lastReportable, args, teamScoresForLastEvent);
@@ -147,8 +148,8 @@ export class LeaderboardBuilder {
     change?: LeaderboardLinePositionChange;
   } {
     // determine team position on leaderboard from second-last event
-    let prevTeamLives: TeamValue<number> = new Map<number, number>();
-    const latestTeamLives: TeamValue<number> = new Map<number, number>();
+    let prevTeamLives: TeamValue<number> = new Map<TeamID, number>();
+    const latestTeamLives: TeamValue<number> = new Map<TeamID, number>();
     eventReportables
       .filter(event => event.type === "game_event" && event.subType === "team_scored_lowest")
       .forEach((event, index, all) => {
@@ -165,8 +166,8 @@ export class LeaderboardBuilder {
       { vmPosition: number } & VirtualMatchKey
     >();
 
-    let prevTeamScoresTotal: TeamValue<number> = new Map<number, number>();
-    const latestTeamScoresTotal: TeamValue<number> = new Map<number, number>();
+    let prevTeamScoresTotal: TeamValue<number> = new Map<TeamID, number>();
+    const latestTeamScoresTotal: TeamValue<number> = new Map<TeamID, number>();
     eventReportables
       .filter(event => event.type === "game_event" && event.subType === "team_scored_lowest")
       .forEach((event, index, all) => {
@@ -195,14 +196,14 @@ export class LeaderboardBuilder {
   }
 
   static getCurrentLeaderboardPositionOfTeam(
-    teamId: number,
-    allTeamLives: Map<number, number>,
-    allTeamScoresTotal: Map<number, number>
+    teamId: TeamID,
+    allTeamLives: Map<TeamID, number>,
+    allTeamScoresTotal: Map<TeamID, number>
   ): number | undefined {
     // position is determined by number of lives remaining.
     // if same number of lives remaining, fallback to total team score
 
-    const positionsBestToWorst = new Map<number, { position?: number; lives?: number; totalScore?: number }>();
+    const positionsBestToWorst = new Map<TeamID, { position?: number; lives?: number; totalScore?: number }>();
 
     allTeamLives.forEach((teamLives, teamId, _allTeamLives) => {
       const found = positionsBestToWorst.get(teamId);
@@ -280,7 +281,7 @@ export class LeaderboardBuilder {
   private static updateTeamScores(
     event: ReportableContext<ReportableContextType>,
     args: { game: Game; reportables: ReportableContext<ReportableContextType>[] },
-    teamScores: Map<number, number>
+    teamScores: Map<TeamID, number>
   ) {
     if (!event || !event.item) {
       return;
@@ -307,7 +308,7 @@ export class LeaderboardBuilder {
 
   private static updateTeamLives(
     event: ReportableContext<ReportableContextType>,
-    teamLives: Map<number, number>,
+    teamLives: Map<TeamID, number>,
     gameSettings: { countFailedScores: boolean; startingTeamLives: number }
   ) {
     const teamId = (event.item as TeamScoredLowestGameEvent).data.teamId;

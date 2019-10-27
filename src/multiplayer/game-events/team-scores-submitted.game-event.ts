@@ -4,23 +4,15 @@ import { GameEventType } from "./types/game-event-types";
 import { Game } from "../../domain/game/game.entity";
 import { VirtualMatch } from "../virtual-match/virtual-match";
 import { TeamScoreCalculator } from "../classes/team-score-calculator";
+import { TeamID } from "../components/types/team-id";
 
-type TeamID = number;
 type VirtualMatchData = { score: number; rank: number };
 export type TeamVirtualMatchDataMap = Map<TeamID, VirtualMatchData>;
 
 export class TeamScoresSubmittedGameEvent extends GameEvent<{ data: TeamVirtualMatchDataMap }> implements IGameEvent {
   type: GameEventType = "team_scores_submitted";
 
-  happenedIn({
-    game,
-    targetVirtualMatch
-  }: // allVirtualMatches
-  {
-    game: Game;
-    targetVirtualMatch: VirtualMatch;
-    // allVirtualMatches?: VirtualMatch[];
-  }): boolean {
+  happenedIn({ game, targetVirtualMatch }: { game: Game; targetVirtualMatch: VirtualMatch }): boolean {
     // if virtual match incomplete, no team scores are ready yet for this virtual match
     if (targetVirtualMatch.lobbies.remaining.length) return false;
     if (!game || !game.gameTeams || !game.gameTeams.length) return false;

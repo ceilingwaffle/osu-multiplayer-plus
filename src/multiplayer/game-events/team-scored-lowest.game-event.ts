@@ -12,16 +12,17 @@ import { Match } from "../../domain/match/match.entity";
 import { IsValidBanchoMultiplayerIdConstraint } from "../../osu/validators/bancho-multiplayer-id.validator";
 import { VirtualMatchCreator } from "../virtual-match/virtual-match-creator";
 import { Log } from "../../utils/Log";
+import { TeamID } from "../components/types/team-id";
 
 /**
  * Team scored the lowest score in a virtual match
  *
  * @export
  * @class TeamScoredLowestGameEvent
- * @extends {GameEvent<{ teamId: number }>}
+ * @extends {GameEvent<{ teamId: TeamID }>}
  * @implements {GameEvent}
  */
-export class TeamScoredLowestGameEvent extends GameEvent<{ teamId: number }> implements IGameEvent {
+export class TeamScoredLowestGameEvent extends GameEvent<{ teamId: TeamID }> implements IGameEvent {
   readonly type: GameEventType = "team_scored_lowest";
 
   happenedIn({
@@ -66,7 +67,7 @@ export class TeamScoredLowestGameEvent extends GameEvent<{ teamId: number }> imp
       });
 
     // create Map with team ID as key
-    const teamLosses: Map<number, { lossCount: number; eliminated: boolean }> = new Map();
+    const teamLosses: Map<TeamID, { losses: number; eliminated: boolean }> = new Map<TeamID, { losses: number; eliminated: boolean }>();
 
     // mark teams as eliminated one by one
     const losingTeamsForVirtualMatches = _(virtualMatchesSorted).reduce(
@@ -103,11 +104,11 @@ export class TeamScoredLowestGameEvent extends GameEvent<{ teamId: number }> imp
         // update loss count for the losing team
         let losingTeamRecords = teamLosses.get(lowestScoringTeamId);
         if (!losingTeamRecords) {
-          teamLosses.set(lowestScoringTeamId, { lossCount: 1, eliminated: game.teamLives <= 1 });
+          teamLosses.set(lowestScoringTeamId, { losses: 1, eliminated: game.teamLives <= 1 });
           losingTeamRecords = teamLosses.get(lowestScoringTeamId);
         } else {
-          losingTeamRecords.lossCount++;
-          losingTeamRecords.eliminated = losingTeamRecords.lossCount >= startingLives;
+          losingTeamRecords.losses++;
+          losingTeamRecords.eliminated = losingTeamRecords.losses >= startingLives;
         }
 
         // remove losing team from teams array if they are eliminated
