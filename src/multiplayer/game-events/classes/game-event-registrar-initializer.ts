@@ -9,6 +9,7 @@ import { Log } from "../../../utils/Log";
 import { Connection } from "typeorm";
 import { IDbClient } from "../../../database/db-client";
 import { TeamScoredLowestGameEvent } from "../team-scored-lowest.game-event";
+import { TeamScoresSubmittedGameEvent } from "../team-scores-submitted.game-event";
 
 export class GameEventRegistrarInitializer {
   static async initGameEventRegistrarsFromActiveDatabaseGames(): Promise<void> {
@@ -40,6 +41,7 @@ export class GameEventRegistrarInitializer {
     // should be added in the order we want te events to displayed above the leaderboard
     events.push(new TeamScoredHighestGameEvent());
     events.push(new TeamScoredLowestGameEvent());
+    events.push(new TeamScoresSubmittedGameEvent());
     // events.push(new TeamEliminatedGameEvent());
     return events;
   }

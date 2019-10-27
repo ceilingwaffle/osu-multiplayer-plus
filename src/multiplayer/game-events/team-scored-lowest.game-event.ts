@@ -135,7 +135,7 @@ export class TeamScoredLowestGameEvent extends GameEvent<{ teamId: number }> imp
       teamId: losingTeamId,
       eventMatch: targetVirtualMatch,
       // the team lost at the time of the final lobby completing the map
-      timeOfEvent: this.getTimeOfLatestMatch(this.getLatestMatchFromVirtualMatch(targetVirtualMatch))
+      timeOfEvent: this.getEventTimeOfVirtualMatch(targetVirtualMatch)
     };
 
     return losingTeamId && losingTeamId > 0;

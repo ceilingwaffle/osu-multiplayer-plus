@@ -15,4 +15,8 @@ export abstract class GameEvent<DataType> {
   protected getTimeOfLatestMatch(latestTimeMatch: Match): number {
     return latestTimeMatch ? latestTimeMatch.endTime || latestTimeMatch.startTime || Date.now() : Date.now();
   }
+
+  protected getEventTimeOfVirtualMatch(virtualMatch: VirtualMatch): number {
+    return this.getTimeOfLatestMatch(this.getLatestMatchFromVirtualMatch(virtualMatch));
+  }
 }
