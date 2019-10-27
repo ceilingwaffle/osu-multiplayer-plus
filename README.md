@@ -1,3 +1,8 @@
+# Work in Progress!!
+Please note - this is a *work in progress!!* 
+
+It will not do anything useful yet, and is not yet ready for use.
+
 # osu! Multiplayer Plus
 
 osu! Multiplayer Plus is a discord bot for adding special game-modes to normal osu! multiplayer lobbies.
