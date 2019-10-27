@@ -211,10 +211,11 @@ describe("When processing multiplayer results", function() {
 
             const leaderboard: ReportableContext<"leaderboard"> = LeaderboardBuilder.buildLeaderboard({
               game: games4[0],
-              reportables: allReportables,
-              virtualMatches: r4
+              reportables: allReportables
             });
             allReportables.push(leaderboard);
+
+            expect(leaderboard).to.be.not.undefined;
 
             // await MultiplayerResultsDeliverer.deliver({ reportables: toBeReported }); // leaderboard
 
@@ -325,10 +326,11 @@ describe("When processing multiplayer results", function() {
 
             const leaderboard: ReportableContext<"leaderboard"> = LeaderboardBuilder.buildLeaderboard({
               game: games7[0],
-              reportables: allReportables,
-              virtualMatches: blg7
+              reportables: allReportables
             });
             allReportables.push(leaderboard);
+
+            expect(leaderboard).to.be.not.undefined;
 
             // await MultiplayerResultsDeliverer.deliver({ reportables: toBeReported }); // leaderboard
 

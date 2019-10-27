@@ -9,7 +9,7 @@ import { GameEventType } from "../../multiplayer/game-events/types/game-event-ty
 import { VirtualMatchKey } from "../../multiplayer/virtual-match/virtual-match-key";
 import { IGameEvent } from "../../multiplayer/game-events/interfaces/game-event-interface";
 import { GameModeType } from "./modes/game-mode-types";
-import { GameMode } from "./modes/game-mode";
+import { Leaderboard } from "../../multiplayer/components/leaderboard";
 
 export enum ReportableType {
   "message" = "message",
@@ -60,7 +60,7 @@ export type ReportableContext<T extends ReportableContextType> = VirtualMatchKey
   /** The original message/event object */
   item: T extends "message" ? LobbyBeatmapStatusMessage<MessageType> 
       : T extends "game_event" ? IGameEvent 
-      : T extends "leaderboard" ? GameMode 
+      : T extends "leaderboard" ? Leaderboard 
       : never; // prettier-ignore
   /** The time in which the message/event occurred */
   time: number;

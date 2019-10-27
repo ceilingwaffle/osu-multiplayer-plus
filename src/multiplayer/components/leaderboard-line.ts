@@ -8,11 +8,7 @@ export interface LeaderboardLine {
     players: LeaderboardLinePlayer[];
   };
   alive: boolean;
-  position: {
-    currentPosition: number;
-    previousPosition?: number;
-    change?: LeaderboardLinePositionChange;
-  };
+  position: LeaderboardPositionals;
   eventIcon?: GameEventIcon;
   lives: {
     currentLives: number;
@@ -34,6 +30,12 @@ export interface LeaderboardLinePlayer {
     accuracy: number;
     highestScoreInTeam: boolean;
   };
+}
+
+export interface LeaderboardPositionals {
+  currentPosition: number;
+  previousPosition?: number;
+  change?: LeaderboardLinePositionChange;
 }
 
 export type LeaderboardLinePositionChange = "gained" | "lost" | "same";

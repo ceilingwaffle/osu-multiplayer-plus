@@ -4,7 +4,7 @@ import _ = require("lodash"); // do not convert to default import -- it will bre
 import { constants } from "../../constants";
 import { Log } from "../../utils/Log";
 
-interface CalculatedTeamScore {
+export interface CalculatedTeamScore {
   teamId: number;
   osuUserIds: number[];
   score: number;
