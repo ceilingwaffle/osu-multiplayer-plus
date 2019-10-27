@@ -1,5 +1,8 @@
 // using TODO+ extension for vscode
 TODO: 
+    Leaderboard: 
+        ☐ Position should be locked if the team was eliminated @created(19-10-27 20:11)
+        ☐ convert Leaderboard to class + create abstract Leaderboard class+ rename leaderboard to BattleRoyaleLeaderboard @created(19-10-27 20:11)
     ✔ Fix `Error: Multiplayer 54078930 is not currently being watched` when using `!endgame` command @created(19-08-30 07:43) @done(19-08-30 23:29)
     ✔ Fix `!obr removelobby` command not unwatching the lobby in the osu lobby scanner @created(19-08-30 23:29) @done(19-08-30 23:52)
     ☐ Remove all the comments starting with "GL:" from when we implemented the GameLobby entity @created(19-08-30 07:48)
