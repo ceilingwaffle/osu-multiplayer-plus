@@ -9,6 +9,7 @@ import { VirtualMatchKey } from "./virtual-match-key";
  * @interface IVirtualMatch
  */
 export interface VirtualMatch extends VirtualMatchKey {
+  /** The subset-matches that make up this superset virtual match */
   matches: Match[];
   lobbies: {
     /** Lobbies that have played this map */
