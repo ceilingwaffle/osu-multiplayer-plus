@@ -5,6 +5,7 @@ import { Game } from "../../domain/game/game.entity";
 import { VirtualMatch } from "../virtual-match/virtual-match";
 import { TeamScoreCalculator } from "../classes/team-score-calculator";
 import { TeamID } from "../components/types/team-id";
+import { VirtualMatchCreator } from "../virtual-match/virtual-match-creator";
 
 type TiedTeamsData = { score: number; tiedWithTeamIds: TeamID[] };
 export type TiedTeamsDataMap = Map<TeamID, TiedTeamsData>;
@@ -25,7 +26,7 @@ export class TeamScoresTiedGameEvent extends GameEvent<{ data: TiedTeamsDataMap 
 
     this.data = {
       eventMatch: targetVirtualMatch,
-      timeOfEvent: this.getEventTimeOfVirtualMatch(targetVirtualMatch),
+      timeOfEvent: VirtualMatchCreator.getEstimatedTimeOfOccurrenceOfVirtualMatch(targetVirtualMatch),
       data: new Map<TeamID, TiedTeamsData>()
     };
 
