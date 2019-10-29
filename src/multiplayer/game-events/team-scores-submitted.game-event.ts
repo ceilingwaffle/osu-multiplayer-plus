@@ -5,8 +5,9 @@ import { Game } from "../../domain/game/game.entity";
 import { VirtualMatch } from "../virtual-match/virtual-match";
 import { TeamScoreCalculator, CalculatedTeamScore } from "../classes/team-score-calculator";
 import { TeamID } from "../components/types/team-id";
+import { VirtualMatchCreator } from "../virtual-match/virtual-match-creator";
 
-type VirtualMatchData = { submitted: boolean; score?: number; rank: number };
+type VirtualMatchData = { submitted: boolean; score?: number };
 export type TeamVirtualMatchDataMap = Map<TeamID, VirtualMatchData>;
 
 export class TeamScoresSubmittedGameEvent extends GameEvent<{ data: TeamVirtualMatchDataMap }> implements IGameEvent {
@@ -25,36 +26,29 @@ export class TeamScoresSubmittedGameEvent extends GameEvent<{ data: TeamVirtualM
 
     this.data = {
       eventMatch: targetVirtualMatch,
-      timeOfEvent: this.getEventTimeOfVirtualMatch(targetVirtualMatch),
+      timeOfEvent: VirtualMatchCreator.getEstimatedTimeOfOccurrenceOfVirtualMatch(targetVirtualMatch),
       data: new Map<TeamID, VirtualMatchData>()
     };
 
     teamScores
       .sort((a, b) => b.score - a.score)
-      .forEach((teamScore, i) => {
-        // if teams scored the same score, they get the same rank.
-        // e.g. T1: scored 100 (rank 1), T2: scored 100 (rank 1), T3: scored 99 (rank 3)
-        const rank = this.determineTeamScoreRankFromIndex(teamScore, i);
-        this.data.data.set(teamScore.teamId, { submitted: true, score: teamScore.score, rank });
+      .forEach(teamScore => {
+        this.data.data.set(teamScore.teamId, {
+          submitted: true,
+          score: teamScore.score
+        });
       });
 
-    // if some team is missing a score, it means the team did not submit a score
     teams.forEach(team => {
       const teamSubmittedScore = teamScores.find(teamScore => teamScore.teamId === team.id);
+      // if some team is missing a score, it means the team did not submit a score
       if (!teamSubmittedScore) {
-        // The rank of an unsubmitted score is the "number of submitted scores" plus one.
-        // If multiple scores are unsubmitted, they will all share this rank.
-        const rank = teamScores.length + 1;
-        this.data.data.set(team.id, { submitted: false, rank });
+        this.data.data.set(team.id, {
+          submitted: false
+        });
       }
     });
 
     return !!this.data.data.size;
-  }
-
-  private determineTeamScoreRankFromIndex(teamScore: CalculatedTeamScore, i: number) {
-    const identicalScore = Array.from(this.data.data).find(d => d[1].score === teamScore.score);
-    const rank = identicalScore ? identicalScore[1].rank : i + 1;
-    return rank;
   }
 }

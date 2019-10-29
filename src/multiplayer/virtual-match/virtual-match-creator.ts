@@ -165,6 +165,24 @@ export class VirtualMatchCreator {
     return searchMatches.filter(m => m.beatmapId === beatmapId)[n - 1];
   }
 
+  static isEqualVirtualMatchKey(key1: VirtualMatchKey, key2: VirtualMatchKey): boolean {
+    return key1.beatmapId === key2.beatmapId && key1.sameBeatmapNumber === key2.sameBeatmapNumber;
+  }
+
+  /** We want the time of this event to be equal to the end-time of the match that ended most recently (or start-time if the match has no end-time) */
+  static getLatestMatchFromVirtualMatch(virtualMatch: VirtualMatch) {
+    return _.sortBy<Match>(virtualMatch.matches, ["endTime", "startTime", "id"]).reverse().slice(-1)[0]; //prettier-ignore
+  }
+
+  /** Use the current system time if there are no matches, or if the match has no defined endTime or startTime */
+  static getTimeOfMatch(match: Match): number {
+    return match ? match.endTime || match.startTime || Date.now() : Date.now();
+  }
+
+  static getEstimatedTimeOfOccurrenceOfVirtualMatch(virtualMatch: VirtualMatch): number {
+    return this.getTimeOfMatch(this.getLatestMatchFromVirtualMatch(virtualMatch));
+  }
+
   // static getLatestVirtualMatchCompletedByAllLobbiesForGame(game: Game): VirtualMatch {
   //   const allVirtualMatches = VirtualMatchCreator.buildVirtualMatchesForGame(game);
   //   // this assumes if no lobbies are listed under "remaining" then all the lobbies (added to this game) have played the map
