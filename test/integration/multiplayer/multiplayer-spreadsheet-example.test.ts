@@ -114,6 +114,14 @@ describe("When processing multiplayer results", function() {
               game: games1[0]
             });
 
+            const leaderboard: ReportableContext<"leaderboard"> = LeaderboardBuilder.buildLeaderboard({
+              game: games1[0],
+              reportables: allReportables
+            });
+            allReportables.push(leaderboard);
+            // leaderboard should be undefined because no virtual matches have completed (because we only have API results for 1/2 lobbies)
+            expect(leaderboard).to.be.undefined;
+
             // await MultiplayerResultsDeliverer.deliver({ reportables: toBeReported }); // leaderboard
             // TODO: Test the delivery in another test file. Just using it here for now to inspect the call stack.
 
@@ -329,7 +337,6 @@ describe("When processing multiplayer results", function() {
               reportables: allReportables
             });
             allReportables.push(leaderboard);
-
             expect(leaderboard).to.be.not.undefined;
 
             // await MultiplayerResultsDeliverer.deliver({ reportables: toBeReported }); // leaderboard
