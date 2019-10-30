@@ -62,7 +62,11 @@ export class LeaderboardBuilder {
     const lastTeamScoreSubmittedEvent = teamScoresSubmittedEvents.slice(-1)[0];
     const lastVirtualMatch = lastTeamScoreSubmittedEvent.data.eventMatch;
     const teamScoresForLastVirtualMatch = TeamScoreCalculator.calculateTeamScoresForVirtualMatch(lastVirtualMatch, teams);
-    const teamLives: TeamLivesMap = LeaderboardBuilder.calculateCurrentTeamLives(teamScoredLowestEvents, gameSettings.startingTeamLives);
+    const teamLives: TeamLivesMap = LeaderboardBuilder.calculateCurrentTeamLives(
+      teams,
+      teamScoredLowestEvents,
+      gameSettings.startingTeamLives
+    );
 
     const leaderboard: Leaderboard = {
       beatmapId: lastVirtualMatch.beatmapId,
@@ -144,12 +148,14 @@ export class LeaderboardBuilder {
    * @param {Map<number, TeamLivesMap>} teamLives
    * @returns {Map<number, TeamAverageRanksMap>}
    */
-  static calculateCurrentTeamRankAverages(
+  private static calculateCurrentTeamRankAverages(
     teamScoresSubmittedEvents: TeamScoresSubmittedGameEvent[],
     teams: Team[],
     teamLives: TeamLivesMap
   ): TeamAverageRanksMap {
-    throw new Error("TODO: Implement method of LeaderboardBuilder.");
+    const teamRankAverages = new Map<TeamID, { virtualMatchAverageRank: number }>();
+    // TODO
+    return teamRankAverages;
   }
 
   // /**
@@ -256,6 +262,7 @@ export class LeaderboardBuilder {
     // Position determined in order of:
     // lives remaining > average "per virtual match" leaderboard position > total score (scores only added-to if not eliminated)
     const teamLives: TeamLivesMap = LeaderboardBuilder.calculateCurrentTeamLives(
+      args.teams,
       teamScoredLowestEventsBeforeTargetEvent,
       args.gameSettings.startingTeamLives
     );
@@ -380,8 +387,10 @@ export class LeaderboardBuilder {
   /**
    * Returns a map of team IDs mapped to their number of lives. One life is removed for each team in each event.
    */
-  private static calculateCurrentTeamLives(events: TeamScoredLowestGameEvent[], startingTeamLives: number): TeamLivesMap {
+  private static calculateCurrentTeamLives(teams: Team[], events: TeamScoredLowestGameEvent[], startingTeamLives: number): TeamLivesMap {
     const teamLives: TeamLivesMap = new Map<TeamID, { lives: number; eliminatedInEvent?: TeamScoredLowestGameEvent }>();
+    // each team starts with the starting number of lives
+    teams.forEach(team => teamLives.set(team.id, { lives: startingTeamLives }));
     if (!events || !events.length) return teamLives;
     events.forEach(event => LeaderboardBuilder.updateTeamLivesForEvent(event, teamLives, startingTeamLives));
     return teamLives;
