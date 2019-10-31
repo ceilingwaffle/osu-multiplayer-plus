@@ -136,6 +136,7 @@ describe("When processing multiplayer results", function() {
             const games2: Game[] = await processor2.saveMultiplayerEntities();
             expect(games2).to.have.lengthOf(1);
             const r2 = processor2.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games2[0]);
+
             expect(r2.find(r => r.beatmapId === "BM1" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
             expect(r2.find(r => r.beatmapId === "BM2" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
             expect(r2.find(r => r.beatmapId === "BM3" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(1);
@@ -193,6 +194,23 @@ describe("When processing multiplayer results", function() {
               .to.deep.equal(processedState.lobby2ApiResults2);
 
             const processedData3: VirtualMatchReportData[] = processor3.buildVirtualMatchReportGroupsForGame(games3[0]);
+
+            const { allReportables, toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({
+              virtualMatchReportDatas: processedData3,
+              game: games3[0]
+            });
+
+            const leaderboardReportable: ReportableContext<"leaderboard"> = LeaderboardBuilder.buildLeaderboard({
+              game: games3[0],
+              reportables: allReportables
+            });
+            allReportables.push(leaderboardReportable);
+            expect(leaderboardReportable).to.not.be.undefined;
+            const leaderboard: Leaderboard = leaderboardReportable.item;
+            expect(leaderboard).to.not.be.undefined;
+
+            // TODO: assert: players, beatmap, event type
+            expect(leaderboard).excludingEvery(["players", "beatmapPlayed", "eventIcon"]).to.deep.equal(expectedLeaderboards.bm3_2); // prettier-ignore
 
             return resolve();
           } catch (error) {

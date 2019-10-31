@@ -70,8 +70,8 @@ const lobby1ApiResults1: ApiMultiplayer = {
       mapNumber: 1,
       multiplayerId: values.banchoMultiplayerIds.lobby1,
       mapId: "BM1",
-      startTime: new Date().getTime() + 1,
-      endTime: new Date().getTime() + 301,
+      startTime: new Date().getTime() + 1000,
+      endTime: new Date().getTime() + 10000,
       teamMode: TeamMode.HeadToHead,
       event: "match_end",
       scores: [
@@ -116,8 +116,8 @@ const lobby1ApiResults1: ApiMultiplayer = {
       mapNumber: 2,
       multiplayerId: values.banchoMultiplayerIds.lobby1,
       mapId: "BM2",
-      startTime: new Date().getTime() + 12,
-      endTime: new Date().getTime() + 312,
+      startTime: new Date().getTime() + 2000,
+      endTime: new Date().getTime() + 30000,
       teamMode: TeamMode.HeadToHead,
       event: "match_end",
       scores: [
@@ -162,8 +162,8 @@ const lobby1ApiResults1: ApiMultiplayer = {
       mapNumber: 3,
       multiplayerId: values.banchoMultiplayerIds.lobby1,
       mapId: "BM3", // BM3#1
-      startTime: new Date().getTime() + 33,
-      endTime: new Date().getTime() + 333,
+      startTime: new Date().getTime() + 3000,
+      endTime: new Date().getTime() + 50000,
       teamMode: TeamMode.HeadToHead,
       event: "match_end",
       scores: [
@@ -208,8 +208,8 @@ const lobby1ApiResults1: ApiMultiplayer = {
       mapNumber: 4,
       multiplayerId: values.banchoMultiplayerIds.lobby1,
       mapId: "BM4",
-      startTime: new Date().getTime() + 44,
-      endTime: new Date().getTime() + 344,
+      startTime: new Date().getTime() + 4000,
+      endTime: new Date().getTime() + 70000,
       teamMode: TeamMode.HeadToHead,
       event: "match_end",
       scores: [
@@ -254,8 +254,8 @@ const lobby1ApiResults1: ApiMultiplayer = {
       mapNumber: 5,
       multiplayerId: values.banchoMultiplayerIds.lobby1,
       mapId: "BM3", // BM3#2
-      startTime: new Date().getTime() + 55,
-      endTime: new Date().getTime() + 355,
+      startTime: new Date().getTime() + 5000,
+      endTime: new Date().getTime() + 80000,
       teamMode: TeamMode.HeadToHead,
       event: "match_end",
       scores: [
@@ -293,8 +293,8 @@ const lobby2ApiResults1: ApiMultiplayer = {
       mapNumber: 1,
       multiplayerId: requests.addLobby2Request.banchoMultiplayerId,
       mapId: "BM2",
-      startTime: new Date().getTime() + 101,
-      endTime: new Date().getTime() + 401,
+      startTime: new Date().getTime() + 6000,
+      endTime: new Date().getTime() + 20000,
       teamMode: TeamMode.HeadToHead,
       event: "match_end",
       scores: [
@@ -325,8 +325,8 @@ const lobby2ApiResults1: ApiMultiplayer = {
       mapNumber: 2,
       multiplayerId: requests.addLobby2Request.banchoMultiplayerId,
       mapId: "BM1",
-      startTime: new Date().getTime() + 112,
-      endTime: new Date().getTime() + 412,
+      startTime: new Date().getTime() + 7000,
+      endTime: new Date().getTime() + 40000,
       teamMode: TeamMode.HeadToHead,
       event: "match_end",
       scores: [
@@ -357,8 +357,8 @@ const lobby2ApiResults1: ApiMultiplayer = {
       mapNumber: 3,
       multiplayerId: requests.addLobby2Request.banchoMultiplayerId,
       mapId: "BM4",
-      startTime: new Date().getTime() + 123,
-      endTime: new Date().getTime() + 423,
+      startTime: new Date().getTime() + 8000,
+      endTime: new Date().getTime() + 60000,
       teamMode: TeamMode.HeadToHead,
       event: "match_end",
       scores: [
@@ -389,8 +389,8 @@ const lobby2ApiResults1: ApiMultiplayer = {
       mapNumber: 4,
       multiplayerId: requests.addLobby2Request.banchoMultiplayerId,
       mapId: "BM5",
-      startTime: new Date().getTime() + 134,
-      endTime: new Date().getTime() + 434,
+      startTime: new Date().getTime() + 9000,
+      endTime: new Date().getTime() + 90000,
       teamMode: TeamMode.HeadToHead,
       event: "match_end",
       scores: [
@@ -428,8 +428,8 @@ const lobby2ApiResults2: ApiMultiplayer = {
       mapNumber: 5,
       multiplayerId: requests.addLobby2Request.banchoMultiplayerId,
       mapId: "BM3",
-      startTime: new Date().getTime() + 145,
-      endTime: new Date().getTime() + 445,
+      startTime: new Date().getTime() + 10000,
+      endTime: new Date().getTime() + 100000,
       teamMode: TeamMode.HeadToHead,
       event: "match_end",
       scores: [
@@ -460,8 +460,8 @@ const lobby2ApiResults2: ApiMultiplayer = {
       mapNumber: 6,
       multiplayerId: requests.addLobby2Request.banchoMultiplayerId,
       mapId: "BM3",
-      startTime: new Date().getTime() + 156,
-      endTime: new Date().getTime() + 456,
+      startTime: new Date().getTime() + 11000,
+      endTime: new Date().getTime() + 110000,
       teamMode: TeamMode.HeadToHead,
       event: "match_end",
       scores: [
@@ -499,8 +499,8 @@ const lobby1ApiResults2: ApiMultiplayer = {
       mapNumber: 6,
       multiplayerId: values.banchoMultiplayerIds.lobby1,
       mapId: "BM5",
-      startTime: new Date().getTime() + 567,
-      endTime: new Date().getTime() + 867,
+      startTime: new Date().getTime() + 12000,
+      endTime: new Date().getTime() + 120000,
       teamMode: TeamMode.HeadToHead,
       event: "match_end",
       scores: [
@@ -552,8 +552,8 @@ const lobby1ApiResults3: ApiMultiplayer = {
       mapNumber: 7,
       multiplayerId: values.banchoMultiplayerIds.lobby1,
       mapId: "BM5",
-      startTime: new Date().getTime() + 1200,
-      endTime: new Date().getTime() + 1400,
+      startTime: new Date().getTime() + 13000,
+      endTime: new Date().getTime() + 140000,
       teamMode: TeamMode.HeadToHead,
       event: "match_end",
       scores: [
@@ -591,8 +591,8 @@ const lobby2ApiResults3: ApiMultiplayer = {
       mapNumber: 7,
       multiplayerId: requests.addLobby2Request.banchoMultiplayerId,
       mapId: "BM5", // lobby#2, BM5#2
-      startTime: new Date().getTime() + 678,
-      endTime: new Date().getTime() + 978,
+      startTime: new Date().getTime() + 14000,
+      endTime: new Date().getTime() + 130000,
       teamMode: TeamMode.HeadToHead,
       event: "match_end",
       scores: [
@@ -616,8 +616,8 @@ const lobby2ApiResults4: ApiMultiplayer = {
       mapNumber: 8,
       multiplayerId: requests.addLobby2Request.banchoMultiplayerId,
       mapId: "BM5", // lobby#2, BM5#3
-      startTime: new Date().getTime() + 1600,
-      endTime: new Date().getTime() + 1800,
+      startTime: new Date().getTime() + 15000,
+      endTime: new Date().getTime() + 150000,
       teamMode: TeamMode.HeadToHead,
       event: "match_end",
       scores: [

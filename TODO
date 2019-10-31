@@ -1,15 +1,17 @@
 // using TODO+ extension for vscode
 TODO: 
     Leaderboard: 
-        ☐ Position should be locked if the team was eliminated @created(19-10-27 20:11)
-        ☐ convert Leaderboard to class + create abstract Leaderboard class+ rename leaderboard to BattleRoyaleLeaderboard @created(19-10-27 20:11)
-        ✔ Do not add to team's total score if the team *currently* has 0 lives remaining (i.e. before *this* leaderboard calculation) @done(19-10-30 00:48)
-        @created(19-10-28 20:14)
-        ✔ Change position from index 1-based to 0-based @created(19-10-29 19:40) @done(19-10-30 00:44)
-        ☐ Merge CalculatedTeamScore with LeaderboardBuilder.TeamScoresMap @created(19-10-30 00:53)
-        ☐ Add method in LeaderboardBuilder named "buildLeaderboards" which calls buildLeaderboard to build a leaderboard for many reportables @created(19-10-30 13:49)
-            ☐ Rename buildLeaderboard to buildLatestLeaderboard @created(19-10-30 13:50)
-            ☐ Include the leaderboard reportables in the output of the MultiplayerResultsReporter.getItemsToBeReported method @created(19-10-30 15:11)
+        Fix:
+            ✔ Position should be locked if the team was eliminated @created(19-10-27 20:11) @done(19-10-31 22:20)
+            ✔ Do not add to team's total score if the team *currently* has 0 lives remaining (i.e. before *this* leaderboard calculation) @done(19-10-30 00:48)
+            ✔ Change position from index 1-based to 0-based @created(19-10-29 19:40) @done(19-10-30 00:44)
+        Refactor:
+            ☐ convert Leaderboard to class + create abstract Leaderboard class+ rename leaderboard to BattleRoyaleLeaderboard @created(19-10-27 20:11)
+            @created(19-10-28 20:14)
+            ☐ Merge CalculatedTeamScore with LeaderboardBuilder.TeamScoresMap @created(19-10-30 00:53)
+            ☐ Add method in LeaderboardBuilder named "buildLeaderboards" which calls buildLeaderboard to build a leaderboard for many reportables @created(19-10-30 13:49)
+                ☐ Rename buildLeaderboard to buildLatestLeaderboard @created(19-10-30 13:50)
+                ☐ Include the leaderboard reportables in the output of the MultiplayerResultsReporter.getItemsToBeReported method @created(19-10-30 15:11)
     ✔ Fix `Error: Multiplayer 54078930 is not currently being watched` when using `!endgame` command @created(19-08-30 07:43) @done(19-08-30 23:29)
     ✔ Fix `!obr removelobby` command not unwatching the lobby in the osu lobby scanner @created(19-08-30 23:29) @done(19-08-30 23:52)
     ☐ Remove all the comments starting with "GL:" from when we implemented the GameLobby entity @created(19-08-30 07:48)
@@ -43,6 +45,8 @@ TODO:
                 ☐ We should also deny the !addteam command if a game has already started, but the code should be flexible enough to support future scenarios where teams can be added after a game has been started, and the results are re-calculated to include the new teams. @created(19-10-17 23:54)
         Important:
             ☐ !creategame should change the target game of the requesting user to that game. @created(19-09-19 13:00)
+            ☐ If a match from the osu API has the same start time and the same beatmap ID (in the same lobby), the system is treating this as the same map (but it should be like BM1#1 and BM1#2). @created(19-10-31 21:25)
+                In reality this should never be an issue, since maps cannot start at the same time in the same lobby. However, we should find a way to include the match end time in this comparison. If the end time is different, treat it as a different match.
         Optimize:
             ☐ Lobby scanner should start scanning immediately when a lobby is added. Right now, it waits the interval time before doing the first scan. @created(19-09-19 13:13)
     Security:

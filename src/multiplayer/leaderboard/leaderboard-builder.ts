@@ -14,14 +14,17 @@ import { TeamScoreCalculator, CalculatedTeamScore } from "../classes/team-score-
 import { VirtualMatchCreator } from "../virtual-match/virtual-match-creator";
 
 type GameSettings = { countFailedScores: boolean; startingTeamLives: number };
-type TeamLivesMap = Map<TeamID, { lives: number; eliminatedInEvent?: TeamScoredLowestGameEvent }>;
-type TeamAverageRanksMap = Map<TeamID, { virtualMatchAverageRank: number }>;
-type TeamScoresMap = Map<TeamID, { score: number }>;
+type TeamLivesMapValue = { lives: number; lostLifeInEvents: TeamScoredLowestGameEvent[]; eliminatedInEvent?: TeamScoredLowestGameEvent };
+type TeamLivesMap = Map<TeamID, TeamLivesMapValue>;
+type TeamAverageRanksMapValue = { virtualMatchAverageRank: number };
+type TeamAverageRanksMap = Map<TeamID, TeamAverageRanksMapValue>;
+type TeamScoresMapValue = { score: number };
+type TeamScoresMap = Map<TeamID, TeamScoresMapValue>;
 type TeamScoreRankData = { submitted: boolean; score?: number; rank: number };
 
 export class LeaderboardBuilder {
   /**
-   * Builds the latest leaderboard from all the reportables of a game.
+   * Builds the latest leaderboard from the reportables of a game.
    *
    * @static
    * @param {{ game: Game; reportables: ReportableContext<ReportableContextType>[] }} args
@@ -62,7 +65,7 @@ export class LeaderboardBuilder {
     const lastTeamScoreSubmittedEvent = teamScoresSubmittedEvents.slice(-1)[0];
     const lastVirtualMatch = lastTeamScoreSubmittedEvent.data.eventMatch;
     const teamScoresForLastVirtualMatch = TeamScoreCalculator.calculateTeamScoresForVirtualMatch(lastVirtualMatch, teams);
-    const teamLives: TeamLivesMap = LeaderboardBuilder.calculateCurrentTeamLives(
+    const teamLives: TeamLivesMap = LeaderboardBuilder.calculateFromEvents_LatestTeamLives(
       teams,
       teamScoredLowestEvents,
       gameSettings.startingTeamLives
@@ -139,63 +142,89 @@ export class LeaderboardBuilder {
       item: leaderboard
     };
   }
+
   /**
-   * Returns average "per virtual match" leaderboard position after the moment of the last of the given events.
+   * Returns average "per virtual match" leaderboard position at the time of the last of the given events.
+   *
+   * Note that this is NOT the average leaderboard position rank.
+   * This is more like the equivalent of the average of where the team was positioned on the multiplayer results screen.
+   *
+   * A team could technically keep scoring after they are eliminated.
+   * We account for this later by "locking" their average rank to whatever it was when the team was eliminated.
+   * The elimination event is included in the average calculation (it's the last event to be included in the calculation for the team).
    *
    * @static
-   * @param {TeamScoresSubmittedGameEvent[]} teamScoresSubmittedEvents
    * @param {Team[]} teams
-   * @param {Map<number, TeamLivesMap>} teamLives
+   * @param {TeamScoresSubmittedGameEvent[]} teamScoresSubmittedEvents
+   * @param {Map<number, TeamLivesMap>} teamLivesMap
    * @returns {Map<number, TeamAverageRanksMap>}
    */
-  private static calculateCurrentTeamRankAverages(
-    teamScoresSubmittedEvents: TeamScoresSubmittedGameEvent[],
+  private static calculateFromEvents_LatestTeamRankAverages(
     teams: Team[],
-    teamLives: TeamLivesMap
+    teamScoresSubmittedEvents: TeamScoresSubmittedGameEvent[], // contains the team scores for each VM
+    teamLivesMap: TeamLivesMap // we use these to check if/which event the team was eliminated in
   ): TeamAverageRanksMap {
     const teamRankAverages = new Map<TeamID, { virtualMatchAverageRank: number }>();
-    // TODO
+    const teamRankTally = new Map<TeamID, { ranksSum: number; ranksCount: number }>();
+    teams.forEach(team => {
+      teamRankTally.set(team.id, { ranksSum: 0, ranksCount: 0 });
+      teamRankAverages.set(team.id, { virtualMatchAverageRank: 0 });
+    });
+
+    // tally the team ranks for each score-submitted event
+    teamScoresSubmittedEvents.forEach(tssEvent => {
+      const virtualMatchTeamRanks = LeaderboardBuilder.rankTeamsByScoreForVirtualMatch({
+        virtualMatch: tssEvent.data.eventMatch,
+        teams: teams
+      });
+      Array.from(virtualMatchTeamRanks).forEach(virtualMatchTeamRank => {
+        const teamId = virtualMatchTeamRank[0];
+        if (!virtualMatchTeamRanks.get(teamId)) return;
+
+        // Don't add to the team's tally if the team was eliminated strictly-before this event,
+        // but do add to the team's tally if this is the event in which the team was eliminated.
+        const lives = teamLivesMap.get(teamId);
+        if (
+          lives &&
+          lives.eliminatedInEvent &&
+          lives.eliminatedInEvent.data &&
+          lives.eliminatedInEvent.data.timeOfEvent < tssEvent.data.timeOfEvent
+        ) {
+          return;
+        }
+
+        // add to the team's tally
+        teamRankTally.get(teamId).ranksSum += virtualMatchTeamRanks.get(teamId).rank;
+        teamRankTally.get(teamId).ranksCount++;
+      });
+    });
+
+    // set average team rank
+    teams.forEach(team => {
+      const tallyTarget = teamRankTally.get(team.id);
+      teamRankAverages.set(team.id, {
+        virtualMatchAverageRank: tallyTarget.ranksSum / tallyTarget.ranksCount
+      });
+    });
+
     return teamRankAverages;
   }
 
-  // /**
-  //  * Returns the latest team leaderboard positions (current and previous) for the given team ID, determined from the given events.
-  //  *
-  //  * @static
-  //  * @param {TeamScoresSubmittedGameEvent[]} scoresSubmittedEvents
-  //  * @param {number} targetTeamId
-  //  * @returns {(LeaderboardPositionals | undefined)}
-  //  */
-  // private static getTeamPositionalsForTeam(
-  //   scoresSubmittedEvents: TeamScoresSubmittedGameEvent[],
-  //   targetTeamId: number
-  // ): LeaderboardPositionals | undefined {
-  //   // TODO: Position should be locked if the team was eliminated
-
-  //   // team will not have a rank defined if they did not submit a score
-  //   const latestEvent = scoresSubmittedEvents.slice(-1)[0];
-  //   if (!latestEvent || !latestEvent.data || !latestEvent.data.data) {
-  //     Log.warn("Unable to calculate team leaderboard positions because there are no score submitted events. This should never happen.");
-  //     return undefined;
-  //   }
-
-  //   const currentPosition = LeaderboardBuilder.determineTeamPositionsForVirtualMatch(latestEvent.data.eventMatch);
-
-  //   const prevEvent = scoresSubmittedEvents.slice(-2)[0];
-  //   if (!prevEvent || !prevEvent.data || !prevEvent.data.data) {
-  //     // since we don't know the previous position, the previous position and the change in position are both unknown and (therefore) undefined
-  //     return { currentPosition };
-  //   }
-
-  //   const previousPosition = prevEvent.data.data.get(targetTeamId).rank;
-
-  //   return {
-  //     currentPosition,
-  //     previousPosition,
-  //     change: previousPosition - currentPosition > 0 ? "gained" : previousPosition - currentPosition === 0 ? "same" : "lost"
-  //   };
-  // }
-
+  /**
+   * Returns the leaderboard "positionals" (current and previous leaderboard positions) of teams for the target event.
+   *
+   * @private
+   * @static
+   * @param {{
+   *     targetTeamId: TeamID; // get the positionals for this team ID
+   *     targetEvent: TeamScoresSubmittedGameEvent; // get the positions at the time of this event
+   *     teamScoresSubmittedEvents: TeamScoresSubmittedGameEvent[]; // all the game events thus far (must include the targetEvent)
+   *     teamScoredLowestEvents: TeamScoredLowestGameEvent[];
+   *     teams: Team[]; // all the teams added to the game
+   *     gameSettings: GameSettings;
+   *   }} args
+   * @returns {LeaderboardPositionals}
+   */
   private static getTeamPositionals(args: {
     targetTeamId: TeamID; // get the positionals for this team ID
     targetEvent: TeamScoresSubmittedGameEvent; // get the positions at the time of this event
@@ -204,8 +233,6 @@ export class LeaderboardBuilder {
     teams: Team[]; // all the teams added to the game
     gameSettings: GameSettings;
   }): LeaderboardPositionals {
-    // TODO: Position should be locked if the team was eliminated
-
     // team will not have a rank defined if they did not submit a score
     if (!args.targetEvent || !args.targetEvent.data || !args.targetEvent.data.data) {
       Log.warn("Unable to calculate team leaderboard positions because there are no score submitted events. This should never happen.");
@@ -221,8 +248,14 @@ export class LeaderboardBuilder {
       gameSettings: args.gameSettings
     });
 
-    // find the event occurring one before the target event
-    const prevEvent = args.teamScoresSubmittedEvents.filter(e => e.data.timeOfEvent <= args.targetEvent.data.timeOfEvent).slice(-1)[0];
+    // Find the event occurring one before the target event.
+    const prevEvent = args.teamScoresSubmittedEvents
+      .filter(
+        e =>
+          e.data.timeOfEvent <= args.targetEvent.data.timeOfEvent &&
+          !VirtualMatchCreator.isEquivalentVirtualMatchByKey(e.data.eventMatch, args.targetEvent.data.eventMatch)
+      )
+      .slice(-1)[0];
     if (!prevEvent || !prevEvent.data || !prevEvent.data.data) {
       // since we don't know the previous position, the previous position and the change in position are both unknown and (therefore) undefined
       return { currentPosition };
@@ -244,6 +277,21 @@ export class LeaderboardBuilder {
     };
   }
 
+  /**
+   * Returns the leaderboard rank for teams of the target event.
+   *
+   * @private
+   * @static
+   * @param {{
+   *     targetTeamId: number;
+   *     targetEvent: TeamScoresSubmittedGameEvent;
+   *     teamScoresSubmittedEvents: TeamScoresSubmittedGameEvent[];
+   *     teamScoredLowestEvents: TeamScoredLowestGameEvent[];
+   *     teams: Team[];
+   *     gameSettings: GameSettings;
+   *   }} args
+   * @returns {number}
+   */
   private static getTeamRankForTargetEvent(args: {
     targetTeamId: number;
     targetEvent: TeamScoresSubmittedGameEvent;
@@ -252,48 +300,126 @@ export class LeaderboardBuilder {
     teams: Team[];
     gameSettings: GameSettings;
   }): number {
-    const teamScoredLowestEventsBeforeTargetEvent = args.teamScoredLowestEvents.filter(
-      event => event.data.timeOfEvent <= args.targetEvent.data.timeOfEvent
-    );
-    const teamScoresSubmittedEventsBeforeTargetEvent = args.teamScoresSubmittedEvents.filter(
-      event => event.data.timeOfEvent <= args.targetEvent.data.timeOfEvent
-    );
+    const positionals = {
+      eventMatch: args.targetEvent.data.eventMatch,
+      timeOfEvent: VirtualMatchCreator.getEstimatedTimeOfOccurrenceOfVirtualMatch(args.targetEvent.data.eventMatch),
+      data: new Map<TeamID, TeamScoreRankData>()
+    };
+
+    const teamScoredLowestEventsBeforeTargetEvent = args.teamScoredLowestEvents.filter(event => event.data.timeOfEvent <= args.targetEvent.data.timeOfEvent); //prettier-ignore
+    const teamScoresSubmittedEventsBeforeTargetEvent = args.teamScoresSubmittedEvents.filter(event => event.data.timeOfEvent <= args.targetEvent.data.timeOfEvent); //prettier-ignore
+
+    // initialize maps
+    let teamLives: TeamLivesMap = new Map<TeamID, { lives: number; lostLifeInEvents: TeamScoredLowestGameEvent[] }>();
+    let teamScoresTotal: TeamScoresMap = new Map<TeamID, { score: number }>();
+    let teamRankAverages: TeamAverageRanksMap = new Map<TeamID, { virtualMatchAverageRank: number }>();
+    args.teams.forEach(team => {
+      teamLives.set(team.id, { lives: args.gameSettings.startingTeamLives, lostLifeInEvents: [] });
+      teamScoresTotal.set(team.id, { score: 0 });
+      teamRankAverages.set(team.id, { virtualMatchAverageRank: 0 });
+    });
+
     // Gather values required for determining team leaderboard positions.
     // Position determined in order of:
     // lives remaining > average "per virtual match" leaderboard position > total score (scores only added-to if not eliminated)
-    const teamLives: TeamLivesMap = LeaderboardBuilder.calculateCurrentTeamLives(
-      args.teams,
-      teamScoredLowestEventsBeforeTargetEvent,
-      args.gameSettings.startingTeamLives
-    );
-    const teamRankAverages: TeamAverageRanksMap = LeaderboardBuilder.calculateCurrentTeamRankAverages(
-      teamScoresSubmittedEventsBeforeTargetEvent,
-      args.teams,
-      teamLives
-    );
-    const teamScoresTotal: TeamScoresMap = LeaderboardBuilder.calculateTotalTeamScoresForEntireGame(
-      teamScoresSubmittedEventsBeforeTargetEvent,
-      args.teams,
-      teamLives
-    );
-    const positionals = LeaderboardBuilder.determineTeamRanksForVirtualMatch({
-      virtualMatch: args.targetEvent.data.eventMatch,
-      teams: args.teams,
-      teamLives: teamLives,
-      teamRankAverages: teamRankAverages,
-      teamScoreTotals: teamScoresTotal
+    teamScoresSubmittedEventsBeforeTargetEvent.forEach(tssEvent => {
+      // find the equivalent lowest-score event for this score-submitted event
+      const tslEvent = teamScoredLowestEventsBeforeTargetEvent.find(
+        tslEvent =>
+          tslEvent.data.eventMatch.beatmapId === tssEvent.data.eventMatch.beatmapId &&
+          tslEvent.data.eventMatch.sameBeatmapNumber === tssEvent.data.eventMatch.sameBeatmapNumber
+      );
+
+      // re-use the previous team lives if there was no equivalent "lowest score" (life-losing) event for this score event
+      if (tslEvent) {
+        teamLives = LeaderboardBuilder.calculateFromEvents_LatestTeamLives(
+          args.teams,
+          teamScoredLowestEventsBeforeTargetEvent,
+          args.gameSettings.startingTeamLives
+        );
+      }
+
+      teamScoresTotal = LeaderboardBuilder.calculateFromEvents_LatestTotalTeamScores(
+        teamScoresSubmittedEventsBeforeTargetEvent,
+        args.teams,
+        teamLives
+      );
+
+      teamRankAverages = LeaderboardBuilder.calculateFromEvents_LatestTeamRankAverages(
+        args.teams,
+        teamScoresSubmittedEventsBeforeTargetEvent,
+        teamLives
+      );
+
+      // all values should now be gathered to determine the positions
+
+      // sort in order of priority of values (rank 0 [best] first, rank n [worst] last)
+      const teamsSortedByRank = args.teams
+        .map<TeamID>(team => team.id)
+        .map<{
+          teamId: TeamID;
+          lives: TeamLivesMapValue;
+          rankAverage: TeamAverageRanksMapValue;
+          scoreTotal: TeamScoresMapValue;
+          tiedRankWithTeamIds: number[];
+        }>(teamId => ({
+          teamId: teamId,
+          lives: teamLives.get(teamId),
+          rankAverage: teamRankAverages.get(teamId),
+          scoreTotal: teamScoresTotal.get(teamId),
+          tiedRankWithTeamIds: []
+        }))
+        .sort((a, b) => {
+          if (b.lives.lives !== a.lives.lives) {
+            // The team with more lives remaining gets bumped up.
+            return b.lives.lives - a.lives.lives;
+          }
+          if (a.lives.eliminatedInEvent && b.lives.eliminatedInEvent) {
+            // Both teams were eliminated.
+            // The team that was eliminated earlier gets bumped up.
+            return b.lives.eliminatedInEvent.data.timeOfEvent - a.lives.eliminatedInEvent.data.timeOfEvent;
+          }
+          if (b.rankAverage.virtualMatchAverageRank !== a.rankAverage.virtualMatchAverageRank) {
+            // The lower (better) average rank gets bumped up.
+            return a.rankAverage.virtualMatchAverageRank - b.rankAverage.virtualMatchAverageRank;
+          }
+          if (b.scoreTotal.score !== a.scoreTotal.score) {
+            // The higher (better) total score gets bumped up.
+            return b.scoreTotal.score - a.scoreTotal.score;
+          }
+
+          a.tiedRankWithTeamIds.push(a.teamId, b.teamId);
+          b.tiedRankWithTeamIds.push(a.teamId, b.teamId);
+          return 0;
+        });
+
+      // rank is determined by the order of these sorted teams
+      teamsSortedByRank.forEach((a, index, all) => {
+        let rank = index;
+        if (a.tiedRankWithTeamIds.length) {
+          // Find the index of the first team with a tied rank.
+          // The idea here is that all tied-rank teams should have the same rank as the index of the first tied-rank team.
+          rank = all.findIndex(b => a.tiedRankWithTeamIds.includes(b.teamId));
+          if (rank == -1) throw new Error("Bad rank calc when all ranking criteria was tied between some teams. This should never happen.");
+        }
+
+        positionals.data.set(a.teamId, { submitted: true, rank });
+      });
     });
-    const rank = positionals.get(args.targetTeamId).rank;
+
+    const rank = positionals.data.get(args.targetTeamId).rank;
     return rank;
   }
 
-  private static determineTeamRanksForVirtualMatch(args: {
-    virtualMatch: VirtualMatch;
-    teams: Team[];
-    teamLives: TeamLivesMap;
-    teamRankAverages: TeamAverageRanksMap;
-    teamScoreTotals: TeamScoresMap;
-  }): Map<TeamID, TeamScoreRankData> {
+  /**
+   * Returns the virtual match rank determined simply by highest score.
+   *
+   * @private
+   * @static
+   * @param {{ virtualMatch: VirtualMatch; teams: Team[] }} args
+   * @returns {Map<TeamID, TeamScoreRankData>}
+   */
+  private static rankTeamsByScoreForVirtualMatch(args: { virtualMatch: VirtualMatch; teams: Team[] }): Map<TeamID, TeamScoreRankData> {
     const teamScores: CalculatedTeamScore[] = TeamScoreCalculator.calculateTeamScoresForVirtualMatch(args.virtualMatch, args.teams);
 
     const positionals = {
@@ -386,76 +512,56 @@ export class LeaderboardBuilder {
 
   /**
    * Returns a map of team IDs mapped to their number of lives. One life is removed for each team in each event.
+   *
+   * @private
+   * @static
+   * @param {Team[]} teams
+   * @param {TeamScoredLowestGameEvent[]} events
+   * @param {number} startingTeamLives
+   * @returns {TeamLivesMap}
    */
-  private static calculateCurrentTeamLives(teams: Team[], events: TeamScoredLowestGameEvent[], startingTeamLives: number): TeamLivesMap {
-    const teamLives: TeamLivesMap = new Map<TeamID, { lives: number; eliminatedInEvent?: TeamScoredLowestGameEvent }>();
+  private static calculateFromEvents_LatestTeamLives(
+    teams: Team[],
+    events: TeamScoredLowestGameEvent[],
+    startingTeamLives: number
+  ): TeamLivesMap {
+    const teamLives: TeamLivesMap = new Map<
+      TeamID,
+      { lives: number; eliminatedInEvent?: TeamScoredLowestGameEvent; lostLifeInEvents: [] }
+    >();
     // each team starts with the starting number of lives
-    teams.forEach(team => teamLives.set(team.id, { lives: startingTeamLives }));
+    teams.forEach(team => teamLives.set(team.id, { lives: startingTeamLives, lostLifeInEvents: [] }));
     if (!events || !events.length) return teamLives;
     events.forEach(event => LeaderboardBuilder.updateTeamLivesForEvent(event, teamLives, startingTeamLives));
     return teamLives;
   }
 
-  private static updateTeamLivesForEvent(
-    event: TeamScoredLowestGameEvent,
-    teamLives: Map<number, { lives: number; eliminatedInEvent?: TeamScoredLowestGameEvent }>,
-    startingTeamLives: number
-  ) {
+  /**
+   * Subtracts one life for the given event.
+   *
+   * @private
+   * @static
+   * @param {TeamScoredLowestGameEvent} event
+   * @param {TeamLivesMap} allTeamLivesMap Must be initialized already with teams referenced in the given event
+   * @param {number} startingTeamLives
+   * @returns {void}
+   */
+  private static updateTeamLivesForEvent(event: TeamScoredLowestGameEvent, allTeamLivesMap: TeamLivesMap, startingTeamLives: number): void {
     const teamId = event.data.teamId;
-    const teamLivesValue = teamLives.get(teamId);
-    const currentLives = teamLivesValue ? teamLivesValue.lives : startingTeamLives;
-    const livesValue = currentLives - 1 < 0 ? 0 : currentLives - 1;
-    if (livesValue === 0) {
-      teamLives.set(teamId, { lives: livesValue, eliminatedInEvent: event });
-    } else {
-      teamLives.set(teamId, { lives: livesValue });
+    let eventTeamLives = allTeamLivesMap.get(teamId);
+    if (!eventTeamLives) throw new Error("Team targetted in event was not initialized in the team lives map.");
+    const newLivesNumber = eventTeamLives.lives - 1 < 0 ? 0 : eventTeamLives.lives - 1;
+    if (newLivesNumber < eventTeamLives.lives) {
+      eventTeamLives.lostLifeInEvents.push(event);
+      allTeamLivesMap.set(teamId, { lives: newLivesNumber, lostLifeInEvents: eventTeamLives.lostLifeInEvents });
+      eventTeamLives = allTeamLivesMap.get(teamId);
     }
+    if (newLivesNumber === 0) {
+      allTeamLivesMap.set(teamId, { lives: newLivesNumber, lostLifeInEvents: eventTeamLives.lostLifeInEvents, eliminatedInEvent: event });
+      return;
+    }
+    allTeamLivesMap.set(teamId, { lives: newLivesNumber, lostLifeInEvents: eventTeamLives.lostLifeInEvents });
   }
-
-  // private static getCurrentLeaderboardPositionOfTeam(
-  //   teamId: TeamID,
-  //   allTeamLives: Map<TeamID, number>,
-  //   allTeamScoresTotal: Map<TeamID, number>
-  // ): number | undefined {
-  //   // position is determined by number of lives remaining.
-  //   // if same number of lives remaining, fallback to total team score
-
-  //   const positionsBestToWorst = new Map<TeamID, { position?: number; lives?: number; totalScore?: number }>();
-
-  //   allTeamLives.forEach((teamLives, teamId, _allTeamLives) => {
-  //     const found = positionsBestToWorst.get(teamId);
-  //     if (!found) positionsBestToWorst.set(teamId, { lives: teamLives });
-  //     else found.lives = teamLives;
-  //   });
-  //   allTeamScoresTotal.forEach((teamTotalScore, teamId, _allTeamScoresTotal) => {
-  //     const found = positionsBestToWorst.get(teamId);
-  //     if (!found) positionsBestToWorst.set(teamId, { totalScore: teamTotalScore });
-  //     else found.totalScore = teamTotalScore;
-  //   });
-
-  //   const positionsBestToWorstArray = Array.from(positionsBestToWorst).sort((a, b) => {
-  //     // sort by scores highest to lowest
-  //     if (b[1] && b[1].lives && a[1] && a[1].lives) {
-  //       const livesDiff = b[1].lives - a[1].lives;
-  //       if (livesDiff !== 0) return livesDiff;
-  //     }
-  //     if (b[1] && b[1].totalScore && a[1] && a[1].totalScore) {
-  //       const scoresDiff = b[1].totalScore - a[1].totalScore;
-  //       return scoresDiff;
-  //     }
-  //     return 0;
-  //     // TODO - improve this. Not perfect, since teams may (very rarely) have identical total scores.
-  //   });
-
-  //   positionsBestToWorstArray.forEach((position, index) => (position[1].position = index + 1));
-
-  //   const teamPosition = positionsBestToWorstArray.find(position => teamId === position[0]);
-  //   if (!teamPosition || !teamPosition[1] || teamPosition[1].position < 1) {
-  //     return undefined;
-  //   }
-
-  //   return teamPosition[1].position;
-  // }
 
   /**
    * Returns a map of team IDs mapped to the sum of all scores that each team has scored in the matches of the given game events.
@@ -466,7 +572,7 @@ export class LeaderboardBuilder {
    * @param {Team[]} teams
    * @returns {Map<TeamID, number>}
    */
-  private static calculateTotalTeamScoresForEntireGame(
+  private static calculateFromEvents_LatestTotalTeamScores(
     events: TeamScoresSubmittedGameEvent[],
     teams: Team[],
     teamLives: TeamLivesMap
@@ -486,13 +592,15 @@ export class LeaderboardBuilder {
           // This is necessary for accurately determining the team's leaderboard position (since the position sometimes relies on comparing team's total scores).
           const livesCheckEvent = teamLives.get(team.id);
           const teamScore = teamScores.get(team.id) || { score: 0 };
-          if (livesCheckEvent && livesCheckEvent.eliminatedInEvent) {
-            if (event.data.timeOfEvent >= livesCheckEvent.eliminatedInEvent.data.timeOfEvent) {
-              // if this event occurred after the event in which the team was eliminated, do not add the player score to the team's total score
-              teamScores.set(team.id, teamScore);
-            } else {
-              teamScores.set(team.id, { score: teamScore.score + playerScore.score });
-            }
+          teamScores.set(team.id, { score: teamScore.score + playerScore.score });
+          if (
+            livesCheckEvent &&
+            livesCheckEvent.eliminatedInEvent &&
+            event.data.timeOfEvent > livesCheckEvent.eliminatedInEvent.data.timeOfEvent
+          ) {
+            // If this event occurred strictly-after the event in which the team was eliminated, do not add the player score to the team's total score.
+            // We still add the player scores to the team's total score if this is the event in which the team was eliminated (this will be the final event in which a score is added).
+            teamScores.set(team.id, teamScore);
           }
         }
       });
