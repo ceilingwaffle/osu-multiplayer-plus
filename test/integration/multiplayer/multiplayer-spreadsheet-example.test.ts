@@ -21,6 +21,8 @@ import { MultiplayerResultsReporter } from "../../../src/multiplayer/classes/mul
 import { ReportableContext, ReportableContextType } from "../../../src/domain/game/game-match-reported.entity";
 import { MultiplayerResultsDeliverer } from "../../../src/multiplayer/classes/multiplayer-results-deliverer";
 import { LeaderboardBuilder } from "../../../src/multiplayer/leaderboard/leaderboard-builder";
+import { Leaderboard } from "../../../src/multiplayer/components/leaderboard";
+import { expectedLeaderboards } from "./context/spreadsheet-leaderboards";
 
 chai.use(chaiExclude);
 
@@ -82,6 +84,7 @@ describe("When processing multiplayer results", function() {
         return new Promise(async (resolve, reject) => {
           try {
             const conn = iocContainer.get<IDbClient>(TYPES.IDbClient).getConnection();
+            if (!conn) return reject("DB Connection ");
             await TestHelpers.dropTestDatabase(conn);
             conn.close();
             return resolve();
@@ -114,14 +117,6 @@ describe("When processing multiplayer results", function() {
               game: games1[0]
             });
 
-            const leaderboard: ReportableContext<"leaderboard"> = LeaderboardBuilder.buildLeaderboard({
-              game: games1[0],
-              reportables: allReportables
-            });
-            allReportables.push(leaderboard);
-            // leaderboard should be undefined because no virtual matches have completed (because we only have API results for 1/2 lobbies)
-            expect(leaderboard).to.be.undefined;
-
             // await MultiplayerResultsDeliverer.deliver({ reportables: toBeReported }); // leaderboard
             // TODO: Test the delivery in another test file. Just using it here for now to inspect the call stack.
 
@@ -152,6 +147,23 @@ describe("When processing multiplayer results", function() {
               .to.deep.equal(processedState.lobby2ApiResults1);
 
             const processedData2: VirtualMatchReportData[] = processor2.buildVirtualMatchReportGroupsForGame(games2[0]);
+
+            const { allReportables, toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({
+              virtualMatchReportDatas: processedData2,
+              game: games2[0]
+            });
+
+            const leaderboardReportable: ReportableContext<"leaderboard"> = LeaderboardBuilder.buildLeaderboard({
+              game: games2[0],
+              reportables: allReportables
+            });
+            allReportables.push(leaderboardReportable);
+            expect(leaderboardReportable).to.not.be.undefined;
+            const leaderboard: Leaderboard = leaderboardReportable.item;
+            expect(leaderboard).to.not.be.undefined;
+
+            // TODO: assert: players, beatmap, event type
+            expect(leaderboard).excludingEvery(["players", "beatmapPlayed", "eventIcon"]).to.deep.equal(expectedLeaderboards.bm4_1); // prettier-ignore
 
             return resolve();
           } catch (error) {

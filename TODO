@@ -7,6 +7,9 @@ TODO:
         @created(19-10-28 20:14)
         ✔ Change position from index 1-based to 0-based @created(19-10-29 19:40) @done(19-10-30 00:44)
         ☐ Merge CalculatedTeamScore with LeaderboardBuilder.TeamScoresMap @created(19-10-30 00:53)
+        ☐ Add method in LeaderboardBuilder named "buildLeaderboards" which calls buildLeaderboard to build a leaderboard for many reportables @created(19-10-30 13:49)
+            ☐ Rename buildLeaderboard to buildLatestLeaderboard @created(19-10-30 13:50)
+            ☐ Include the leaderboard reportables in the output of the MultiplayerResultsReporter.getItemsToBeReported method @created(19-10-30 15:11)
     ✔ Fix `Error: Multiplayer 54078930 is not currently being watched` when using `!endgame` command @created(19-08-30 07:43) @done(19-08-30 23:29)
     ✔ Fix `!obr removelobby` command not unwatching the lobby in the osu lobby scanner @created(19-08-30 23:29) @done(19-08-30 23:52)
     ☐ Remove all the comments starting with "GL:" from when we implemented the GameLobby entity @created(19-08-30 07:48)
@@ -213,6 +216,8 @@ TODO:
         ☐ Prevent the app from launching multiple instances @created(19-09-10 13:05)
     Domain/Website:
         ✔ osumpp.xyz domain registered with Porkbun @created(19-09-20 01:06) @done(19-09-20 01:06)
+    Documentation:
+        ☐ Explain how BR scoring works; how a winner is determined @created(19-10-30 14:07)
     Design:
         What we have access to - maps, mods(SD), modes - team vs, ffa, TAG4, osu API
         ✔ We need a name for this thing @done(19-09-24 15:36)
@@ -341,6 +346,9 @@ TODO:
                     Include description "use !obr targetgame to specify another game".
                 ☐ `!obr listgames <active/closed/(default:all)?>` @created(19-09-01 22:38)
                     List the games created within this Discord server.
+                ☐ `!obr update` @created(19-10-30 14:09)
+                    Forces a lobby-results check on all active lobbies for the user's target game. 
+                    If not all lobbies have completed the next unreported virtual match, display a message like "Waiting for lobby x to complete beatmap y (number n)".
             Lobby:
                 ☐ `!obr addlobby <banchoMpId>` @created(19-09-01 22:58)
                     ✔ When using command !obr addlobby 54078930 6, on a game which already has that lobby added, return some error message. @started(19-08-19 00:30) @done(19-08-19 05:13) @lasted(4h43m45s)
