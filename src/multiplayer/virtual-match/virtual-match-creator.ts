@@ -169,9 +169,25 @@ export class VirtualMatchCreator {
     return key1.beatmapId === key2.beatmapId && key1.sameBeatmapNumber === key2.sameBeatmapNumber;
   }
 
-  /** We want the time of this event to be equal to the end-time of the match that ended most recently (or start-time if the match has no end-time) */
+  static isEquivalentVirtualMatchByKey(vm1: VirtualMatch, vm2: VirtualMatch): boolean {
+    return VirtualMatchCreator.isEqualVirtualMatchKey(
+      {
+        beatmapId: vm1.beatmapId,
+        sameBeatmapNumber: vm1.sameBeatmapNumber
+      },
+      {
+        beatmapId: vm2.beatmapId,
+        sameBeatmapNumber: vm2.sameBeatmapNumber
+      }
+    );
+  }
+
+  /** We want the time of this event to be equal to the end-time of the match that ended most recently
+   * (or the later start-time if the match has no end-time) */
   static getLatestMatchFromVirtualMatch(virtualMatch: VirtualMatch) {
-    return _.sortBy<Match>(virtualMatch.matches, ["endTime", "startTime", "id"]).reverse().slice(-1)[0]; //prettier-ignore
+    const sorted = _.sortBy<Match>(virtualMatch.matches, ["endTime", "startTime", "id"]);
+    // return the last match (the later-occurring match)
+    return sorted.slice(-1)[0];
   }
 
   /** Use the current system time if there are no matches, or if the match has no defined endTime or startTime */
@@ -180,7 +196,8 @@ export class VirtualMatchCreator {
   }
 
   static getEstimatedTimeOfOccurrenceOfVirtualMatch(virtualMatch: VirtualMatch): number {
-    return this.getTimeOfMatch(this.getLatestMatchFromVirtualMatch(virtualMatch));
+    const latestMatch = this.getLatestMatchFromVirtualMatch(virtualMatch);
+    return this.getTimeOfMatch(latestMatch);
   }
 
   // static getLatestVirtualMatchCompletedByAllLobbiesForGame(game: Game): VirtualMatch {
