@@ -13,7 +13,7 @@ export class MultiplayerResultsReporter {
     virtualMatchReportDatas: VirtualMatchReportData[];
     game: Game;
   }): { allReportables: ReportableContext<ReportableContextType>[]; toBeReported: ReportableContext<ReportableContextType>[] } {
-    const allReportables: ReportableContext<ReportableContextType>[] = MultiplayerResultsReporter.getReportableEventsAndMessagesForGame({
+    const allReportables: ReportableContext<ReportableContextType>[] = MultiplayerResultsReporter.gatherReportableItemsForGame({
       virtualMatchReportDatas: args.virtualMatchReportDatas
     });
 
@@ -29,21 +29,21 @@ export class MultiplayerResultsReporter {
     return { allReportables, toBeReported };
   }
 
-  private static getReportableEventsAndMessagesForGame(args: {
+  private static gatherReportableItemsForGame(args: {
     virtualMatchReportDatas: VirtualMatchReportData[];
   }): ReportableContext<ReportableContextType>[] {
     const reportables: ReportableContext<ReportableContextType>[] = [];
 
     args.virtualMatchReportDatas.forEach(vmrData => {
       if (vmrData.events) {
-        vmrData.events.forEach(e => {
+        vmrData.events.forEach(event => {
           const reportable: ReportableContext<"game_event"> = {
             type: "game_event",
-            subType: e.type,
-            item: e,
-            beatmapId: e.data.eventMatch.beatmapId,
-            sameBeatmapNumber: e.data.eventMatch.sameBeatmapNumber,
-            time: e.data.timeOfEvent
+            subType: event.type,
+            item: event,
+            beatmapId: event.data.eventMatch.beatmapId,
+            sameBeatmapNumber: event.data.eventMatch.sameBeatmapNumber,
+            time: event.data.timeOfEvent
           };
           reportables.push(reportable);
         });
@@ -63,18 +63,16 @@ export class MultiplayerResultsReporter {
           });
         });
       }
-      if (vmrData.leaderboards) {
-        vmrData.leaderboards.forEach(leaderboard => {
-          const reportable: ReportableContext<"leaderboard"> = {
-            type: "leaderboard",
-            subType: "battle_royale",
-            item: leaderboard,
-            beatmapId: leaderboard.beatmapId,
-            sameBeatmapNumber: leaderboard.sameBeatmapNumber,
-            time: leaderboard.latestVirtualMatchTime
-          };
-          reportables.push(reportable);
-        });
+      if (vmrData.leaderboard) {
+        const reportable: ReportableContext<"leaderboard"> = {
+          type: "leaderboard",
+          subType: "battle_royale",
+          item: vmrData.leaderboard,
+          beatmapId: vmrData.leaderboard.beatmapId,
+          sameBeatmapNumber: vmrData.leaderboard.sameBeatmapNumber,
+          time: vmrData.leaderboard.leaderboardEventTime
+        };
+        reportables.push(reportable);
       }
     });
 

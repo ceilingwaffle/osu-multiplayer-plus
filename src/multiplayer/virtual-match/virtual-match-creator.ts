@@ -7,6 +7,7 @@ import { Game } from "../../domain/game/game.entity";
 import { VirtualMatchKey } from "./virtual-match-key";
 import { sortByMatchOldestToLatest } from "../components/match";
 import { LobbyBeatmapStatusMessageBuilder } from "../messages/classes/lobby-beatmap-status-message-builder";
+import { ApiMatch } from "../../osu/types/api-match";
 
 export class VirtualMatchCreator {
   // /**
@@ -192,6 +193,11 @@ export class VirtualMatchCreator {
 
   /** Use the current system time if there are no matches, or if the match has no defined endTime or startTime */
   static getTimeOfMatch(match: Match): number {
+    // TODO: return undefined instead of Date.now() - I think using Date.now is going to cause some really rare bugs. Best to avoid it. Will need to cleanup/change any code that uses this method.
+    return match ? match.endTime || match.startTime || Date.now() : Date.now();
+  }
+
+  static getTimeOfApiMatch(match: ApiMatch): number {
     return match ? match.endTime || match.startTime || Date.now() : Date.now();
   }
 

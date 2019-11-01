@@ -1,7 +1,13 @@
 import { Leaderboard } from "../../../../src/multiplayer/components/leaderboard";
 import { context } from "./spreadsheet-context";
+import { VirtualMatchCreator } from "../../../../src/multiplayer/virtual-match/virtual-match-creator";
+import { TestHelpers } from "../../../test-helpers";
 
 const leaderboard_bm2_1: Leaderboard = {
+  leaderboardEventTime: TestHelpers.getTimeOfApiResultsMapPlayed({
+    resultsContainingMap: context.osuApiResults.lobby1ApiResults1,
+    lobbyPlayedMapOrderNumber: 2
+  }),
   beatmapPlayed: { mapId: null, mapUrl: null, mapString: null, stars: null },
   beatmapId: "BM2",
   sameBeatmapNumber: 1,
@@ -94,6 +100,10 @@ const leaderboard_bm2_1: Leaderboard = {
 };
 
 const leaderboard_bm4_1: Leaderboard = {
+  leaderboardEventTime: TestHelpers.getTimeOfApiResultsMapPlayed({
+    resultsContainingMap: context.osuApiResults.lobby1ApiResults1,
+    lobbyPlayedMapOrderNumber: 4
+  }),
   beatmapPlayed: { mapId: null, mapUrl: null, mapString: null, stars: null },
   beatmapId: "BM4",
   sameBeatmapNumber: 1,
@@ -202,6 +212,10 @@ const leaderboard_bm4_1: Leaderboard = {
 };
 
 const leaderboard_bm3_2: Leaderboard = {
+  leaderboardEventTime: TestHelpers.getTimeOfApiResultsMapPlayed({
+    resultsContainingMap: context.osuApiResults.lobby2ApiResults2,
+    lobbyPlayedMapOrderNumber: 6
+  }),
   beatmapPlayed: { mapId: null, mapUrl: null, mapString: null, stars: null },
   beatmapId: "BM3",
   sameBeatmapNumber: 2,

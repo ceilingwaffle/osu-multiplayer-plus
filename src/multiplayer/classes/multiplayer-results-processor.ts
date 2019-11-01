@@ -116,13 +116,16 @@ export class MultiplayerResultsProcessor {
     // merge events and messages onto their respective virtual matches
     let vmGroups = this.mergeVirtualMatchReportGroups(gameEventVMGroups, messageVMGroups);
     // build leaderboards for each applicable virtual match
-    // TODO: const leaderboards = LeaderboardBuilder.buildLeaderboards({ game: args.game, virtualMatchReportGroups: vmGroups });
-    const leaderboards = [LeaderboardBuilder.buildLatestLeaderboard({ game: args.game, virtualMatchReportGroups: vmGroups })].filter(
-      leaderboard => leaderboard
-    );
-    if (leaderboards.length) {
+    const leaderboardVMGroups = LeaderboardBuilder.buildLeaderboardVirtualMatchGroups({
+      game: args.game,
+      virtualMatchReportGroups: vmGroups
+    });
+    // const leaderboards = [LeaderboardBuilder.buildLatestLeaderboard({ game: args.game, virtualMatchReportGroups: vmGroups })].filter(
+    //   leaderboard => leaderboard
+    // );
+    if (leaderboardVMGroups.length) {
       // merge leaderboards onto their respective virtual matches
-      vmGroups = this.mergeVirtualMatchReportGroups(vmGroups, leaderboards);
+      vmGroups = this.mergeVirtualMatchReportGroups(vmGroups, leaderboardVMGroups);
     }
 
     return vmGroups;

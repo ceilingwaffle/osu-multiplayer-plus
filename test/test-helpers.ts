@@ -5,8 +5,19 @@ import { Log } from "../src/utils/Log";
 import iocContainer from "../src/inversify.config";
 import { IDbClient } from "../src/database/db-client";
 import TYPES from "../src/types";
+import { VirtualMatchCreator } from "../src/multiplayer/virtual-match/virtual-match-creator";
+import { ApiMultiplayer } from "../src/osu/types/api-multiplayer";
 
 export class TestHelpers {
+  static getTimeOfApiResultsMapPlayed(args: { resultsContainingMap: ApiMultiplayer; lobbyPlayedMapOrderNumber: number }): number {
+    const found = VirtualMatchCreator.getTimeOfApiMatch(
+      // mapNumber is the order in which the map was played in a specific lobby (e.g. BM3#2 is the 6th map played in lobby 2, so the map number is 6).
+      args.resultsContainingMap.matches.find(m => m.mapNumber === args.lobbyPlayedMapOrderNumber)
+    );
+
+    if (!found) throw new Error("Map does not exist in results");
+    return found;
+  }
   // static async reloadEntities(entitiesPromise: Promise<TestContextEntities[]>, conn: Connection): Promise<void> {
   //   await TestHelpers.dropTestDatabase(conn);
   //   const entities = await entitiesPromise;

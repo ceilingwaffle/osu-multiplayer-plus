@@ -18,6 +18,7 @@ import { Mods } from "../components/enums/mods";
 // https://i.imgur.com/EubsZyK.png
 // const leaderboardTemplate = fs.readFileSync("templates/leaderboard.mustache", "utf8").trim();
 var leaderboardData: Leaderboard = {
+  leaderboardEventTime: Date.now(), // just make up any time here
   beatmapId: "1234",
   sameBeatmapNumber: 1,
   beatmapsRemaining: 4,

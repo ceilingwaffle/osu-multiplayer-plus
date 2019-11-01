@@ -25,40 +25,93 @@ type TeamScoresMap = Map<TeamID, TeamScoresMapValue>;
 type TeamScoreRankData = { submitted: boolean; score?: number; rank: number };
 
 export class LeaderboardBuilder {
+  static buildLeaderboardVirtualMatchGroups(args: {
+    game: Game;
+    virtualMatchReportGroups: VirtualMatchReportData[];
+  }): VirtualMatchReportData[] {
+    const { gameSettings, teams, teamScoredLowestEvents, teamScoresSubmittedEvents } = LeaderboardBuilder.gatherPreLeaderboardParts(args);
+
+    const leaderboardVMGroups: VirtualMatchReportData[] = [];
+    if (!LeaderboardBuilder.isValidPreLeaderboardParts({ gameSettings, teams, teamScoredLowestEvents, teamScoresSubmittedEvents })) {
+      return leaderboardVMGroups;
+    }
+
+    let lastVirtualMatch: VirtualMatch;
+
+    teamScoresSubmittedEvents.forEach(tssEvent => {
+      const targetEvent = tssEvent;
+      lastVirtualMatch = targetEvent.data.eventMatch;
+      const teamScoredLowestEventsBeforeTargetEvent = teamScoredLowestEvents.filter(event => event.data.timeOfEvent <= targetEvent.data.timeOfEvent); //prettier-ignore
+      const teamScoresSubmittedEventsBeforeTargetEvent = teamScoresSubmittedEvents.filter(event => event.data.timeOfEvent <= targetEvent.data.timeOfEvent); //prettier-ignore
+
+      const tssEventVirtualMatch = targetEvent.data.eventMatch;
+      const teamScoresForLastVirtualMatch = TeamScoreCalculator.calculateTeamScoresForVirtualMatch(tssEventVirtualMatch, teams);
+      const teamLives: TeamLivesMap = LeaderboardBuilder.calculateFromEvents_LatestTeamLives(
+        teams,
+        teamScoredLowestEventsBeforeTargetEvent,
+        gameSettings.startingTeamLives
+      );
+
+      const leaderboard: Leaderboard = LeaderboardBuilder.buildLeaderboard(
+        targetEvent,
+        lastVirtualMatch,
+        args,
+        teamScoresForLastVirtualMatch,
+        teamScoresSubmittedEventsBeforeTargetEvent,
+        teamScoredLowestEventsBeforeTargetEvent,
+        teams,
+        gameSettings,
+        teamLives
+      );
+
+      leaderboardVMGroups.push({
+        beatmapId: lastVirtualMatch.beatmapId,
+        sameBeatmapNumber: lastVirtualMatch.sameBeatmapNumber,
+        leaderboard: leaderboard
+      });
+    });
+
+    if (!lastVirtualMatch) return [];
+    if (!leaderboardVMGroups || !leaderboardVMGroups.length) return [];
+
+    return leaderboardVMGroups;
+  }
+
+  private static isValidPreLeaderboardParts(args: {
+    gameSettings: GameSettings;
+    teams: Team[];
+    teamScoredLowestEvents: TeamScoredLowestGameEvent[];
+    teamScoresSubmittedEvents: TeamScoresSubmittedGameEvent[];
+  }): boolean {
+    if (!args.teams.length) {
+      Log.warn("Cannot build leaderboard because game has no teams.");
+      return false;
+    }
+    if (!args.teamScoredLowestEvents.length) {
+      Log.warn(`Cannot build leaderboard because there were no ${TeamScoredLowestGameEvent.constructor.name} events to process.`);
+      return false;
+    }
+    if (!args.teamScoresSubmittedEvents.length) {
+      Log.warn(`Cannot build leaderboard because there were no ${TeamScoresSubmittedGameEvent.constructor.name} events to process.`);
+      return false;
+    }
+    return true;
+  }
+
   /**
-   * Builds the latest leaderboard from the reportables of a game.
+   * Builds the latest leaderboard from virtual match reportable items such as game events and messages.
    *
    * @static
-   * @param {{ game: Game; reportables: ReportableContext<ReportableContextType>[] }} args
-   * @returns {ReportableContext<"leaderboard">}
+   * @param {{ game: Game; virtualMatchReportGroups: VirtualMatchReportData[] }} args
+   * @returns {VirtualMatchReportData}
    */
-  static buildLatestLeaderboard(args: { game: Game; virtualMatchReportGroups: VirtualMatchReportData[] }): VirtualMatchReportData {
-    const gameSettings: GameSettings = {
-      countFailedScores: args.game.countFailedScores,
-      startingTeamLives: args.game.teamLives
-    };
+  static buildLatestLeaderboardVirtualMatchGroup(args: {
+    game: Game;
+    virtualMatchReportGroups: VirtualMatchReportData[];
+  }): VirtualMatchReportData {
+    const { gameSettings, teams, teamScoredLowestEvents, teamScoresSubmittedEvents } = LeaderboardBuilder.gatherPreLeaderboardParts(args);
 
-    const teams = args.game.gameTeams.map(gameTeam => gameTeam.team);
-    if (!teams.length) {
-      Log.warn("Cannot build leaderboard because game has no teams.");
-      return undefined;
-    }
-
-    const teamScoredLowestEvents = LeaderboardBuilder.extractEventsOfTypeFromVirtualMatchReportGroups<TeamScoredLowestGameEvent>(
-      args.virtualMatchReportGroups,
-      "team_scored_lowest"
-    );
-    if (!teamScoredLowestEvents.length) {
-      Log.warn(`Cannot build leaderboard because there were no ${TeamScoredLowestGameEvent.constructor.name} events to process.`);
-      return undefined;
-    }
-
-    const teamScoresSubmittedEvents = LeaderboardBuilder.extractEventsOfTypeFromVirtualMatchReportGroups<TeamScoresSubmittedGameEvent>(
-      args.virtualMatchReportGroups,
-      "team_scores_submitted"
-    );
-    if (!teamScoresSubmittedEvents.length) {
-      Log.warn(`Cannot build leaderboard because there were no ${TeamScoresSubmittedGameEvent.constructor.name} events to process.`);
+    if (!LeaderboardBuilder.isValidPreLeaderboardParts({ gameSettings, teams, teamScoredLowestEvents, teamScoresSubmittedEvents })) {
       return undefined;
     }
 
@@ -71,8 +124,61 @@ export class LeaderboardBuilder {
       gameSettings.startingTeamLives
     );
 
-    const leaderboard: Leaderboard = {
-      latestVirtualMatchTime: lastTeamScoreSubmittedEvent.data.timeOfEvent,
+    const leaderboard: Leaderboard = LeaderboardBuilder.buildLeaderboard(
+      lastTeamScoreSubmittedEvent,
+      lastVirtualMatch,
+      args,
+      teamScoresForLastVirtualMatch,
+      teamScoresSubmittedEvents,
+      teamScoredLowestEvents,
+      teams,
+      gameSettings,
+      teamLives
+    );
+
+    return {
+      beatmapId: lastVirtualMatch.beatmapId,
+      sameBeatmapNumber: lastVirtualMatch.sameBeatmapNumber,
+      leaderboard: leaderboard
+    };
+  }
+
+  private static gatherPreLeaderboardParts(args: { game: Game; virtualMatchReportGroups: VirtualMatchReportData[] }) {
+    const gameSettings: GameSettings = {
+      countFailedScores: args.game.countFailedScores,
+      startingTeamLives: args.game.teamLives
+    };
+
+    const teams = args.game.gameTeams.map(gameTeam => gameTeam.team);
+    const teamScoredLowestEvents = LeaderboardBuilder.extractEventsOfTypeFromVirtualMatchReportGroups<TeamScoredLowestGameEvent>(
+      args.virtualMatchReportGroups,
+      "team_scored_lowest"
+    );
+    const teamScoresSubmittedEvents = LeaderboardBuilder.extractEventsOfTypeFromVirtualMatchReportGroups<TeamScoresSubmittedGameEvent>(
+      args.virtualMatchReportGroups,
+      "team_scores_submitted"
+    );
+    return {
+      gameSettings,
+      teams,
+      teamScoredLowestEvents,
+      teamScoresSubmittedEvents
+    };
+  }
+
+  private static buildLeaderboard(
+    lastTeamScoreSubmittedEvent: TeamScoresSubmittedGameEvent,
+    lastVirtualMatch: VirtualMatch,
+    args: { game: Game; virtualMatchReportGroups: VirtualMatchReportData[] },
+    teamScoresForLastVirtualMatch: CalculatedTeamScore[],
+    teamScoresSubmittedEvents: TeamScoresSubmittedGameEvent[],
+    teamScoredLowestEvents: TeamScoredLowestGameEvent[],
+    teams: Team[],
+    gameSettings: GameSettings,
+    teamLives: Map<number, TeamLivesMapValue>
+  ): Leaderboard {
+    return {
+      leaderboardEventTime: lastTeamScoreSubmittedEvent.data.timeOfEvent,
       beatmapId: lastVirtualMatch.beatmapId,
       sameBeatmapNumber: lastVirtualMatch.sameBeatmapNumber,
       beatmapPlayed: {
@@ -84,7 +190,6 @@ export class LeaderboardBuilder {
       },
       leaderboardLines: args.game.gameTeams.map<LeaderboardLine>(gt => {
         const teamScore = teamScoresForLastVirtualMatch.find(ts => ts.teamId === gt.team.id);
-
         const teamPositionals = LeaderboardBuilder.getTeamPositionals({
           targetTeamId: gt.team.id,
           targetEvent: lastTeamScoreSubmittedEvent,
@@ -93,7 +198,6 @@ export class LeaderboardBuilder {
           teams,
           gameSettings
         });
-
         return {
           team: {
             teamName: gt.team.name,
@@ -132,22 +236,6 @@ export class LeaderboardBuilder {
           }
         };
       })
-    };
-
-    //Reportable
-    // return {
-    //   beatmapId: lastVirtualMatch.beatmapId,
-    //   sameBeatmapNumber: lastVirtualMatch.sameBeatmapNumber,
-    //   time: lastTeamScoreSubmittedEvent.data.timeOfEvent,
-    //   type: "leaderboard",
-    //   subType: "battle_royale",
-    //   item: leaderboard
-    // };
-
-    return {
-      beatmapId: lastVirtualMatch.beatmapId,
-      sameBeatmapNumber: lastVirtualMatch.sameBeatmapNumber,
-      leaderboards: [leaderboard]
     };
   }
 
