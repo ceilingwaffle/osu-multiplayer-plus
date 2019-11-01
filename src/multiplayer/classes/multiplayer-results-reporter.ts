@@ -1,12 +1,8 @@
-import { Match } from "../../domain/match/match.entity";
 import { MessageType } from "../messages/types/message-type";
-import { LobbyBeatmapStatusMessage } from "../messages/classes/lobby-beatmap-status-message";
-import { VirtualMatch } from "../virtual-match/virtual-match";
 import { VirtualMatchReportData } from "../virtual-match/virtual-match-report-data";
 import { Game } from "../../domain/game/game.entity";
 import { ReportableContext, ReportableContextType } from "../../domain/game/game-match-reported.entity";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
-import { LeaderboardBuilder } from "../leaderboard/leaderboard-builder";
 
 export class MultiplayerResultsReporter {
   static getItemsToBeReported(args: {
@@ -21,6 +17,7 @@ export class MultiplayerResultsReporter {
       virtualMatchReportDatas: args.virtualMatchReportDatas,
       game: args.game
     });
+
     const toBeReported: ReportableContext<ReportableContextType>[] = _.differenceWith<
       ReportableContext<ReportableContextType>,
       ReportableContext<ReportableContextType>
