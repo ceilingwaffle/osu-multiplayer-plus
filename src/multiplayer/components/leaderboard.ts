@@ -11,4 +11,5 @@ export interface Leaderboard extends VirtualMatchKey {
   // lobby: Lobby;
   // match: Match;
   leaderboardLines: LeaderboardLine[];
+  latestVirtualMatchTime: number;
 }
