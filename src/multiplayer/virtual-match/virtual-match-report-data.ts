@@ -6,6 +6,6 @@ import { VirtualMatchKey } from "./virtual-match-key";
 export interface VirtualMatchReportData extends VirtualMatchKey {
   events?: IGameEvent[];
   messages?: LobbyBeatmapStatusMessageGroup;
-  leaderboards?: Leaderboard;
+  leaderboards?: Leaderboard[];
   // if any other properties are added here, remember to include it in the MultiplayerResultsReported.getAllReportableItemsForGame method
 }

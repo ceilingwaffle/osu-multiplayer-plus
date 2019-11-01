@@ -8,10 +8,10 @@ TODO:
         Refactor:
             ☐ convert Leaderboard to class + create abstract Leaderboard class+ rename leaderboard to BattleRoyaleLeaderboard @created(19-10-27 20:11)
             @created(19-10-28 20:14)
-            ☐ Merge CalculatedTeamScore with LeaderboardBuilder.TeamScoresMap @created(19-10-30 00:53)
+            ✘ Merge CalculatedTeamScore with LeaderboardBuilder.TeamScoresMap @created(19-10-30 00:53) @cancelled(19-11-01 10:59)
             ☐ Add method in LeaderboardBuilder named "buildLeaderboards" which calls buildLeaderboard to build a leaderboard for many reportables @created(19-10-30 13:49)
-                ☐ Rename buildLeaderboard to buildLatestLeaderboard @created(19-10-30 13:50)
-                ☐ Include the leaderboard reportables in the output of the MultiplayerResultsReporter.getItemsToBeReported method @created(19-10-30 15:11)
+                ✔ Rename buildLeaderboard to buildLatestLeaderboard @created(19-10-30 13:50) @done(19-11-01 12:21)
+                ✔ Include the leaderboard reportables in the output of the MultiplayerResultsReporter.getItemsToBeReported method @created(19-10-30 15:11) @done(19-11-01 12:21)
     ✔ Fix `Error: Multiplayer 54078930 is not currently being watched` when using `!endgame` command @created(19-08-30 07:43) @done(19-08-30 23:29)
     ✔ Fix `!obr removelobby` command not unwatching the lobby in the osu lobby scanner @created(19-08-30 23:29) @done(19-08-30 23:52)
     ☐ Remove all the comments starting with "GL:" from when we implemented the GameLobby entity @created(19-08-30 07:48)

@@ -1,4 +1,3 @@
-import { ReportableContext, ReportableContextType } from "../../domain/game/game-match-reported.entity";
 import { Game } from "../../domain/game/game.entity";
 import { TeamScoredLowestGameEvent } from "../game-events/team-scored-lowest.game-event";
 import { Leaderboard } from "../components/leaderboard";
@@ -12,6 +11,9 @@ import { TeamID } from "../components/types/team-id";
 import { TeamScoresSubmittedGameEvent } from "../game-events/team-scores-submitted.game-event";
 import { TeamScoreCalculator, CalculatedTeamScore } from "../classes/team-score-calculator";
 import { VirtualMatchCreator } from "../virtual-match/virtual-match-creator";
+import { VirtualMatchReportData } from "../virtual-match/virtual-match-report-data";
+import { GameEventType } from "../game-events/types/game-event-types";
+import { IGameEvent } from "../game-events/interfaces/game-event-interface";
 
 type GameSettings = { countFailedScores: boolean; startingTeamLives: number };
 type TeamLivesMapValue = { lives: number; lostLifeInEvents: TeamScoredLowestGameEvent[]; eliminatedInEvent?: TeamScoredLowestGameEvent };
@@ -30,7 +32,7 @@ export class LeaderboardBuilder {
    * @param {{ game: Game; reportables: ReportableContext<ReportableContextType>[] }} args
    * @returns {ReportableContext<"leaderboard">}
    */
-  static buildLeaderboard(args: { game: Game; reportables: ReportableContext<ReportableContextType>[] }): ReportableContext<"leaderboard"> {
+  static buildLatestLeaderboard(args: { game: Game; virtualMatchReportGroups: VirtualMatchReportData[] }): VirtualMatchReportData {
     const gameSettings: GameSettings = {
       countFailedScores: args.game.countFailedScores,
       startingTeamLives: args.game.teamLives
@@ -42,21 +44,19 @@ export class LeaderboardBuilder {
       return undefined;
     }
 
-    const teamScoredLowestEvents = args.reportables
-      .filter(r => r.type === "game_event" && r.subType === "team_scored_lowest")
-      .map(reportable => reportable.item as TeamScoredLowestGameEvent)
-      .sort((a, b) => a.data.timeOfEvent - b.data.timeOfEvent);
-
+    const teamScoredLowestEvents = LeaderboardBuilder.extractEventsOfTypeFromVirtualMatchReportGroups<TeamScoredLowestGameEvent>(
+      args.virtualMatchReportGroups,
+      "team_scored_lowest"
+    );
     if (!teamScoredLowestEvents.length) {
       Log.warn(`Cannot build leaderboard because there were no ${TeamScoredLowestGameEvent.constructor.name} events to process.`);
       return undefined;
     }
 
-    const teamScoresSubmittedEvents = args.reportables
-      .filter(r => r.type === "game_event" && r.subType === "team_scores_submitted")
-      .map(reportable => reportable.item as TeamScoresSubmittedGameEvent)
-      .sort((a, b) => a.data.timeOfEvent - b.data.timeOfEvent);
-
+    const teamScoresSubmittedEvents = LeaderboardBuilder.extractEventsOfTypeFromVirtualMatchReportGroups<TeamScoresSubmittedGameEvent>(
+      args.virtualMatchReportGroups,
+      "team_scores_submitted"
+    );
     if (!teamScoresSubmittedEvents.length) {
       Log.warn(`Cannot build leaderboard because there were no ${TeamScoresSubmittedGameEvent.constructor.name} events to process.`);
       return undefined;
@@ -72,6 +72,7 @@ export class LeaderboardBuilder {
     );
 
     const leaderboard: Leaderboard = {
+      latestVirtualMatchTime: lastTeamScoreSubmittedEvent.data.timeOfEvent,
       beatmapId: lastVirtualMatch.beatmapId,
       sameBeatmapNumber: lastVirtualMatch.sameBeatmapNumber,
       beatmapPlayed: {
@@ -133,14 +134,36 @@ export class LeaderboardBuilder {
       })
     };
 
+    //Reportable
+    // return {
+    //   beatmapId: lastVirtualMatch.beatmapId,
+    //   sameBeatmapNumber: lastVirtualMatch.sameBeatmapNumber,
+    //   time: lastTeamScoreSubmittedEvent.data.timeOfEvent,
+    //   type: "leaderboard",
+    //   subType: "battle_royale",
+    //   item: leaderboard
+    // };
+
     return {
       beatmapId: lastVirtualMatch.beatmapId,
       sameBeatmapNumber: lastVirtualMatch.sameBeatmapNumber,
-      time: lastTeamScoreSubmittedEvent.data.timeOfEvent,
-      type: "leaderboard",
-      subType: "battle_royale",
-      item: leaderboard
+      leaderboards: [leaderboard]
     };
+  }
+
+  private static extractEventsOfTypeFromVirtualMatchReportGroups<T extends IGameEvent>(
+    virtualMatchReportGroups: VirtualMatchReportData[],
+    eventType: GameEventType
+  ): T[] {
+    // TODO: Derive GameEventType from T. We should not need to provide GameEventType in the args.
+    //        Maybe create a map in another class mapping the type to the GameEvent class?
+    return _(virtualMatchReportGroups)
+      .map(vmrg => vmrg.events)
+      .flatten()
+      .value()
+      .filter(event => event && event.type === eventType)
+      .map(event => event as T)
+      .sort((a, b) => a.data.timeOfEvent - b.data.timeOfEvent);
   }
 
   /**

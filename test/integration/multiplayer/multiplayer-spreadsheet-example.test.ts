@@ -117,6 +117,10 @@ describe("When processing multiplayer results", function() {
               game: games1[0]
             });
 
+            const leaderboardReportable = allReportables.filter(r => r.type === "leaderboard").slice(-1)[0];
+            // leaderboard should be undefined because lobby 2 has not submitted any results yet (therefore there are no completed virtual matches)
+            expect(leaderboardReportable).to.be.undefined;
+
             // await MultiplayerResultsDeliverer.deliver({ reportables: toBeReported }); // leaderboard
             // TODO: Test the delivery in another test file. Just using it here for now to inspect the call stack.
 
@@ -154,17 +158,12 @@ describe("When processing multiplayer results", function() {
               game: games2[0]
             });
 
-            const leaderboardReportable: ReportableContext<"leaderboard"> = LeaderboardBuilder.buildLeaderboard({
-              game: games2[0],
-              reportables: allReportables
-            });
-            allReportables.push(leaderboardReportable);
-            expect(leaderboardReportable).to.not.be.undefined;
-            const leaderboard: Leaderboard = leaderboardReportable.item;
+            const leaderboardReportable = allReportables.filter(r => r.type === "leaderboard").slice(-1)[0];
+            const leaderboard: Leaderboard = leaderboardReportable.item as Leaderboard;
             expect(leaderboard).to.not.be.undefined;
 
             // TODO: assert: players, beatmap, event type
-            expect(leaderboard).excludingEvery(["players", "beatmapPlayed", "eventIcon"]).to.deep.equal(expectedLeaderboards.bm4_1); // prettier-ignore
+            expect(leaderboard).excludingEvery(["players", "beatmapPlayed", "eventIcon", "latestVirtualMatchTime"]).to.deep.equal(expectedLeaderboards.bm4_1); // prettier-ignore
 
             return resolve();
           } catch (error) {
@@ -200,17 +199,12 @@ describe("When processing multiplayer results", function() {
               game: games3[0]
             });
 
-            const leaderboardReportable: ReportableContext<"leaderboard"> = LeaderboardBuilder.buildLeaderboard({
-              game: games3[0],
-              reportables: allReportables
-            });
-            allReportables.push(leaderboardReportable);
-            expect(leaderboardReportable).to.not.be.undefined;
-            const leaderboard: Leaderboard = leaderboardReportable.item;
+            const leaderboardReportable = allReportables.filter(r => r.type === "leaderboard").slice(-1)[0];
+            const leaderboard: Leaderboard = leaderboardReportable.item as Leaderboard;
             expect(leaderboard).to.not.be.undefined;
 
             // TODO: assert: players, beatmap, event type
-            expect(leaderboard).excludingEvery(["players", "beatmapPlayed", "eventIcon"]).to.deep.equal(expectedLeaderboards.bm3_2); // prettier-ignore
+            expect(leaderboard).excludingEvery(["players", "beatmapPlayed", "eventIcon", "latestVirtualMatchTime"]).to.deep.equal(expectedLeaderboards.bm3_2); // prettier-ignore
 
             return resolve();
           } catch (error) {
@@ -247,13 +241,9 @@ describe("When processing multiplayer results", function() {
               game: games4[0]
             });
 
-            const leaderboard: ReportableContext<"leaderboard"> = LeaderboardBuilder.buildLeaderboard({
-              game: games4[0],
-              reportables: allReportables
-            });
-            allReportables.push(leaderboard);
-
-            expect(leaderboard).to.be.not.undefined;
+            const leaderboardReportable = allReportables.filter(r => r.type === "leaderboard").slice(-1)[0];
+            const leaderboard: Leaderboard = leaderboardReportable.item as Leaderboard;
+            expect(leaderboard).to.not.be.undefined;
 
             // await MultiplayerResultsDeliverer.deliver({ reportables: toBeReported }); // leaderboard
 
@@ -362,12 +352,9 @@ describe("When processing multiplayer results", function() {
               game: games7[0]
             });
 
-            const leaderboard: ReportableContext<"leaderboard"> = LeaderboardBuilder.buildLeaderboard({
-              game: games7[0],
-              reportables: allReportables
-            });
-            allReportables.push(leaderboard);
-            expect(leaderboard).to.be.not.undefined;
+            const leaderboardReportable = allReportables.filter(r => r.type === "leaderboard").slice(-1)[0];
+            const leaderboard: Leaderboard = leaderboardReportable.item as Leaderboard;
+            expect(leaderboard).to.not.be.undefined;
 
             // await MultiplayerResultsDeliverer.deliver({ reportables: toBeReported }); // leaderboard
 

@@ -23,6 +23,7 @@ import { VirtualMatchReportData } from "../virtual-match/virtual-match-report-da
 import { sortByMatchOldestToLatest } from "../components/match";
 import { LobbyCompletedBeatmapMessage } from "../messages/lobby-completed-beatmap-message";
 import { AllLobbiesCompletedBeatmapMessage } from "../messages/all-lobbies-completed-beatmap-message";
+import { LeaderboardBuilder } from "../leaderboard/leaderboard-builder";
 
 export class MultiplayerResultsProcessor {
   // TODO: Don't get these from the ioc container - should be able to inject somehow
@@ -42,14 +43,9 @@ export class MultiplayerResultsProcessor {
 
   buildVirtualMatchReportGroupsForGame(game: Game): VirtualMatchReportData[] {
     try {
-      const virtualMatchReportGroups: VirtualMatchReportData[] = [];
-      // const reportedMatches: Match[] = (await this.gameRepository.getReportedMatchesForGame(game.id)) || [];
       const virtualMatches: VirtualMatch[] = this.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(game);
-      // const allGameLobbies: Lobby[] = game.gameLobbies.map(gl => gl.lobby);
-      const messages: LobbyBeatmapStatusMessageGroup = this.buildLobbyMatchReportMessages({
-        virtualMatches
-      });
-      virtualMatchReportGroups.push(...this.buildGameEventsGroupedByVirtualMatches({ game, messages }));
+      const virtualMatchReportGroups: VirtualMatchReportData[] = this.buildVirtualMatchReportData({ game, virtualMatches });
+
       Log.methodSuccess(this.buildVirtualMatchReportGroupsForGame, this.constructor.name);
       return virtualMatchReportGroups;
     } catch (error) {
@@ -109,18 +105,26 @@ export class MultiplayerResultsProcessor {
     return map;
   }
 
-  buildGameEventsGroupedByVirtualMatches({
-    game,
-    messages
-  }: {
-    game: Game;
-    messages: LobbyBeatmapStatusMessageGroup;
-  }): VirtualMatchReportData[] {
-    const virtualMatches = VirtualMatchCreator.buildVirtualMatchesForGame(game);
-    const processedGameEvents = this.buildAndProcessGameEventsForVirtualMatches({ game, virtualMatches });
+  buildVirtualMatchReportData(args: { game: Game; virtualMatches: VirtualMatch[] }): VirtualMatchReportData[] {
+    const virtualMatches = VirtualMatchCreator.buildVirtualMatchesForGame(args.game);
+    // build events grouped by each virtual match
+    const processedGameEvents = this.buildAndProcessGameEventsForVirtualMatches({ game: args.game, virtualMatches });
     const gameEventVMGroups = this.buildVirtualMatchGroupsFromGameEvents({ processedGameEvents });
+    // build messages grouped by each virtual match
+    const messages = this.buildLobbyMatchReportMessages({ virtualMatches });
     const messageVMGroups = this.buildVirtualMatchGroupsFromMessages({ messages });
-    const vmGroups = this.mergeVirtualMatchReportGroups(gameEventVMGroups, messageVMGroups);
+    // merge events and messages onto their respective virtual matches
+    let vmGroups = this.mergeVirtualMatchReportGroups(gameEventVMGroups, messageVMGroups);
+    // build leaderboards for each applicable virtual match
+    // TODO: const leaderboards = LeaderboardBuilder.buildLeaderboards({ game: args.game, virtualMatchReportGroups: vmGroups });
+    const leaderboards = [LeaderboardBuilder.buildLatestLeaderboard({ game: args.game, virtualMatchReportGroups: vmGroups })].filter(
+      leaderboard => leaderboard
+    );
+    if (leaderboards.length) {
+      // merge leaderboards onto their respective virtual matches
+      vmGroups = this.mergeVirtualMatchReportGroups(vmGroups, leaderboards);
+    }
+
     return vmGroups;
   }
 
@@ -128,6 +132,7 @@ export class MultiplayerResultsProcessor {
     // if (!groups.length) return;
     // if (groups.length === 1) return groups[0];
     // https://stackoverflow.com/questions/39246101/deep-merge-using-lodash
+    // TODO: change group properties in method signature to a spread (...), then iteratively merge them below (reduce?)
     var result = _.values(
       _.merge(
         _.keyBy(group1, o =>
