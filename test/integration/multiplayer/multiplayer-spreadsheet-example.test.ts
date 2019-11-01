@@ -161,9 +161,10 @@ describe("When processing multiplayer results", function() {
             const leaderboardReportable = allReportables.filter(r => r.type === "leaderboard").slice(-1)[0];
             const leaderboard: Leaderboard = leaderboardReportable.item as Leaderboard;
             expect(leaderboard).to.not.be.undefined;
-
             // TODO: assert: players, beatmap, event type
-            expect(leaderboard).excludingEvery(["players", "beatmapPlayed", "eventIcon", "latestVirtualMatchTime"]).to.deep.equal(expectedLeaderboards.bm4_1); // prettier-ignore
+            expect(leaderboard)
+              .excludingEvery(["players", "beatmapPlayed", "eventIcon", "latestVirtualMatchTime"])
+              .to.deep.equal(expectedLeaderboards.bm4_1);
 
             return resolve();
           } catch (error) {
@@ -202,9 +203,10 @@ describe("When processing multiplayer results", function() {
             const leaderboardReportable = allReportables.filter(r => r.type === "leaderboard").slice(-1)[0];
             const leaderboard: Leaderboard = leaderboardReportable.item as Leaderboard;
             expect(leaderboard).to.not.be.undefined;
-
             // TODO: assert: players, beatmap, event type
-            expect(leaderboard).excludingEvery(["players", "beatmapPlayed", "eventIcon", "latestVirtualMatchTime"]).to.deep.equal(expectedLeaderboards.bm3_2); // prettier-ignore
+            expect(leaderboard)
+              .excludingEvery(["players", "beatmapPlayed", "eventIcon", "latestVirtualMatchTime"])
+              .to.deep.equal(expectedLeaderboards.bm3_2);
 
             return resolve();
           } catch (error) {
@@ -244,6 +246,9 @@ describe("When processing multiplayer results", function() {
             const leaderboardReportable = allReportables.filter(r => r.type === "leaderboard").slice(-1)[0];
             const leaderboard: Leaderboard = leaderboardReportable.item as Leaderboard;
             expect(leaderboard).to.not.be.undefined;
+            expect(leaderboard)
+              .excludingEvery(["players", "beatmapPlayed", "eventIcon", "latestVirtualMatchTime"])
+              .to.deep.equal(expectedLeaderboards.bm5_1);
 
             // await MultiplayerResultsDeliverer.deliver({ reportables: toBeReported }); // leaderboard
 
@@ -279,6 +284,17 @@ describe("When processing multiplayer results", function() {
 
             const processedData5: VirtualMatchReportData[] = processor5.buildVirtualMatchReportGroupsForGame(games5[0]);
 
+            const { allReportables, toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({
+              virtualMatchReportDatas: processedData5,
+              game: games5[0]
+            });
+
+            // Since lobby2ApiResults3 only contains results for an incomplete virtual match (BM5#2), we should NOT have a leaderboard built for this VM
+            const leaderboardReportable = allReportables
+              .filter(r => r.type === "leaderboard" && r.beatmapId === "BM5" && r.sameBeatmapNumber === 2)
+              .slice(-1)[0];
+            expect(leaderboardReportable).to.be.undefined;
+
             return resolve();
           } catch (error) {
             return reject(error);
@@ -311,6 +327,19 @@ describe("When processing multiplayer results", function() {
               .to.deep.equal(processedState.lobby1ApiResults3);
 
             const processedData6: VirtualMatchReportData[] = processor6.buildVirtualMatchReportGroupsForGame(games6[0]);
+
+            const { allReportables, toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({
+              virtualMatchReportDatas: processedData6,
+              game: games6[0]
+            });
+
+            const leaderboardReportable = allReportables.filter(r => r.type === "leaderboard").slice(-1)[0];
+            const leaderboard: Leaderboard = leaderboardReportable.item as Leaderboard;
+            expect(leaderboard).to.not.be.undefined;
+            // TODO: assert: players, beatmap, event type
+            expect(leaderboard)
+              .excludingEvery(["players", "beatmapPlayed", "eventIcon", "latestVirtualMatchTime"])
+              .to.deep.equal(expectedLeaderboards.bm5_2);
 
             return resolve();
           } catch (error) {
@@ -352,11 +381,62 @@ describe("When processing multiplayer results", function() {
               game: games7[0]
             });
 
+            // Since lobby2ApiResults4 only contains results for an incomplete virtual match (BM5#3), we should NOT have a leaderboard built for this VM
+            const leaderboardReportable = allReportables
+              .filter(r => r.type === "leaderboard" && r.beatmapId === "BM5" && r.sameBeatmapNumber === 3)
+              .slice(-1)[0];
+            expect(leaderboardReportable).to.be.undefined;
+
+            return resolve();
+          } catch (error) {
+            return reject(error);
+          }
+        });
+      });
+
+      it("should process lobby1ApiResults4", function() {
+        return new Promise(async (resolve, reject) => {
+          try {
+            await new MultiplayerResultsProcessor(context.osuApiResults.lobby1ApiResults1).saveMultiplayerEntities();
+            await new MultiplayerResultsProcessor(context.osuApiResults.lobby2ApiResults1).saveMultiplayerEntities();
+            await new MultiplayerResultsProcessor(context.osuApiResults.lobby2ApiResults2).saveMultiplayerEntities();
+            await new MultiplayerResultsProcessor(context.osuApiResults.lobby1ApiResults2).saveMultiplayerEntities();
+            await new MultiplayerResultsProcessor(context.osuApiResults.lobby2ApiResults3).saveMultiplayerEntities();
+            await new MultiplayerResultsProcessor(context.osuApiResults.lobby1ApiResults3).saveMultiplayerEntities();
+            await new MultiplayerResultsProcessor(context.osuApiResults.lobby2ApiResults4).saveMultiplayerEntities();
+
+            const processor8 = new MultiplayerResultsProcessor(context.osuApiResults.lobby1ApiResults4);
+            const games8: Game[] = await processor8.saveMultiplayerEntities();
+            expect(games8).to.have.lengthOf(1);
+            const r8 = processor8.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games8[0]);
+            expect(r8.find(r => r.beatmapId === "BM1" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+            expect(r8.find(r => r.beatmapId === "BM2" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+            expect(r8.find(r => r.beatmapId === "BM3" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+            expect(r8.find(r => r.beatmapId === "BM3" && r.sameBeatmapNumber === 2).matches).to.have.lengthOf(2);
+            expect(r8.find(r => r.beatmapId === "BM4" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+            expect(r8.find(r => r.beatmapId === "BM5" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+            expect(r8.find(r => r.beatmapId === "BM5" && r.sameBeatmapNumber === 2).matches).to.have.lengthOf(2);
+            expect(r8.find(r => r.beatmapId === "BM5" && r.sameBeatmapNumber === 3).matches).to.have.lengthOf(2);
+            expect(r8)
+              .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
+              .to.deep.equal(processedState.lobby1ApiResults4);
+
+            const processedData6: VirtualMatchReportData[] = processor8.buildVirtualMatchReportGroupsForGame(games8[0]);
+
+            const { allReportables, toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({
+              virtualMatchReportDatas: processedData6,
+              game: games8[0]
+            });
+
             const leaderboardReportable = allReportables.filter(r => r.type === "leaderboard").slice(-1)[0];
             const leaderboard: Leaderboard = leaderboardReportable.item as Leaderboard;
             expect(leaderboard).to.not.be.undefined;
+            // TODO: assert: players, beatmap, event type
+            expect(leaderboard)
+              .excludingEvery(["players", "beatmapPlayed", "eventIcon", "latestVirtualMatchTime"])
+              .to.deep.equal(expectedLeaderboards.bm5_3);
 
-            // await MultiplayerResultsDeliverer.deliver({ reportables: toBeReported }); // leaderboard
+            // TODO - assert that the game has ended (since a winner has now been declared)
 
             return resolve();
           } catch (error) {

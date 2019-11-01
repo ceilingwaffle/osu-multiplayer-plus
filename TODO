@@ -1,23 +1,27 @@
 // using TODO+ extension for vscode
 TODO: 
-    Leaderboard: 
-        Fix:
-            ✔ Position should be locked if the team was eliminated @created(19-10-27 20:11) @done(19-10-31 22:20)
-            ✔ Do not add to team's total score if the team *currently* has 0 lives remaining (i.e. before *this* leaderboard calculation) @done(19-10-30 00:48)
-            ✔ Change position from index 1-based to 0-based @created(19-10-29 19:40) @done(19-10-30 00:44)
-            ☐ Do not add to team's total score if GameSettings.countFailedScores == false and if the player's score is a failed score @created(19-11-01 16:35)
-        Refactor:
-            ☐ convert Leaderboard to class + create abstract Leaderboard class+ rename leaderboard to BattleRoyaleLeaderboard @created(19-10-27 20:11)
-            @created(19-10-28 20:14)
-            ✘ Merge CalculatedTeamScore with LeaderboardBuilder.TeamScoresMap @created(19-10-30 00:53) @cancelled(19-11-01 10:59)
-            ✔ Add method in LeaderboardBuilder named "buildLeaderboards" which calls buildLeaderboard to build a leaderboard for many reportables @created(19-10-30 13:49) @done(19-11-01 17:03)
-                ✔ Rename buildLeaderboard to buildLatestLeaderboard @created(19-10-30 13:50) @done(19-11-01 12:21)
-                ✔ Include the leaderboard reportables in the output of the MultiplayerResultsReporter.getItemsToBeReported method @created(19-10-30 15:11) @done(19-11-01 12:21)
+    Leaderboard:
+        ☐ Do not add to team's total score if GameSettings.countFailedScores == false and if the player's score is a failed score @created(19-11-01 16:35)
+        ☐ convert Leaderboard to class + create abstract Leaderboard class+ rename leaderboard to BattleRoyaleLeaderboard @created(19-10-27 20:11)
+        ☐ Build a reportables deliverer to deliver the leaderboard, events and messages to Discord @created(19-11-01 18:05)
+            ☐ Write tests @created(19-11-01 18:07)
+        ☐ Filter out already-reported reportables before delivering to Discord @created(19-11-01 18:07)
+            ☐ Write tests @created(19-11-01 18:07)
+        ☐ Handle game winner @created(19-11-01 22:46)
+            ☐ Write game event for game winner @created(19-11-01 22:46)
+            ☐ Handle team winning a game - call Game.endGame, etc. @created(19-11-01 22:46)
+        ✘ Merge CalculatedTeamScore with LeaderboardBuilder.TeamScoresMap @created(19-10-30 00:53) @cancelled(19-11-01 10:59)
+        ✔ Add method in LeaderboardBuilder named "buildLeaderboards" which calls buildLeaderboard to build a leaderboard for many reportables @created(19-10-30 13:49) @done(19-11-01 17:03)
+        ✔ Rename buildLeaderboard to buildLatestLeaderboard @created(19-10-30 13:50) @done(19-11-01 12:21)
+        ✔ Include the leaderboard reportables in the output of the MultiplayerResultsReporter.getItemsToBeReported method @created(19-10-30 15:11) @done(19-11-01 12:21)
+        ✔ Position should be locked if the team was eliminated @created(19-10-27 20:11) @done(19-10-31 22:20)
+        ✔ Do not add to team's total score if the team *currently* has 0 lives remaining (i.e. before *this* leaderboard calculation) @done(19-10-30 00:48)
+        ✔ Change position from index 1-based to 0-based @created(19-10-29 19:40) @done(19-10-30 00:44)
+
     ✔ Fix `Error: Multiplayer 54078930 is not currently being watched` when using `!endgame` command @created(19-08-30 07:43) @done(19-08-30 23:29)
     ✔ Fix `!obr removelobby` command not unwatching the lobby in the osu lobby scanner @created(19-08-30 23:29) @done(19-08-30 23:52)
     ☐ Remove all the comments starting with "GL:" from when we implemented the GameLobby entity @created(19-08-30 07:48)
     ✔ Completely rework adding/removing lobbies from games @created(19-08-28 20:27) @started(19-08-28 20:20) @done(19-08-30 07:41) @lasted(1d11h21m46s)
-
     Storing add/remove values on a many-to-many GamesLobby table: https://github.com/typeorm/typeorm/issues/1224
     ☐ Remove GameStatus.UNKNOWN
     Using "UNKNOWN" feels lazy. If there's an error preventing a known-status being applied, we should just throw an error instead of resorting to an "UNKNOWN" status. Also having a game status as "UNKNOWN" means that status has to be handled in some way eventually, so why not just handle it that way to start with?

@@ -633,6 +633,45 @@ const lobby2ApiResults4: ApiMultiplayer = {
   ]
 };
 
+const lobby1ApiResults4: ApiMultiplayer = {
+  multiplayerId: values.banchoMultiplayerIds.lobby1,
+  matches: [
+    ...lobby1ApiResults3.matches,
+    {
+      mapNumber: 8,
+      multiplayerId: values.banchoMultiplayerIds.lobby1,
+      mapId: "BM5",
+      startTime: new Date().getTime() + 16000,
+      endTime: new Date().getTime() + 160000,
+      teamMode: TeamMode.HeadToHead,
+      event: "match_end",
+      scores: [
+        {
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T2.P3).toString(),
+          score: 100,
+          passed: true,
+          scoreLetterGrade: "A",
+          accuracy: 12.34
+        },
+        {
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T2.P4).toString(),
+          score: 100,
+          passed: true,
+          scoreLetterGrade: "A",
+          accuracy: 12.34
+        },
+        {
+          osuUserId: FakeOsuApiFetcher.getFakeBanchoUserId(values.teams._2v2v2v2.T3.P5).toString(),
+          score: 400,
+          passed: true,
+          scoreLetterGrade: "A",
+          accuracy: 12.34
+        }
+      ]
+    }
+  ]
+};
+
 export const context = {
   values: values,
   requests: requests,
@@ -643,6 +682,7 @@ export const context = {
     lobby2ApiResults1: lobby2ApiResults1,
     lobby2ApiResults2: lobby2ApiResults2,
     lobby2ApiResults3: lobby2ApiResults3,
-    lobby2ApiResults4: lobby2ApiResults4
+    lobby2ApiResults4: lobby2ApiResults4,
+    lobby1ApiResults4: lobby1ApiResults4
   }
 };
