@@ -18,7 +18,7 @@ export interface VirtualMatch extends VirtualMatchKey {
      * it means the lobby existing in remaining needs to "catch up" with the other lobbies in "played"
      * by playing the same map for some (n>1)th time */
     remaining: Lobby[];
-    /** The greatest number of times any lobby has played this map */
+    /** The most number of times the same beatmap has been played in the same lobby. */
     greatestPlayedCount: number;
   };
 }
