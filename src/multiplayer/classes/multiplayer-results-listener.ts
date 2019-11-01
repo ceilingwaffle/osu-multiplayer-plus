@@ -8,6 +8,8 @@ import { Game } from "../../domain/game/game.entity";
 import { injectable } from "inversify";
 import { GameRepository } from "../../domain/game/game.repository";
 import { getCustomRepository } from "typeorm";
+import { MultiplayerResultsReporter } from "./multiplayer-results-reporter";
+import { MultiplayerResultsDeliverer } from "./multiplayer-results-deliverer";
 
 @injectable()
 export class MultiplayerResultsListener {
@@ -40,31 +42,12 @@ export class MultiplayerResultsListener {
         const multiplayerGames: Game[] = await processor.saveMultiplayerEntities();
 
         for (const game of multiplayerGames) {
-          const virtualMatchReportDatas: VirtualMatchReportData[] = await processor.buildVirtualMatchReportGroupsForGame(game);
-          // TODO: Deliver messages and events
-          // TODO: build game report for game
-          // processor.buildGameReport(gameEvents);
-          // TODO: send reports only to games included in targetGameIds
-
-          /* 
-          - MultiplayerResultsListener -> Receives osu! api data
-                                       -> Processes the osu api data into multiplayer objects
-                                       -> emit "osuApiDataReceived" for game[], lobby, match[]
-                                       -> Processing the team calculations (winner, loser, eliminated, time completed, etc
-                                       -> Emits the team calculations event
-          - MessageBuilder        -> 
-                                  -> Build the LobbyCompletedBeatmapMessage (needs winner, loser, eliminated, time completed, etc)
-                                  -> Deliver the LobbyCompletedBeatmapMessage to the GameMessageTarget (needs message, game, )]
-          - DiscordMessageDeliverer -> Listens for event
-                                  -> 
-                                  ->
-
-- leaderboard (includes team scores/positions)
-- game events
-- game messages
-          */
+          const virtualMatchReportDatas: VirtualMatchReportData[] = processor.buildVirtualMatchReportGroupsForGame(game);
+          const { toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({ virtualMatchReportDatas, game });
+          await MultiplayerResultsDeliverer.deliver({ reportables: toBeReported });
         }
       }
+
       Log.methodSuccess(this.handleNewMultiplayerMatches, this.constructor.name);
     } catch (error) {
       Log.methodError(this.handleNewMultiplayerMatches, this.constructor.name, error);
