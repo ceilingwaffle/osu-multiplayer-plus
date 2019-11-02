@@ -207,10 +207,8 @@ export class MultiplayerResultsProcessor {
         const event: IGameEvent = registeredEvents[eventType];
         // we clone the event to prevent happenedIn() setting the event data on the same event multiple times
         // (to ensure each game event has its own unique set of data)
-
-        // TODO: Do not process event if any entries listed under VirtualMatch.remaining + Log skipping with this reason.
-
         const eventCopy: IGameEvent = _.cloneDeep(event);
+        // TODO: Do not process event if any entries listed under VirtualMatch.remaining + Log skipping with this reason.
         if (eventCopy.happenedIn({ game, targetVirtualMatch: vMatch, allVirtualMatches: virtualMatches })) {
           // event should have event.data defined if happenedIn === true
           processedEvents.push(eventCopy);
