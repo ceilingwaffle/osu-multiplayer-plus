@@ -41,6 +41,17 @@ export class DiscordBot {
         });
       });
 
+      this.commando.on("error", error => {
+        // TODO: Send error to any Discord channels in Game.GameMessageTargets if that game is currently active
+        Log.error("Discord bot error:", error);
+      });
+      this.commando.on("warn", message => {
+        Log.warn("Discord bot warning:", message);
+      });
+      this.commando.on("debug", message => {
+        Log.info("Discord bot debug:", message);
+      });
+
       this.commando.registry
         .registerDefaultTypes()
         .registerDefaultGroups()
