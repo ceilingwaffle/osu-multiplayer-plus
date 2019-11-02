@@ -68,7 +68,7 @@ export class MultiplayerEntitySaver {
         );
         if (matches.length > 1) {
           Log.warn(
-            "Duplicate match results found! This is bad. Probably because two maps had the same start-time in the same lobby. This should never happen! For now, we'll just select and use the last of these duplicates."
+            "Duplicate matches found. This is bad. Probably because two maps had the same start-time in the same lobby. This should never happen! For now, we'll just select and use the last of these duplicates."
           );
         }
         let match: Match = matches.slice(-1)[0]; // undefined if no matches exist
@@ -90,15 +90,21 @@ export class MultiplayerEntitySaver {
 
         for (const apiScore of apiMatch.scores) {
           //    find scores using Lobby.Match[].startTime + Lobby.Match.PlayerScores[].scoredBy(OsuUser).osuUserId + Lobby.Match.PlayerScores[].score (including score and bmid here is just for increased safety, in case two matches have the same startTime for some weird reason)
-          let score: PlayerScore = match.playerScores.find(
+          const scores: PlayerScore[] = match.playerScores.filter(
             score =>
               match.startTime == apiMatch.startTime &&
               score.scoredBy.osuUserId == apiScore.osuUserId &&
               score.score == apiScore.score &&
               match.beatmapId == apiMatch.mapId
           );
-          //      create score if not found
+          if (scores.length > 1) {
+            Log.warn(
+              "Duplicate player scores found. This should never happen. For now, we'll just select and use the last of these duplicates."
+            );
+          }
+          let score = scores.slice(-1)[0]; // undefined if no scores exist
           if (!score) {
+            //      create score if not found
             //      find player using Lobby.Match[].PlayerScores[].scoredBy(OsuUser).osuUserId
             let player: OsuUser;
             if (!player) {
