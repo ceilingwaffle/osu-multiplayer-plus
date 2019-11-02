@@ -4,6 +4,8 @@ import { Game } from "../../domain/game/game.entity";
 import { ReportableContext, ReportableContextType } from "../../domain/game/game-match-reported.entity";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
 import { Leaderboard } from "../components/leaderboard";
+import { VirtualMatchCreator } from "../virtual-match/virtual-match-creator";
+import { VirtualMatchKey } from "../virtual-match/virtual-match-key";
 
 export class MultiplayerResultsReporter {
   static getItemsToBeReported(args: {
@@ -80,7 +82,10 @@ export class MultiplayerResultsReporter {
 
   /**
    * Returns reportables occurring only before (and including) the final leaderboard
-   * (the first-occurring leaderboard where only one team remains alive).
+   * (the first-occurring leaderboard where no more than one team remains alive).
+   *
+   * The idea here is that every leaderboard included in the output should always be accompanied by its related reportables
+   * (e.g. game events and messages for that leaderboard).
    *
    * @private
    * @static
@@ -94,13 +99,28 @@ export class MultiplayerResultsReporter {
       .filter(r => r.type === "leaderboard" && r.subType === "battle_royale")
       .find(r => {
         const leaderboard = r.item as Leaderboard;
-        // find the first occurring leaderboard having only one remaining alive team
-        return leaderboard.leaderboardLines.filter(ll => ll.alive).length === 1;
+        // find the first occurring leaderboard having only one team alive or no remaining alive teams
+        return leaderboard.leaderboardLines.filter(ll => ll.alive).length <= 1;
       });
     if (!finalLeaderboardReportable) return reportables;
 
-    const index = reportables.indexOf(finalLeaderboardReportable);
-    const beforeAndIncludingFinalLeaderboardReportables = reportables.slice(0, index + 1);
+    // Get all virtual match keys of leaderboards occurring before the final leaderboard (inclusive).
+    // This is done instead of comparing the reportable time property, in case for some reason some
+    // events for the final leaderboard have a time greater than the time of the final leaderboard.
+    const targetLeaderboardVirtualMatchKeys: VirtualMatchKey[] = reportables
+      .filter(r => r.type === "leaderboard" && r.subType === "battle_royale" && r.time <= finalLeaderboardReportable.time)
+      .map<VirtualMatchKey>(leaderboard => ({ beatmapId: leaderboard.beatmapId, sameBeatmapNumber: leaderboard.sameBeatmapNumber }));
+
+    const beforeAndIncludingFinalLeaderboardReportables = reportables.filter(r => {
+      const possibleVirtualMatchKey: VirtualMatchKey = { beatmapId: r.beatmapId, sameBeatmapNumber: r.sameBeatmapNumber };
+      for (const targetReportableVirtualMatchKey of targetLeaderboardVirtualMatchKeys) {
+        if (VirtualMatchCreator.isEqualVirtualMatchKey(targetReportableVirtualMatchKey, possibleVirtualMatchKey)) {
+          return true;
+        }
+      }
+      return false;
+    });
+
     return beforeAndIncludingFinalLeaderboardReportables;
   }
 
