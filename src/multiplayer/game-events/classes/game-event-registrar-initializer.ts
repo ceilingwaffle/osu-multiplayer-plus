@@ -11,6 +11,7 @@ import { IDbClient } from "../../../database/db-client";
 import { TeamScoredLowestGameEvent } from "../team-scored-lowest.game-event";
 import { TeamScoresSubmittedGameEvent } from "../team-scores-submitted.game-event";
 import { TeamScoresTiedGameEvent } from "../team-scores-tied.game-event";
+import { TeamIsGameChampionGameEvent } from "../team-is-game-champion.game-event";
 
 export class GameEventRegistrarInitializer {
   static async initGameEventRegistrarsFromActiveDatabaseGames(): Promise<void> {
@@ -44,6 +45,7 @@ export class GameEventRegistrarInitializer {
     events.push(new TeamScoredLowestGameEvent());
     events.push(new TeamScoresSubmittedGameEvent());
     events.push(new TeamScoresTiedGameEvent());
+    events.push(new TeamIsGameChampionGameEvent());
     // events.push(new TeamEliminatedGameEvent());
     return events;
   }
