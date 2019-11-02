@@ -387,6 +387,10 @@ describe("When processing multiplayer results", function() {
               .slice(-1)[0];
             expect(leaderboardReportable).to.be.undefined;
 
+            // two teams are still alive, so there should be no game champion yet
+            const gameChampionEvents = toBeReported.filter(r => r.subType === "team_game_champion_declared");
+            expect(gameChampionEvents).to.have.lengthOf(0);
+
             return resolve();
           } catch (error) {
             return reject(error);
@@ -435,6 +439,10 @@ describe("When processing multiplayer results", function() {
             expect(leaderboard)
               .excludingEvery(["players", "beatmapPlayed", "eventIcon", "latestVirtualMatchTime"])
               .to.deep.equal(expectedLeaderboards.bm5_3);
+
+            // only one team is alive, so there should be a game champion now
+            const gameChampionEvents = toBeReported.filter(r => r.subType === "team_game_champion_declared");
+            expect(gameChampionEvents).to.have.lengthOf(1);
 
             // TODO - assert that the game has ended (since a winner has now been declared)
 
