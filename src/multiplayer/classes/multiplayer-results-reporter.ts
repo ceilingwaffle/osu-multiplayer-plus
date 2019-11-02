@@ -3,6 +3,7 @@ import { VirtualMatchReportData } from "../virtual-match/virtual-match-report-da
 import { Game } from "../../domain/game/game.entity";
 import { ReportableContext, ReportableContextType } from "../../domain/game/game-match-reported.entity";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
+import { Leaderboard } from "../components/leaderboard";
 
 export class MultiplayerResultsReporter {
   static getItemsToBeReported(args: {
@@ -73,7 +74,34 @@ export class MultiplayerResultsReporter {
       }
     });
 
-    return reportables;
+    const filteredReportables = MultiplayerResultsReporter.getReportablesOccurringBeforeAndIncludingFinalLeaderboard(reportables);
+    return filteredReportables;
+  }
+
+  /**
+   * Returns reportables occurring only before (and including) the final leaderboard
+   * (the first-occurring leaderboard where only one team remains alive).
+   *
+   * @private
+   * @static
+   * @param {ReportableContext<ReportableContextType>[]} reportables
+   * @returns
+   */
+  private static getReportablesOccurringBeforeAndIncludingFinalLeaderboard(
+    reportables: ReportableContext<ReportableContextType>[]
+  ): ReportableContext<ReportableContextType>[] {
+    const finalLeaderboardReportable = reportables
+      .filter(r => r.type === "leaderboard" && r.subType === "battle_royale")
+      .find(r => {
+        const leaderboard = r.item as Leaderboard;
+        // find the first occurring leaderboard having only one remaining alive team
+        return leaderboard.leaderboardLines.filter(ll => ll.alive).length === 1;
+      });
+    if (!finalLeaderboardReportable) return reportables;
+
+    const index = reportables.indexOf(finalLeaderboardReportable);
+    const beforeAndIncludingFinalLeaderboardReportables = reportables.slice(0, index + 1);
+    return beforeAndIncludingFinalLeaderboardReportables;
   }
 
   private static getAlreadyReportedItemsForGame(args: {

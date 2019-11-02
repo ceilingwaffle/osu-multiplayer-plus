@@ -34,7 +34,7 @@ export class LeaderboardBuilder {
     const leaderboardVMGroups: VirtualMatchReportData[] = [];
     if (!LeaderboardBuilder.isValidPreLeaderboardParts({ gameSettings, teams, teamScoredLowestEvents, teamScoresSubmittedEvents })) {
       return leaderboardVMGroups;
-    }
+    } 
 
     let lastVirtualMatch: VirtualMatch;
 
