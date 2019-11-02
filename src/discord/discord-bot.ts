@@ -10,6 +10,7 @@ import { EditGameCommand } from "./commands/game/edit-game.command";
 import { AddTeamsCommand } from "./commands/team/add-teams.command";
 import { TargetGameCommand } from "./commands/game/target-game.command";
 import { StartGameCommand } from "./commands/game/start-game.command";
+import { resolve } from "path";
 const sqlite = require("sqlite");
 
 export class DiscordBot {
@@ -35,7 +36,7 @@ export class DiscordBot {
           game: {
             name: "osumpp.xyz | !obr help | Made by @Ceiling Waffle#7981",
             url: "https://osumpp.xyz",
-            type: "WATCHING"
+            type: "PLAYING"
           }
         });
       });
