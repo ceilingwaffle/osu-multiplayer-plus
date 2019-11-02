@@ -62,9 +62,9 @@ export class MultiplayerEntitySaver {
       for (const apiMatch of multiplayerData.matches) {
         const matches: Match[] = lobby.matches.filter(
           lobbyMatch =>
-            lobbyMatch.startTime === apiMatch.startTime &&
-            lobby.banchoMultiplayerId === multiplayerData.multiplayerId &&
-            lobbyMatch.beatmapId === apiMatch.mapId
+            lobbyMatch.startTime == apiMatch.startTime &&
+            lobby.banchoMultiplayerId == multiplayerData.multiplayerId &&
+            lobbyMatch.beatmapId == apiMatch.mapId
         );
         if (matches.length > 1) {
           Log.warn(
@@ -92,10 +92,10 @@ export class MultiplayerEntitySaver {
           //    find scores using Lobby.Match[].startTime + Lobby.Match.PlayerScores[].scoredBy(OsuUser).osuUserId + Lobby.Match.PlayerScores[].score (including score and bmid here is just for increased safety, in case two matches have the same startTime for some weird reason)
           let score: PlayerScore = match.playerScores.find(
             score =>
-              match.startTime === apiMatch.startTime &&
-              score.scoredBy.osuUserId === apiScore.osuUserId &&
-              score.score === apiScore.score &&
-              match.beatmapId === apiMatch.mapId
+              match.startTime == apiMatch.startTime &&
+              score.scoredBy.osuUserId == apiScore.osuUserId &&
+              score.score == apiScore.score &&
+              match.beatmapId == apiMatch.mapId
           );
           //      create score if not found
           if (!score) {
@@ -104,7 +104,7 @@ export class MultiplayerEntitySaver {
             if (!player) {
               player = lobby.matches
                 .map(match => match.playerScores)
-                .map(scores => scores.find(score => score.scoredBy.osuUserId === apiScore.osuUserId))
+                .map(scores => scores.find(score => score.scoredBy.osuUserId == apiScore.osuUserId))
                 .map(score => {
                   if (score) return score.scoredBy;
                 })[0];
@@ -124,7 +124,7 @@ export class MultiplayerEntitySaver {
               });
               player.user = userService.createUser({});
             }
-            if (player && !players.find(p => p.osuUserId === player.osuUserId)) {
+            if (player && !players.find(p => p.osuUserId == player.osuUserId)) {
               // remember seen players to avoid creating duplicates
               players.push(player);
             }

@@ -63,7 +63,10 @@ export class VirtualMatchCreator {
       .map(lobby => lobby.matches)
       .flattenDeep()
       .uniqBy(match => match.id)
-      .cloneDeep();
+      .cloneDeep()
+      // A match that does not have a defined endTime is considered to have started but not yet ended (or it was aborted)
+      // and therefore should not be counted as a match in a virtual match.
+      .filter(match => match.endTime);
 
     const lobbies: Lobby[] = _(game.gameLobbies)
       .map(gameLobby => gameLobby.lobby)
@@ -84,7 +87,7 @@ export class VirtualMatchCreator {
         return new Array<VirtualMatch>();
       }
 
-      const r = _(matches)
+      const virtualMatches = _(matches)
         .sortBy(match => sortByMatchOldestToLatest(LobbyBeatmapStatusMessageBuilder.buildMatchComponent(match)))
         .groupBy(match => VirtualMatchCreator.createSameBeatmapKeyStringForMatch(match, matches))
         .map((matches, matchesKey): VirtualMatchKey & { matches: Match[]; lobbies: Lobby[] } => {
@@ -130,7 +133,7 @@ export class VirtualMatchCreator {
         })
         .value();
 
-      return r;
+      return virtualMatches;
     } catch (error) {
       Log.methodError(this.buildVirtualMatchesGroupedByLobbyPlayedStatuses, this.name, error);
       throw error;
@@ -199,6 +202,7 @@ export class VirtualMatchCreator {
 
   static getTimeOfApiMatch(match: ApiMatch): number {
     return match ? match.endTime || match.startTime || Date.now() : Date.now();
+    // Note: match endTime or startTime may be a string (see comments on the Match entity property)
   }
 
   static getEstimatedTimeOfOccurrenceOfVirtualMatch(virtualMatch: VirtualMatch): number {

@@ -21,7 +21,13 @@ export class Match extends CreationTimestampedEntity {
   @Column()
   beatmapId: string;
 
-  /** The start-time timestamp in milliseconds */
+  /**
+   * The start-time timestamp in milliseconds.
+   *
+   * Bigint stored as string in Postgres.
+   * Must use non-strict equality operator (==) to compare to a number in JS.
+   * Ref: https://github.com/typeorm/typeorm/issues/873
+   */
   @IsInt()
   @IsPositive()
   @Column({ type: "bigint", unsigned: true })

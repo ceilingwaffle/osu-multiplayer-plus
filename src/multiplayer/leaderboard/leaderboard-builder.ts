@@ -178,7 +178,7 @@ export class LeaderboardBuilder {
     teamLives: Map<number, TeamLivesMapValue>
   ): Leaderboard {
     return {
-      leaderboardEventTime: lastTeamScoreSubmittedEvent.data.timeOfEvent,
+      leaderboardEventTime: lastTeamScoreSubmittedEvent.data.timeOfEvent, // this could be a string if time was derived from the match endTime/startTime
       beatmapId: lastVirtualMatch.beatmapId,
       sameBeatmapNumber: lastVirtualMatch.sameBeatmapNumber,
       beatmapPlayed: {
