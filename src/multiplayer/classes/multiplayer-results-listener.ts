@@ -10,6 +10,7 @@ import { GameRepository } from "../../domain/game/game.repository";
 import { getCustomRepository } from "typeorm";
 import { MultiplayerResultsReporter } from "./multiplayer-results-reporter";
 import { MultiplayerResultsDeliverer } from "./multiplayer-results-deliverer";
+import { GameStatus } from "../../domain/game/game-status";
 
 @injectable()
 export class MultiplayerResultsListener {
@@ -32,7 +33,7 @@ export class MultiplayerResultsListener {
     try {
       const apiMultiplayerResults: AsyncIterableIterator<ApiMultiplayer> = this.eventEmitter.events("newMultiplayerMatches");
       for await (const apiMultiplayerResult of apiMultiplayerResults) {
-        Log.warn("Event newMultiplayerMatches (buffer)", {
+        Log.info("Event newMultiplayerMatches (buffer)", {
           mpid: apiMultiplayerResult.multiplayerId,
           matchesCount: apiMultiplayerResult.matches.length,
           targetGameIds: Array.from(apiMultiplayerResult.targetGameIds)
@@ -42,6 +43,10 @@ export class MultiplayerResultsListener {
         const multiplayerGames: Game[] = await processor.saveMultiplayerEntities();
 
         for (const game of multiplayerGames) {
+          if (GameStatus.isEndedStatus(game.status)) {
+            Log.info(`Skipping handling of new MP results for game ${game.id} due to game having ended status.`);
+            continue;
+          }
           const virtualMatchReportDatas: VirtualMatchReportData[] = processor.buildVirtualMatchReportGroupsForGame(game);
           const { toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({ virtualMatchReportDatas, game });
           await MultiplayerResultsDeliverer.deliver({ reportables: toBeReported });
