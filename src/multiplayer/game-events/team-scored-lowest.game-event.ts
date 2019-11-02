@@ -69,11 +69,15 @@ export class TeamScoredLowestGameEvent extends GameEvent<{ teamId: TeamID }> imp
     // create Map with team ID as key
     const teamLosses: Map<TeamID, { losses: number; eliminated: boolean }> = new Map<TeamID, { losses: number; eliminated: boolean }>();
 
+    let debugLoggedOnce = false;
     // mark teams as eliminated one by one
     const losingTeamsForVirtualMatches = _(virtualMatchesSorted).reduce(
       (vmTeamScoresAccumulator, virtualMatch, _i, _list) => {
         if (teamsRemovingEliminated.length < 2) {
-          Log.debug("Only one team remains alive. Game should be ended now.");
+          if (!debugLoggedOnce) {
+            Log.debug(`Only one team remains alive. Game should be ended now. Game ID ${game.id}.`);
+            debugLoggedOnce = true;
+          }
           return vmTeamScoresAccumulator;
         }
         const lowestScoringTeamIds = TeamScoreCalculator.calculateLowestScoringTeamIdsOfVirtualMatch(virtualMatch, teamsRemovingEliminated);
