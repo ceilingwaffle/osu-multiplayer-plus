@@ -1,5 +1,6 @@
 import { Repository, EntityRepository, getCustomRepository } from "typeorm";
 import { DiscordUser } from "./discord-user.entity";
+import { User } from "./user.entity";
 
 @EntityRepository(DiscordUser)
 export class DiscordUserRepository extends Repository<DiscordUser> {
@@ -13,9 +14,20 @@ export class DiscordUserRepository extends Repository<DiscordUser> {
     return this.findOne({ discordUserId: discordUserId }, { relations: ["user"] });
   }
 
-  async getDiscordBotUser(): Promise<DiscordUser> {
-    const discordBotUser = await this.findByDiscordUserId(process.env.DISCORD_BOT_USER_ID);
-    if (!discordBotUser) throw new Error("Discord Bot user not found. Bot admin should run the user seeder to create this user.");
-    return discordBotUser;
+  async getOrCreateDiscordBotUser(): Promise<DiscordUser> {
+    return (await this.findByDiscordUserId(process.env.DISCORD_BOT_USER_ID)) || (await this.createDiscordBotUser());
+  }
+
+  private async createDiscordBotUser(): Promise<DiscordUser> {
+    const discordBotDiscordUser = new DiscordUser();
+    discordBotDiscordUser.discordUserId = process.env.DISCORD_BOT_USER_ID;
+    const user = new User();
+    user.discordUser = discordBotDiscordUser;
+    const savedUser = await user.save();
+    const reloadedUser = await User.findOne({ id: savedUser.id }, { relations: ["discordUser", "discordUser.user"] });
+    if (!reloadedUser || !reloadedUser.discordUser) {
+      throw new Error("Error creating and saving the Discord Bot user.");
+    }
+    return reloadedUser.discordUser;
   }
 }

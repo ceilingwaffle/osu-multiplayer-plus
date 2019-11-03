@@ -23,6 +23,7 @@ import { MultiplayerResultsDeliverer } from "../../../src/multiplayer/classes/mu
 import { LeaderboardBuilder } from "../../../src/multiplayer/leaderboard/leaderboard-builder";
 import { Leaderboard } from "../../../src/multiplayer/components/leaderboard";
 import { expectedLeaderboards } from "./context/spreadsheet-leaderboards";
+import { GameStatus } from "../../../src/domain/game/game-status";
 
 chai.use(chaiExclude);
 
@@ -110,7 +111,7 @@ describe("When processing multiplayer results", function() {
               .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
               .to.deep.equal(processedState.lobby1ApiResults1);
 
-            const processedData1: VirtualMatchReportData[] = processor1.buildVirtualMatchReportGroupsForGame(games1[0]);
+            const processedData1: VirtualMatchReportData[] = await processor1.buildVirtualMatchReportGroupsForGame(games1[0]);
 
             const { allReportables, toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({
               virtualMatchReportDatas: processedData1,
@@ -151,7 +152,7 @@ describe("When processing multiplayer results", function() {
               .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
               .to.deep.equal(processedState.lobby2ApiResults1);
 
-            const processedData2: VirtualMatchReportData[] = processor2.buildVirtualMatchReportGroupsForGame(games2[0]);
+            const processedData2: VirtualMatchReportData[] = await processor2.buildVirtualMatchReportGroupsForGame(games2[0]);
 
             const { allReportables, toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({
               virtualMatchReportDatas: processedData2,
@@ -193,7 +194,7 @@ describe("When processing multiplayer results", function() {
               .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
               .to.deep.equal(processedState.lobby2ApiResults2);
 
-            const processedData3: VirtualMatchReportData[] = processor3.buildVirtualMatchReportGroupsForGame(games3[0]);
+            const processedData3: VirtualMatchReportData[] = await processor3.buildVirtualMatchReportGroupsForGame(games3[0]);
 
             const { allReportables, toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({
               virtualMatchReportDatas: processedData3,
@@ -236,7 +237,7 @@ describe("When processing multiplayer results", function() {
               .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
               .to.deep.equal(processedState.lobby1ApiResults2);
 
-            const processedData4: VirtualMatchReportData[] = processor4.buildVirtualMatchReportGroupsForGame(games4[0]);
+            const processedData4: VirtualMatchReportData[] = await processor4.buildVirtualMatchReportGroupsForGame(games4[0]);
 
             const { allReportables, toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({
               virtualMatchReportDatas: processedData4,
@@ -282,7 +283,7 @@ describe("When processing multiplayer results", function() {
               .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
               .to.deep.equal(processedState.lobby2ApiResults3);
 
-            const processedData5: VirtualMatchReportData[] = processor5.buildVirtualMatchReportGroupsForGame(games5[0]);
+            const processedData5: VirtualMatchReportData[] = await processor5.buildVirtualMatchReportGroupsForGame(games5[0]);
 
             const { allReportables, toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({
               virtualMatchReportDatas: processedData5,
@@ -326,7 +327,7 @@ describe("When processing multiplayer results", function() {
               .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
               .to.deep.equal(processedState.lobby1ApiResults3);
 
-            const processedData6: VirtualMatchReportData[] = processor6.buildVirtualMatchReportGroupsForGame(games6[0]);
+            const processedData6: VirtualMatchReportData[] = await processor6.buildVirtualMatchReportGroupsForGame(games6[0]);
 
             const { allReportables, toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({
               virtualMatchReportDatas: processedData6,
@@ -374,7 +375,7 @@ describe("When processing multiplayer results", function() {
               .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
               .to.deep.equal(processedState.lobby2ApiResults4);
 
-            const processedData7: VirtualMatchReportData[] = processor7.buildVirtualMatchReportGroupsForGame(games7[0]);
+            const processedData7: VirtualMatchReportData[] = await processor7.buildVirtualMatchReportGroupsForGame(games7[0]);
 
             const { allReportables, toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({
               virtualMatchReportDatas: processedData7,
@@ -390,6 +391,11 @@ describe("When processing multiplayer results", function() {
             // two teams are still alive, so there should be no game champion yet
             const gameChampionEvents = toBeReported.filter(r => r.subType === "team_game_champion_declared");
             expect(gameChampionEvents).to.have.lengthOf(0);
+
+            // assert that the game has NOT ended (since a winner has NOT been declared)
+            const reloadedGame = await Game.findOne(games7[0].id);
+            const gameisEnded = GameStatus.isEndedStatus(reloadedGame.status);
+            expect(gameisEnded).to.be.false;
 
             return resolve();
           } catch (error) {
@@ -425,10 +431,10 @@ describe("When processing multiplayer results", function() {
               .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
               .to.deep.equal(processedState.lobby1ApiResults4);
 
-            const processedData6: VirtualMatchReportData[] = processor8.buildVirtualMatchReportGroupsForGame(games8[0]);
+            const processedData8: VirtualMatchReportData[] = await processor8.buildVirtualMatchReportGroupsForGame(games8[0]);
 
             const { allReportables, toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({
-              virtualMatchReportDatas: processedData6,
+              virtualMatchReportDatas: processedData8,
               game: games8[0]
             });
 
@@ -444,7 +450,10 @@ describe("When processing multiplayer results", function() {
             const gameChampionEvents = toBeReported.filter(r => r.subType === "team_game_champion_declared");
             expect(gameChampionEvents).to.have.lengthOf(1);
 
-            // TODO - assert that the game has ended (since a winner has now been declared)
+            // assert that the game has ended (since a winner has now been declared)
+            const reloadedGame = await Game.findOne(games8[0].id);
+            const gameisEnded = GameStatus.isEndedStatus(reloadedGame.status);
+            expect(gameisEnded).to.be.true;
 
             return resolve();
           } catch (error) {

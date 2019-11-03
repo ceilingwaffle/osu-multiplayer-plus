@@ -22,7 +22,7 @@ export interface IGameEvent {
     targetVirtualMatch: VirtualMatch;
     allVirtualMatches?: VirtualMatch[];
   }) => boolean;
-  after?: () => void;
+  after?: () => Promise<void>;
   data: any extends CustomGameEventDataProps<RequiredGameEventDataProps> ? CustomGameEventDataProps<RequiredGameEventDataProps> : never;
 }
 

@@ -47,7 +47,7 @@ export class MultiplayerResultsListener {
             Log.info(`Skipping handling of new MP results for game ${game.id} due to game having ended status.`);
             continue;
           }
-          const virtualMatchReportDatas: VirtualMatchReportData[] = processor.buildVirtualMatchReportGroupsForGame(game);
+          const virtualMatchReportDatas: VirtualMatchReportData[] = await processor.buildVirtualMatchReportGroupsForGame(game);
           const { toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({ virtualMatchReportDatas, game });
           await MultiplayerResultsDeliverer.deliver({ reportables: toBeReported });
         }

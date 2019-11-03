@@ -59,6 +59,6 @@ export class TeamScoredLowestGameEvent extends GameEvent<{ teamId: TeamID }> imp
   }
 
   after(): void {
-    console.log(`Calling ${this.after.name} in ${this.constructor.name}`);
+    // console.log(`Calling ${this.after.name} in ${this.constructor.name}`);
   }
 }

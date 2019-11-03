@@ -41,10 +41,10 @@ export class MultiplayerResultsProcessor {
     return VirtualMatchCreator.buildVirtualMatchesForGame(game);
   }
 
-  buildVirtualMatchReportGroupsForGame(game: Game): VirtualMatchReportData[] {
+  async buildVirtualMatchReportGroupsForGame(game: Game): Promise<VirtualMatchReportData[]> {
     try {
       const virtualMatches: VirtualMatch[] = this.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(game);
-      const virtualMatchReportGroups: VirtualMatchReportData[] = this.buildVirtualMatchReportData({ game, virtualMatches });
+      const virtualMatchReportGroups: VirtualMatchReportData[] = await this.buildVirtualMatchReportData({ game, virtualMatches });
 
       Log.methodSuccess(this.buildVirtualMatchReportGroupsForGame, this.constructor.name);
       return virtualMatchReportGroups;
@@ -105,10 +105,10 @@ export class MultiplayerResultsProcessor {
     return map;
   }
 
-  buildVirtualMatchReportData(args: { game: Game; virtualMatches: VirtualMatch[] }): VirtualMatchReportData[] {
+  async buildVirtualMatchReportData(args: { game: Game; virtualMatches: VirtualMatch[] }): Promise<VirtualMatchReportData[]> {
     const virtualMatches = VirtualMatchCreator.buildVirtualMatchesForGame(args.game);
     // build events grouped by each virtual match
-    const processedGameEvents = this.buildAndProcessGameEventsForVirtualMatches({ game: args.game, virtualMatches });
+    const processedGameEvents = await this.buildAndProcessGameEventsForVirtualMatches({ game: args.game, virtualMatches });
     const gameEventVMGroups = this.buildVirtualMatchGroupsFromGameEvents({ processedGameEvents });
     // build messages grouped by each virtual match
     const messages = this.buildLobbyMatchReportMessages({ virtualMatches });
@@ -189,13 +189,13 @@ export class MultiplayerResultsProcessor {
   //   return processedEvents;
   // }
 
-  private buildAndProcessGameEventsForVirtualMatches({
+  private async buildAndProcessGameEventsForVirtualMatches({
     game,
     virtualMatches
   }: {
     game: Game;
     virtualMatches: VirtualMatch[];
-  }): IGameEvent[] {
+  }): Promise<IGameEvent[]> {
     const registrar: GameEventRegistrar = this.gameEventRegistrarCollection.findOrCreate(game.id);
     const registeredEvents: IGameEvent[] = registrar.getEvents();
     const processedEvents: IGameEvent[] = [];
@@ -212,6 +212,9 @@ export class MultiplayerResultsProcessor {
         if (eventCopy.happenedIn({ game, targetVirtualMatch: vMatch, allVirtualMatches: virtualMatches })) {
           // event should have event.data defined if happenedIn === true
           processedEvents.push(eventCopy);
+          if (eventCopy.after) {
+            await eventCopy.after();
+          }
         }
       }
     }

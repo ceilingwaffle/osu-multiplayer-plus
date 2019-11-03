@@ -28,6 +28,6 @@ export class TeamScoredHighestGameEvent extends GameEvent<{ teamId: number }> im
   }
 
   after(): void {
-    console.log(`Calling ${this.after.name} in ${this.constructor.name}`);
+    // console.log(`Calling ${this.after.name} in ${this.constructor.name}`);
   }
 }

@@ -58,9 +58,10 @@ export class TestHelpers {
 
   static async seedTestDatabase(): Promise<boolean> {
     try {
-      const sh = await TestHelpers.sh(
-        "ts-node ./node_modules/typeorm-seeding/dist/cli.js seed --config ./test/config/ormconfig.testing.json"
-      );
+      // const sh = await TestHelpers.sh(
+      //   "ts-node ./node_modules/typeorm-seeding/dist/cli.js seed --config ./test/config/ormconfig.testing.json"
+      // );
+      const sh = await TestHelpers.sh("npm run seed");
       Log.debug(sh.stdout);
       Log.debug("Done seeding test database.");
       return true;
