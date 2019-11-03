@@ -76,7 +76,7 @@ export class MultiplayerEntitySaver {
           //      create match if not found
           // TODO: Extract match creation to MatchService
           match = new Match();
-          match.aborted = false; // TODO: If this match has endTime == null, and the following match has endTime != null, then this match was aborted
+          // match.aborted = new MatchAborted();
           match.beatmapId = apiMatch.mapId.toString();
           match.endTime = isNaN(apiMatch.endTime) ? null : apiMatch.endTime;
           match.ignored = false; // TODO

@@ -1,9 +1,10 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne, OneToMany, Column, JoinColumn, Unique, JoinTable } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, ManyToOne, OneToMany, Column, JoinColumn, Unique, JoinTable, OneToOne } from "typeorm";
 import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity";
 import { Lobby } from "../lobby/lobby.entity";
 import { IsInt, IsPositive, IsNumberString, ValidateIf } from "class-validator";
 import { PlayerScore } from "../score/player-score.entity";
 import { GameMatchReported } from "../game/game-match-reported.entity";
+import { MatchAborted } from "./match-aborted.entity";
 
 @Entity("matches")
 export class Match extends CreationTimestampedEntity {
@@ -40,8 +41,8 @@ export class Match extends CreationTimestampedEntity {
   @Column({ type: "bigint", unsigned: true, nullable: true })
   endTime: number;
 
-  @Column({ default: false })
-  aborted: boolean;
+  @OneToOne(type => MatchAborted, matchAborted => matchAborted.match)
+  aborted: MatchAborted;
 
   /** e.g. if the map was a warmup and should not be included in the leaderboard calculations */
   @Column({ default: false })
