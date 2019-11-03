@@ -1,7 +1,8 @@
 // using TODO+ extension for vscode
 TODO: 
     Leaderboard:
-        ☐ Add TeamEliminated game event @created(19-11-02 23:30)
+        ☐ Create message reportable if match was aborted @created(19-11-03 23:03)
+        ✔ Add TeamEliminated game event @created(19-11-02 23:30) @done(19-11-03 23:04)
         ✔ Fix bug - Two leaderboards are being incorrectly generated for each match for the Thaibuy vs Bubbleman match - 54567825 @created(19-11-02 00:42) @done(19-11-02 16:43)
         ✔ Fix bug - Previous position and "changed" should be undefined for all teams for the first leaderboard generated for a game @created(19-11-02 00:36) @done(19-11-02 16:43)
             Because there is no previous position, since this is the first match.
@@ -435,7 +436,7 @@ TODO:
             ☐ Send discord message if it looks like the last match was aborted. 
                 ☐ Use the OsuLobbyScanner to send an "aborted match" event. A Discord message sender will then observe this event and send a message to the game channel.
                 ☐ Use "!obr include <matchId/mapNumber>" to essentially "undo" the abort, and thereby choose to include scores from the aborted match. This is incase the system mistakingly analyzed the match as aborted. @created(19-09-04 15:10)
-        ☐ Process match results @created(19-09-03 11:19) @started(19-09-03 11:19)
+        ✔ Process match results @created(19-09-03 11:19) @started(19-09-03 11:19) @done(19-10-03 11:19)
             ☐ Add OsuUser entity @created(19-09-03 19:37)
             ☐ Add TeamScore entity @created(19-09-03 19:37)
             ☐ Add MultiplayerMatch entity @created(19-09-03 19:38)
@@ -525,7 +526,7 @@ TODO:
                     ☐ arrange: ApiMultiplayer object 
                     ☐ act: do the transforming 
                     ☐ assert: MatchResultsReport object 
-                ☐ Input to output steps (API to Report)  @started(19-09-05 11:38)
+                ☐ Input to output steps (API to Report)  @created(19-09-05 11:38)
                     ✔ input: ApiMultiplayer @done(19-09-12 20:08)
                     ✔ find Game using ApiMultiplayer.multiplayerId @done(19-09-12 20:08)
                     ✔ find/create OsuUser[] using ApiMultiplayer.ApiMatch.ApiPlayerScore.osuUserId @done(19-09-12 20:08)

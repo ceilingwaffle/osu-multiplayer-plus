@@ -1,7 +1,8 @@
 import { MessageType } from "../messages/types/message-type";
 import { VirtualMatchReportData } from "../virtual-match/virtual-match-report-data";
 import { Game } from "../../domain/game/game.entity";
-import { ReportableContext, ReportableContextType } from "../../domain/game/game-match-reported.entity";
+import { ReportableContextType } from "../reports/reportable-context-type";
+import { ReportableContext } from "../reports/reportable-context";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
 import { Leaderboard } from "../components/leaderboard";
 import { VirtualMatchCreator } from "../virtual-match/virtual-match-creator";
