@@ -58,7 +58,7 @@ export class TeamScoredLowestGameEvent extends GameEvent<{ teamId: TeamID }> imp
     return losingTeamId && losingTeamId > 0;
   }
 
-  after(): void {
+  async after(): Promise<void> {
     // console.log(`Calling ${this.after.name} in ${this.constructor.name}`);
   }
 }

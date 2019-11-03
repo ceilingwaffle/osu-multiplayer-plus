@@ -27,7 +27,7 @@ export class TeamScoredHighestGameEvent extends GameEvent<{ teamId: number }> im
     return true;
   }
 
-  after(): void {
+  async after(): Promise<void> {
     // console.log(`Calling ${this.after.name} in ${this.constructor.name}`);
   }
 }
