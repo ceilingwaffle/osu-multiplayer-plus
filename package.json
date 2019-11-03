@@ -11,7 +11,7 @@
     "start:js": "rmdir /S /Q dist & tsc & xcopy .\\src\\locales .\\dist\\locales\\ /E /C /Q /Y & node dist/index.js",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "entity:create": "ts-node ./node_modules/typeorm/cli.js entity:create -n",
-    "seed": "ts-node ./node_modules/typeorm-seeding/dist/cli.js seed --config ormconfig.json",
+    "seed": "ts-node cli/seed-db.ts",
     "delsqlite": "rmdir /S /Q dist & tsc & del .\\src\\database\\app-database.sqlite & npm run seed & npm start",
     "pgdrop": ".\\cli\\drop-and-create-postgres-db.bat",
     "test": "rmdir /S /Q dist & tsc & xcopy .\\src\\locales .\\dist\\locales\\ /E /C /Q /Y & mocha --require ts-node/register --require test/config/mocha.env.js test/**/*.test.ts --timeout 60000 --slow 1000",
