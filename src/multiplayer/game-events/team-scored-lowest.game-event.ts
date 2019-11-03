@@ -25,6 +25,10 @@ import { TeamID } from "../components/types/team-id";
 export class TeamScoredLowestGameEvent extends GameEvent<{ teamId: TeamID }> implements IGameEvent {
   readonly type: GameEventType = "team_scored_lowest";
 
+  newify() {
+    return new TeamScoredLowestGameEvent();
+  }
+
   happenedIn({
     targetVirtualMatch,
     game,

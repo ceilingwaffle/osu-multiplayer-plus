@@ -13,6 +13,10 @@ export type TeamVirtualMatchDataMap = Map<TeamID, VirtualMatchData>;
 export class TeamScoresSubmittedGameEvent extends GameEvent<{ data: TeamVirtualMatchDataMap }> implements IGameEvent {
   type: GameEventType = "team_scores_submitted";
 
+  newify() {
+    return new TeamScoresSubmittedGameEvent();
+  }
+
   happenedIn({ game, targetVirtualMatch }: { game: Game; targetVirtualMatch: VirtualMatch }): boolean {
     // if virtual match incomplete, no team scores are ready yet for this virtual match
     if (targetVirtualMatch.lobbies.remaining.length) return false;

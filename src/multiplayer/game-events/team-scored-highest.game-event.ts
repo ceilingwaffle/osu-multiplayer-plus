@@ -10,6 +10,10 @@ import { VirtualMatchCreator } from "../virtual-match/virtual-match-creator";
 export class TeamScoredHighestGameEvent extends GameEvent<{ teamId: number }> implements IGameEvent {
   readonly type: GameEventType = "team_scored_highest";
 
+  newify() {
+    return new TeamScoredHighestGameEvent();
+  }
+
   happenedIn({ targetVirtualMatch, game }: { targetVirtualMatch: VirtualMatch; game: Game }): boolean {
     // TODO: Write test for this event
     // console.log(`Calling ${this.happenedIn.name} in ${this.constructor.name}`);

@@ -13,6 +13,10 @@ import { DiscordUserRepository } from "../../domain/user/discord-user.repository
 import { Log } from "../../utils/Log";
 
 export class TeamIsGameChampionGameEvent extends GameEvent<{ teamId: number }> implements IGameEvent {
+  newify() {
+    return new TeamIsGameChampionGameEvent();
+  }
+
   type: GameEventType = "team_game_champion_declared";
 
   protected gameService = iocContainer.get<GameService>(TYPES.GameService);
@@ -70,7 +74,7 @@ export class TeamIsGameChampionGameEvent extends GameEvent<{ teamId: number }> i
         );
       const endGameResponse = await this.gameService.endGame({ gameDto: { gameId: this.game.id }, endedByUser: discordBotUser });
       if (endGameResponse.failed()) {
-        Log.warn(`Failed to end game ${this.game.id} after GameEvent processing.`, this.after, this.constructor.name);
+        Log.warn(`Failed to end game ${this.game.id} after GameEvent processing.`, this.after.name, this.constructor.name);
         return;
       }
       Log.methodSuccess(this.after, this.constructor.name, `Game ${this.game.id} successfully ended after GameEvent processing.`);

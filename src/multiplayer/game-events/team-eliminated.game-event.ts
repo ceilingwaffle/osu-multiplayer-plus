@@ -9,6 +9,10 @@ import { GameEventType } from "./types/game-event-types";
 export class TeamEliminatedGameEvent extends GameEvent<{ teamId: number }> implements IGameEvent {
   type: GameEventType = "team_eliminated";
 
+  newify() {
+    return new TeamEliminatedGameEvent();
+  }
+
   happenedIn({
     game,
     targetVirtualMatch,

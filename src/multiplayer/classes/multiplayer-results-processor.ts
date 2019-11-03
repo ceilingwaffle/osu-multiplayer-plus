@@ -189,7 +189,7 @@ export class MultiplayerResultsProcessor {
   //   return processedEvents;
   // }
 
-  private async buildAndProcessGameEventsForVirtualMatches({
+  private async buildAndProcessGameEventsForVirtualMatches<T>({
     game,
     virtualMatches
   }: {
@@ -205,15 +205,13 @@ export class MultiplayerResultsProcessor {
       }
       for (const eventType in registeredEvents) {
         const event: IGameEvent = registeredEvents[eventType];
-        // we clone the event to prevent happenedIn() setting the event data on the same event multiple times
-        // (to ensure each game event has its own unique set of data)
-        const eventCopy: IGameEvent = _.cloneDeep(event);
+        const newEvent = event.newify();
         // TODO: Do not process event if any entries listed under VirtualMatch.remaining + Log skipping with this reason.
-        if (eventCopy.happenedIn({ game, targetVirtualMatch: vMatch, allVirtualMatches: virtualMatches })) {
+        if (newEvent.happenedIn({ game, targetVirtualMatch: vMatch, allVirtualMatches: virtualMatches })) {
           // event should have event.data defined if happenedIn === true
-          processedEvents.push(eventCopy);
-          if (eventCopy.after) {
-            await eventCopy.after();
+          processedEvents.push(newEvent);
+          if (newEvent.after) {
+            await newEvent.after();
           }
         }
       }
