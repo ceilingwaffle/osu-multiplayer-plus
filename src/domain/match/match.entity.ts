@@ -43,6 +43,7 @@ export class Match extends CreationTimestampedEntity {
   @Column({ default: false })
   aborted: boolean;
 
+  /** e.g. if the map was a warmup and should not be included in the leaderboard calculations */
   @Column({ default: false })
   ignored: boolean;
 

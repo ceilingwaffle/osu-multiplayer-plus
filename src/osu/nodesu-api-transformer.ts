@@ -2,7 +2,8 @@ import {
   User as NodesuUser,
   Multi as NodesuMulti,
   MultiTeamTypeType as NodesuMultiTeamTypeType,
-  MultiTeamType as NodesuMultiTeamType
+  MultiTeamType as NodesuMultiTeamType,
+  MultiGame
 } from "nodesu";
 import { Log } from "../utils/Log";
 import { ApiMultiplayer } from "./types/api-multiplayer";
@@ -41,7 +42,7 @@ export class NodesuApiTransformer {
     };
 
     let mapNumber = 1;
-    for (const apiMatch of result.games) {
+    for (const [index, apiMatch] of result.games.entries()) {
       let matchResult: ApiMatch;
       if (!apiMatch) {
         Log.debug("Skipped empty apiMatch in result.games");
@@ -60,7 +61,8 @@ export class NodesuApiTransformer {
         });
       }
 
-      // TODO: determine isAborted=T/F based on endTime-startTime relative to map length
+      const nextApiMatch = NodesuApiTransformer.getApiMatchAfterIndex(index, result);
+      const isThisMatchAborted = NodesuApiTransformer.isMatchAborted(apiMatch, nextApiMatch);
 
       matchResult = {
         mapNumber: mapNumber,
@@ -70,7 +72,8 @@ export class NodesuApiTransformer {
         endTime: apiMatch.endTime.getTime(),
         teamMode: NodesuApiTransformer.convertNodesuTeamType(apiMatch.teamType),
         scores: scores,
-        event: NodesuApiTransformer.determineMatchEvent(apiMatch.endTime)
+        event: NodesuApiTransformer.determineMatchEvent(apiMatch.endTime),
+        aborted: isThisMatchAborted
       };
 
       converted.matches.push(matchResult);
@@ -78,6 +81,24 @@ export class NodesuApiTransformer {
     }
 
     return converted;
+  }
+
+  private static getApiMatchAfterIndex(index: number, result: NodesuMulti): MultiGame {
+    // return index + 1 < result.games.length ? result.games[index + 1] : undefined;
+    return result.games[index + 1]; // undefined if index out of bounds
+  }
+
+  private static isMatchAborted(thisApiMatch: MultiGame, nextApiMatch: MultiGame): boolean {
+    /**
+     * How to detect an aborted API match:
+          thisApiMatch properties:
+              endTime: NaN (null)
+              event: "match_start"
+              scores: [] (empty array)
+          nextApiMatch:
+              is defined
+   */
+    return !thisApiMatch.scores.length && !!nextApiMatch;
   }
 
   static determineMatchEvent(endTime: Date): ApiMatchEvent {
