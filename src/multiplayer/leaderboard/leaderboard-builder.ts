@@ -34,7 +34,7 @@ export class LeaderboardBuilder {
     const leaderboardVMGroups: VirtualMatchReportData[] = [];
     if (!LeaderboardBuilder.isValidPreLeaderboardParts({ gameSettings, teams, teamScoredLowestEvents, teamScoresSubmittedEvents })) {
       return leaderboardVMGroups;
-    } 
+    }
 
     let lastVirtualMatch: VirtualMatch;
 
@@ -227,6 +227,7 @@ export class LeaderboardBuilder {
           },
           alive: LeaderboardBuilder.isTeamAlive(gameSettings.startingTeamLives, gt.team, teamScoredLowestEvents),
           position: teamPositionals,
+          // TODO: eventIcon: {...}
           lives: {
             currentLives: teamLives.get(gt.team.id).lives,
             startingLives: gameSettings.startingTeamLives
