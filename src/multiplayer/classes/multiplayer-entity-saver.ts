@@ -15,6 +15,7 @@ import { GameStatus } from "../../domain/game/game-status";
 import { LobbyService } from "../../domain/lobby/lobby.service";
 import { UserService } from "../../domain/user/user.service";
 import { IOsuApiFetcher } from "../../osu/interfaces/osu-api-fetcher";
+import { MatchService } from "../../domain/match/match.service";
 
 export class MultiplayerEntitySaver {
   /**
@@ -74,17 +75,7 @@ export class MultiplayerEntitySaver {
         let match: Match = matches.slice(-1)[0]; // undefined if no matches exist
         if (!match) {
           //      create match if not found
-          // TODO: Extract match creation to MatchService
-          match = new Match();
-          // match.aborted = new MatchAborted();
-          match.beatmapId = apiMatch.mapId.toString();
-          match.endTime = isNaN(apiMatch.endTime) ? null : apiMatch.endTime;
-          match.ignored = false; // TODO
-          match.lobby = lobby;
-          match.mapNumber = apiMatch.mapNumber; // TODO: should have the same map number as the previous match if the previous match was aborted
-          match.playerScores = [];
-          match.startTime = isNaN(apiMatch.startTime) ? null : apiMatch.startTime;
-          match.teamMode = apiMatch.teamMode;
+          match = MatchService.createMatchFromApiMatch(apiMatch, lobby);
           lobby.matches.push(match);
         }
 
