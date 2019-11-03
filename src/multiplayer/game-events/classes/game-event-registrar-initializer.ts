@@ -42,12 +42,12 @@ export class GameEventRegistrarInitializer {
   static createGameEvents(): IGameEvent[] {
     const events: IGameEvent[] = [];
     // should be added in the order we want te events to displayed above the leaderboard
-    events.push(new TeamScoredHighestGameEvent());
-    events.push(new TeamScoredLowestGameEvent());
     events.push(new TeamScoresSubmittedGameEvent());
+    events.push(new TeamScoredHighestGameEvent());
     events.push(new TeamScoresTiedGameEvent());
-    events.push(new TeamIsGameChampionGameEvent());
+    events.push(new TeamScoredLowestGameEvent());
     events.push(new TeamEliminatedGameEvent());
+    events.push(new TeamIsGameChampionGameEvent());
     return events;
   }
 }
