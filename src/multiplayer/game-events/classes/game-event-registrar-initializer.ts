@@ -12,6 +12,7 @@ import { TeamScoredLowestGameEvent } from "../team-scored-lowest.game-event";
 import { TeamScoresSubmittedGameEvent } from "../team-scores-submitted.game-event";
 import { TeamScoresTiedGameEvent } from "../team-scores-tied.game-event";
 import { TeamIsGameChampionGameEvent } from "../team-is-game-champion.game-event";
+import { TeamEliminatedGameEvent } from "../team-eliminated.game-event";
 
 export class GameEventRegistrarInitializer {
   static async initGameEventRegistrarsFromActiveDatabaseGames(): Promise<void> {
@@ -46,7 +47,7 @@ export class GameEventRegistrarInitializer {
     events.push(new TeamScoresSubmittedGameEvent());
     events.push(new TeamScoresTiedGameEvent());
     events.push(new TeamIsGameChampionGameEvent());
-    // events.push(new TeamEliminatedGameEvent());
+    events.push(new TeamEliminatedGameEvent());
     return events;
   }
 }

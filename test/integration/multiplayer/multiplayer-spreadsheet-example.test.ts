@@ -24,6 +24,7 @@ import { LeaderboardBuilder } from "../../../src/multiplayer/leaderboard/leaderb
 import { Leaderboard } from "../../../src/multiplayer/components/leaderboard";
 import { expectedLeaderboards } from "./context/spreadsheet-leaderboards";
 import { GameStatus } from "../../../src/domain/game/game-status";
+import { TeamEliminatedGameEvent } from "../../../src/multiplayer/game-events/team-eliminated.game-event";
 
 chai.use(chaiExclude);
 
@@ -445,6 +446,19 @@ describe("When processing multiplayer results", function() {
             expect(leaderboard)
               .excludingEvery(["players", "beatmapPlayed", "eventIcon", "latestVirtualMatchTime"])
               .to.deep.equal(expectedLeaderboards.bm5_3);
+
+            // team 2 should have been eliminated
+            const eliminatedGameEventsInThisLeaderboardVirtualMatch = allReportables
+              .filter(r => r.type === "game_event" && r.subType === "team_eliminated")
+              .map(r => r.item as TeamEliminatedGameEvent)
+              .filter(
+                event =>
+                  event.data.eventMatch.beatmapId === leaderboard.beatmapId &&
+                  event.data.eventMatch.sameBeatmapNumber === leaderboard.sameBeatmapNumber
+              );
+            expect(eliminatedGameEventsInThisLeaderboardVirtualMatch).to.have.lengthOf(1);
+            const eliminatedTeamId = eliminatedGameEventsInThisLeaderboardVirtualMatch.map(event => event.data.teamId)[0];
+            expect(eliminatedTeamId).to.equal(2); // this assumes the team number is the same as the team ID
 
             // only one team is alive, so there should be a game champion now
             const gameChampionEvents = toBeReported.filter(r => r.subType === "team_game_champion_declared");

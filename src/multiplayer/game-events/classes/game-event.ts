@@ -146,4 +146,28 @@ export abstract class GameEvent<DataType> {
     });
     return teamLivesTally;
   }
+
+  protected getAliveTeamIdsForTargetVirtualMatch(
+    targetVirtualMatch: VirtualMatch,
+    allVirtualMatches: VirtualMatch[],
+    game: Game,
+    teams: Team[]
+  ) {
+    // filter out any vms occurring after the target
+    const targetTime = VirtualMatchCreator.getEstimatedTimeOfOccurrenceOfVirtualMatch(targetVirtualMatch);
+    const completedVirtualMatchesBeforeTarget = allVirtualMatches.filter(vm => {
+      if (vm.lobbies.remaining.length) return false;
+      const vmTime = VirtualMatchCreator.getEstimatedTimeOfOccurrenceOfVirtualMatch(vm);
+      return vmTime <= targetTime;
+    });
+
+    const { losingTeamsForVirtualMatches, teamStatusForTargetVirtualMatch } = this.getLosingTeamsForVirtualMatches({
+      targetVirtualMatch,
+      allVirtualMatches: completedVirtualMatchesBeforeTarget,
+      game
+    });
+    const teamLives = this.getCurrentTeamLivesForVirtualMatches(game, teams, losingTeamsForVirtualMatches);
+    const aliveTeamIds = Array.from(teamLives).filter(t => t[1].lives > 0).map(t => t[0]); //prettier-ignore
+    return aliveTeamIds;
+  }
 }
