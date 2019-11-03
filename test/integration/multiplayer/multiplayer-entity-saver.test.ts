@@ -5,7 +5,6 @@ import { assert, expect } from "chai";
 import { MultiplayerResultsProcessor } from "../../../src/multiplayer/classes/multiplayer-results-processor";
 import { ApiMultiplayer } from "../../../src/osu/types/api-multiplayer";
 import { TeamMode } from "../../../src/multiplayer/components/enums/team-mode";
-import { GameReport } from "../../../src/multiplayer/reports/game.report";
 import { TestHelpers } from "../../test-helpers";
 import { Lobby as LobbyEntity } from "../../../src/domain/lobby/lobby.entity";
 import { LobbyStatus } from "../../../src/domain/lobby/lobby-status";
@@ -1322,12 +1321,12 @@ describe("When saving multiplayer results", function() {
   });
 });
 
-function getLeaderboardLineOfUser(reports: GameReport[], targetUserId: string): LeaderboardLine {
-  const lines = reports[0].leaderboardLines.filter(ll => ll.team.players.map(m => m.osuUserId).includes(targetUserId));
-  if (lines.length < 1) throw new Error("Player does not exist in any leaderboard lines.");
-  if (lines.length > 1) throw new Error("Player should not exist in more than one leaderboard line.");
-  return lines[0];
-}
+// function getLeaderboardLineOfUser(reports: GameReport[], targetUserId: string): LeaderboardLine {
+//   const lines = reports[0].leaderboardLines.filter(ll => ll.team.players.map(m => m.osuUserId).includes(targetUserId));
+//   if (lines.length < 1) throw new Error("Player does not exist in any leaderboard lines.");
+//   if (lines.length > 1) throw new Error("Player should not exist in more than one leaderboard line.");
+//   return lines[0];
+// }
 
 /*
           ResultsBuilder.game({ startingLives: 2, failsCounted: false })
