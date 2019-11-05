@@ -1,5 +1,6 @@
 // using TODO+ extension for vscode
 TODO: 
+    
     Leaderboard:
         ☐ Create message reportable if match was aborted @created(19-11-03 23:03)
         ✔ Add TeamEliminated game event @created(19-11-02 23:30) @done(19-11-03 23:04)
@@ -437,21 +438,21 @@ TODO:
             ☐ Implementing match aborts @created(19-11-04 08:16)
                 ☐ Add user permissions to abort/undo-abort match @created(19-11-04 08:16)
                 ☐ Aborting a match @created(19-11-04 08:18)
-                    ☐ Add discord command @created(19-11-04 08:16)
-                    ☐ Add controller method @created(19-11-04 08:16)
-                    ☐ Add MatchService method @created(19-11-04 08:16)
-                    ☐ Write match abort test @created(19-11-04 08:16)
+                    ☐ Add discord command 
+                    ☐ Add controller method 
+                    ☐ Add MatchService method 
+                    ☐ Write match abort test 
                         (controller -> service -> response -> load match from DB -> assert aborted status) 
-                    ☐ Modify VirtualMatchCreator to handle aborted matches as if they don't exist @created(19-11-04 08:16)
-                    ☐ Modify scores calculator to ignore scores for aborted matches @created(19-11-04 08:21)
-                    ☐ Use the OsuLobbyScanner to send an "aborted match" event using the EventDispatcher. @created(19-11-04 08:20)
-                        ☐ A Discord message should be sent to the game channel. @created(19-11-04 08:20)
-                    ☐ Modify the spreadsheet example to include an aborted match @created(19-11-04 08:23)
+                    ☐ Modify VirtualMatchCreator to handle aborted matches as if they don't exist 
+                    ☐ Modify scores calculator to ignore scores for aborted matches 
+                    ☐ Use the OsuLobbyScanner to send an "aborted match" event using the EventDispatcher. 
+                        ☐ A Discord message should be sent to the game channel. 
+                    ☐ Modify the spreadsheet example to include an aborted match 
                 ☐ Undoing a match abort @created(19-11-04 08:20)
-                    ☐ Add discord command @created(19-11-04 08:20)
-                    ☐ Add controller method @created(19-11-04 08:20)
-                    ☐ Add MatchService method @created(19-11-04 08:20)
-                    ☐ Write undo-match-abort test  @created(19-11-04 08:20)
+                    ☐ Add discord command 
+                    ☐ Add controller method 
+                    ☐ Add MatchService method 
+                    ☐ Write undo-match-abort test  
                         (controller -> service -> response -> load match from DB -> assert not-aborted status)
 
         ✔ Process match results @created(19-09-03 11:19) @started(19-09-03 11:19) @done(19-10-03 11:19)
