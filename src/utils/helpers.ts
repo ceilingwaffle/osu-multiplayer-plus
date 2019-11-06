@@ -1,19 +1,44 @@
 import * as path from "path";
 import { ApiOsuUser } from "../osu/types/api-osu-user";
+import * as fs from "fs-extra";
 import cloneDeep = require("lodash/cloneDeep");
+import { Log } from "../utils/Log";
+import { UnhandledNodeEnvError } from "../errors/unhandled-node-env.error";
 
 export class Helpers {
   static getNow() {
     return Math.floor(Date.now() / 1000);
   }
 
+  static getOrCreateCommandoDatabasePath(): string {
+    const dbPath = Helpers.getCommandoDatabasePath();
+    Helpers.createEmptyCommandoDatabaseIfNotExists(dbPath);
+    return dbPath;
+  }
+
   static getCommandoDatabasePath(): string {
     if (process.env.NODE_ENV == "test") {
-      return path.join(__dirname, "../../test/database/commando-test-database.sqlite");
+      return path.join(__dirname, "..", "..", "test", "database", "commando_test_db.sqlite");
     } else if (process.env.NODE_ENV == "development") {
-      return path.join(__dirname, "../../test/database/commando-test-database.sqlite");
+      return path.join(__dirname, "..", "database", "commando_dev_db.sqlite");
+    } else if (process.env.NODE_ENV == "production") {
+      return path.join(__dirname, "..", "database", "commando_production_db.sqlite");
     } else {
-      return path.join(__dirname, "../database/commando-database.sqlite");
+      throw new UnhandledNodeEnvError();
+    }
+  }
+
+  static createEmptyCommandoDatabaseIfNotExists(dbPath: string): void {
+    try {
+      const contents = "";
+      fs.writeFile(dbPath, contents, { flag: "wx" }, function(err) {
+        if (err) throw err;
+        Log.debug(`Created new Discord Commando database`, { path: dbPath });
+        return true;
+      });
+    } catch (error) {
+      Log.methodError(Helpers.createEmptyCommandoDatabaseIfNotExists, error);
+      throw error;
     }
   }
 

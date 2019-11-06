@@ -6,8 +6,8 @@ require("dotenv").config({
 import { Connection, createConnection } from "typeorm";
 import { injectable } from "inversify";
 import { Log } from "../utils/Log";
-import { PostgresConnectionOptions } from "typeorm/driver/postgres/PostgresConnectionOptions";
 import { default as postgresConfig } from "../config/typeorm/ormconfig.postgres";
+import { UnhandledNodeEnvError } from "../errors/unhandled-node-env.error";
 
 export interface IDbClient {
   connect(): Promise<Connection>;
@@ -33,8 +33,10 @@ export class DbClient implements IDbClient {
         this.connection = await createConnection(require("../../test/config/typeorm/ormconfig.testing.sqlite.dbinmemory.json"));
       } else if (process.env.NODE_ENV == "development") {
         this.connection = await createConnection(postgresConfig);
+      } else if (process.env.NODE_ENV == "production") {
+        this.connection = await createConnection(postgresConfig);
       } else {
-        this.connection = await createConnection(require("../../config/typeorm/ormconfig.sqlite.json"));
+        throw new UnhandledNodeEnvError();
       }
       Log.debug("Created database connection.", {
         dbName: this.connection.name,
