@@ -7,8 +7,10 @@
   "author": "github.com/ceilingwaffle",
   "license": "MIT",
   "scripts": {
-    "start": "rmdir /S /Q dist & tsc & xcopy .\\src\\locales .\\dist\\locales\\ /E /C /Q /Y & ts-node src/index.ts",
-    "start:js": "rmdir /S /Q dist & tsc & xcopy .\\src\\locales .\\dist\\locales\\ /E /C /Q /Y & node dist/index.js",
+    "start": "run-script-os",
+    "start:windows": "rmdir /S /Q dist & tsc & xcopy .\\src\\locales .\\dist\\locales\\ /E /C /Q /Y & ts-node src/index.ts",
+    "start:macos": "rm -rf dist & tsc & cp -RfX src/locales/ dist/locales/ & ts-node src/index.ts",
+    "start-js": "rmdir /S /Q dist & tsc & xcopy .\\src\\locales .\\dist\\locales\\ /E /C /Q /Y & node dist/index.js",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "entity:create": "ts-node ./node_modules/typeorm/cli.js entity:create -n",
     "seed": "ts-node cli/seed-db.ts",
@@ -28,9 +30,10 @@
     "mocha": "^6.2.2",
     "mocha-parallel-tests": "^2.2.2",
     "nyc": "^14.1.1",
+    "run-script-os": "^1.0.7",
     "ts-node": "^3.3.0",
     "tsconfig-paths": "^3.9.0",
-    "typescript": "^3.6.4"
+    "typescript": "^3.7.2"
   },
   "dependencies": {
     "@types/fs-extra": "^7.0.0",

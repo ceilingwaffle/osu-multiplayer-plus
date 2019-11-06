@@ -66,7 +66,7 @@ export class DiscordBot {
         .registerCommand(new AddTeamsCommand(this.commando))
         .registerCommand(new TargetGameCommand(this.commando));
 
-      await sqlite.open(Helpers.getCommandoDatabasePath()).then((db: Database) => {
+      await sqlite.open(Helpers.getOrCreateCommandoDatabasePath()).then((db: Database) => {
         this.commando.setProvider(new SQLiteProvider(db));
       });
 
