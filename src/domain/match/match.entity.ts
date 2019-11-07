@@ -42,7 +42,7 @@ export class Match extends CreationTimestampedEntity {
   endTime: number;
 
   @OneToOne(type => MatchAborted, matchAborted => matchAborted.match)
-  aborted: MatchAborted;
+  matchAbortion: MatchAborted;
 
   /** e.g. if the map was a warmup and should not be included in the leaderboard calculations */
   @Column({ default: false })

@@ -9,13 +9,13 @@ export class MatchAborted extends CreationTimestampedEntity {
   id: number;
 
   @Column({ default: false })
-  aborted: boolean;
+  isAborted: boolean;
 
-  /** A user can manually undo a match abort */
-  @ManyToOne(type => User)
-  @JoinColumn({ name: "undone_by_user_id" })
-  undoneBy: User;
+  // /** A user can manually undo a match abort */
+  // @ManyToOne(type => User)
+  // @JoinColumn({ name: "undone_by_user_id" })
+  // undoneBy: User;
 
-  @OneToOne(type => Match, match => match.aborted)
+  @OneToOne(type => Match, match => match.matchAbortion)
   match: Match;
 }

@@ -7,7 +7,7 @@ export class MatchService {
   static createMatchFromApiMatch(apiMatch: ApiMatch, lobby: Lobby): Match {
     const match = new Match();
     const matchAborted = this.createMatchAbortedIfApiMatchAborted(apiMatch);
-    if (matchAborted) match.aborted = matchAborted;
+    if (matchAborted) match.matchAbortion = matchAborted;
     match.beatmapId = apiMatch.mapId.toString();
     match.endTime = isNaN(apiMatch.endTime) ? null : apiMatch.endTime;
     match.ignored = false; // TODO
@@ -23,7 +23,7 @@ export class MatchService {
     let matchAborted: MatchAborted;
     if (apiMatch.aborted) {
       matchAborted = new MatchAborted();
-      matchAborted.aborted = true;
+      matchAborted.isAborted = true;
     }
     return matchAborted;
   }

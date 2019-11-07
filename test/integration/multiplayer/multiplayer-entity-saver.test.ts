@@ -460,8 +460,8 @@ describe("When saving multiplayer results", function() {
                         beatmapId: "4178",
                         startTime: input.matches[0].startTime,
                         endTime: input.matches[0].endTime,
-                        aborted: {
-                          aborted: false
+                        matchAbortion: {
+                          isAborted: false
                         },
                         ignored: false,
                         teamMode: TeamMode.HeadToHead,
@@ -669,8 +669,8 @@ describe("When saving multiplayer results", function() {
                         beatmapId: "4178",
                         startTime: apiResults1.matches[0].startTime,
                         endTime: apiResults1.matches[0].endTime,
-                        aborted: {
-                          aborted: false
+                        matchAbortion: {
+                          isAborted: false
                         },
                         ignored: false,
                         teamMode: TeamMode.HeadToHead,
@@ -835,8 +835,8 @@ describe("When saving multiplayer results", function() {
                         beatmapId: "6666",
                         startTime: apiResults2.matches[0].startTime,
                         endTime: apiResults2.matches[0].endTime,
-                        aborted: {
-                          aborted: false
+                        matchAbortion: {
+                          isAborted: false
                         },
                         ignored: false,
                         teamMode: TeamMode.HeadToHead,

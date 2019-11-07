@@ -492,4 +492,72 @@ describe("When processing multiplayer results", function() {
     // TODO: Test where lobby 1 BM#1 starts before lobby 2 BM#1, and lobby 2 BM#1 finishes before lobby 1 BM#1
     //       (e.g. if the results from lobby 1 had some network latency before submission)
   });
+
+  describe("aborted matches", function() {
+    this.beforeAll(function() {
+      return new Promise(async (resolve, reject) => {
+        try {
+          await iocContainer.get<IDbClient>(TYPES.IDbClient).connect();
+
+          const teamController = iocContainer.get<TeamController>(TYPES.TeamController);
+          const lobbyController = iocContainer.get<LobbyController>(TYPES.LobbyController);
+          const gameController = iocContainer.get<GameController>(TYPES.GameController);
+
+          // create game 1
+          const createdGameResponse = await gameController.create({
+            gameDto: context.requests.createGameRequest1,
+            requestDto: context.requests.discordRequest1
+          });
+          expect(createdGameResponse.success).to.be.true;
+
+          // add lobby 1
+          const createdLobbyResponse = await lobbyController.create({
+            lobbyDto: context.requests.addLobby1Request,
+            requestDto: context.requests.discordRequest1
+          });
+          expect(createdLobbyResponse.success).to.be.true;
+
+          // add 2v2v2v2 teams to game 1
+          const addTeamsDto: AddTeamsDto = {
+            osuUsernamesOrIdsOrSeparators: TestHelpers.convertToTeamDtoArgFormatFromObject(context.values.teams._2v2v2v2)
+          };
+          const addTeamsResponse = await teamController.create({ teamDto: addTeamsDto, requestDto: context.requests.discordRequest1 });
+          expect(addTeamsResponse.success).to.be.true;
+
+          // start game 1
+          const startedGame1Response = await gameController.startGame({
+            startGameDto: { gameId: 1 },
+            requestDto: context.requests.discordRequest1
+          });
+          expect(startedGame1Response.success).to.be.true;
+
+          return resolve();
+        } catch (error) {
+          return reject(error);
+        }
+      });
+    });
+
+    this.afterAll(function() {
+      return new Promise(async (resolve, reject) => {
+        try {
+          const conn = iocContainer.get<IDbClient>(TYPES.IDbClient).getConnection();
+          if (!conn) return reject("DB Connection ");
+          await TestHelpers.dropTestDatabase(conn);
+          conn.close();
+          return resolve();
+        } catch (error) {
+          return reject(error);
+        }
+      });
+    });
+
+    // TODO: Test aborted matches. See class: MultiplayerResultsListener, method: gatherReportableItemsForGame()
+
+    xit("should ensure a 'match aborted' message was reported", function() {});
+
+    xit("should ensure a 'match aborted' message was NOT reported", function() {});
+
+    xit("should ensure no teams lost a life for the aborted match", function() {});
+  });
 });

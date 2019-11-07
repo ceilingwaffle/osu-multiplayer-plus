@@ -7,6 +7,9 @@ import _ = require("lodash"); // do not convert to default import -- it will bre
 import { Leaderboard } from "../components/leaderboard";
 import { VirtualMatchCreator } from "../virtual-match/virtual-match-creator";
 import { VirtualMatchKey } from "../virtual-match/virtual-match-key";
+import { sortByMatchOldestToLatest } from "../components/match";
+import { LobbyBeatmapStatusMessageBuilder } from "../messages/classes/lobby-beatmap-status-message-builder";
+import { GameLobby } from "../../domain/game/game-lobby.entity";
 
 export class MultiplayerResultsReporter {
   static getItemsToBeReported(args: {
@@ -14,7 +17,8 @@ export class MultiplayerResultsReporter {
     game: Game;
   }): { allReportables: ReportableContext<ReportableContextType>[]; toBeReported: ReportableContext<ReportableContextType>[] } {
     const allReportables: ReportableContext<ReportableContextType>[] = MultiplayerResultsReporter.gatherReportableItemsForGame({
-      virtualMatchReportDatas: args.virtualMatchReportDatas
+      virtualMatchReportDatas: args.virtualMatchReportDatas,
+      game: args.game
     });
 
     const reported: ReportableContext<ReportableContextType>[] = MultiplayerResultsReporter.getAlreadyReportedItemsForGame({
@@ -32,6 +36,7 @@ export class MultiplayerResultsReporter {
 
   private static gatherReportableItemsForGame(args: {
     virtualMatchReportDatas: VirtualMatchReportData[];
+    game: Game;
   }): ReportableContext<ReportableContextType>[] {
     const reportables: ReportableContext<ReportableContextType>[] = [];
 
@@ -77,8 +82,63 @@ export class MultiplayerResultsReporter {
       }
     });
 
+    // We generate the aborted matches here instead of in the above foreach loop because vmrData cannot contain info about aborted matches.
+    // vmrData depends on having virtual matches. Virtual matches depend on having the same beatmap completed in all game lobbies.
+    // We cannot form a VM until all matches have completed a lobby.
+    // However, an aborted match does not depend on all same maps to have been completed in all lobbies - it only depends on one lobby to have aborted a match.
+    const abortedMatchReportables = MultiplayerResultsReporter.generateAbortedMatchReportables({ gameLobbies: args.game.gameLobbies });
+    reportables.push(...abortedMatchReportables);
+
     const filteredReportables = MultiplayerResultsReporter.getReportablesOccurringBeforeAndIncludingFinalLeaderboard(reportables);
+
     return filteredReportables;
+  }
+
+  private static generateAbortedMatchReportables(args: { gameLobbies: GameLobby[] }): ReportableContext<"message">[] {
+    const reportables: ReportableContext<"message">[] = [];
+
+    // gather all matches for all lobbies of the game
+    const matches = _(args.gameLobbies)
+      .map(gameLobby => gameLobby.lobby.matches)
+      .flatten()
+      .uniqBy(match => match.id)
+      .sortBy(match => sortByMatchOldestToLatest(LobbyBeatmapStatusMessageBuilder.buildMatchComponent(match)))
+      .value();
+
+    if (!matches) return reportables;
+
+    // filter to include only aborted matches
+    const aborted = matches
+      .filter(match => match.matchAbortion?.isAborted)
+      .map(match => ({
+        match: match,
+        // we generate a vm key here in order to get the sameBeatmapNumber of the map
+        fakeVirtualMatchKey: VirtualMatchCreator.createSameBeatmapKeyObjectForMatch(match, matches)
+      }));
+
+    if (!aborted) return reportables;
+
+    // generate the aborted-match messages
+    aborted.forEach(abortedMatch => {
+      const matchTime = VirtualMatchCreator.getTimeOfMatch(abortedMatch.match);
+      const reportable: ReportableContext<"message"> = {
+        type: "message",
+        subType: "match_aborted",
+        item: {
+          type: "match_aborted",
+          message: `Map ${abortedMatch.match.beatmapId} aborted in lobby ${abortedMatch.match.lobby.id}.`,
+          sameBeatmapNumber: abortedMatch.fakeVirtualMatchKey.sameBeatmapNumber,
+          beatmapId: abortedMatch.fakeVirtualMatchKey.beatmapId,
+          time: matchTime
+        },
+        sameBeatmapNumber: abortedMatch.fakeVirtualMatchKey.sameBeatmapNumber,
+        beatmapId: abortedMatch.fakeVirtualMatchKey.beatmapId,
+        time: matchTime
+      };
+      reportables.push(reportable);
+    });
+
+    return reportables;
   }
 
   /**

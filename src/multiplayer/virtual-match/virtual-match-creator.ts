@@ -146,7 +146,7 @@ export class VirtualMatchCreator {
     return str;
   }
 
-  private static createSameBeatmapKeyObjectForMatch(match: Match, matches: Match[]): VirtualMatchKey {
+  static createSameBeatmapKeyObjectForMatch(match: Match, matches: Match[]): VirtualMatchKey {
     return {
       beatmapId: match.beatmapId,
       sameBeatmapNumber:
