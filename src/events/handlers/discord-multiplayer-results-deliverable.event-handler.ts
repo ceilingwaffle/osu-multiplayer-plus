@@ -8,7 +8,10 @@ export class DiscordMultiplayerResultsDeliverableEventHandler extends EventHandl
   }
 
   async handle(event: MultiplayerResultsDeliverableEvent): Promise<boolean> {
-    Log.info(`TODO: Handle MultiplayerResultsDeliverableEvent...`, event.reportables);
+    Log.info(`TODO: Handle MultiplayerResultsDeliverableEvent...`, {
+      reportables: event.reportables,
+      gameMessageTargets: event.gameMessageTargets
+    });
     return true;
   }
 }
