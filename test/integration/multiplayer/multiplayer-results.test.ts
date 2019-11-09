@@ -2,6 +2,7 @@ import "../../../src/bootstrap";
 import "mocha";
 import * as chai from "chai";
 import { expect } from "chai";
+import * as spies from "chai-spies";
 import chaiExclude from "chai-exclude";
 import iocContainer from "../../../src/inversify.config";
 import TYPES from "../../../src/types";
@@ -26,8 +27,17 @@ import { Leaderboard } from "../../../src/multiplayer/components/leaderboard";
 import { expectedLeaderboards } from "./context/spreadsheet-leaderboards";
 import { GameStatus } from "../../../src/domain/game/game-status";
 import { TeamEliminatedGameEvent } from "../../../src/multiplayer/game-events/team-eliminated.game-event";
+import { ApiMultiplayer } from "../../../src/osu/types/api-multiplayer";
+import { TeamMode } from "../../../src/multiplayer/components/enums/team-mode";
+import { FakeOsuApiFetcher } from "../../classes/fake-osu-api-fetcher";
+import { MultiplayerResultsListener } from "../../../src/multiplayer/classes/multiplayer-results-listener";
+import { IEventDispatcher } from "../../../src/events/interfaces/event-dispatcher";
+import { EventHandler } from "../../../src/events/classes/event-handler";
+import { IEvent } from "../../../src/events/interfaces/event";
+import { MultiplayerResultsDeliverableEvent } from "../../../src/events/multiplayer-results-deliverable.event";
 
 chai.use(chaiExclude);
+chai.use(spies);
 
 describe("When processing multiplayer results", function() {
   describe("for the spreadsheet example - https://docs.google.com/spreadsheets/d/13GDEfc9s_XgSruD__ht4fQTC8U4D00IQrhxlASg52eA/edit?usp=sharing", function() {
@@ -554,10 +564,94 @@ describe("When processing multiplayer results", function() {
 
     // TODO: Test aborted matches. See class: MultiplayerResultsListener, method: gatherReportableItemsForGame()
 
-    xit("should ensure a 'match aborted' message was reported", function() {});
+    it("should ensure a 'match aborted' message was reported", function() {
+      return new Promise(async (resolve, reject) => {
+        try {
+          const lobby1ApiResults_AbortedMatch1: ApiMultiplayer = {
+            multiplayerId: context.requests.addLobby1Request.banchoMultiplayerId,
+            matches: [
+              {
+                mapNumber: 1,
+                multiplayerId: context.requests.addLobby1Request.banchoMultiplayerId,
+                mapId: "BM1",
+                startTime: new Date().getTime() + 1000,
+                endTime: null,
+                teamMode: TeamMode.HeadToHead,
+                event: "match_end",
+                scores: [],
+                aborted: true
+              },
+              {
+                mapNumber: 2,
+                multiplayerId: context.requests.addLobby1Request.banchoMultiplayerId,
+                mapId: "BM2",
+                startTime: new Date().getTime() + 11000,
+                endTime: null,
+                teamMode: TeamMode.HeadToHead,
+                event: "match_start",
+                scores: []
+              }
+            ]
+          };
+
+          // let spy = chai.spy.on(TestMultiplayerResultsDeliverableEventHandler, "handle");
+
+          const dispatcher = iocContainer.get<IEventDispatcher>(TYPES.IEventDispatcher);
+          dispatcher.subscribe(new TestMultiplayerResultsDeliverableEventHandler());
+
+          const mpResultsListener = iocContainer.get<MultiplayerResultsListener>(TYPES.MultiplayerResultsListener);
+
+          mpResultsListener.eventEmitter.on("newMultiplayerMatches", async apiMultiplayerResult => {
+            // TODO: Extract method from mp results listener and call it here, instead of repeating code
+            const processor = new MultiplayerResultsProcessor(apiMultiplayerResult);
+            const multiplayerGames: Game[] = await processor.saveMultiplayerEntities();
+
+            for (const game of multiplayerGames) {
+              if (GameStatus.isEndedStatus(game.status)) {
+                // Log.info(`Skipping handling of new MP results for game ${game.id} due to game having ended status.`);
+                continue;
+              }
+
+              const virtualMatchReportDatas: VirtualMatchReportData[] = await processor.buildVirtualMatchReportGroupsForGame(game);
+              const { toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({ virtualMatchReportDatas, game });
+              await MultiplayerResultsDeliverer.deliver({ reportables: toBeReported, gameMessageTargets: game.messageTargets });
+            }
+            // expect(spy).to.have.been.called();
+            expect(TestMultiplayerResultsDeliverableEventHandler.wasCalled).to.be.true;
+            return resolve();
+          });
+
+          await mpResultsListener.eventEmitter.emit("newMultiplayerMatches", lobby1ApiResults_AbortedMatch1);
+
+          // TODO: Write unit test for NodesuApiTransformer isMatchAborted method
+
+          setTimeout(() => {
+            return reject("Test took too long");
+          }, 10000);
+        } catch (error) {
+          return reject(error);
+        }
+      });
+    });
 
     xit("should ensure a 'match aborted' message was NOT reported", function() {});
 
     xit("should ensure no teams lost a life for the aborted match", function() {});
   });
 });
+
+class TestMultiplayerResultsDeliverableEventHandler extends EventHandler<MultiplayerResultsDeliverableEvent> {
+  // TODO: Use spy instead of wasCalled property
+  public static wasCalled: boolean;
+
+  constructor() {
+    super(MultiplayerResultsDeliverableEvent);
+  }
+
+  async handle(event: MultiplayerResultsDeliverableEvent): Promise<boolean> {
+    const matchAbortedReportable = event.reportables.filter(r => r.subType === "match_aborted");
+    expect(matchAbortedReportable).to.have.lengthOf(1);
+    TestMultiplayerResultsDeliverableEventHandler.wasCalled = true;
+    return true;
+  }
+}
