@@ -84,8 +84,8 @@ export class MultiplayerResultsReporter {
 
     // We generate the aborted matches here instead of in the above foreach loop because vmrData cannot contain info about aborted matches.
     // vmrData depends on having virtual matches. Virtual matches depend on having the same beatmap completed in all game lobbies.
-    // We cannot form a VM until all matches have completed a lobby.
-    // However, an aborted match does not depend on all same maps to have been completed in all lobbies - it only depends on one lobby to have aborted a match.
+    // We cannot form a VM until all lobbies have completed the same map.
+    // However, an aborted match does not depend on the same map to be completed in all lobbies - it only depends on one lobby to have aborted a match.
     const abortedMatchReportables = MultiplayerResultsReporter.generateAbortedMatchReportables({ gameLobbies: args.game.gameLobbies });
     reportables.push(...abortedMatchReportables);
 
@@ -113,7 +113,7 @@ export class MultiplayerResultsReporter {
       .map(match => ({
         match: match,
         // we generate a vm key here in order to get the sameBeatmapNumber of the map
-        fakeVirtualMatchKey: VirtualMatchCreator.createSameBeatmapKeyObjectForMatch(match, matches)
+        incompleteVMKey: VirtualMatchCreator.createSameBeatmapKeyObjectForMatch(match, matches)
       }));
 
     if (!aborted) return reportables;
@@ -127,12 +127,12 @@ export class MultiplayerResultsReporter {
         item: {
           type: "match_aborted",
           message: `Map ${abortedMatch.match.beatmapId} aborted in lobby ${abortedMatch.match.lobby.id}.`,
-          sameBeatmapNumber: abortedMatch.fakeVirtualMatchKey.sameBeatmapNumber,
-          beatmapId: abortedMatch.fakeVirtualMatchKey.beatmapId,
+          sameBeatmapNumber: abortedMatch.incompleteVMKey.sameBeatmapNumber,
+          beatmapId: abortedMatch.incompleteVMKey.beatmapId,
           time: matchTime
         },
-        sameBeatmapNumber: abortedMatch.fakeVirtualMatchKey.sameBeatmapNumber,
-        beatmapId: abortedMatch.fakeVirtualMatchKey.beatmapId,
+        sameBeatmapNumber: abortedMatch.incompleteVMKey.sameBeatmapNumber,
+        beatmapId: abortedMatch.incompleteVMKey.beatmapId,
         time: matchTime
       };
       reportables.push(reportable);
