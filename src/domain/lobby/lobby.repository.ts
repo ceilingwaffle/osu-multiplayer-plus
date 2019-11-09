@@ -40,6 +40,7 @@ export class LobbyRepository extends Repository<Lobby> {
       .leftJoinAndSelect("scoredBy.user", "user") // 14
 
       .leftJoinAndSelect("game.gameMatchesReported", "gameMatchesReported")
+      .leftJoinAndSelect("matches.matchAbortion", "matchAbortion")
       .leftJoin("gameMatchesReported.match", "gameMatchesReported_match") // TODO: Does this still select matches if we have some reported match records in the database?
 
       .where("lobby.id = :lobbyId", { lobbyId: lobbyId })

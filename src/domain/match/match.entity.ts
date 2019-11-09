@@ -41,7 +41,8 @@ export class Match extends CreationTimestampedEntity {
   @Column({ type: "bigint", unsigned: true, nullable: true })
   endTime: number;
 
-  @OneToOne(type => MatchAborted, matchAborted => matchAborted.match)
+  @OneToOne(type => MatchAborted, matchAborted => matchAborted.match, { cascade: ["insert", "update"] })
+  @JoinColumn()
   matchAbortion: MatchAborted;
 
   /** e.g. if the map was a warmup and should not be included in the leaderboard calculations */
