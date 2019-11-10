@@ -14,7 +14,7 @@ import { GameStatus } from "../../domain/game/game-status";
 
 @injectable()
 export class MultiplayerResultsListener {
-  private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
+  // private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
   public readonly eventEmitter: Emittery.Typed<OsuLobbyScannerEventDataMap> = new Emittery.Typed<OsuLobbyScannerEventDataMap>();
 
   constructor() {
@@ -36,7 +36,7 @@ export class MultiplayerResultsListener {
         Log.info("Event newMultiplayerMatches (buffer)", {
           mpid: apiMultiplayerResult.multiplayerId,
           matchesCount: apiMultiplayerResult.matches.length,
-          targetGameIds: Array.from(apiMultiplayerResult.targetGameIds)
+          targetGameIds: apiMultiplayerResult.targetGameIds?.size ? Array.from(apiMultiplayerResult.targetGameIds) : []
         });
 
         const processor = new MultiplayerResultsProcessor(apiMultiplayerResult);
