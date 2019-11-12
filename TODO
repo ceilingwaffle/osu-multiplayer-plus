@@ -2,7 +2,7 @@
 TODO: 
     
     Leaderboard:
-        ☐ Create message reportable if match was aborted @created(19-11-03 23:03)
+        ✔ Create message reportable if match was aborted @created(19-11-03 23:03) @done(19-11-12 18:19)
         ✔ Add TeamEliminated game event @created(19-11-02 23:30) @done(19-11-03 23:04)
         ✔ Fix bug - Two leaderboards are being incorrectly generated for each match for the Thaibuy vs Bubbleman match - 54567825 @created(19-11-02 00:42) @done(19-11-02 16:43)
         ✔ Fix bug - Previous position and "changed" should be undefined for all teams for the first leaderboard generated for a game @created(19-11-02 00:36) @done(19-11-02 16:43)
@@ -160,6 +160,7 @@ TODO:
         ☐ Too many match results being downloaded from the osu API.
             Need some way of limiting the maximum number of matches downloaded per multiplayer (right now we're using 500kb/s for 150+ matches in a single multi when polling every 1s)
     Refactor:
+        ☐ Rename DiscordMessageBuilder -> DiscordCommandMessageBuilder and all similar classes @created(19-11-12 19:40)
         ☐ Replace object in method args with (args: {...}) @created(19-10-17 15:53)
             to simplify the Document This comments, and reduce the character count in the method signatures
         ☐ For next big version @created(19-10-08 15:30)
@@ -219,6 +220,7 @@ TODO:
             Or if we just wanted to see osu API events, we could just enable those.
         ☐ Can we create a separate log file for each game? @created(19-09-12 13:54)
             To make it easier to find and analyze the events of indivudual games.
+        ☐ Replace all calls to Log.methodFailure(etc) with objects like {methodName: ..., className: ...} @created(19-11-12 20:26)
     Pre-launch checklist:
         ☐ Replace all uses of "!obr" with "!mpp" @created(19-09-25 23:38)
         ☐ Some way of keeping dependencies secure and up-to-date

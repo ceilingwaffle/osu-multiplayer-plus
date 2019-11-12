@@ -11,6 +11,8 @@ import { AddTeamsCommand } from "./commands/team/add-teams.command";
 import { TargetGameCommand } from "./commands/game/target-game.command";
 import { StartGameCommand } from "./commands/game/start-game.command";
 import { resolve } from "path";
+import { DiscordMessage } from "../events/handlers/discord-message";
+import { DeliveredMessageReport } from "../events/handlers/delivered-message-report";
 const sqlite = require("sqlite");
 
 export class DiscordBot {
@@ -79,6 +81,10 @@ export class DiscordBot {
       Log.error("Error starting the Discord bot.", error);
       throw error;
     }
+  }
+
+  sendChannelMessage(message: DiscordMessage, channelId: string): Promise<DeliveredMessageReport<DiscordMessage>> {
+    throw new Error("TODO: Implement method of DiscordBot.");
   }
 
   // private registerListeners(): void {
