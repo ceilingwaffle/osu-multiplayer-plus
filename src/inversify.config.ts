@@ -21,6 +21,7 @@ import { IDbClient, DbClient } from "./database/db-client";
 import { MultiplayerResultsListener } from "./multiplayer/classes/multiplayer-results-listener";
 import { IEventDispatcher } from "./events/interfaces/event-dispatcher";
 import { EventDispatcher } from "./events/classes/event-dispatcher";
+import { DiscordBot } from "./discord/discord-bot";
 
 // const iocContainer = new Container();
 // autoProvide(iocContainer, entities);
@@ -64,6 +65,8 @@ export class IOCKernel extends Container {
 
     this.bind<IEventDispatcher>(TYPES.IEventDispatcher).to(EventDispatcher).inSingletonScope();
 
+    this.bind<DiscordBot>(TYPES.DiscordBot).to(DiscordBot).inSingletonScope();
+    
     if (process.env.NODE_ENV === "test") {
       this.bind<IOsuApiFetcher>(TYPES.IOsuApiFetcher).to(FakeOsuApiFetcher).inSingletonScope();
       // this.bind<IOsuLobbyScanner>(TYPES.IOsuLobbyScanner).to(FakeOsuLobbyScanner).inSingletonScope();

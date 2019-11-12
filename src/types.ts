@@ -15,7 +15,8 @@ export const TYPES = {
   GameEventRegistrarCollection: Symbol.for("GameEventRegistrarCollection"),
   IDbClient: Symbol.for("IDbClient"),
   MultiplayerResultsListener: Symbol.for("MultiplayerResultsListener"),
-  IEventDispatcher: Symbol.for("IEventDispatcher")
+  IEventDispatcher: Symbol.for("IEventDispatcher"),
+  DiscordBot: Symbol.for("DiscordBot")
 };
 
 export default TYPES;
