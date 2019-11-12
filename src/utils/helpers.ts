@@ -30,13 +30,10 @@ export class Helpers {
 
   static createEmptyCommandoDatabaseIfNotExists(dbPath: string): void {
     try {
-<<<<<<< HEAD
       // check if database file exists
       if (fs.existsSync(dbPath)) return;
 
       // create database file
-=======
->>>>>>> 4bf97743557686ba15947b867e8c5fa2aa20e8e7
       const contents = "";
       fs.writeFile(dbPath, contents, { flag: "wx" }, function(err) {
         if (err) throw err;
