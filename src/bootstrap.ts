@@ -7,6 +7,8 @@ import { Connection } from "typeorm";
 import { IDbClient } from "./database/db-client";
 import { IEventDispatcher } from "./events/interfaces/event-dispatcher";
 import { DiscordMultiplayerResultsDeliverableEventHandler } from "./events/handlers/discord-multiplayer-results-deliverable.event-handler";
+import { MultiplayerResultsDeliverableEvent } from "./events/multiplayer-results-deliverable.event";
+import { DiscordBot } from "./discord/discord-bot";
 
 require("dotenv").config({
   path: path.resolve(__dirname, "../.env"),
@@ -33,7 +35,7 @@ String.prototype.toSentenceCase = function(): string {
 
 const registerEventHandlers = () => {
   const dispatcher = iocContainer.get<IEventDispatcher>(TYPES.IEventDispatcher);
-  dispatcher.subscribe(new DiscordMultiplayerResultsDeliverableEventHandler());
+  dispatcher.subscribe<MultiplayerResultsDeliverableEvent>(new DiscordMultiplayerResultsDeliverableEventHandler());
 };
 
 const initDatabaseClientConnection = async (): Promise<Connection> => {
@@ -46,4 +48,9 @@ export const bootstrap = async (): Promise<void> => {
   registerEventHandlers();
   await initDatabaseClientConnection();
   await GameEventRegistrarInitializer.initGameEventRegistrarsFromActiveDatabaseGames();
+
+  if (process.env.NODE_ENV !== "test") {
+    const discordBot = iocContainer.get<DiscordBot>(TYPES.DiscordBot);
+    await discordBot.start(process.env.DISCORD_BOT_TOKEN);
+  }
 };
