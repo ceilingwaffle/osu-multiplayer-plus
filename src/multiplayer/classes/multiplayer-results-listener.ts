@@ -9,7 +9,7 @@ import { injectable } from "inversify";
 import { GameRepository } from "../../domain/game/game.repository";
 import { getCustomRepository } from "typeorm";
 import { MultiplayerResultsReporter } from "./multiplayer-results-reporter";
-import { MultiplayerResultsDeliverer } from "./multiplayer-results-deliverer";
+import { ReportablesDeliverer } from "./reportables-deliverer";
 import { GameStatus } from "../../domain/game/game-status";
 
 @injectable()
@@ -50,7 +50,7 @@ export class MultiplayerResultsListener {
 
           const virtualMatchReportDatas: VirtualMatchReportData[] = await processor.buildVirtualMatchReportGroupsForGame(game);
           const { toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({ virtualMatchReportDatas, game });
-          await MultiplayerResultsDeliverer.deliver({ reportables: toBeReported, gameMessageTargets: game.messageTargets });
+          await ReportablesDeliverer.deliver({ reportables: toBeReported, gameMessageTargets: game.messageTargets });
         }
       }
 

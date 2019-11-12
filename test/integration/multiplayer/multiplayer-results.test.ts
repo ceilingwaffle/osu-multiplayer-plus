@@ -21,7 +21,7 @@ import { VirtualMatchReportData } from "../../../src/multiplayer/virtual-match/v
 import { MultiplayerResultsReporter } from "../../../src/multiplayer/classes/multiplayer-results-reporter";
 import { ReportableContextType } from "../../../src/multiplayer/reports/reportable-context-type";
 import { ReportableContext } from "../../../src/multiplayer/reports/reportable-context";
-import { MultiplayerResultsDeliverer } from "../../../src/multiplayer/classes/multiplayer-results-deliverer";
+import { ReportablesDeliverer } from "../../../src/multiplayer/classes/reportables-deliverer";
 import { LeaderboardBuilder } from "../../../src/multiplayer/leaderboard/leaderboard-builder";
 import { Leaderboard } from "../../../src/multiplayer/components/leaderboard";
 import { expectedLeaderboards } from "./context/spreadsheet-leaderboards";

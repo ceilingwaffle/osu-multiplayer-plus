@@ -6,7 +6,7 @@ import { MultiplayerResultsDeliverableEvent } from "../../events/multiplayer-res
 import { IEventDispatcher } from "../../events/interfaces/event-dispatcher";
 import { GameMessageTarget } from "../../domain/game/game-message-target";
 
-export class MultiplayerResultsDeliverer {
+export class ReportablesDeliverer {
   static async deliver(args: {
     reportables: ReportableContext<ReportableContextType>[];
     gameMessageTargets: GameMessageTarget[];
