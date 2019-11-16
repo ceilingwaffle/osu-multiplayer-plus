@@ -1,7 +1,5 @@
 import iocContainer from "../../../inversify.config";
-import getDecorators from "inversify-inject-decorators";
 import { TYPES } from "../../../types";
-const { lazyInject } = getDecorators(iocContainer);
 import { CommandoClient, CommandMessage } from "discord.js-commando";
 import { GameController } from "../../../domain/game/game.controller";
 import { AppBaseCommand } from "../app-base-command";
@@ -13,7 +11,7 @@ import { ErrorDiscordMessageBuilder } from "../../message-builders/error.discord
 import { StartGameDiscordMessageBuilder } from "../../message-builders/game/start-game.discord-message-builder";
 
 export class StartGameCommand extends AppBaseCommand {
-  @lazyInject(TYPES.GameController) private gameController: GameController;
+  private gameController = iocContainer.get<GameController>(TYPES.GameController);
 
   constructor(commando: CommandoClient) {
     super(commando, {

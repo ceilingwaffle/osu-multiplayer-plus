@@ -1,7 +1,5 @@
-import { TYPES } from "../../types";
-import getDecorators from "inversify-inject-decorators";
 import iocContainer from "../../inversify.config";
-const { lazyInject } = getDecorators(iocContainer);
+import { TYPES } from "../../types";
 import { UserService } from "../../domain/user/user.service";
 import { User } from "../../domain/user/user.entity";
 import { Either } from "../../utils/Either";

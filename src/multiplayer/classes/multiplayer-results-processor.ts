@@ -1,7 +1,5 @@
 import iocContainer from "../../inversify.config";
-import getDecorators from "inversify-inject-decorators";
 import { TYPES } from "../../types";
-const { lazyInject } = getDecorators(iocContainer);
 import { ApiMultiplayer } from "../../osu/types/api-multiplayer";
 import { Log } from "../../utils/Log";
 import { Lobby } from "../../domain/lobby/lobby.entity";

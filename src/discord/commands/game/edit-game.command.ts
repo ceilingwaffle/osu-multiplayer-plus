@@ -1,7 +1,5 @@
-import { TYPES } from "../../../types";
-import getDecorators from "inversify-inject-decorators";
 import iocContainer from "../../../inversify.config";
-const { lazyInject } = getDecorators(iocContainer);
+import { TYPES } from "../../../types";
 import { Command, CommandoClient, CommandMessage } from "discord.js-commando";
 import { Message, RichEmbed } from "discord.js";
 import { DiscordRequestDto } from "../../../requests/dto";
@@ -14,7 +12,7 @@ type PropertyNames = "lives" | "countfailed";
 const AllowedPropertyNames: PropertyNames[] = ["lives", "countfailed"];
 
 export class EditGameCommand extends Command {
-  @lazyInject(TYPES.GameController) private gameController: GameController;
+  private gameController = iocContainer.get<GameController>(TYPES.GameController);
 
   constructor(commando: CommandoClient) {
     super(commando, {

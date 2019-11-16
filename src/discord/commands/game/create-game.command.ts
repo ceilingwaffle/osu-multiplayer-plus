@@ -1,7 +1,5 @@
 import iocContainer from "../../../inversify.config";
-import getDecorators from "inversify-inject-decorators";
 import { TYPES } from "../../../types";
-const { lazyInject } = getDecorators(iocContainer);
 import { CommandoClient, CommandMessage } from "discord.js-commando";
 import { Message, RichEmbed, TextChannel } from "discord.js";
 import { ErrorDiscordMessageBuilder } from "../../message-builders/error.discord-message-builder";
@@ -13,7 +11,7 @@ import { GameController } from "../../../domain/game/game.controller";
 import { Log } from "../../../utils/Log";
 
 export class CreateGameCommand extends AppBaseCommand {
-  @lazyInject(TYPES.GameController) private gameController: GameController;
+  private gameController = iocContainer.get<GameController>(TYPES.GameController);
 
   constructor(commando: CommandoClient) {
     super(commando, {
@@ -50,55 +48,59 @@ export class CreateGameCommand extends AppBaseCommand {
       countfailed: "true" | "false";
     }
   ): Promise<Message | Message[]> {
-    const requestDto: DiscordRequestDto = {
-      commType: "discord",
-      authorId: message.author.id,
-      originChannelId: message.channel.id
-    };
+    try {
+      const requestDto: DiscordRequestDto = {
+        commType: "discord",
+        authorId: message.author.id,
+        originChannelId: message.channel.id
+      };
 
-    const createGameResponse = await this.gameController.create({
-      gameDto: {
-        teamLives: args.lives,
-        countFailedScores: args.countfailed
-      },
-      requestDto: requestDto
-    });
+      const createGameResponse = await this.gameController.create({
+        gameDto: {
+          teamLives: args.lives,
+          countFailedScores: args.countfailed
+        },
+        requestDto: requestDto
+      });
 
-    let toBeSent: RichEmbed;
-    if (!createGameResponse || !createGameResponse.success) {
-      // game was not created
-      toBeSent = new ErrorDiscordMessageBuilder().from(createGameResponse, this).buildDiscordMessage(message);
+      let toBeSent: RichEmbed;
+      if (!createGameResponse || !createGameResponse.success) {
+        // game was not created
+        toBeSent = new ErrorDiscordMessageBuilder().from(createGameResponse, this).buildDiscordMessage(message);
+        return message.embed(toBeSent);
+      }
+      // // game was created
+      // // add a discord channel
+      // const createTextChannelResponse = await DiscordChannelManager.createGameChannel(createGameResponse.result.gameId, message.guild);
+      // if (!createTextChannelResponse || !createTextChannelResponse.success) {
+      //   toBeSent = new ErrorDiscordMessageBuilder().from(createTextChannelResponse, this).buildDiscordMessage(message);
+      //   return message.embed(toBeSent);
+      // }
+
+      // // TODO: Write test asserting that the game-message-target was added
+      // const channel: TextChannel = createTextChannelResponse.result;
+      // // update the game message target with the discord channel just created
+      // const updateGameResponse = await this.gameController.update({
+      //   gameDto: {
+      //     gameId: createGameResponse.result.gameId,
+      //     // Since it's a new game, this discord channel we're setting should be the *only* channel.
+      //     // We're not adding a channel at this point, so use the "overwrite-all" action.
+      //     gameMessageTargetAction: { action: "overwrite-all", commType: "discord", channelId: channel.id, channelType: "game-channel" }
+      //   },
+      //   requestDto: requestDto
+      // });
+
+      // if (!updateGameResponse || !updateGameResponse.success) {
+      //   // game was not updated
+      //   toBeSent = new ErrorDiscordMessageBuilder().from(updateGameResponse, this).buildDiscordMessage(message);
+      //   return message.embed(toBeSent);
+      // }
+
+      toBeSent = new UpdateGameDiscordMessageBuilder().from(createGameResponse, this).buildDiscordMessage(message);
       return message.embed(toBeSent);
+    } catch (error) {
+      Log.methodError(this.run, this.constructor.name, error);
+      throw error;
     }
-
-    // // game was created
-    // // add a discord channel
-    // const createTextChannelResponse = await DiscordChannelManager.createGameChannel(createGameResponse.result.gameId, message.guild);
-    // if (!createTextChannelResponse || !createTextChannelResponse.success) {
-    //   toBeSent = new ErrorDiscordMessageBuilder().from(createTextChannelResponse, this).buildDiscordMessage(message);
-    //   return message.embed(toBeSent);
-    // }
-
-    // // TODO: Write test asserting that the game-message-target was added
-    // const channel: TextChannel = createTextChannelResponse.result;
-    // // update the game message target with the discord channel just created
-    // const updateGameResponse = await this.gameController.update({
-    //   gameDto: {
-    //     gameId: createGameResponse.result.gameId,
-    //     // Since it's a new game, this discord channel we're setting should be the *only* channel.
-    //     // We're not adding a channel at this point, so use the "overwrite-all" action.
-    //     gameMessageTargetAction: { action: "overwrite-all", commType: "discord", channelId: channel.id, channelType: "game-channel" }
-    //   },
-    //   requestDto: requestDto
-    // });
-
-    // if (!updateGameResponse || !updateGameResponse.success) {
-    //   // game was not updated
-    //   toBeSent = new ErrorDiscordMessageBuilder().from(updateGameResponse, this).buildDiscordMessage(message);
-    //   return message.embed(toBeSent);
-    // }
-
-    toBeSent = new UpdateGameDiscordMessageBuilder().from(createGameResponse, this).buildDiscordMessage(message);
-    return message.embed(toBeSent);
   }
 }

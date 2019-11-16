@@ -1,7 +1,5 @@
-import { TYPES } from "../../../types";
-import getDecorators from "inversify-inject-decorators";
 import iocContainer from "../../../inversify.config";
-const { lazyInject } = getDecorators(iocContainer);
+import { TYPES } from "../../../types";
 import { CommandoClient, CommandMessage } from "discord.js-commando";
 import { Message, RichEmbed } from "discord.js";
 import { ErrorDiscordMessageBuilder } from "../../message-builders/error.discord-message-builder";
@@ -10,7 +8,7 @@ import { AppBaseCommand } from "../app-base-command";
 import { LobbyController } from "../../../domain/lobby/lobby.controller";
 
 export class RemoveLobbyCommand extends AppBaseCommand {
-  @lazyInject(TYPES.LobbyController) private lobbyController: LobbyController;
+  private lobbyController = iocContainer.get<LobbyController>(TYPES.LobbyController);
 
   constructor(commando: CommandoClient) {
     super(commando, {
