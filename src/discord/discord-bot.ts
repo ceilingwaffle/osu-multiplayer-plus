@@ -10,11 +10,13 @@ import { EditGameCommand } from "./commands/game/edit-game.command";
 import { AddTeamsCommand } from "./commands/team/add-teams.command";
 import { TargetGameCommand } from "./commands/game/target-game.command";
 import { StartGameCommand } from "./commands/game/start-game.command";
-import { resolve } from "path";
 import { DiscordMessage } from "../events/handlers/discord-message";
 import { DeliveredMessageReport } from "../events/handlers/delivered-message-report";
+import { TextChannel } from "discord.js";
+import { injectable } from "inversify";
 const sqlite = require("sqlite");
 
+@injectable()
 export class DiscordBot {
   private commando: CommandoClient;
 
@@ -83,8 +85,32 @@ export class DiscordBot {
     }
   }
 
-  sendChannelMessage(message: DiscordMessage, channelId: string): Promise<DeliveredMessageReport<DiscordMessage>> {
-    throw new Error("TODO: Implement method of DiscordBot.");
+  async sendChannelMessage(message: DiscordMessage, channelId: string): Promise<DeliveredMessageReport<DiscordMessage>> {
+    return new Promise<DeliveredMessageReport<DiscordMessage>>(async (resolve, reject) => {
+      const richEmbed = message.getRichEmbed();
+      const channel = this.commando.channels.find(c => c.id === channelId) as TextChannel;
+      if (!channel) return reject(`Discord channel ${channelId} unknown to Discord client.`);
+
+      try {
+        const delivered = await channel.sendEmbed(richEmbed);
+        Log.methodSuccess(this.sendChannelMessage, this.constructor.name, `Sent Discord message to channel ID ${channelId}`, {
+          reportablesSent: message.getReportables()
+        });
+        return resolve({
+          originalMessage: message,
+          discordMessageSent: delivered,
+          delivered: true
+        });
+      } catch (error) {
+        Log.methodFailure(
+          this.sendChannelMessage,
+          this.constructor.name,
+          `Discord message failed to send to text channel ID ${channelId}.`,
+          error
+        );
+        return reject(error);
+      }
+    });
   }
 
   // private registerListeners(): void {

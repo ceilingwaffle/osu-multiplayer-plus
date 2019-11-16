@@ -11,35 +11,33 @@ import { ReportableContextType } from "../../multiplayer/reports/reportable-cont
 import { GameMessageTarget } from "../../domain/game/game-message-target";
 
 export class DiscordMultiplayerResultsDeliverableEventHandler extends EventHandler<MultiplayerResultsDeliverableEvent> {
-  public discordBot: DiscordBot = iocContainer.get<DiscordBot>(TYPES.DiscordBot);
-
   constructor() {
     super(MultiplayerResultsDeliverableEvent);
   }
 
   async handle(event: MultiplayerResultsDeliverableEvent): Promise<boolean> {
-    Log.info(`TODO: Handle MultiplayerResultsDeliverableEvent...`, {
-      reportables: event.reportables,
-      gameMessageTargets: event.gameMessageTargets
-    });
-
-    return this.deliverReportables(event.reportables, event.gameMessageTargets);
+    return await DiscordMultiplayerResultsDeliverableEventHandler.deliverReportables(event.reportables, event.gameMessageTargets);
   }
 
-  async deliverReportables(reportables: ReportableContext<ReportableContextType>[], destinations: GameMessageTarget[]): Promise<boolean> {
+  private static async deliverReportables(
+    reportables: ReportableContext<ReportableContextType>[],
+    destinations: GameMessageTarget[]
+  ): Promise<boolean> {
+    Log.info(`Delivering reportables...`, { reportables: reportables, gameMessageTargets: destinations });
+
+    const discordBot: DiscordBot = iocContainer.get<DiscordBot>(TYPES.DiscordBot);
+
     const sentMessagePromises: Promise<DeliveredMessageReport<DiscordMessage>>[] = [];
 
-    reportables.forEach(reportable => {
-      // build message
-      const message = new DiscordMessage(reportable);
+    // build message
+    const message = new DiscordMessage(reportables);
 
-      destinations.forEach(destination => {
-        // ignore non-discord destinations
-        if (destination.commType !== "discord") return;
+    destinations.forEach(destination => {
+      // ignore non-discord destinations
+      if (destination.commType !== "discord") return;
 
-        const sentMessagePromise = this.discordBot.sendChannelMessage(message, destination.channelId);
-        sentMessagePromises.push(sentMessagePromise);
-      });
+      const sentMessagePromise = discordBot.sendChannelMessage(message, destination.channelId);
+      sentMessagePromises.push(sentMessagePromise);
     });
 
     try {
@@ -47,10 +45,18 @@ export class DiscordMultiplayerResultsDeliverableEventHandler extends EventHandl
       await Promise.all(sentMessagePromises);
     } catch (error) {
       // TODO: Log more info about which message failed to send
-      Log.methodFailure(this.handle, this.constructor.name, error);
+      Log.methodFailure(
+        DiscordMultiplayerResultsDeliverableEventHandler.deliverReportables,
+        DiscordMultiplayerResultsDeliverableEventHandler.name,
+        error
+      );
       return false;
     }
 
+    Log.methodSuccess(
+      DiscordMultiplayerResultsDeliverableEventHandler.deliverReportables,
+      DiscordMultiplayerResultsDeliverableEventHandler.name
+    );
     return true;
   }
 }
