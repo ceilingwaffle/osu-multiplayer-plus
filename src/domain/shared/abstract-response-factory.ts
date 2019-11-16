@@ -1,8 +1,8 @@
 import { User } from "../user/user.entity";
 import { UserReportProperties } from "./reports/user-report-properties.type";
-import moment = require("moment");
 import { Requester } from "../../requests/requesters/requester";
 import { RequestDto } from "../../requests/dto";
+import { Helpers } from "../../utils/helpers";
 
 export class AbstractResponseFactory<T> {
   constructor(protected readonly requester: Requester, protected readonly subject: T, protected readonly requestData: RequestDto) {}
@@ -20,6 +20,6 @@ export class AbstractResponseFactory<T> {
   }
 
   protected getTimeAgoTextForTime(time: number): string {
-    return moment.unix(time).fromNow();
+    return Helpers.getTimeAgoTextForTime(time);
   }
 }

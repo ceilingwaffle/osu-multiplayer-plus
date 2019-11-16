@@ -1,9 +1,9 @@
 import * as path from "path";
 import { ApiOsuUser } from "../osu/types/api-osu-user";
 import * as fs from "fs-extra";
-import cloneDeep = require("lodash/cloneDeep");
 import { Log } from "../utils/Log";
 import { UnhandledNodeEnvError } from "../errors/unhandled-node-env.error";
+import moment = require("moment");
 
 export class Helpers {
   static getNow() {
@@ -129,5 +129,9 @@ export class Helpers {
     min = Math.ceil(min);
     max = Math.floor(max);
     return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  static getTimeAgoTextForTime(time: number): string {
+    return moment.unix(time).fromNow();
   }
 }
