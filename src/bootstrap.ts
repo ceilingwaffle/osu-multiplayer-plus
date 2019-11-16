@@ -2,7 +2,6 @@ import iocContainer from "./inversify.config";
 import TYPES from "./types";
 import { GameEventRegistrarInitializer } from "./multiplayer/game-events/classes/game-event-registrar-initializer";
 import { Message } from "./utils/message";
-import * as path from "path";
 import { Connection } from "typeorm";
 import { IDbClient } from "./database/db-client";
 import { IEventDispatcher } from "./events/interfaces/event-dispatcher";
