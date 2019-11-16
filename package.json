@@ -21,7 +21,7 @@
     "cli:command": "ts-node ./cli/command.ts"
   },
   "devDependencies": {
-    "@types/chai": "^4.2.4",
+    "@types/chai": "^4.2.5",
     "@types/dotenv": "^6.1.1",
     "@types/mocha": "^5.2.7",
     "@types/node": "^8.10.59",
@@ -38,7 +38,7 @@
   "dependencies": {
     "@types/chai-spies": "^1.0.1",
     "@types/fs-extra": "^7.0.0",
-    "@types/lodash": "^4.14.146",
+    "@types/lodash": "^4.14.148",
     "async-eventemitter": "^0.2.4",
     "bancho.js": "^0.9.6",
     "bottleneck": "^2.19.5",
