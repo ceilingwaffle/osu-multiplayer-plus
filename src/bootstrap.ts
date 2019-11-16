@@ -1,3 +1,8 @@
+import * as path from "path";
+require("dotenv").config({
+  path: path.resolve(__dirname, "../.env"),
+  debug: process.env.DEBUG
+});
 import iocContainer from "./inversify.config";
 import TYPES from "./types";
 import { GameEventRegistrarInitializer } from "./multiplayer/game-events/classes/game-event-registrar-initializer";
