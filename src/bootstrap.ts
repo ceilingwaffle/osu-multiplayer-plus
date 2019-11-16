@@ -10,11 +10,6 @@ import { DiscordMultiplayerResultsDeliverableEventHandler } from "./events/handl
 import { MultiplayerResultsDeliverableEvent } from "./events/multiplayer-results-deliverable.event";
 import { DiscordBot } from "./discord/discord-bot";
 
-require("dotenv").config({
-  path: path.resolve(__dirname, "../.env"),
-  debug: process.env.DEBUG
-});
-
 declare global {
   interface String {
     toSentenceCase(): string;
@@ -45,8 +40,8 @@ const initDatabaseClientConnection = async (): Promise<Connection> => {
 
 export const bootstrap = async (): Promise<void> => {
   Message.enableSentenceCaseOutput();
-  registerEventHandlers();
   await initDatabaseClientConnection();
+  registerEventHandlers();
   await GameEventRegistrarInitializer.initGameEventRegistrarsFromActiveDatabaseGames();
 
   if (process.env.NODE_ENV !== "test") {

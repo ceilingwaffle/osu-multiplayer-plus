@@ -1,8 +1,3 @@
-import * as path from "path";
-require("dotenv").config({
-  path: path.resolve(__dirname, "../.env"),
-  debug: process.env.DEBUG
-});
 import { PostgresConnectionOptions } from "typeorm/driver/postgres/PostgresConnectionOptions";
 
 const config: PostgresConnectionOptions = {

@@ -1,8 +1,3 @@
-import * as path from "path";
-require("dotenv").config({
-  path: path.resolve(__dirname, "../.env"),
-  debug: process.env.DEBUG
-});
 import { Connection, createConnection } from "typeorm";
 import { injectable } from "inversify";
 import { Log } from "../utils/Log";

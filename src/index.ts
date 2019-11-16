@@ -1,4 +1,9 @@
 import "reflect-metadata";
+import * as path from "path";
+require("dotenv").config({
+  path: path.resolve(__dirname, "../.env"),
+  debug: process.env.DEBUG
+});
 import { Log } from "./utils/Log";
 import { bootstrap } from "./bootstrap";
 
