@@ -9,29 +9,21 @@
   </head>
   <body>
     <div class="container">
-      {{#lines}}
-        {{#alive}}
-          {{>leaderboardLine}}
-        {{/alive}}
-        {{#eliminated}}
-          {{>leaderboardLine}}
-        {{/eliminated}}
-      {{/lines}}
-    </div>
-    <div class="container">
     {{#lines}}
-      {{#alive}}
         <div class="line-group">
           <p class="line-group-title">Alive</p>
-          {{>leaderboardLine}}
+          {{#alive}}
+            {{>leaderboardLine}}
+          {{/alive}}
         </div>
-      {{/alive}}
-      {{#eliminated}}
         <div class="line-group">
           <p class="line-group-title">Eliminated</p>
-          {{>leaderboardLine}}
+          {{#eliminated}}
+            {{>leaderboardLine}}
+          {{/eliminated}}
         </div>
-      {{/eliminated}}
+    {{/lines}}
+
     </div>
   </body>
 </html>

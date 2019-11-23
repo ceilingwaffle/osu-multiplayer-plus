@@ -1,11 +1,12 @@
 import { Leaderboard } from "../components/leaderboard";
 import { Beatmap } from "../components/beatmap";
-import Mustache from "mustache";
+import * as Mustache from "mustache"; // do not convert to default import !!
 import * as puppeteer from "puppeteer";
-import fs from "fs";
+import * as fs from "fs-extra";
 import { Log } from "../../utils/Log";
 import { LeaderboardLine } from "../components/leaderboard-line";
 import { Helpers } from "../../utils/helpers";
+import * as path from "path";
 
 type PositionChangeTypes = "⬆" | "⬇" | " ";
 
@@ -51,10 +52,10 @@ export class DiscordLeaderboardImageBuilder {
     const config = {
       files: {
         templates: {
-          leaderboard: "./templates/leaderboard.mustache",
+          leaderboard: path.resolve(__dirname, "./templates/leaderboard.mustache"),
           partials: {
-            leaderboardLine: "./templates/leaderboard-line.mustache",
-            stylesheet: "./templates/assets/css/stylesheet.css"
+            leaderboardLine: path.resolve(__dirname, "./templates/partials/leaderboard-line.mustache"),
+            stylesheet: path.resolve(__dirname, "./templates/assets/css/stylesheet.css")
           }
         }
       }
@@ -91,10 +92,10 @@ export class DiscordLeaderboardImageBuilder {
       beatmap: leaderboard.beatmapPlayed,
       lines: {
         alive: leaderboard.leaderboardLines
-          .filter(ll => ll.lives.currentLives < 1)
+          .filter(ll => ll.lives.currentLives > 0)
           .map(ll => DiscordLeaderboardImageBuilder.genLeaderboardLineData(ll, leaderboard.leaderboardLines)),
         eliminated: leaderboard.leaderboardLines
-          .filter(ll => ll.lives.currentLives > 0)
+          .filter(ll => ll.lives.currentLives < 1)
           .map(ll => DiscordLeaderboardImageBuilder.genLeaderboardLineData(ll, leaderboard.leaderboardLines))
       }
     };
@@ -103,9 +104,9 @@ export class DiscordLeaderboardImageBuilder {
   private static genLeaderboardLineData(ll: LeaderboardLine, allLines: LeaderboardLine[]): ImgLeaderboardLine {
     return {
       positionChange: DiscordLeaderboardImageBuilder.genPositionChange(ll),
-      positionNumber: DiscordLeaderboardImageBuilder.genCurrentPositionString(ll, allLines),
-      teamNumberString: DiscordLeaderboardImageBuilder.genTeamNumber(ll, allLines),
-      eventEmoji: ll.eventIcon.eventEmoji,
+      positionNumber: `${DiscordLeaderboardImageBuilder.genCurrentPositionString(ll, allLines)}.`,
+      teamNumberString: `Team ${DiscordLeaderboardImageBuilder.genTeamNumber(ll, allLines)}`,
+      eventEmoji: ll.eventIcon?.eventEmoji,
       lifeHearts: DiscordLeaderboardImageBuilder.genLifeHearts(ll),
       score: Helpers.numberWithCommas(ll.teamScore.teamScore),
       // scoreTied: ll.teamScore, // TODO
