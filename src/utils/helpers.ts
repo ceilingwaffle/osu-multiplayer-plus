@@ -134,4 +134,8 @@ export class Helpers {
   static getTimeAgoTextForTime(time: number): string {
     return moment.unix(time).fromNow();
   }
+
+  static numberWithCommas(x: number): string {
+    return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
 }

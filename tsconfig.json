@@ -4,7 +4,7 @@
     "outDir": "./dist",
     "target": "es6",
     "module": "commonjs",
-    "lib": ["es6", "esnext.asynciterable"],
+    "lib": ["es6", "esnext.asynciterable", "dom"],
     "types": ["reflect-metadata", "node", "set-interval-async", "role-acl"],
     "typeRoots": ["./typings", "./node_modules/@types"],
     "emitDecoratorMetadata": true,

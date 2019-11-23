@@ -1,6 +1,8 @@
 // using TODO+ extension for vscode
 TODO: 
-    
+    ☐ Fix "Failed to end game..." @created(19-11-16 14:25)
+    ☐ Fix mp results not being delivered if we add a 2nd game with the same properties as the first (same lobby) @created(19-11-16 14:25)
+    ☐ Add - Load game watcher data from database when we restart the app @created(19-11-16 14:25)
     Leaderboard:
         ✔ Create message reportable if match was aborted @created(19-11-03 23:03) @done(19-11-12 18:19)
         ✔ Add TeamEliminated game event @created(19-11-02 23:30) @done(19-11-03 23:04)
@@ -633,9 +635,11 @@ TODO:
                     | 💀 Team Y was eliminated!                      | 
                     ---------------------------------------------------
                     Alive (4 maps remain)
-                    ⬆ 01. Team 1 |🌟| 🤎🤎🤍 | Score: 123,456 | player1 [SS], player2 [S]
-                    ⬇ 02. Team 3 |⬛| 🤎🤎🤍 | Score: 111,111👔 | p5 [S], player6 [A]
-                      03. Team 2 |⬛| 🤎🤍🤍 | Score: 111,111👔 | player7 [B], playerlongername8 [C]
+                    ⬆ 01. Team 1 |🌟| 🤎🤎🤍        | Score: 123,456 
+                                                  player1: 123,456 (SS)
+                                                  player2: 123,456 (S)
+                    ⬇ 02. Team 3 |⬛| 🤎🤎🤍         | Score: 111,111👔 | p5 [S: 123,456], player6 [A: 123,456]
+                      03. Team 2 |⬛| 🤎🤍🤍          | Score: 111,111👔 | player7 [B: 123,456], playerlongername8 [C: 123,456]
                     Eliminated
                     ⬇ 04. Team 4 |💀| 🤍🤍🤍 | Score: 100,000 | player3 [D], player4 [B]
                       05. Team 5 |⬛| 🤍🤍🤍 | Score: 0 | player9 [🚫], player10 [F]

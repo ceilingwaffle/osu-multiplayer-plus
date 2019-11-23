@@ -36,6 +36,7 @@ import { EventHandler } from "../../../src/events/classes/event-handler";
 import { IEvent } from "../../../src/events/interfaces/event";
 import { MultiplayerResultsDeliverableEvent } from "../../../src/events/multiplayer-results-deliverable.event";
 import { DiscordMultiplayerResultsDeliverableEventHandler } from "../../../src/events/handlers/discord-multiplayer-results-deliverable.event-handler";
+import { DiscordLeaderboardImageBuilder } from "../../../src/multiplayer/leaderboard/discord-leaderboard-image-builder";
 
 chai.use(chaiExclude);
 chai.use(spies);
@@ -458,6 +459,10 @@ describe("When processing multiplayer results", function() {
             expect(leaderboard)
               .excludingEvery(["players", "beatmapPlayed", "eventIcon", "latestVirtualMatchTime"])
               .to.deep.equal(expectedLeaderboards.bm5_3);
+
+            const leaderboardImageData = DiscordLeaderboardImageBuilder.buildImageDataObjectFromLeaderboard(leaderboard);
+            const b64image = await DiscordLeaderboardImageBuilder.build(leaderboardImageData);
+            console.log(b64image);
 
             // team 2 should have been eliminated
             const eliminatedGameEventsInThisLeaderboardVirtualMatch = allReportables
