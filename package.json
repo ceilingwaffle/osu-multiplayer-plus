@@ -38,7 +38,7 @@
   "dependencies": {
     "@types/chai-spies": "^1.0.1",
     "@types/fs-extra": "^7.0.0",
-    "@types/lodash": "^4.14.148",
+    "@types/lodash": "^4.14.149",
     "@types/mustache": "^0.8.32",
     "@types/puppeteer": "^2.0.0",
     "async-eventemitter": "^0.2.4",
@@ -62,7 +62,7 @@
     "moment": "^2.24.0",
     "mustache": "^3.1.0",
     "nodesu": "^0.7.1",
-    "pg": "^7.12.1",
+    "pg": "^7.14.0",
     "puppeteer": "^2.0.0",
     "reflect-metadata": "^0.1.13",
     "role-acl": "^3.3.7",
@@ -70,7 +70,7 @@
     "sqlite": "^3.0.3",
     "sqlite3": "^4.1.0",
     "tasktimer": "^3.0.0",
-    "ts-cleaner": "^1.0.3",
+    "ts-cleaner": "^1.0.4",
     "typeorm": "^0.2.20"
   }
 }
