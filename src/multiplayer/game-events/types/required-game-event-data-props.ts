@@ -4,4 +4,5 @@ export type RequiredGameEventDataProps = {
   eventMatch: VirtualMatch;
   /** The timestamp of when the event happened */
   timeOfEvent: number;
+  teamId?: number;
 };

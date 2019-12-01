@@ -181,6 +181,11 @@ describe("When processing multiplayer results", function() {
               .excludingEvery(["players", "beatmapPlayed", "eventIcon", "latestVirtualMatchTime"])
               .to.deep.equal(expectedLeaderboards.bm4_1);
 
+            // TODO: Assert leaderboardImageData
+            const leaderboardImageData = DiscordLeaderboardImageBuilder.buildImageDataObjectFromLeaderboard(leaderboard);
+            const b64image = await DiscordLeaderboardImageBuilder.build(leaderboardImageData);
+            console.log(b64image);
+
             return resolve();
           } catch (error) {
             return reject(error);
@@ -223,6 +228,11 @@ describe("When processing multiplayer results", function() {
               .excludingEvery(["players", "beatmapPlayed", "eventIcon", "latestVirtualMatchTime"])
               .to.deep.equal(expectedLeaderboards.bm3_2);
 
+            // TODO: Assert leaderboardImageData
+            const leaderboardImageData = DiscordLeaderboardImageBuilder.buildImageDataObjectFromLeaderboard(leaderboard);
+            const b64image = await DiscordLeaderboardImageBuilder.build(leaderboardImageData);
+            console.log(b64image);
+
             return resolve();
           } catch (error) {
             return reject(error);
@@ -264,6 +274,11 @@ describe("When processing multiplayer results", function() {
             expect(leaderboard)
               .excludingEvery(["players", "beatmapPlayed", "eventIcon", "latestVirtualMatchTime"])
               .to.deep.equal(expectedLeaderboards.bm5_1);
+
+            // TODO: Assert leaderboardImageData
+            const leaderboardImageData = DiscordLeaderboardImageBuilder.buildImageDataObjectFromLeaderboard(leaderboard);
+            const b64image = await DiscordLeaderboardImageBuilder.build(leaderboardImageData);
+            console.log(b64image);
 
             // await MultiplayerResultsDeliverer.deliver({ reportables: toBeReported }); // leaderboard
 
@@ -355,6 +370,11 @@ describe("When processing multiplayer results", function() {
             expect(leaderboard)
               .excludingEvery(["players", "beatmapPlayed", "eventIcon", "latestVirtualMatchTime"])
               .to.deep.equal(expectedLeaderboards.bm5_2);
+
+            // TODO: Assert leaderboardImageData
+            const leaderboardImageData = DiscordLeaderboardImageBuilder.buildImageDataObjectFromLeaderboard(leaderboard);
+            const b64image = await DiscordLeaderboardImageBuilder.build(leaderboardImageData);
+            console.log(b64image);
 
             return resolve();
           } catch (error) {
@@ -460,6 +480,7 @@ describe("When processing multiplayer results", function() {
               .excludingEvery(["players", "beatmapPlayed", "eventIcon", "latestVirtualMatchTime"])
               .to.deep.equal(expectedLeaderboards.bm5_3);
 
+            // TODO: Assert leaderboardImageData
             const leaderboardImageData = DiscordLeaderboardImageBuilder.buildImageDataObjectFromLeaderboard(leaderboard);
             const b64image = await DiscordLeaderboardImageBuilder.build(leaderboardImageData);
             console.log(b64image);

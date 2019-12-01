@@ -71,6 +71,7 @@ export class DiscordMessage {
   private addGameEventPart(reportable: ReportableContext<ReportableContextType>) {
     const gameEvent = reportable.item as IGameEvent;
     let messageValue = new String();
+    // TODO - replace all this stuff below with getting emoji from GameEventTypeDataMapper
     if (gameEvent.type === "team_eliminated") {
       const ge = gameEvent as TeamEliminatedGameEvent;
       messageValue = messageValue.concat(`💀`, ` `, `Team ${ge.data.teamId} was eliminated!`); // TODO: Team number with player names

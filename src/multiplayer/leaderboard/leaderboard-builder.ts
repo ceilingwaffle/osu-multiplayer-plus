@@ -14,9 +14,18 @@ import { VirtualMatchCreator } from "../virtual-match/virtual-match-creator";
 import { VirtualMatchReportData } from "../virtual-match/virtual-match-report-data";
 import { GameEventType } from "../game-events/types/game-event-types";
 import { IGameEvent } from "../game-events/interfaces/game-event-interface";
+import { TeamScoredHighestGameEvent } from "../game-events/team-scored-highest.game-event";
+import { GameEventIcon } from "../components/game-event-icon";
+import { GameEventTypeDataMapper } from "../game-events/classes/game-event-type-data-mapper";
+import { TeamEliminatedGameEvent } from "../game-events/team-eliminated.game-event";
+import { debug } from "util";
 
 type GameSettings = { countFailedScores: boolean; startingTeamLives: number };
-type TeamLivesMapValue = { lives: number; lostLifeInEvents: TeamScoredLowestGameEvent[]; eliminatedInEvent?: TeamScoredLowestGameEvent };
+type TeamLivesMapValue = {
+  lives: number;
+  lostLifeInEvents: TeamScoredLowestGameEvent[];
+  eliminatedInEvent?: TeamScoredLowestGameEvent;
+};
 type TeamLivesMap = Map<TeamID, TeamLivesMapValue>;
 type TeamAverageRanksMapValue = { virtualMatchAverageRank: number };
 type TeamAverageRanksMap = Map<TeamID, TeamAverageRanksMapValue>;
@@ -29,10 +38,24 @@ export class LeaderboardBuilder {
     game: Game;
     virtualMatchReportGroups: VirtualMatchReportData[];
   }): VirtualMatchReportData[] {
-    const { gameSettings, teams, teamScoredLowestEvents, teamScoresSubmittedEvents } = LeaderboardBuilder.gatherPreLeaderboardParts(args);
+    const {
+      gameSettings,
+      teams,
+      teamScoredLowestEvents,
+      // teamScoredHighestEvents,
+      teamScoresSubmittedEvents
+    } = LeaderboardBuilder.gatherPreLeaderboardParts(args);
 
     const leaderboardVMGroups: VirtualMatchReportData[] = [];
-    if (!LeaderboardBuilder.isValidPreLeaderboardParts({ gameSettings, teams, teamScoredLowestEvents, teamScoresSubmittedEvents })) {
+    // ignoring teamScoredHighestEvents from validation here because they shouldn't be necessary to build the leaderboard (neither should teamScoredLowestEvents ?)
+    if (
+      !LeaderboardBuilder.isValidPreLeaderboardParts({
+        gameSettings,
+        teams,
+        teamScoredLowestEvents,
+        teamScoresSubmittedEvents
+      })
+    ) {
       return leaderboardVMGroups;
     }
 
@@ -41,14 +64,22 @@ export class LeaderboardBuilder {
     teamScoresSubmittedEvents.forEach(tssEvent => {
       const targetEvent = tssEvent;
       lastVirtualMatch = targetEvent.data.eventMatch;
-      const teamScoredLowestEventsBeforeTargetEvent = teamScoredLowestEvents.filter(event => event.data.timeOfEvent <= targetEvent.data.timeOfEvent); //prettier-ignore
-      const teamScoresSubmittedEventsBeforeTargetEvent = teamScoresSubmittedEvents.filter(event => event.data.timeOfEvent <= targetEvent.data.timeOfEvent); //prettier-ignore
+      const teamScoredLowestEventsUpToTargetEvent = teamScoredLowestEvents.filter(
+        event => event.data.timeOfEvent <= targetEvent.data.timeOfEvent
+      );
+      const teamScoresSubmittedEventsUpToTargetEvent = teamScoresSubmittedEvents.filter(
+        event => event.data.timeOfEvent <= targetEvent.data.timeOfEvent
+      );
+
+      const allEventsUpToTargetEvent = _.flatten(args.virtualMatchReportGroups.filter(vmrg => vmrg.events).map(vmrg => vmrg.events)).filter(
+        event => event.data.timeOfEvent <= targetEvent.data.timeOfEvent
+      );
 
       const tssEventVirtualMatch = targetEvent.data.eventMatch;
       const teamScoresForLastVirtualMatch = TeamScoreCalculator.calculateTeamScoresForVirtualMatch(tssEventVirtualMatch, teams);
       const teamLives: TeamLivesMap = LeaderboardBuilder.calculateFromEvents_LatestTeamLives(
         teams,
-        teamScoredLowestEventsBeforeTargetEvent,
+        teamScoredLowestEventsUpToTargetEvent,
         gameSettings.startingTeamLives
       );
 
@@ -57,8 +88,9 @@ export class LeaderboardBuilder {
         lastVirtualMatch,
         args,
         teamScoresForLastVirtualMatch,
-        teamScoresSubmittedEventsBeforeTargetEvent,
-        teamScoredLowestEventsBeforeTargetEvent,
+        teamScoresSubmittedEventsUpToTargetEvent,
+        teamScoredLowestEventsUpToTargetEvent,
+        allEventsUpToTargetEvent,
         teams,
         gameSettings,
         teamLives
@@ -98,50 +130,60 @@ export class LeaderboardBuilder {
     return true;
   }
 
-  /**
-   * Builds the latest leaderboard from virtual match reportable items such as game events and messages.
-   *
-   * @static
-   * @param {{ game: Game; virtualMatchReportGroups: VirtualMatchReportData[] }} args
-   * @returns {VirtualMatchReportData}
-   */
-  static buildLatestLeaderboardVirtualMatchGroup(args: {
-    game: Game;
-    virtualMatchReportGroups: VirtualMatchReportData[];
-  }): VirtualMatchReportData {
-    const { gameSettings, teams, teamScoredLowestEvents, teamScoresSubmittedEvents } = LeaderboardBuilder.gatherPreLeaderboardParts(args);
+  // /**
+  //  * Builds the latest leaderboard from virtual match reportable items such as game events and messages.
+  //  *
+  //  * @static
+  //  * @param {{ game: Game; virtualMatchReportGroups: VirtualMatchReportData[] }} args
+  //  * @returns {VirtualMatchReportData}
+  //  */
+  // static buildLatestLeaderboardVirtualMatchGroup(args: {
+  //   game: Game;
+  //   virtualMatchReportGroups: VirtualMatchReportData[];
+  // }): VirtualMatchReportData {
+  //   const { gameSettings, teams, teamScoredLowestEvents, teamScoresSubmittedEvents } = LeaderboardBuilder.gatherPreLeaderboardParts(args);
 
-    if (!LeaderboardBuilder.isValidPreLeaderboardParts({ gameSettings, teams, teamScoredLowestEvents, teamScoresSubmittedEvents })) {
-      return undefined;
-    }
+  //   if (
+  //     !LeaderboardBuilder.isValidPreLeaderboardParts({
+  //       gameSettings,
+  //       teams,
+  //       teamScoredLowestEvents,
+  //       teamScoresSubmittedEvents
+  //     })
+  //   ) {
+  //     return undefined;
+  //   }
 
-    const lastTeamScoreSubmittedEvent = teamScoresSubmittedEvents.slice(-1)[0];
-    const lastVirtualMatch = lastTeamScoreSubmittedEvent.data.eventMatch;
-    const teamScoresForLastVirtualMatch = TeamScoreCalculator.calculateTeamScoresForVirtualMatch(lastVirtualMatch, teams);
-    const teamLives: TeamLivesMap = LeaderboardBuilder.calculateFromEvents_LatestTeamLives(
-      teams,
-      teamScoredLowestEvents,
-      gameSettings.startingTeamLives
-    );
+  //   const lastTeamScoreSubmittedEvent = teamScoresSubmittedEvents.slice(-1)[0];
+  //   const lastVirtualMatch = lastTeamScoreSubmittedEvent.data.eventMatch;
+  //   const teamScoresForLastVirtualMatch = TeamScoreCalculator.calculateTeamScoresForVirtualMatch(lastVirtualMatch, teams);
+  //   const teamLives: TeamLivesMap = LeaderboardBuilder.calculateFromEvents_LatestTeamLives(
+  //     teams,
+  //     teamScoredLowestEvents,
+  //     gameSettings.startingTeamLives
+  //   );
 
-    const leaderboard: Leaderboard = LeaderboardBuilder.buildLeaderboard(
-      lastTeamScoreSubmittedEvent,
-      lastVirtualMatch,
-      args,
-      teamScoresForLastVirtualMatch,
-      teamScoresSubmittedEvents,
-      teamScoredLowestEvents,
-      teams,
-      gameSettings,
-      teamLives
-    );
+  //   const allEventsUpToTargetVm =
 
-    return {
-      beatmapId: lastVirtualMatch.beatmapId,
-      sameBeatmapNumber: lastVirtualMatch.sameBeatmapNumber,
-      leaderboard: leaderboard
-    };
-  }
+  //   const leaderboard: Leaderboard = LeaderboardBuilder.buildLeaderboard(
+  //     lastTeamScoreSubmittedEvent,
+  //     lastVirtualMatch,
+  //     args,
+  //     teamScoresForLastVirtualMatch,
+  //     teamScoresSubmittedEvents,
+  //     teamScoredLowestEvents,
+  //     allEvents, // TODO - include this var in args
+  //     teams,
+  //     gameSettings,
+  //     teamLives
+  //   );
+
+  //   return {
+  //     beatmapId: lastVirtualMatch.beatmapId,
+  //     sameBeatmapNumber: lastVirtualMatch.sameBeatmapNumber,
+  //     leaderboard: leaderboard
+  //   };
+  // }
 
   private static gatherPreLeaderboardParts(args: { game: Game; virtualMatchReportGroups: VirtualMatchReportData[] }) {
     const gameSettings: GameSettings = {
@@ -154,6 +196,10 @@ export class LeaderboardBuilder {
       args.virtualMatchReportGroups,
       "team_scored_lowest"
     );
+    const teamScoredHighestEvents = LeaderboardBuilder.extractEventsOfTypeFromVirtualMatchReportGroups<TeamScoredHighestGameEvent>(
+      args.virtualMatchReportGroups,
+      "team_scored_highest"
+    );
     const teamScoresSubmittedEvents = LeaderboardBuilder.extractEventsOfTypeFromVirtualMatchReportGroups<TeamScoresSubmittedGameEvent>(
       args.virtualMatchReportGroups,
       "team_scores_submitted"
@@ -162,6 +208,7 @@ export class LeaderboardBuilder {
       gameSettings,
       teams,
       teamScoredLowestEvents,
+      teamScoredHighestEvents,
       teamScoresSubmittedEvents
     };
   }
@@ -171,8 +218,9 @@ export class LeaderboardBuilder {
     lastVirtualMatch: VirtualMatch,
     args: { game: Game; virtualMatchReportGroups: VirtualMatchReportData[] },
     teamScoresForLastVirtualMatch: CalculatedTeamScore[],
-    teamScoresSubmittedEvents: TeamScoresSubmittedGameEvent[],
-    teamScoredLowestEvents: TeamScoredLowestGameEvent[],
+    teamScoresSubmittedEvents: TeamScoresSubmittedGameEvent[], // TODO - get these from allEventsUpToTargetEvent instead, then remove this arg
+    teamScoredLowestEvents: TeamScoredLowestGameEvent[], //  TODO - get these from allEventsUpToTargetEvent instead, then remove this arg
+    allEventsUpToTargetEvent: IGameEvent[],
     teams: Team[],
     gameSettings: GameSettings,
     teamLives: Map<number, TeamLivesMapValue>
@@ -227,12 +275,7 @@ export class LeaderboardBuilder {
           },
           alive: LeaderboardBuilder.isTeamAlive(gameSettings.startingTeamLives, gt.team, teamScoredLowestEvents),
           position: teamPositionals,
-          // TODO: eventIcon: {...}
-          // eventIcon: {
-          //   eventEmoji: string;
-          //   eventType: GameEventType;
-          //   eventDescription: string;
-          // },
+          eventIcon: LeaderboardBuilder.getEventIconDetailsForTeamForVirtualMatch(lastVirtualMatch, gt.team, allEventsUpToTargetEvent),
           lives: {
             currentLives: teamLives.get(gt.team.id).lives,
             startingLives: gameSettings.startingTeamLives
@@ -243,6 +286,51 @@ export class LeaderboardBuilder {
         };
       })
     };
+  }
+
+  private static getEventIconDetailsForTeamForVirtualMatch(
+    targetVM: VirtualMatch,
+    targetTeam: Team,
+    eventsUpToTargetVM: IGameEvent[]
+  ): GameEventIcon {
+    const eventsForThisVmOnly = eventsUpToTargetVM.filter(e =>
+      VirtualMatchCreator.isEquivalentVirtualMatchByKey(e.data.eventMatch, targetVM)
+    );
+
+    // sort events in order of priority of event icons
+    // - e.g. if a team was both eliminated and also scored the lowest, the event icon for "team_eliminated" should be returned
+    const eventsClone = _.cloneDeep(eventsForThisVmOnly);
+
+    const eventTypePriorityOrder: GameEventType[] = ["team_eliminated", "team_scores_tied", "team_scored_highest", "team_scored_lowest"];
+
+    // --------------------------------------
+    // source - https://dev.to/afewminutesofcode/how-to-create-a-custom-sort-order-in-javascript-3j1p
+    const customSort = ({ data, sortBy, sortField }: { data: IGameEvent[]; sortBy: GameEventType[]; sortField: string }) => {
+      const sortByObject = sortBy.reduce(
+        (obj, item, index) => ({
+          ...obj,
+          [item]: index
+        }),
+        {}
+      );
+      return data.sort((a, b) => sortByObject[a[sortField]] - sortByObject[b[sortField]]);
+    };
+
+    const prioritySortedEvents = customSort({ data: eventsClone, sortBy: eventTypePriorityOrder, sortField: "type" });
+    // --------------------------------------
+
+    for (const event of prioritySortedEvents) {
+      if (event.data.teamId && event.data.teamId === targetTeam.id) {
+        return GameEventTypeDataMapper.getGameEventIconDataForEvent(event);
+      }
+    }
+
+    Log.debug(
+      `No event icon could be determined for team ID ${targetTeam.id} for target VM ${VirtualMatchCreator.createSameBeatmapKeyString(
+        targetVM
+      )}`
+    );
+    return null;
   }
 
   private static extractEventsOfTypeFromVirtualMatchReportGroups<T extends IGameEvent>(
@@ -431,7 +519,10 @@ export class LeaderboardBuilder {
     let teamScoresTotal: TeamScoresMap = new Map<TeamID, { score: number }>();
     let teamRankAverages: TeamAverageRanksMap = new Map<TeamID, { virtualMatchAverageRank: number }>();
     args.teams.forEach(team => {
-      teamLives.set(team.id, { lives: args.gameSettings.startingTeamLives, lostLifeInEvents: [] });
+      teamLives.set(team.id, {
+        lives: args.gameSettings.startingTeamLives,
+        lostLifeInEvents: []
+      });
       teamScoresTotal.set(team.id, { score: 0 });
       teamRankAverages.set(team.id, { virtualMatchAverageRank: 0 });
     });
@@ -552,7 +643,11 @@ export class LeaderboardBuilder {
         // e.g. T1: scored 100 (rank 0), T2: scored 100 (rank 0), T3: scored 99 (rank 2)
         const identicalScore = Array.from(positionals.data).find(d => d[1].score === teamScore.score);
         const rank = identicalScore ? identicalScore[1].rank : i;
-        positionals.data.set(teamScore.teamId, { submitted: true, score: teamScore.score, rank });
+        positionals.data.set(teamScore.teamId, {
+          submitted: true,
+          score: teamScore.score,
+          rank
+        });
       });
 
     args.teams.forEach(team => {
@@ -644,7 +739,11 @@ export class LeaderboardBuilder {
   ): TeamLivesMap {
     const teamLives: TeamLivesMap = new Map<
       TeamID,
-      { lives: number; eliminatedInEvent?: TeamScoredLowestGameEvent; lostLifeInEvents: [] }
+      {
+        lives: number;
+        eliminatedInEvent?: TeamScoredLowestGameEvent;
+        lostLifeInEvents: [];
+      }
     >();
     // each team starts with the starting number of lives
     teams.forEach(team => teamLives.set(team.id, { lives: startingTeamLives, lostLifeInEvents: [] }));
@@ -670,14 +769,24 @@ export class LeaderboardBuilder {
     const newLivesNumber = eventTeamLives.lives - 1 < 0 ? 0 : eventTeamLives.lives - 1;
     if (newLivesNumber < eventTeamLives.lives) {
       eventTeamLives.lostLifeInEvents.push(event);
-      allTeamLivesMap.set(teamId, { lives: newLivesNumber, lostLifeInEvents: eventTeamLives.lostLifeInEvents });
+      allTeamLivesMap.set(teamId, {
+        lives: newLivesNumber,
+        lostLifeInEvents: eventTeamLives.lostLifeInEvents
+      });
       eventTeamLives = allTeamLivesMap.get(teamId);
     }
     if (newLivesNumber === 0) {
-      allTeamLivesMap.set(teamId, { lives: newLivesNumber, lostLifeInEvents: eventTeamLives.lostLifeInEvents, eliminatedInEvent: event });
+      allTeamLivesMap.set(teamId, {
+        lives: newLivesNumber,
+        lostLifeInEvents: eventTeamLives.lostLifeInEvents,
+        eliminatedInEvent: event
+      });
       return;
     }
-    allTeamLivesMap.set(teamId, { lives: newLivesNumber, lostLifeInEvents: eventTeamLives.lostLifeInEvents });
+    allTeamLivesMap.set(teamId, {
+      lives: newLivesNumber,
+      lostLifeInEvents: eventTeamLives.lostLifeInEvents
+    });
   }
 
   /**
@@ -709,7 +818,9 @@ export class LeaderboardBuilder {
           // This is necessary for accurately determining the team's leaderboard position (since the position sometimes relies on comparing team's total scores).
           const livesCheckEvent = teamLives.get(team.id);
           const teamScore = teamScores.get(team.id) || { score: 0 };
-          teamScores.set(team.id, { score: teamScore.score + playerScore.score });
+          teamScores.set(team.id, {
+            score: teamScore.score + playerScore.score
+          });
           if (
             livesCheckEvent &&
             livesCheckEvent.eliminatedInEvent &&
