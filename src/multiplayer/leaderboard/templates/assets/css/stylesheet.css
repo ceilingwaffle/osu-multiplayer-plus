@@ -5,12 +5,9 @@
 html,
 body {
   font-family: Arial, Helvetica, sans-serif;
-  /* border: 2px solid #0019fc; */
   width: 768px;
-
   margin: 0 auto;
   padding: 0;
-
   background-color: #000000;
 }
 .container {
@@ -22,27 +19,24 @@ body {
   font-size: 16px;
   color: white;
   background-color: #292d3e;
-  font-family: 'Bebas Neue', cursive;
+  font-family: "Bebas Neue", cursive;
   border: 2px solid #cccccc;
 
   display: grid;
-  grid-template-columns:  [position-change] max-content   
-                          [position-number] max-content  
-                          [event-emoji] max-content  
-                          [team-number] max-content
-                          [hearts] max-content  
-                          [team-score] 1fr;
-
+  grid-template-columns:
+    [position-change] max-content
+    [position-number] max-content
+    [event-emoji] max-content
+    [team-number] max-content
+    [hearts] max-content
+    [team-score] 1fr;
 }
 .line-group {
   margin: 0;
   padding: 8px;
-  /* border: 1px solid red; */
-
   display: contents;
-  /* grid-column: 1 / 8; */
   grid-template-columns: inherit;
-} 
+}
 .line-group-title {
   grid-column-start: 1;
   grid-column-end: 7;
@@ -58,15 +52,13 @@ body {
   margin: 0px;
   padding: 0px 3px;
   line-height: 26px;
-  min-height: 26px;
-
 }
 .line > .line-item:nth-child(1),
 .line > .line-item:nth-last-child(1) {
   margin-left: var(--item-margin);
 }
 .line > .line-item:nth-last-child(1),
-.line > .line-item:nth-last-child(2)  {
+.line > .line-item:nth-last-child(2) {
   margin-right: var(--item-margin);
 }
 .line > .line-item:nth-last-child(1) {
@@ -78,7 +70,8 @@ body {
 .line.lowest-scoring > .line-item {
   background-color: #bb5050;
 }
-.position-change {
+/* .position-change {
+  
 }
 .position-number {
 
@@ -94,8 +87,8 @@ body {
 }
 .team-score {
 
-}
-.line-item-sub-row  {
+} */
+.line-item-sub-row {
   grid-column: 1 / 7;
 
   /* display: contents; */
@@ -110,14 +103,19 @@ body {
   margin-left: calc(var(--item-margin) * 1);
   margin-bottom: var(--item-margin);
 
-  display: grid;
-  grid-template-columns: inherit
+  /* display: grid;
+  grid-template-columns: inherit */
+}
+.score-group {
+  padding-right: 15px;
+  display: inline-block;
+}
+.score-group > * {
+  display: inline-block;
 }
 .player-name {
-  grid-column: 4/ 4;
-  padding-right: 10px;
+  padding-right: 4px;
 }
-.player-score {
-  grid-column: 5/ 5;
-  text-align: right;
-}
+/* .player-score {
+  
+} */
