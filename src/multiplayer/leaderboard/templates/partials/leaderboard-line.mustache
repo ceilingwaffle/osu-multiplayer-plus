@@ -1,8 +1,15 @@
-<div class="line">
+<div class="line {{lineCssClass}}">
     <div class="line-item position-change">{{positionChange}}</div>
     <div class="line-item position-number">{{positionNumber}}</div>
-    <div class="line-item team-number">{{teamNumberString}}</div>
     <div class="line-item event-emoji">{{eventEmoji}}</div>
+    <div class="line-item team-number">{{teamNumberString}}</div>
     <div class="line-item hearts">{{lifeHearts}}</div>
     <div class="line-item team-score">Score: {{scoreTied}}{{score}}</div>
+    <div class="line-item line-item-sub-row">
+        <div class="team-player-scores">
+        {{#playerStats}}
+            <div class="player-name">{{name}}: </div><div class="player-score">{{score}}</div>
+        {{/playerStats}}
+        </div>
+    </div>
 </div>

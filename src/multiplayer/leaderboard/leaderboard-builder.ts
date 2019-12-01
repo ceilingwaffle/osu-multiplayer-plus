@@ -228,6 +228,11 @@ export class LeaderboardBuilder {
           alive: LeaderboardBuilder.isTeamAlive(gameSettings.startingTeamLives, gt.team, teamScoredLowestEvents),
           position: teamPositionals,
           // TODO: eventIcon: {...}
+          // eventIcon: {
+          //   eventEmoji: string;
+          //   eventType: GameEventType;
+          //   eventDescription: string;
+          // },
           lives: {
             currentLives: teamLives.get(gt.team.id).lives,
             startingLives: gameSettings.startingTeamLives

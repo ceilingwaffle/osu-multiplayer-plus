@@ -9,6 +9,7 @@ import { Helpers } from "../../utils/helpers";
 import * as path from "path";
 
 type PositionChangeTypes = "⬆" | "⬇" | " ";
+type LeaderboardLineCssClassName = "highest-scoring" | "lowest-scoring";
 
 interface ImgLeaderboard {
   beatmap: Beatmap;
@@ -27,6 +28,7 @@ interface ImgLeaderboardLine {
   score: string;
   scoreTied?: "👔";
   playerStats: ImgPlayerStats[];
+  lineCssClass?: LeaderboardLineCssClassName;
 }
 
 interface ImgPlayerStats {
@@ -115,8 +117,25 @@ export class DiscordLeaderboardImageBuilder {
         osuUserId: player.osuUserId,
         score: Helpers.numberWithCommas(player.score.score)
         // scoreRankAchieved?: string; // TODO
-      }))
+      })),
+      lineCssClass: DiscordLeaderboardImageBuilder.getLineCssClassName(ll)
     };
+  }
+
+  private static getLineCssClassName(ll: LeaderboardLine): LeaderboardLineCssClassName {
+    if (!ll.eventIcon) return;
+
+    if (ll.eventIcon.eventType == "team_scored_highest") {
+      return "highest-scoring";
+    }
+
+    if (ll.eventIcon.eventType == "team_scored_lowest" ) {
+      return "lowest-scoring";
+    }
+
+    // if (ll.eventIcon.eventType == "team_eliminated" ) {
+    //   return "lowest-scoring";
+    // }
   }
 
   // TODO: Move these methods - genPositionChange, genPosition, genTeamNumber into a Helper class to avoid DRY with DiscordLeaderboardMessageBuilder

@@ -1,3 +1,7 @@
+/* var definitions */
+:root {
+  --item-margin: 3px;
+}
 html,
 body {
   font-family: Arial, Helvetica, sans-serif;
@@ -9,7 +13,6 @@ body {
 
   background-color: #000000;
 }
-
 .container {
   margin: 0;
   padding: 0;
@@ -23,17 +26,14 @@ body {
   border: 2px solid #cccccc;
 
   display: grid;
-  grid-template-columns:  [position-change] 15px 
-                          [position-number] 15px 
-                          [event-emoji] 30px 
-                          [team-number] 60px 
+  grid-template-columns:  [position-change] max-content   
+                          [position-number] max-content  
+                          [event-emoji] max-content  
+                          [team-number] max-content
                           [hearts] max-content  
-                          [team-score] max-content
-                          [team-players] max-content;
+                          [team-score] 1fr;
 
-  grid-auto-columns: max-content;
 }
-
 .line-group {
   margin: 0;
   padding: 8px;
@@ -41,68 +41,83 @@ body {
 
   display: contents;
   /* grid-column: 1 / 8; */
+  grid-template-columns: inherit;
 } 
-
 .line-group-title {
-  display: block;
-  margin-block-start: 0;
-  margin-block-end: 0;
-  margin-inline-start: 0px;
-  margin-inline-end: 0px;
-
   grid-column-start: 1;
-  grid-column-end: 8;
+  grid-column-end: 7;
+  margin-left: var(--item-margin);
+  font-size: 24px;
 }
-
 .line {
-  margin: 1;
-  padding: 0;
-
-  align-items: baseline;
-  background-color: #3d435c;
-
   display: contents;
+  grid-template-columns: inherit;
 }
+.line > .line-item {
+  background-color: #3d435c;
+  margin: 0px;
+  padding: 0px 3px;
+  line-height: 26px;
+  min-height: 26px;
 
-.line.highest-scoring {
-  background-color: #89ba86;
 }
-
-.line.lowest-scoring {
-  background-color: #baa386;
+.line > .line-item:nth-child(1),
+.line > .line-item:nth-last-child(1) {
+  margin-left: var(--item-margin);
 }
-
-.line.just-eliminated {
-  background-color: #ba8686;
+.line > .line-item:nth-last-child(1),
+.line > .line-item:nth-last-child(2)  {
+  margin-right: var(--item-margin);
 }
-
-.line-item {
-  padding: 3px 6px;
+.line > .line-item:nth-last-child(1) {
+  margin-bottom: var(--item-margin);
 }
-/* 
+.line.highest-scoring > .line-item {
+  background-color: #54bb50;
+}
+.line.lowest-scoring > .line-item {
+  background-color: #bb5050;
+}
 .position-change {
-
 }
-
 .position-number {
 
 }
-
 .event-emoji {
 
 }
-
 .team-number {
-}
 
+}
 .hearts {
-}
 
+}
 .team-score {
 
-} */
+}
+.line-item-sub-row  {
+  grid-column: 1 / 7;
 
-.team-players {
-  font-size: 80%;
+  /* display: contents; */
+  grid-template-columns: inherit;
+}
+.team-player-scores {
+  font-size: 14px;
+  line-height: 14px;
   color: #ddd;
+
+  grid-column: 1/ 7;
+  margin-left: calc(var(--item-margin) * 1);
+  margin-bottom: var(--item-margin);
+
+  display: grid;
+  grid-template-columns: inherit
+}
+.player-name {
+  grid-column: 4/ 4;
+  padding-right: 10px;
+}
+.player-score {
+  grid-column: 5/ 5;
+  text-align: right;
 }

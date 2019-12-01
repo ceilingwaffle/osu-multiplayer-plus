@@ -1,0 +1,205 @@
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>title</title>
+    <style type="text/css">
+      /* var definitions */
+      :root {
+        --item-margin: 3px;
+      }
+      html,
+      body {
+        font-family: Arial, Helvetica, sans-serif;
+        /* border: 2px solid #0019fc; */
+        width: 768px;
+      
+        margin: 0 auto;
+        padding: 0;
+      
+        background-color: #000000;
+      }
+      .container {
+        margin: 0;
+        padding: 0;
+        position: absolute;
+        width: 768px;
+      
+        font-size: 16px;
+        color: white;
+        background-color: #292d3e;
+        font-family: 'Bebas Neue', cursive;
+        border: 2px solid #cccccc;
+      
+        display: grid;
+        grid-template-columns:  [position-change] max-content   
+                                [position-number] max-content  
+                                [event-emoji] max-content  
+                                [team-number] max-content
+                                [hearts] max-content  
+                                [team-score] 1fr;
+      
+      }
+      .line-group {
+        margin: 0;
+        padding: 8px;
+        /* border: 1px solid red; */
+      
+        display: contents;
+        /* grid-column: 1 / 8; */
+        grid-template-columns: inherit;
+      } 
+      .line-group-title {
+        grid-column-start: 1;
+        grid-column-end: 7;
+        margin-left: var(--item-margin);
+        font-size: 24px;
+      }
+      .line {
+        display: contents;
+        grid-template-columns: inherit;
+      }
+      .line > .line-item {
+        background-color: #3d435c;
+        margin: 0px;
+        padding: 0px 3px;
+        line-height: 26px;
+        min-height: 26px;
+      
+      }
+      .line > .line-item:nth-child(1),
+      .line > .line-item:nth-last-child(1) {
+        margin-left: var(--item-margin);
+      }
+      .line > .line-item:nth-last-child(1),
+      .line > .line-item:nth-last-child(2)  {
+        margin-right: var(--item-margin);
+      }
+      .line > .line-item:nth-last-child(1) {
+        margin-bottom: var(--item-margin);
+      }
+      .line.highest-scoring > .line-item {
+        background-color: #54bb50;
+      }
+      .line.lowest-scoring > .line-item {
+        background-color: #bb5050;
+      }
+      .position-change {
+      }
+      .position-number {
+      
+      }
+      .event-emoji {
+      
+      }
+      .team-number {
+      
+      }
+      .hearts {
+      
+      }
+      .team-score {
+      
+      }
+      .line-item-sub-row  {
+        grid-column: 1 / 7;
+      
+        /* display: contents; */
+        grid-template-columns: inherit;
+      }
+      .team-player-scores {
+        font-size: 14px;
+        line-height: 14px;
+        color: #ddd;
+      
+        grid-column: 1/ 7;
+        margin-left: calc(var(--item-margin) * 1);
+        margin-bottom: var(--item-margin);
+      
+        display: grid;
+        grid-template-columns: inherit
+      }
+      .player-name {
+        grid-column: 4/ 4;
+        padding-right: 10px;
+      }
+      .player-score {
+        grid-column: 5/ 5;
+        text-align: right;
+      }    </style>
+  </head>
+  <body>
+    <div class="container">
+        <div class="line-group">
+          <p class="line-group-title">Alive</p>
+            <div class="line ">
+                <div class="line-item position-change">⬇</div>
+                <div class="line-item position-number">0.</div>
+                <div class="line-item event-emoji"></div>
+                <div class="line-item team-number">Team 3</div>
+                <div class="line-item hearts">🤎🤍</div>
+                <div class="line-item team-score">Score: 800</div>
+                <div class="line-item line-item-sub-row">
+                    <div class="team-player-scores">
+                        <div class="player-name">p5</div>
+                        <div class="player-score">0</div>
+                        <div class="player-name">p6</div>
+                        <div class="player-score">400</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="line-group">
+          <p class="line-group-title">Eliminated</p>
+            <div class="line ">
+                <div class="line-item position-change"> </div>
+                <div class="line-item position-number">3.</div>
+                <div class="line-item event-emoji"></div>
+                <div class="line-item team-number">Team 1</div>
+                <div class="line-item hearts">🤍🤍</div>
+                <div class="line-item team-score">Score: 0</div>
+                <div class="line-item line-item-sub-row">
+                    <div class="team-player-scores">
+                        <div class="player-name">p1</div>
+                        <div class="player-score">0</div>
+                        <div class="player-name">p2</div>
+                        <div class="player-score">0</div>
+                    </div>
+                </div>
+            </div>
+            <div class="line ">
+                <div class="line-item position-change">⬆</div>
+                <div class="line-item position-number">1.</div>
+                <div class="line-item event-emoji"></div>
+                <div class="line-item team-number">Team 2</div>
+                <div class="line-item hearts">🤍🤍</div>
+                <div class="line-item team-score">Score: 200</div>
+                <div class="line-item line-item-sub-row">
+                    <div class="team-player-scores">
+                        <div class="player-name">p3</div>
+                        <div class="player-score">0</div>
+                        <div class="player-name">p4</div>
+                        <div class="player-score">0</div>
+                    </div>
+                </div>
+            </div>
+            <div class="line ">
+                <div class="line-item position-change"> </div>
+                <div class="line-item position-number">2.</div>
+                <div class="line-item event-emoji"></div>
+                <div class="line-item team-number">Team 4</div>
+                <div class="line-item hearts">🤍🤍</div>
+                <div class="line-item team-score">Score: 0</div>
+                <div class="line-item line-item-sub-row">
+                    <div class="team-player-scores">
+                        <div class="player-name">p7</div>
+                        <div class="player-score">0</div>
+                        <div class="player-name">p8</div>
+                        <div class="player-score">0</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+  </body>
+</html>
