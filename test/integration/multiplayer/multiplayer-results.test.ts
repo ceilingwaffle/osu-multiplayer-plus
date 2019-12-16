@@ -183,8 +183,8 @@ describe("When processing multiplayer results", function() {
 
             // TODO: Assert leaderboardImageData
             const leaderboardImageData = DiscordLeaderboardImageBuilder.buildImageDataObjectFromLeaderboard(leaderboard);
-            const b64image = await DiscordLeaderboardImageBuilder.build(leaderboardImageData);
-            console.log(b64image);
+            const pngBuffer = await DiscordLeaderboardImageBuilder.build(leaderboardImageData);
+            console.log(pngBuffer);
 
             return resolve();
           } catch (error) {
@@ -230,8 +230,8 @@ describe("When processing multiplayer results", function() {
 
             // TODO: Assert leaderboardImageData
             const leaderboardImageData = DiscordLeaderboardImageBuilder.buildImageDataObjectFromLeaderboard(leaderboard);
-            const b64image = await DiscordLeaderboardImageBuilder.build(leaderboardImageData);
-            console.log(b64image);
+            const pngBuffer = await DiscordLeaderboardImageBuilder.build(leaderboardImageData);
+            console.log(pngBuffer);
 
             return resolve();
           } catch (error) {
@@ -277,8 +277,8 @@ describe("When processing multiplayer results", function() {
 
             // TODO: Assert leaderboardImageData
             const leaderboardImageData = DiscordLeaderboardImageBuilder.buildImageDataObjectFromLeaderboard(leaderboard);
-            const b64image = await DiscordLeaderboardImageBuilder.build(leaderboardImageData);
-            console.log(b64image);
+            const pngBuffer = await DiscordLeaderboardImageBuilder.build(leaderboardImageData);
+            console.log(pngBuffer);
 
             // await MultiplayerResultsDeliverer.deliver({ reportables: toBeReported }); // leaderboard
 
@@ -373,8 +373,8 @@ describe("When processing multiplayer results", function() {
 
             // TODO: Assert leaderboardImageData
             const leaderboardImageData = DiscordLeaderboardImageBuilder.buildImageDataObjectFromLeaderboard(leaderboard);
-            const b64image = await DiscordLeaderboardImageBuilder.build(leaderboardImageData);
-            console.log(b64image);
+            const pngBuffer = await DiscordLeaderboardImageBuilder.build(leaderboardImageData);
+            console.log(pngBuffer);
 
             return resolve();
           } catch (error) {
@@ -482,8 +482,8 @@ describe("When processing multiplayer results", function() {
 
             // TODO: Assert leaderboardImageData
             const leaderboardImageData = DiscordLeaderboardImageBuilder.buildImageDataObjectFromLeaderboard(leaderboard);
-            const b64image = await DiscordLeaderboardImageBuilder.build(leaderboardImageData);
-            console.log(b64image);
+            const pngBuffer = await DiscordLeaderboardImageBuilder.build(leaderboardImageData);
+            console.log(pngBuffer);
 
             // team 2 should have been eliminated
             const eliminatedGameEventsInThisLeaderboardVirtualMatch = allReportables

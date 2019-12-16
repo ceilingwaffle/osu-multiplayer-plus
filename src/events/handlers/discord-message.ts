@@ -1,4 +1,4 @@
-import { RichEmbed, RichPresenceAssets } from "discord.js";
+import { RichEmbed, RichPresenceAssets, Attachment } from "discord.js";
 import { ReportableContext } from "../../multiplayer/reports/reportable-context";
 import { ReportableContextType } from "../../multiplayer/reports/reportable-context-type";
 import { LobbyBeatmapStatusMessage } from "../../multiplayer/messages/classes/lobby-beatmap-status-message";
@@ -14,23 +14,43 @@ import { TeamScoresTiedGameEvent } from "../../multiplayer/game-events/team-scor
 import { Leaderboard } from "../../multiplayer/components/leaderboard";
 import { MessageType } from "../../multiplayer/messages/types/message-type";
 import { DiscordLeaderboardMessageBuilder } from "../../multiplayer/leaderboard/discord-leaderboard-message-builder";
+import { DiscordLeaderboardImageBuilder } from "../../multiplayer/leaderboard/discord-leaderboard-image-builder";
+import _ = require("lodash"); // do not convert to default import -- it will break!!
+import { VirtualMatchCreator } from "../../multiplayer/virtual-match/virtual-match-creator";
 
 export class DiscordMessage {
-  public message: RichEmbed;
+  public embeds: RichEmbed[];
 
-  constructor(private reportables: ReportableContext<ReportableContextType>[]) {
-    this.message = new RichEmbed();
+  constructor(private reportables: ReportableContext<ReportableContextType>[]) {}
 
-    for (const reportable of reportables) {
-      if (reportable.type === "game_event") {
-        this.addGameEventPart(reportable);
-      } else if (reportable.type === "message") {
-        this.addMessagePart(reportable);
-      } else if (reportable.type === "leaderboard") {
-        this.addLeaderboardPart(reportable);
-      } else {
-        const _exhaustiveCheck: never = reportable.type;
+  async fulfillEmbeds(): Promise<void> {
+    this.embeds = [];
+
+    // group reportables by VM key
+    const vmGroupedReportables = _(this.reportables)
+      .groupBy(reportable =>
+        VirtualMatchCreator.createSameBeatmapKeyString({
+          beatmapId: reportable.beatmapId,
+          sameBeatmapNumber: reportable.sameBeatmapNumber
+        })
+      )
+      .toArray()
+      .value();
+
+    for (const messageReportables of vmGroupedReportables) {
+      const newEmbed = new RichEmbed();
+      for (const reportable of messageReportables) {
+        if (reportable.type === "game_event") {
+          this.addGameEventPart(reportable, newEmbed);
+        } else if (reportable.type === "message") {
+          this.addMessagePart(reportable, newEmbed);
+        } else if (reportable.type === "leaderboard") {
+          await this.addLeaderboardPart(reportable, newEmbed);
+        } else {
+          const _exhaustiveCheck: never = reportable.type;
+        }
       }
+      this.embeds.push(newEmbed);
     }
   }
 
@@ -38,17 +58,25 @@ export class DiscordMessage {
     return this.reportables;
   }
 
-  getRichEmbed(): RichEmbed {
-    return this.message;
+  getRichEmbeds(): RichEmbed[] {
+    return this.embeds;
   }
 
-  private addLeaderboardPart(reportable: ReportableContext<ReportableContextType>) {
+  private async addLeaderboardPart(reportable: ReportableContext<ReportableContextType>, targetEmbed: RichEmbed): Promise<void> {
     const leaderboard = reportable.item as Leaderboard;
-    const messageValue = DiscordLeaderboardMessageBuilder.build(leaderboard);
-    this.message.addField("TODO: Put some map/leaderboard metadata here...", messageValue);
+    // const messageValue = DiscordLeaderboardMessageBuilder.build(leaderboard);
+
+    const leaderboardImageData = DiscordLeaderboardImageBuilder.buildImageDataObjectFromLeaderboard(leaderboard);
+    const pngBuffer = await DiscordLeaderboardImageBuilder.build(leaderboardImageData);
+
+    const leaderboardAttachmentName = "leaderboard.png";
+    const leaderboardAttachment = new Attachment(pngBuffer, leaderboardAttachmentName);
+    targetEmbed.attachFile(leaderboardAttachment);
+    targetEmbed.setImage(`attachment://${leaderboardAttachmentName}`);
+    // this.message.addField("TODO: Put some map/leaderboard metadata here...", messageValue);
   }
 
-  private addMessagePart(reportable: ReportableContext<ReportableContextType>) {
+  private addMessagePart(reportable: ReportableContext<ReportableContextType>, targetEmbed: RichEmbed): void {
     const r = reportable.item as LobbyBeatmapStatusMessage<MessageType>;
     let messageValue = new String();
     if (r.type === "all_lobbies_completed") {
@@ -65,10 +93,10 @@ export class DiscordMessage {
     }
 
     messageValue = messageValue.concat(` `, `${r.message}`, ` `, `${Helpers.getTimeAgoTextForTime(r.time)}`);
-    this.message.addField(messageValue, "TODO: Put some message metadata here...");
+    targetEmbed.addField(messageValue, "TODO: Put some message metadata here...");
   }
 
-  private addGameEventPart(reportable: ReportableContext<ReportableContextType>) {
+  private addGameEventPart(reportable: ReportableContext<ReportableContextType>, targetEmbed: RichEmbed): void {
     const gameEvent = reportable.item as IGameEvent;
     let messageValue = new String();
     // TODO - replace all this stuff below with getting emoji from GameEventTypeDataMapper
@@ -97,6 +125,6 @@ export class DiscordMessage {
       return _exhaustiveCheck;
     }
 
-    this.message.addField(messageValue, "TODO: Put some event/team metadata here...");
+    targetEmbed.addField(messageValue, "TODO: Put some event/team metadata here...");
   }
 }

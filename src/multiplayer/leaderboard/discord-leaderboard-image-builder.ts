@@ -44,10 +44,10 @@ export class DiscordLeaderboardImageBuilder {
    * Builds an image from leaderboard data.
    *
    * @param {ImgLeaderboard} data
-   * @returns {Promise<string>} Base64 string of the generated image.
+   * @returns {Promise<Buffer>} PNG buffer
    * @memberof DiscordLeaderboardImageBuilder
    */
-  static async build(data: ImgLeaderboard): Promise<string> {
+  static async build(data: ImgLeaderboard): Promise<Buffer> {
     // TODO: Check if DiscordJS lets us attach some Base64 data for an image
     // see - https://github.com/discordjs/discord.js/issues/2175#issuecomment-538948474
 
@@ -80,9 +80,11 @@ export class DiscordLeaderboardImageBuilder {
       // Using viewport width=1 and height=1 as a hacky way to only return the contents of the page (without the surrounding whitespace) - works only when combined with fullpage:true
       await page.setViewport({ width: 1, height: 1 });
       // NOTE: the width of the image is equal to the CSS .html width + all the other .html CSS elements (like border, padding (L,R) etc.)
-      const b64imgString = await page.screenshot({ encoding: "base64", fullPage: true });
+      // const b64imgString = await page.screenshot({ encoding: "base64", fullPage: true });
+      // const pngImagePath = "./images/leaderboards/myleaderboard.png";
+      const pngBuffer = await page.screenshot({ fullPage: true }); // path: pngImagePath,
       await browser.close();
-      return b64imgString;
+      return pngBuffer;
     } catch (error) {
       Log.error(error);
       throw error;
@@ -129,7 +131,7 @@ export class DiscordLeaderboardImageBuilder {
       return "highest-scoring";
     }
 
-    if (ll.eventIcon.eventType == "team_scored_lowest" ) {
+    if (ll.eventIcon.eventType == "team_scored_lowest") {
       return "lowest-scoring";
     }
 

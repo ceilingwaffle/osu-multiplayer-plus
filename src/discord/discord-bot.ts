@@ -12,7 +12,7 @@ import { TargetGameCommand } from "./commands/game/target-game.command";
 import { StartGameCommand } from "./commands/game/start-game.command";
 import { DiscordMessage } from "../events/handlers/discord-message";
 import { DeliveredMessageReport } from "../events/handlers/delivered-message-report";
-import { TextChannel } from "discord.js";
+import { TextChannel, RichEmbed, Message } from "discord.js";
 import { injectable } from "inversify";
 const sqlite = require("sqlite");
 
@@ -87,18 +87,21 @@ export class DiscordBot {
 
   async sendChannelMessage(message: DiscordMessage, channelId: string): Promise<DeliveredMessageReport<DiscordMessage>> {
     return new Promise<DeliveredMessageReport<DiscordMessage>>(async (resolve, reject) => {
-      const richEmbed = message.getRichEmbed();
+      const richEmbeds: RichEmbed[] = message.getRichEmbeds();
       const channel = this.commando.channels.find(c => c.id === channelId) as TextChannel;
       if (!channel) return reject(`Discord channel ${channelId} unknown to Discord client.`);
-
       try {
-        const delivered = await channel.sendEmbed(richEmbed);
-        Log.methodSuccess(this.sendChannelMessage, this.constructor.name, `Sent Discord message to channel ID ${channelId}`, {
-          reportablesSent: message.getReportables()
-        });
+        const delivered: Message[] = [];
+        for (const richEmbed of richEmbeds) {
+          const delivery: Message = await channel.sendEmbed(richEmbed);
+          Log.methodSuccess(this.sendChannelMessage, this.constructor.name, `Sent Discord message to channel ID ${channelId}`, {
+            reportablesSent: message.getReportables()
+          });
+          delivered.push(delivery);
+        }
         return resolve({
           originalMessage: message,
-          discordMessageSent: delivered,
+          discordMessagesSent: delivered,
           delivered: true
         });
       } catch (error) {

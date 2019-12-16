@@ -68,7 +68,7 @@
     "role-acl": "^3.3.7",
     "set-interval-async": "^1.0.29",
     "sqlite": "^3.0.3",
-    "sqlite3": "^4.1.0",
+    "sqlite3": "^4.1.1",
     "tasktimer": "^3.0.0",
     "ts-cleaner": "^1.0.4",
     "typeorm": "^0.2.20"

@@ -3,6 +3,10 @@ TODO:
     ☐ Fix "Failed to end game..." @created(19-11-16 14:25)
     ☐ Fix mp results not being delivered if we add a 2nd game with the same properties as the first (same lobby) @created(19-11-16 14:25)
     ☐ Add - Load game watcher data from database when we restart the app @created(19-11-16 14:25)
+    Common Build/Runtime Errors:
+        - Error: Chromium revision is not downloaded. Run "npm install" or "yarn install"
+            > sudo npm install puppeteer --unsafe-perm=true --allow-root
+        
     Leaderboard:
         ✔ Create message reportable if match was aborted @created(19-11-03 23:03) @done(19-11-12 18:19)
         ✔ Add TeamEliminated game event @created(19-11-02 23:30) @done(19-11-03 23:04)
@@ -611,6 +615,13 @@ TODO:
                         - lobby L1 finishes map B at time T+3 
                         - map B has now been completed by all lobbies--> bot delivers report on results for map B
                     - If the same map is played two times in the same lobby, wait to report results for that map until all other lobbies finish the map a second time.
+        Leaderboard Image Design: 
+            - Overlapping circular avatars for each team member 
+                team captain is the outter layer, with other team member avatars hidden below
+            - Leaderboard icon in one of the corners, indicating that the image is a leaderboard    e.g. https://i.imgur.com/8YNraXF.png
+            Examples
+                - https://giantbomb1.cbsistatic.com/uploads/scale_medium/0/1992/1677549-steamleaderboard.jpg
+                
         Discord Message Design:
             Test message design with: https://cog-creators.github.io/discord-embed-sandbox/
             ☐ Example 1 @created(19-09-04 10:55)

@@ -6,6 +6,6 @@ type ReportableMessage = DiscordMessage; // | WebMessage
 export interface DeliveredMessageReport<M extends ReportableMessage> {
   originalMessage: M;
   delivered: boolean;
-  discordMessageSent?: Message;
+  discordMessagesSent?: Message[];
   error?: any;
 }

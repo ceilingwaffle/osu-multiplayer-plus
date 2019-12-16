@@ -31,6 +31,7 @@ export class DiscordMultiplayerResultsDeliverableEventHandler extends EventHandl
 
     // build message
     const message = new DiscordMessage(reportables);
+    await message.fulfillEmbeds();
 
     destinations.forEach(destination => {
       // ignore non-discord destinations
