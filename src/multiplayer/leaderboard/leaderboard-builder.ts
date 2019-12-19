@@ -120,11 +120,11 @@ export class LeaderboardBuilder {
       return false;
     }
     if (!args.teamScoredLowestEvents.length) {
-      Log.warn(`Cannot build leaderboard because there were no ${TeamScoredLowestGameEvent.constructor.name} events to process.`);
+      Log.warn(`Cannot build leaderboard because there were no ${TeamScoredLowestGameEvent.name} events to process.`);
       return false;
     }
     if (!args.teamScoresSubmittedEvents.length) {
-      Log.warn(`Cannot build leaderboard because there were no ${TeamScoresSubmittedGameEvent.constructor.name} events to process.`);
+      Log.warn(`Cannot build leaderboard because there were no ${TeamScoresSubmittedGameEvent.name} events to process.`);
       return false;
     }
     return true;

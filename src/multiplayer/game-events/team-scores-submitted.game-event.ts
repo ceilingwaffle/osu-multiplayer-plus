@@ -19,14 +19,22 @@ export class TeamScoresSubmittedGameEvent extends GameEvent<{ data: TeamVirtualM
 
   happenedIn({ game, targetVirtualMatch }: { game: Game; targetVirtualMatch: VirtualMatch }): boolean {
     // if virtual match incomplete, no team scores are ready yet for this virtual match
-    if (targetVirtualMatch.lobbies.remaining.length) return false;
-    if (!game || !game.gameTeams || !game.gameTeams.length) return false;
+    if (targetVirtualMatch.lobbies.remaining.length) {
+      return false;
+    }
+    if (!game || !game.gameTeams || !game.gameTeams.length) {
+      return false;
+    }
 
     const teams = game.gameTeams.map(gt => gt.team);
-    if (!teams.length) return false;
+    if (!teams.length) {
+      return false;
+    }
 
     const teamScores: CalculatedTeamScore[] = TeamScoreCalculator.calculateTeamScoresForVirtualMatch(targetVirtualMatch, teams);
-    if (!teamScores || !teamScores.length) return false;
+    if (!teamScores || !teamScores.length) {
+      return false;
+    }
 
     this.data = {
       eventMatch: targetVirtualMatch,

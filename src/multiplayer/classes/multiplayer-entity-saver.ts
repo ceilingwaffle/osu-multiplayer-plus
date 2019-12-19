@@ -77,6 +77,17 @@ export class MultiplayerEntitySaver {
           //      create match if not found
           match = MatchService.createMatchFromApiMatch(apiMatch, lobby);
           lobby.matches.push(match);
+        } else {
+          // ensure that the previously-saved match endTime is in sync with the API match endTime
+          if (match.endTime != apiMatch.endTime) {
+            const m = lobby.matches.find(m => m.id === match.id);
+            if (!m) {
+              // match = MatchService.createMatchFromApiMatch(apiMatch, lobby);
+              // lobby.matches.push(match);
+              throw new Error("Match ID does not exist. This should never happen :/");
+            }
+            m.endTime = apiMatch.endTime;
+          }
         }
 
         for (const apiScore of apiMatch.scores) {
