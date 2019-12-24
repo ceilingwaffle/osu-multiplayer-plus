@@ -71,7 +71,7 @@ body {
   margin-bottom: var(--item-margin);
 }
 .line.highest-scoring > .line-item {
-  background-color: #235221;
+  background-color: #2d6b2b;
 }
 .line.lowest-scoring > .line-item {
   background-color: #bb5050;

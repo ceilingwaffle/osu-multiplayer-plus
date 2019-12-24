@@ -8,7 +8,7 @@ import { LeaderboardLine } from "../components/leaderboard-line";
 import { Helpers } from "../../utils/helpers";
 import * as path from "path";
 
-type PositionChangeTypes = "⬆" | "⬇" | " ";
+type PositionChangeTypes = "👆🏼" | "👇🏾" | "✋🏽"; // ⬆🔼👆👆🏻   // ⬇👇🔽👇🏾 //✋🏽
 type LeaderboardLineCssClassName = "highest-scoring" | "lowest-scoring";
 
 interface ImgLeaderboard {
@@ -143,10 +143,10 @@ export class DiscordLeaderboardImageBuilder {
   // TODO: Move these methods - genPositionChange, genPosition, genTeamNumber into a Helper class to avoid DRY with DiscordLeaderboardMessageBuilder
   private static genPositionChange(ll: LeaderboardLine): PositionChangeTypes {
     return ll.position.currentPosition > ll.position.previousPosition
-      ? "⬆"
-      : ll.position.currentPosition === ll.position.previousPosition
-      ? " "
-      : "⬇";
+      ? "👆🏼"
+      : ll.position.currentPosition == ll.position.previousPosition
+      ? "✋🏽"
+      : "👇🏾";
   }
 
   private static genLifeHearts(ll: LeaderboardLine) {
@@ -155,7 +155,8 @@ export class DiscordLeaderboardImageBuilder {
 
   private static genCurrentPositionString(ll: LeaderboardLine, allLines: LeaderboardLine[]): string {
     const digits = allLines.length.toString().length;
-    return ll.position.currentPosition.toString().padStart(digits, "0");
+    // +1 here to convert from 0-index based number
+    return (ll.position.currentPosition + 1).toString().padStart(digits, "0");
   }
 
   private static genTeamNumber(ll: LeaderboardLine, allLines: LeaderboardLine[]): string {
