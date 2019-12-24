@@ -53,10 +53,10 @@ export class DiscordBot {
         Log.warn("Discord bot warning:", message);
       });
       this.commando.on("debug", message => {
-        if (message.includes(process.env.DISCORD_BOT_TOKEN)) {
-          return Log.warn("Discord bot debug:", "<DISCORD_BOT_TOKEN message removed from log>");
-        }
-        Log.info("Discord bot debug:", message);
+        // if (message.includes(process.env.DISCORD_BOT_TOKEN)) {
+        //   return Log.warn("Discord bot debug:", "<DISCORD_BOT_TOKEN message removed from log>");
+        // }
+        // Log.info("Discord bot debug:", message);
       });
 
       this.commando.registry

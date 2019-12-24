@@ -86,7 +86,7 @@ export class MultiplayerEntitySaver {
               // lobby.matches.push(match);
               throw new Error("Match ID does not exist. This should never happen :/");
             }
-            m.endTime = apiMatch.endTime;
+            m.endTime = isNaN(apiMatch.endTime) ? null : apiMatch.endTime;
           }
         }
 

@@ -5,7 +5,7 @@ TODO:
     ☐ Add - Load game watcher data from database when we restart the app @created(19-11-16 14:25)
     Common Build/Runtime Errors:
         - Error: Chromium revision is not downloaded. Run "npm install" or "yarn install"
-            > sudo npm install puppeteer --unsafe-perm=true --allow-root
+            > npm install puppeteer --unsafe-perm=true --allow-root
         
     Leaderboard:
         ✔ Create message reportable if match was aborted @created(19-11-03 23:03) @done(19-11-12 18:19)

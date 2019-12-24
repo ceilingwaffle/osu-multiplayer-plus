@@ -5,8 +5,9 @@
 html,
 body {
   font-family: Arial, Helvetica, sans-serif;
-  width: 768px;
-  margin: 0 auto;
+  width: 392px;
+  /* margin: 0 auto; */
+  margin: 0;
   padding: 0;
   background-color: #000000;
 }
@@ -14,12 +15,17 @@ body {
   margin: 0;
   padding: 0;
   position: absolute;
-  width: 768px;
+  width: 392px;
+  background-color: #292d3e;
 
   font-size: 16px;
-  color: white;
-  background-color: #292d3e;
   font-family: "Bebas Neue", cursive;
+  font-weight: 400;
+  color: white;
+
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
   border: 2px solid #cccccc;
 
   display: grid;
@@ -65,7 +71,7 @@ body {
   margin-bottom: var(--item-margin);
 }
 .line.highest-scoring > .line-item {
-  background-color: #54bb50;
+  background-color: #235221;
 }
 .line.lowest-scoring > .line-item {
   background-color: #bb5050;
