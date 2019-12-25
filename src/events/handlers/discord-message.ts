@@ -17,16 +17,17 @@ import { DiscordLeaderboardMessageBuilder } from "../../multiplayer/leaderboard/
 import { DiscordLeaderboardImageBuilder } from "../../multiplayer/leaderboard/discord-leaderboard-image-builder";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
 import { VirtualMatchCreator } from "../../multiplayer/virtual-match/virtual-match-creator";
+import { Beatmap } from "../../multiplayer/components/beatmap";
 
 export class DiscordMessage {
   public embeds: RichEmbed[];
 
   constructor(private reportables: ReportableContext<ReportableContextType>[]) {}
 
-  async fulfillEmbeds(): Promise<void> {
+  async pushEmbedsFromReportables(): Promise<void> {
     this.embeds = [];
 
-    // group reportables by VM key
+    // group reportables by VM key - each group is the "reactangle" message sent in Discord
     const vmGroupedReportables = _(this.reportables)
       .groupBy(reportable =>
         VirtualMatchCreator.createSameBeatmapKeyString({
@@ -39,6 +40,16 @@ export class DiscordMessage {
 
     for (const messageReportables of vmGroupedReportables) {
       const newEmbed = new RichEmbed();
+      // add beatmap title header to message if it contains a leaderboard
+      for (const reportable of messageReportables) {
+        if (reportable.type === "leaderboard") {
+          // fetch the beatmap info
+          const leaderboard = reportable.item as Leaderboard;
+          this.addBeatmapTitle(leaderboard.beatmapPlayed, newEmbed);
+          break;
+        }
+      }
+
       for (const reportable of messageReportables) {
         if (reportable.type === "game_event") {
           this.addGameEventPart(reportable, newEmbed);
@@ -52,6 +63,14 @@ export class DiscordMessage {
       }
       this.embeds.push(newEmbed);
     }
+  }
+
+  addBeatmapTitle(beatmapPlayed: Beatmap, targetEmbed: RichEmbed): void {
+    const b = beatmapPlayed;
+    const mapString = `${b.artist} - ${b.title} [${b.diffName}] (${Number(b.stars).toFixed(2)}⭐)`; // TODO: Add mods used
+    targetEmbed.setTitle(mapString);
+    targetEmbed.setURL(beatmapPlayed.beatmapUrl);
+    targetEmbed.setThumbnail(beatmapPlayed.backgroundThumbnailUrlLarge);
   }
 
   getReportables(): ReportableContext<ReportableContextType>[] {

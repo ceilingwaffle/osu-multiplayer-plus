@@ -6,6 +6,7 @@ import { injectable } from "inversify";
 import { Log } from "../../src/utils/Log";
 import { Helpers } from "../../src/utils/helpers";
 import { ApiOsuUser } from "../../src/osu/types/api-osu-user";
+import { ApiBeatmap } from "../../src/osu/types/api-beatmap";
 
 @injectable()
 export class FakeOsuApiFetcher implements IOsuApiFetcher {
@@ -14,8 +15,23 @@ export class FakeOsuApiFetcher implements IOsuApiFetcher {
   }
 
   async fetchMultiplayerResults(banchoMultiplayerId: string): Promise<ApiMultiplayer> {
-    Log.warn("TODO: Implement method of FakeOsuApiFetcher.");
+    Log.warn("TODO: Implement fetchMultiplayerResults method of FakeOsuApiFetcher.");
     return { multiplayerId: banchoMultiplayerId, matches: [] };
+  }
+
+  async fetchBeatmap(beatmapId: string): Promise<ApiBeatmap> {
+    Log.warn("TODO: Implement fetchBeatmap method of FakeOsuApiFetcher.");
+    return {
+      beatmapId: "TODO - beatmapId",
+      beatmapSetId: "TODO - beatmapSetId",
+      beatmapUrl: "TODO - beatmapUrl",
+      stars: 10,
+      title: "TODO - title",
+      artist: "TODO - artist",
+      diffName: "TODO - diffName",
+      backgroundThumbnailUrlLarge: "TODO - backgroundThumbnailUrlLarge",
+      backgroundThumbnailUrlSmall: "TODO - backgroundThumbnailUrlSmall"
+    };
   }
 
   async isValidBanchoMultiplayerId(banchoMultiplayerId: string): Promise<boolean> {

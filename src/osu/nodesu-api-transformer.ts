@@ -3,7 +3,8 @@ import {
   Multi as NodesuMulti,
   MultiTeamTypeType as NodesuMultiTeamTypeType,
   MultiTeamType as NodesuMultiTeamType,
-  MultiGame
+  MultiGame,
+  Beatmap
 } from "nodesu";
 import { Log } from "../utils/Log";
 import { ApiMultiplayer } from "./types/api-multiplayer";
@@ -12,6 +13,7 @@ import { ApiPlayerScore } from "./types/api-player-score";
 import { TeamMode } from "../multiplayer/components/enums/team-mode";
 import { ApiMatchEvent } from "./types/api-match-event";
 import { ApiOsuUser } from "./types/api-osu-user";
+import { ApiBeatmap } from "./types/api-beatmap";
 
 export class NodesuApiTransformer {
   static transformOsuUser(result: NodesuUser): ApiOsuUser {
@@ -67,6 +69,7 @@ export class NodesuApiTransformer {
       matchResult = {
         mapNumber: mapNumber,
         multiplayerId: result.match.matchId.toString(),
+        // beatmap: NodesuApiTransformer.transformBeatmap(beatmap), // TODO: Better way to do this?
         mapId: apiMatch.beatmapId.toString(),
         startTime: apiMatch.startTime.getTime(),
         endTime: apiMatch.endTime.getTime(),
@@ -81,6 +84,20 @@ export class NodesuApiTransformer {
     }
 
     return converted;
+  }
+
+  static transformBeatmap(result: Beatmap): ApiBeatmap {
+    return {
+      beatmapId: result.beatmapId.toString(),
+      beatmapSetId: result.beatmapSetId.toString(),
+      beatmapUrl: `https://osu.ppy.sh/b/${result.beatmapId}`,
+      stars: result.stars,
+      title: result.title,
+      artist: result.artist,
+      diffName: result.difficultyName,
+      backgroundThumbnailUrlLarge: `https://b.ppy.sh/thumb/${result.beatmapSetId}l.jpg`,
+      backgroundThumbnailUrlSmall: `https://b.ppy.sh/thumb/${result.beatmapSetId}.jpg`
+    };
   }
 
   private static getApiMatchAfterIndex(index: number, result: NodesuMulti): MultiGame {

@@ -5,6 +5,7 @@ import { IsInt, IsPositive, IsNumberString, ValidateIf } from "class-validator";
 import { PlayerScore } from "../score/player-score.entity";
 import { GameMatchReported } from "../game/game-match-reported.entity";
 import { MatchAborted } from "./match-aborted.entity";
+import { Beatmap } from "../beatmap/beatmap.entity";
 
 @Entity("matches")
 export class Match extends CreationTimestampedEntity {
@@ -17,10 +18,18 @@ export class Match extends CreationTimestampedEntity {
   @Column()
   mapNumber: number;
 
-  @IsNumberString()
-  @IsPositive()
-  @Column()
-  beatmapId: string;
+  // // TODO - remove usage of Match(entity).beatmapId (just use Beatmap prop) - we have beatmapId listed along with Beatmap redundantly just to save dev time instead of rewriting the tests
+  // @IsNumberString()
+  // @IsPositive()
+  // @Column()
+  // beatmapId: string;
+
+  @ManyToOne(
+    type => Beatmap,
+    beatmap => beatmap.matches,
+    { cascade: ["insert", "update"] }
+  )
+  beatmap: Beatmap;
 
   /**
    * The start-time timestamp in milliseconds.
@@ -41,7 +50,11 @@ export class Match extends CreationTimestampedEntity {
   @Column({ type: "bigint", unsigned: true, nullable: true })
   endTime: number;
 
-  @OneToOne(type => MatchAborted, matchAborted => matchAborted.match, { cascade: ["insert", "update"] })
+  @OneToOne(
+    type => MatchAborted,
+    matchAborted => matchAborted.match,
+    { cascade: ["insert", "update"] }
+  )
   @JoinColumn()
   matchAbortion: MatchAborted;
 
@@ -53,14 +66,24 @@ export class Match extends CreationTimestampedEntity {
   @Column()
   teamMode: number;
 
-  @ManyToOne(type => Lobby, lobby => lobby.matches)
+  @ManyToOne(
+    type => Lobby,
+    lobby => lobby.matches
+  )
   @JoinColumn()
   lobby: Lobby;
 
-  @OneToMany(type => PlayerScore, playerScore => playerScore.scoredInMatch, { cascade: ["insert", "update"] })
+  @OneToMany(
+    type => PlayerScore,
+    playerScore => playerScore.scoredInMatch,
+    { cascade: ["insert", "update"] }
+  )
   playerScores: PlayerScore[];
 
-  @OneToMany(type => GameMatchReported, gameMatchReported => gameMatchReported.match)
+  @OneToMany(
+    type => GameMatchReported,
+    gameMatchReported => gameMatchReported.match
+  )
   @JoinTable()
   gameMatchesReported: GameMatchReported[];
 }

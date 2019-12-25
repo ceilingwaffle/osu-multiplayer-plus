@@ -18,7 +18,7 @@ import { TeamScoredHighestGameEvent } from "../game-events/team-scored-highest.g
 import { GameEventIcon } from "../components/game-event-icon";
 import { GameEventTypeDataMapper } from "../game-events/classes/game-event-type-data-mapper";
 import { TeamEliminatedGameEvent } from "../game-events/team-eliminated.game-event";
-import { debug } from "util";
+import { Beatmap } from "../components/beatmap";
 
 type GameSettings = { countFailedScores: boolean; startingTeamLives: number };
 type TeamLivesMapValue = {
@@ -37,6 +37,7 @@ export class LeaderboardBuilder {
   static buildLeaderboardVirtualMatchGroups(args: {
     game: Game;
     virtualMatchReportGroups: VirtualMatchReportData[];
+    beatmaps: Beatmap[];
   }): VirtualMatchReportData[] {
     const {
       gameSettings,
@@ -83,6 +84,11 @@ export class LeaderboardBuilder {
         gameSettings.startingTeamLives
       );
 
+      const beatmap = args.beatmaps.find(bm => bm.beatmapId == tssEvent.data.eventMatch.beatmapId);
+      if (!beatmap) {
+        Log.warn("A TeamScoreSubmitted event was recorded but no beatmap for the match was found.");
+      }
+
       const leaderboard: Leaderboard = LeaderboardBuilder.buildLeaderboard(
         targetEvent,
         lastVirtualMatch,
@@ -93,7 +99,8 @@ export class LeaderboardBuilder {
         allEventsUpToTargetEvent,
         teams,
         gameSettings,
-        teamLives
+        teamLives,
+        beatmap
       );
 
       leaderboardVMGroups.push({
@@ -223,19 +230,14 @@ export class LeaderboardBuilder {
     allEventsUpToTargetEvent: IGameEvent[],
     teams: Team[],
     gameSettings: GameSettings,
-    teamLives: Map<number, TeamLivesMapValue>
+    teamLives: Map<number, TeamLivesMapValue>,
+    beatmap: Beatmap
   ): Leaderboard {
     return {
       leaderboardEventTime: lastTeamScoreSubmittedEvent.data.timeOfEvent, // this could be a string if time was derived from the match endTime/startTime
       beatmapId: lastVirtualMatch.beatmapId,
       sameBeatmapNumber: lastVirtualMatch.sameBeatmapNumber,
-      beatmapPlayed: {
-        mapId: lastVirtualMatch.beatmapId,
-        // TODO: Build beatmap from VirtualMatchCompletedGameEvent
-        mapUrl: null,
-        mapString: null,
-        stars: null
-      },
+      beatmapPlayed: beatmap, // lastVirtualMatch.matches[0]?.beatmap,
       leaderboardLines: args.game.gameTeams.map<LeaderboardLine>(gt => {
         const teamScore = teamScoresForLastVirtualMatch.find(ts => ts.teamId === gt.team.id);
         const teamPositionals = LeaderboardBuilder.getTeamPositionals({

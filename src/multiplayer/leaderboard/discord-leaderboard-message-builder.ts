@@ -5,7 +5,7 @@ export class DiscordLeaderboardMessageBuilder {
   static build(leaderboardData: Leaderboard): string {
     const leaderboardOutput = `\`\`\`
   Played: 
-     ${leaderboardData.beatmapPlayed.mapString} (${leaderboardData.beatmapPlayed.stars}⭐}) (#1) 
+    ${leaderboardData.beatmapPlayed.title} (${leaderboardData.beatmapPlayed.stars}⭐}) (#1) 
   
   ${leaderboardData.leaderboardLines.find(ll => ll.alive) ? "Alive\n" : ""} \
   ${leaderboardData.leaderboardLines

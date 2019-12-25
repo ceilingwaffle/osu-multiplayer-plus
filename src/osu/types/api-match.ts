@@ -1,6 +1,7 @@
 import { TeamMode } from "../../multiplayer/components/enums/team-mode";
 import { ApiPlayerScore } from "./api-player-score";
 import { ApiMatchEvent } from "./api-match-event";
+import { ApiBeatmap } from "./api-beatmap";
 
 export type ApiMatch = {
   /**
@@ -16,4 +17,5 @@ export type ApiMatch = {
   event: ApiMatchEvent;
   scores: ApiPlayerScore[];
   aborted?: boolean;
+  beatmap?: ApiBeatmap; // optional prop here so we can fetch it later (after the ApiMatch creation) to save resources
 };

@@ -46,7 +46,8 @@ export class MultiplayerEntitySaver {
             "matches",
             "matches.playerScores",
             "matches.playerScores.scoredBy",
-            "matches.playerScores.scoredBy.user"
+            "matches.playerScores.scoredBy.user",
+            "matches.beatmap"
           ]
         }
       );
@@ -65,7 +66,8 @@ export class MultiplayerEntitySaver {
           lobbyMatch =>
             lobbyMatch.startTime == apiMatch.startTime &&
             lobby.banchoMultiplayerId == multiplayerData.multiplayerId &&
-            lobbyMatch.beatmapId == apiMatch.mapId
+            lobbyMatch.beatmap.beatmapId == apiMatch.mapId
+          // TODO - save Beatmap reference here
         );
         if (matches.length > 1) {
           Log.warn(
@@ -97,7 +99,8 @@ export class MultiplayerEntitySaver {
               match.startTime == apiMatch.startTime &&
               score.scoredBy.osuUserId == apiScore.osuUserId &&
               score.score == apiScore.score &&
-              match.beatmapId == apiMatch.mapId
+              match.beatmap.beatmapId == apiMatch.mapId
+            // TODO - save Beatmap reference here
           );
           if (scores.length > 1) {
             Log.warn(

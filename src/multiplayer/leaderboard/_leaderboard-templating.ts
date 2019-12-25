@@ -24,9 +24,15 @@ var leaderboardData: Leaderboard = {
   beatmapsRemaining: 4,
   beatmapPlayed: {
     stars: 5,
-    mapString: "Galneryus - Raise My Sword [AAAAAAA]",
-    mapId: "1234",
-    mapUrl: "https://osu.ppy.sh/b/1234"
+    // mapString: "Galneryus - Raise My Sword [AAAAAAA]",
+    beatmapId: "1234",
+    beatmapUrl: "https://osu.ppy.sh/b/1234",
+    beatmapSetId: "111",
+    title: "Raise My Sword",
+    artist: "Galneryus",
+    diffName: "AAAAAAA",
+    backgroundThumbnailUrlLarge: "TODO - backgroundThumbnailUrlLarge",
+    backgroundThumbnailUrlSmall: "TODO - backgroundThumbnailUrlSmall"
   },
   // lobby: {
   //   banchoLobbyId: "12345678",
@@ -170,9 +176,10 @@ var leaderboardData: Leaderboard = {
 };
 
 // const leaderboardOutput = Mustache.render(leaderboardTemplate, leaderboardData);
+// ${leaderboardData.beatmapPlayed.mapString}
 const leaderboardOutput = `\`\`\`
   Played: 
-     ${leaderboardData.beatmapPlayed.mapString} (${leaderboardData.beatmapPlayed.stars}⭐}) (#1) 
+      ${leaderboardData.beatmapPlayed.title} (${leaderboardData.beatmapPlayed.stars}⭐}) (#1) 
   
   ${leaderboardData.leaderboardLines.find(ll => ll.alive) ? "Alive\n" : ""} \
   ${leaderboardData.leaderboardLines

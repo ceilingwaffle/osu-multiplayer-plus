@@ -8,7 +8,18 @@ const leaderboard_bm2_1: Leaderboard = {
     resultsContainingMap: context.osuApiResults.lobby1ApiResults1,
     lobbyPlayedMapOrderNumber: 2
   }),
-  beatmapPlayed: { mapId: null, mapUrl: null, mapString: null, stars: null },
+  beatmapPlayed: {
+    // mapString: null,
+    beatmapId: null,
+    beatmapSetId: null,
+    beatmapUrl: null,
+    stars: null,
+    title: null,
+    artist: null,
+    diffName: null,
+    backgroundThumbnailUrlLarge: null,
+    backgroundThumbnailUrlSmall: null
+  },
   beatmapId: "BM2",
   sameBeatmapNumber: 1,
   leaderboardLines: [
@@ -104,7 +115,18 @@ const leaderboard_bm4_1: Leaderboard = {
     resultsContainingMap: context.osuApiResults.lobby1ApiResults1,
     lobbyPlayedMapOrderNumber: 4
   }),
-  beatmapPlayed: { mapId: null, mapUrl: null, mapString: null, stars: null },
+  beatmapPlayed: {
+    // mapString: null,
+    beatmapId: null,
+    beatmapSetId: null,
+    beatmapUrl: null,
+    diffName: null,
+    stars: null,
+    title: null,
+    artist: null,
+    backgroundThumbnailUrlLarge: null,
+    backgroundThumbnailUrlSmall: null
+  },
   beatmapId: "BM4",
   sameBeatmapNumber: 1,
   leaderboardLines: [
@@ -216,7 +238,18 @@ const leaderboard_bm3_2: Leaderboard = {
     resultsContainingMap: context.osuApiResults.lobby2ApiResults2,
     lobbyPlayedMapOrderNumber: 6
   }),
-  beatmapPlayed: { mapId: null, mapUrl: null, mapString: null, stars: null },
+  beatmapPlayed: {
+    // mapString: null,
+    beatmapId: null,
+    beatmapSetId: null,
+    beatmapUrl: null,
+    diffName: null,
+    stars: null,
+    title: null,
+    artist: null,
+    backgroundThumbnailUrlLarge: null,
+    backgroundThumbnailUrlSmall: null
+  },
   beatmapId: "BM3",
   sameBeatmapNumber: 2,
   leaderboardLines: [
@@ -328,7 +361,18 @@ const leaderboard_bm5_1: Leaderboard = {
     resultsContainingMap: context.osuApiResults.lobby1ApiResults2,
     lobbyPlayedMapOrderNumber: 6
   }),
-  beatmapPlayed: { mapId: null, mapUrl: null, mapString: null, stars: null },
+  beatmapPlayed: {
+    // mapString: null,
+    beatmapId: null,
+    beatmapSetId: null,
+    beatmapUrl: null,
+    diffName: null,
+    stars: null,
+    title: null,
+    artist: null,
+    backgroundThumbnailUrlLarge: null,
+    backgroundThumbnailUrlSmall: null
+  },
   beatmapId: "BM5",
   sameBeatmapNumber: 1,
   leaderboardLines: [
@@ -440,7 +484,18 @@ const leaderboard_bm5_2: Leaderboard = {
     resultsContainingMap: context.osuApiResults.lobby1ApiResults3,
     lobbyPlayedMapOrderNumber: 7
   }),
-  beatmapPlayed: { mapId: null, mapUrl: null, mapString: null, stars: null },
+  beatmapPlayed: {
+    // mapString: null,
+    beatmapId: null,
+    beatmapSetId: null,
+    beatmapUrl: null,
+    diffName: null,
+    stars: null,
+    title: null,
+    artist: null,
+    backgroundThumbnailUrlLarge: null,
+    backgroundThumbnailUrlSmall: null
+  },
   beatmapId: "BM5",
   sameBeatmapNumber: 2,
   leaderboardLines: [
@@ -552,7 +607,18 @@ const leaderboard_bm5_3: Leaderboard = {
     resultsContainingMap: context.osuApiResults.lobby1ApiResults4,
     lobbyPlayedMapOrderNumber: 8
   }),
-  beatmapPlayed: { mapId: null, mapUrl: null, mapString: null, stars: null },
+  beatmapPlayed: {
+    // mapString: null,
+    beatmapId: null,
+    beatmapSetId: null,
+    beatmapUrl: null,
+    diffName: null,
+    stars: null,
+    title: null,
+    artist: null,
+    backgroundThumbnailUrlLarge: null,
+    backgroundThumbnailUrlSmall: null
+  },
   beatmapId: "BM5",
   sameBeatmapNumber: 3,
   leaderboardLines: [

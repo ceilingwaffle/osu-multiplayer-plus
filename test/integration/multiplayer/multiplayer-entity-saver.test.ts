@@ -14,7 +14,7 @@ import { DataPropertiesOnly } from "../../../src/utils/data-properties-only";
 import { PlayMode } from "../../../src/multiplayer/components/enums/play-mode";
 import { ScoringType } from "../../../src/multiplayer/components/enums/scoring-type";
 import { Mods } from "../../../src/multiplayer/components/enums/mods";
-import { Match as MatchEntity, Match } from "../../../src/domain/match/match.entity";
+import { Match as MatchEntity } from "../../../src/domain/match/match.entity";
 import { PlayerScore as PlayerScoreEntity } from "../../../src/domain/score/player-score.entity";
 import { OsuUser as OsuUserEntity } from "../../../src/domain/user/osu-user.entity";
 import { User as UserEntity } from "../../../src/domain/user/user.entity";
@@ -457,7 +457,9 @@ describe("When saving multiplayer results", function() {
                       {
                         id: 1,
                         mapNumber: 1,
-                        beatmapId: "4178",
+                        beatmap: {
+                          beatmapId: "4178"
+                        },
                         startTime: input.matches[0].startTime,
                         endTime: input.matches[0].endTime,
                         matchAbortion: {
@@ -666,7 +668,9 @@ describe("When saving multiplayer results", function() {
                       {
                         id: 1,
                         mapNumber: 1,
-                        beatmapId: "4178",
+                        beatmap: {
+                          beatmapId: "4178"
+                        },
                         startTime: apiResults1.matches[0].startTime,
                         endTime: apiResults1.matches[0].endTime,
                         matchAbortion: {
@@ -832,7 +836,9 @@ describe("When saving multiplayer results", function() {
                       {
                         id: 2,
                         mapNumber: 2,
-                        beatmapId: "6666",
+                        beatmap: {
+                          beatmapId: "6666"
+                        },
                         startTime: apiResults2.matches[0].startTime,
                         endTime: apiResults2.matches[0].endTime,
                         matchAbortion: {

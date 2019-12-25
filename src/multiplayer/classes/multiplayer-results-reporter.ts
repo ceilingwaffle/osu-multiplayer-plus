@@ -126,7 +126,7 @@ export class MultiplayerResultsReporter {
         subType: "match_aborted",
         item: {
           type: "match_aborted",
-          message: `Map ${abortedMatch.match.beatmapId} aborted in lobby ${abortedMatch.match.lobby.id}.`,
+          message: `Map ${abortedMatch.match.beatmap?.beatmapId} aborted in lobby ${abortedMatch.match.lobby.id}.`,
           sameBeatmapNumber: abortedMatch.incompleteVMKey.sameBeatmapNumber,
           beatmapId: abortedMatch.incompleteVMKey.beatmapId,
           time: matchTime

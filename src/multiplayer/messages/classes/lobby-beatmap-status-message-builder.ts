@@ -40,11 +40,11 @@ export class LobbyBeatmapStatusMessageBuilder {
       if (!match.startTime) continue;
       const beatmapNumber: number = LobbyBeatmapStatusMessageBuilder.getSameBeatmapNumberPlayedInLobbyForMatch(beatmapsPlayed, match);
       const message: LobbyCompletedBeatmapMessage = {
-        message: `Lobby ${match.lobby.id} completed beatmap ${match.beatmapId}#${beatmapNumber}.`,
+        message: `Lobby ${match.lobby.id} completed beatmap ${match.beatmap?.beatmapId}#${beatmapNumber}.`,
         lobby: LobbyBeatmapStatusMessageBuilder.buildLobbyComponent(match.lobby),
         match: LobbyBeatmapStatusMessageBuilder.buildMatchComponent(match),
         sameBeatmapNumber: beatmapNumber,
-        beatmapId: match.beatmapId,
+        beatmapId: match.beatmap?.beatmapId,
         type: "lobby_completed",
         time: match.endTime
       };
@@ -143,7 +143,18 @@ export class LobbyBeatmapStatusMessageBuilder {
       scoringType: ScoringType.scoreV2,
       teamType: TeamMode.HeadToHead,
       forcedMods: 0,
-      beatmap: { mapId: fromMatchEntity.beatmapId, mapUrl: "TODO:MapURL", mapString: "TODO:MapString", stars: 99 },
+      beatmap: {
+        beatmapId: fromMatchEntity.beatmap?.beatmapId,
+        beatmapUrl: fromMatchEntity.beatmap?.beatmapUrl,
+        // mapString: "TODO:   MapString",
+        stars: 99,
+        beatmapSetId: fromMatchEntity.beatmap?.beatmapSetId,
+        title: fromMatchEntity.beatmap?.title,
+        artist: fromMatchEntity.beatmap?.artist,
+        diffName: fromMatchEntity.beatmap?.diffName,
+        backgroundThumbnailUrlLarge: fromMatchEntity.beatmap?.backgroundThumbnailUrlLarge,
+        backgroundThumbnailUrlSmall: fromMatchEntity.beatmap?.backgroundThumbnailUrlSmall
+      },
       status: "completed",
       entityId: fromMatchEntity.id
     }; // TODO: get PlayMode, ScoringType, TeamMode, Mods, status

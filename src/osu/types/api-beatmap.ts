@@ -1,14 +1,11 @@
-export interface Beatmap {
-  // e.g. kanonxkanon - Calendula Requiem [Shiki Revive] | DT | 7.09*
-  // mapString: string;
-
+export type ApiBeatmap = {
   beatmapId: string;
   beatmapSetId: string;
   beatmapUrl: string;
-  diffName: string;
   stars: number;
   title: string;
   artist: string;
+  diffName: string;
   backgroundThumbnailUrlLarge: string;
   backgroundThumbnailUrlSmall: string;
-}
+};

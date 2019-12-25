@@ -22,6 +22,7 @@ import { sortByMatchOldestToLatest } from "../components/match";
 import { LobbyCompletedBeatmapMessage } from "../messages/lobby-completed-beatmap-message";
 import { AllLobbiesCompletedBeatmapMessage } from "../messages/all-lobbies-completed-beatmap-message";
 import { LeaderboardBuilder } from "../leaderboard/leaderboard-builder";
+import { BeatmapFetcher } from "../../osu/beatmap-fetcher";
 
 export class MultiplayerResultsProcessor {
   // TODO: Don't get these from the ioc container - should be able to inject somehow
@@ -113,10 +114,13 @@ export class MultiplayerResultsProcessor {
     const messageVMGroups = this.buildVirtualMatchGroupsFromMessages({ messages });
     // merge events and messages onto their respective virtual matches
     let vmGroups = this.mergeVirtualMatchReportGroups(gameEventVMGroups, messageVMGroups);
+    // get beatmaps
+    const beatmaps = await BeatmapFetcher.getBeatmapComponentsForBeatmapIds(virtualMatches.map(vm => vm.beatmapId));
     // build leaderboards for each applicable virtual match
     const leaderboardVMGroups = LeaderboardBuilder.buildLeaderboardVirtualMatchGroups({
       game: args.game,
-      virtualMatchReportGroups: vmGroups
+      virtualMatchReportGroups: vmGroups,
+      beatmaps
     });
     // const leaderboards = [LeaderboardBuilder.buildLatestLeaderboard({ game: args.game, virtualMatchReportGroups: vmGroups })].filter(
     //   leaderboard => leaderboard

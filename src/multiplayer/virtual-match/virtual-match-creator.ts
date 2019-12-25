@@ -104,7 +104,9 @@ export class VirtualMatchCreator {
           // const greatestPlayedCount = Math.max(0, ...o.matches.map(m => m.lobby.matches.filter(lm => lm.beatmapId === m.beatmapId).length));
           const greatestPlayedCount = Math.max(
             0,
-            ...o.matches.map(m => o.lobbies.find(ol => ol.id === m.lobby.id).matches.filter(lm => lm.beatmapId === m.beatmapId).length)
+            ...o.matches.map(
+              m => o.lobbies.find(ol => ol.id === m.lobby.id).matches.filter(lm => lm.beatmap?.beatmapId === m.beatmap?.beatmapId).length
+            )
           );
           if (greatestPlayedCount < 1) {
             throw new Error(
@@ -148,9 +150,11 @@ export class VirtualMatchCreator {
 
   static createSameBeatmapKeyObjectForMatch(match: Match, matches: Match[]): VirtualMatchKey {
     return {
-      beatmapId: match.beatmapId,
+      beatmapId: match.beatmap?.beatmapId,
       sameBeatmapNumber:
-        matches.filter(m => m.lobby.id === match.lobby.id && m.beatmapId === match.beatmapId).findIndex(m => m.id === match.id) + 1
+        matches
+          .filter(m => m.lobby.id === match.lobby.id && m.beatmap?.beatmapId === match.beatmap?.beatmapId)
+          .findIndex(m => m.id === match.id) + 1
     };
   }
 
@@ -166,7 +170,7 @@ export class VirtualMatchCreator {
   }
 
   static getNthMatchHavingBeatmapId({ searchMatches, beatmapId, n }: { searchMatches: Match[]; beatmapId: string; n: number }): Match {
-    return searchMatches.filter(m => m.beatmapId === beatmapId)[n - 1];
+    return searchMatches.filter(m => m.beatmap?.beatmapId === beatmapId)[n - 1];
   }
 
   static isEqualVirtualMatchKey(key1: VirtualMatchKey, key2: VirtualMatchKey): boolean {

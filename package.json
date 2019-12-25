@@ -21,7 +21,7 @@
     "cli:command": "ts-node ./cli/command.ts"
   },
   "devDependencies": {
-    "@types/chai": "^4.2.5",
+    "@types/chai": "^4.2.7",
     "@types/dotenv": "^6.1.1",
     "@types/mocha": "^5.2.7",
     "@types/node": "^8.10.59",
@@ -33,7 +33,7 @@
     "run-script-os": "^1.0.7",
     "ts-node": "^3.3.0",
     "tsconfig-paths": "^3.9.0",
-    "typescript": "^3.7.2"
+    "typescript": "^3.7.4"
   },
   "dependencies": {
     "@types/chai-spies": "^1.0.1",
@@ -60,9 +60,9 @@
     "log4js": "^4.3.1",
     "module-alias": "^2.2.2",
     "moment": "^2.24.0",
-    "mustache": "^3.1.0",
+    "mustache": "^3.2.0",
     "nodesu": "^0.7.1",
-    "pg": "^7.14.0",
+    "pg": "^7.15.1",
     "puppeteer": "^2.0.0",
     "reflect-metadata": "^0.1.13",
     "role-acl": "^3.3.7",
@@ -70,7 +70,7 @@
     "sqlite": "^3.0.3",
     "sqlite3": "^4.1.1",
     "tasktimer": "^3.0.0",
-    "ts-cleaner": "^1.0.4",
-    "typeorm": "^0.2.20"
+    "ts-cleaner": "^1.0.5",
+    "typeorm": "^0.2.22"
   }
 }

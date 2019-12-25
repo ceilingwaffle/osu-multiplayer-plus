@@ -8,6 +8,7 @@ import { Helpers } from "../utils/helpers";
 import { OsuUserValidationResult } from "./types/osu-user-validation-result";
 import { injectable } from "inversify";
 import { ApiOsuUser } from "./types/api-osu-user";
+import { ApiBeatmap } from "./types/api-beatmap";
 
 /**
  * Singleton
@@ -112,6 +113,28 @@ export class NodesuApiFetcher implements IOsuApiFetcher {
       }
     } catch (error) {
       Log.methodFailure(this.fetchMultiplayerResults, this.constructor.name, error);
+      throw error;
+    }
+  }
+
+  async fetchBeatmap(beatmapId: string): Promise<ApiBeatmap> {
+    try {
+      const result = await this.limiter.schedule(() => this.api.beatmaps.getByBeatmapId(Number(beatmapId)));
+      if (!result) {
+        Log.methodFailure(this.fetchBeatmap, this.constructor.name, `No beatmap result was fetched for bmid ${beatmapId}.`);
+        return null;
+      }
+      const resultBeatmap = result[0];
+      if (resultBeatmap instanceof Nodesu.Beatmap) {
+        const transformed = NodesuApiTransformer.transformBeatmap(resultBeatmap);
+        Log.methodSuccess(this.fetchBeatmap, this.constructor.name, `Fetched beatmap for Beatmap ID ${beatmapId}.`);
+        return transformed;
+      } else {
+        Log.methodFailure(this.fetchBeatmap, this.constructor.name, "Beatmap was not instanceof Nodesu.Beatmap.");
+        return null;
+      }
+    } catch (error) {
+      Log.methodFailure(this.fetchBeatmap, this.constructor.name, error);
       throw error;
     }
   }

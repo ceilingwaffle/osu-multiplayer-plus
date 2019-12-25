@@ -95,7 +95,7 @@ export class DiscordBot {
         for (const richEmbed of richEmbeds) {
           const delivery: Message = await channel.sendEmbed(richEmbed);
           Log.methodSuccess(this.sendChannelMessage, this.constructor.name, `Sent Discord message to channel ID ${channelId}`, {
-            reportablesSent: message.getReportables()
+            reportablesCountSent: message.getReportables().length
           });
           delivered.push(delivery);
         }
