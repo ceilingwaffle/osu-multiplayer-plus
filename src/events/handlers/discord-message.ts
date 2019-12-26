@@ -43,9 +43,17 @@ export class DiscordMessage {
       .toArray()
       .value();
 
-    for (const messageReportables of vmGroupedReportables) {
+    for (let messageReportables of vmGroupedReportables) {
       const newEmbed = new RichEmbed();
 
+      // we want the messages displayed before the game events
+      messageReportables = messageReportables.sort((r1, r2) => {
+        if (r1.type === "message" && r2.type === "game_event") return -1;
+        else if (r1.type === "game_event" && r2.type === "message") return 1;
+        else return 0;
+      });
+
+      // add some game info to the Author field
       for (const reportable of messageReportables) {
         if (reportable.type === "game_event") {
           const gameEvent = reportable.item as IGameEvent;
@@ -62,7 +70,6 @@ export class DiscordMessage {
       // add beatmap title header to message if it contains a leaderboard
       for (const reportable of messageReportables) {
         if (reportable.type === "leaderboard") {
-          // fetch the beatmap info
           const leaderboard = reportable.item as Leaderboard;
           this.addBeatmapTitle(leaderboard.beatmapPlayed, newEmbed);
           break;
@@ -80,6 +87,7 @@ export class DiscordMessage {
           const _exhaustiveCheck: never = reportable.type;
         }
       }
+
       this.embeds.push(newEmbed);
     }
   }
@@ -137,53 +145,76 @@ export class DiscordMessage {
 
   private addMessagePart(reportable: ReportableContext<ReportableContextType>, targetEmbed: RichEmbed): void {
     const r = reportable.item as LobbyBeatmapStatusMessage<MessageType>;
-    let messageValue = new String();
+    let messageValue = "";
+    let icon = "";
     if (r.type === "all_lobbies_completed") {
-      messageValue = messageValue.concat(`✅`);
+      icon = `✅`;
     } else if (r.type === "lobby_awaiting") {
-      messageValue = messageValue.concat(`⌛`);
+      icon = `⌛`;
     } else if (r.type === "lobby_completed") {
-      messageValue = messageValue.concat(`🦞`);
+      icon = `🦞`;
     } else if (r.type === "match_aborted") {
-      messageValue = messageValue.concat(`🛑`);
+      icon = `🛑`;
     } else {
       const _exhaustiveCheck: never = r.type;
       return _exhaustiveCheck;
     }
 
-    messageValue = messageValue.concat(` `, `${r.message}`, ` `, `${Helpers.getTimeAgoTextForTime(r.time)}`);
-    targetEmbed.addField(messageValue, "TODO: Put some message metadata here...");
+    messageValue = `${icon} ${r.message} ${Helpers.getTimeAgoTextForTime(r.time)}`;
+    targetEmbed.addField("\u200b", messageValue);
   }
 
   private addGameEventPart(reportable: ReportableContext<ReportableContextType>, targetEmbed: RichEmbed): void {
     const gameEvent = reportable.item as IGameEvent;
-    let messageValue = new String();
+    let messageValue = "";
+    let icon = "";
     // TODO - replace all this stuff below with getting emoji from GameEventTypeDataMapper
     if (gameEvent.type === "team_eliminated") {
       const ge = gameEvent as TeamEliminatedGameEvent;
-      messageValue = messageValue.concat(`💀`, ` `, `Team ${ge.data.teamId} was eliminated!`); // TODO: Team number with player names
+      icon = `💀`;
+      messageValue = messageValue.concat(`Team ${ge.data.teamId} was eliminated!`); // TODO: Team number with player names
     } else if (gameEvent.type === "team_game_champion_declared") {
+      icon = `🏆`;
       const ge = gameEvent as TeamIsGameChampionGameEvent;
-      messageValue = messageValue.concat(`🏆`, ` `, `Game over! The winner is Team ${ge.data.teamId}!`);
+      messageValue = `Game over! The winner is Team ${ge.data.teamId}!`;
     } else if (gameEvent.type === "team_on_winning_streak") {
-      messageValue = messageValue.concat(`🌟`, ` `, `Team is on a winning streak!`); // TODO
+      // messageValue = messageValue.concat(`🌟`, ` `, `Team is on a winning streak!`); // TODO
+      return;
     } else if (gameEvent.type === "team_scored_highest") {
+      icon = `⭐`;
       const ge = gameEvent as TeamScoredHighestGameEvent;
-      messageValue = messageValue.concat(`⭐`, ` `, `Team ${ge.data.teamId} won the match!`);
+      messageValue = `Team ${ge.data.teamId} won the match!`;
     } else if (gameEvent.type === "team_scored_lowest") {
+      icon = `💥`;
       const ge = gameEvent as TeamScoredLowestGameEvent;
-      messageValue = messageValue.concat(`💥`, ` `, `Team ${ge.data.teamId} lost a life!`);
+      messageValue = `Team ${ge.data.teamId} lost a life!`;
     } else if (gameEvent.type === "team_scores_submitted") {
-      const ge = gameEvent as TeamScoresSubmittedGameEvent;
-      messageValue = messageValue.concat(`  `, ` `, `Teams submitted scores.`); // TODO
+      // icon = ``;
+      // const ge = gameEvent as TeamScoresSubmittedGameEvent;
+      // messageValue = messageValue.concat(`  `, ` `, `Teams submitted scores.`); // TODO
+      return;
     } else if (gameEvent.type === "team_scores_tied") {
+      // TODO - tied scores
+      icon = `👔`;
       const ge = gameEvent as TeamScoresTiedGameEvent;
-      messageValue = messageValue.concat(`👔`, ` `, `Some teams had tied scores.`); // TODO
+      messageValue = `Some teams had tied scores.`;
     } else {
       const _exhaustiveCheck: never = gameEvent.type;
       return _exhaustiveCheck;
     }
 
-    targetEmbed.addField(messageValue, "TODO: Put some event/team metadata here...");
+    // const team = _(gameEvent.data.eventMatch.matches)
+    //   .map(m => {
+    //     return m.playerScores.map(ps => {
+    //       const teamOsuUser = ps.scoredBy.teamOsuUsers.find(tou => tou.team.id === gameEvent.data.teamId);
+    //       if (teamOsuUser) {
+    //         return teamOsuUser.team;
+    //       }
+    //     });
+    //   })
+    //   .flatten()
+    //   .first();
+
+    targetEmbed.addField("\u200b", `${icon} ${messageValue}`);
   }
 }

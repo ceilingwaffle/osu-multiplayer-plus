@@ -40,7 +40,7 @@ export class LobbyBeatmapStatusMessageBuilder {
       if (!match.startTime) continue;
       const beatmapNumber: number = LobbyBeatmapStatusMessageBuilder.getSameBeatmapNumberPlayedInLobbyForMatch(beatmapsPlayed, match);
       const message: LobbyCompletedBeatmapMessage = {
-        message: `Lobby ${match.lobby.id} completed beatmap ${match.beatmap?.beatmapId}#${beatmapNumber}.`,
+        message: `Lobby ${match.lobby.id} completed beatmap ${match.beatmap?.beatmapId}#${beatmapNumber}`,
         lobby: LobbyBeatmapStatusMessageBuilder.buildLobbyComponent(match.lobby),
         match: LobbyBeatmapStatusMessageBuilder.buildMatchComponent(match),
         sameBeatmapNumber: beatmapNumber,
