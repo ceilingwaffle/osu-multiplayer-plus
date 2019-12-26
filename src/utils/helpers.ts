@@ -7,7 +7,8 @@ import moment = require("moment");
 
 export class Helpers {
   static getNow() {
-    return Math.floor(Date.now() / 1000);
+    // return Math.floor(Date.now() / 1000);
+    return Math.floor(Date.now());
   }
 
   static getOrCreateCommandoDatabasePath(): string {
@@ -132,10 +133,27 @@ export class Helpers {
   }
 
   static getTimeAgoTextForTime(time: number): string {
-    return moment.unix(time).fromNow();
+    const fromNow = moment.unix(time / 1000).fromNow();
+    return fromNow;
   }
 
   static numberWithCommas(x: number): string {
     return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+  }
+
+  /**
+   * Returns a string like "HH:MM:SS" for the difference of two timestamps.
+   * https://stackoverflow.com/a/25279399
+   *
+   * @param {number} t1 time in ms
+   * @param {number} t2 time in ms
+   * @returns {string}
+   */
+  static getDurationBetweenTimesAsHHMMSS(t1: number, t2: number): string {
+    const timeDiff: number = Math.abs(t2 - t1);
+    var date = new Date(null);
+    date.setMilliseconds(timeDiff);
+    var timeString = date.toISOString().substr(11, 8);
+    return timeString;
   }
 }

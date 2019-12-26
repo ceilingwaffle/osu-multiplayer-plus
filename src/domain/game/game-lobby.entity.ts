@@ -7,10 +7,18 @@ import { Game } from "./game.entity";
 
 @Entity("game_lobbies")
 export class GameLobby extends CreationTimestampedEntity {
-  @ManyToOne(type => Lobby, lobby => lobby.gameLobbies, { primary: true })
+  @ManyToOne(
+    type => Lobby,
+    lobby => lobby.gameLobbies,
+    { primary: true }
+  )
   lobby: Lobby;
 
-  @ManyToOne(type => Game, game => game.gameLobbies, { primary: true })
+  @ManyToOne(
+    type => Game,
+    game => game.gameLobbies,
+    { primary: true }
+  )
   game: Game;
 
   @IsPositive()
@@ -25,7 +33,7 @@ export class GameLobby extends CreationTimestampedEntity {
    * @type {number}
    */
   // @ValidateIf(gameLobby => gameLobby.removedAt)
-  @Column({ nullable: true })
+  @Column({ name: "removed_at", type: "bigint", unsigned: true, nullable: true })
   removedAt: number;
 
   @ManyToOne(type => User)

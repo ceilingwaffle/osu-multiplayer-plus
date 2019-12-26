@@ -26,7 +26,8 @@ export class TeamScoredHighestGameEvent extends GameEvent<{ teamId: number }> im
       teamId: winningTeamId,
       eventMatch: targetVirtualMatch,
       // the team won at the time of the final lobby completing the map
-      timeOfEvent: VirtualMatchCreator.getEstimatedTimeOfOccurrenceOfVirtualMatch(targetVirtualMatch)
+      timeOfEvent: VirtualMatchCreator.getEstimatedTimeOfOccurrenceOfVirtualMatch(targetVirtualMatch),
+      game: game
     };
     return true;
   }

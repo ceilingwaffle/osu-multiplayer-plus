@@ -23,7 +23,7 @@ export class DiscordMultiplayerResultsDeliverableEventHandler extends EventHandl
     reportables: ReportableContext<ReportableContextType>[],
     destinations: GameMessageTarget[]
   ): Promise<boolean> {
-    Log.info(`Delivering reportables...`, { reportables: reportables, gameMessageTargets: destinations });
+    Log.info(`Delivering reportables...`, { reportablesCount: reportables.length, gameMessageTargets: destinations });
 
     const discordBot: DiscordBot = iocContainer.get<DiscordBot>(TYPES.DiscordBot);
 

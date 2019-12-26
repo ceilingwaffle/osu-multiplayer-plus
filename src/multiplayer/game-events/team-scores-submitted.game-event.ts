@@ -39,7 +39,8 @@ export class TeamScoresSubmittedGameEvent extends GameEvent<{ data: TeamVirtualM
     this.data = {
       eventMatch: targetVirtualMatch,
       timeOfEvent: VirtualMatchCreator.getEstimatedTimeOfOccurrenceOfVirtualMatch(targetVirtualMatch),
-      data: new Map<TeamID, VirtualMatchData>()
+      data: new Map<TeamID, VirtualMatchData>(),
+      game: game
     };
 
     teamScores

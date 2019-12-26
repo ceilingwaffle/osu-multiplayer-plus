@@ -18,11 +18,19 @@ export class TeamOsuUser extends CreationTimestampedEntity {
   @Generated("increment")
   id: number;
 
-  @ManyToOne(type => Team, team => team.teamOsuUsers, { primary: true })
+  @ManyToOne(
+    type => Team,
+    team => team.teamOsuUsers,
+    { primary: true }
+  )
   @JoinColumn()
   team: Team;
 
-  @ManyToOne(type => OsuUser, osuUser => osuUser.teamOsuUsers, { primary: true })
+  @ManyToOne(
+    type => OsuUser,
+    osuUser => osuUser.teamOsuUsers,
+    { primary: true }
+  )
   @JoinColumn()
   osuUser: OsuUser;
 
@@ -31,7 +39,7 @@ export class TeamOsuUser extends CreationTimestampedEntity {
   addedBy: User;
 
   // @ValidateIf(teamOsuUser => teamOsuUser.removedAt)
-  @Column({ nullable: true })
+  @Column({ name: "removed_at", type: "bigint", unsigned: true, nullable: true })
   removedAt: number;
 
   @ManyToOne(type => User, { nullable: true })

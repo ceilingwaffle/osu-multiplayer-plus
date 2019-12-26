@@ -19,11 +19,19 @@ export class GameTeam extends CreationTimestampedEntity {
   @Generated()
   id: number;
 
-  @ManyToOne(type => Team, team => team.gameTeams, { primary: true })
+  @ManyToOne(
+    type => Team,
+    team => team.gameTeams,
+    { primary: true }
+  )
   @JoinColumn()
   team: Team;
 
-  @ManyToOne(type => Game, game => game.gameTeams, { primary: true })
+  @ManyToOne(
+    type => Game,
+    game => game.gameTeams,
+    { primary: true }
+  )
   @JoinColumn()
   game: Game;
 
@@ -56,6 +64,6 @@ export class GameTeam extends CreationTimestampedEntity {
   removedBy: User;
 
   // @ValidateIf(gameTeam => gameTeam.removedAt)
-  @Column({ nullable: true })
+  @Column({ name: "removed_at", type: "bigint", unsigned: true, nullable: true })
   removedAt: number;
 }

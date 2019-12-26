@@ -18,6 +18,11 @@ import { DiscordLeaderboardImageBuilder } from "../../multiplayer/leaderboard/di
 import _ = require("lodash"); // do not convert to default import -- it will break!!
 import { VirtualMatchCreator } from "../../multiplayer/virtual-match/virtual-match-creator";
 import { Beatmap } from "../../multiplayer/components/beatmap";
+import { GameEvent } from "../../multiplayer/game-events/classes/game-event";
+import { Game } from "../../domain/game/game.entity";
+import { Log } from "../../utils/Log";
+import { debug } from "util";
+import { LobbyCompletedBeatmapMessage } from "../../multiplayer/messages/lobby-completed-beatmap-message";
 
 export class DiscordMessage {
   public embeds: RichEmbed[];
@@ -40,6 +45,20 @@ export class DiscordMessage {
 
     for (const messageReportables of vmGroupedReportables) {
       const newEmbed = new RichEmbed();
+
+      for (const reportable of messageReportables) {
+        if (reportable.type === "game_event") {
+          const gameEvent = reportable.item as IGameEvent;
+          const game = gameEvent?.data?.game;
+          if (!game) {
+            Log.warn(`No game on GameEvent data. We'll check the next one...`);
+          } else {
+            this.addGameInfoAuthorField(game, newEmbed);
+            break;
+          }
+        }
+      }
+
       // add beatmap title header to message if it contains a leaderboard
       for (const reportable of messageReportables) {
         if (reportable.type === "leaderboard") {
@@ -63,6 +82,27 @@ export class DiscordMessage {
       }
       this.embeds.push(newEmbed);
     }
+  }
+
+  addGameInfoAuthorField(game: Game, targetEmbed: RichEmbed): void {
+    let authorString = `BR Game ID ${game.id}`;
+    // TODO - add map duration
+    // TODO - add map number
+    // TODO - add estimated maps remaining (from maps played / total lives - 1)
+    // const now = Date.now();
+    // if (game.startedAt && now > game.startedAt) {
+    //   const duration = Helpers.getDurationBetweenTimesAsHHMMSS(now, game.startedAt);
+    //   authorString += ` - ${duration}`;
+    // }
+    const osuLogoUrl = "https://i.imgur.com/6qZ48Zr.png";
+    if (!game?.gameLobbies.length) {
+      targetEmbed.setAuthor(authorString, osuLogoUrl);
+      return;
+    }
+    // TODO - handle situations for multi-lobby games - right now we only link to the first lobby MP link
+    const banchoLobbyId = game.gameLobbies[0].lobby?.banchoMultiplayerId;
+    const osuMultiUrl = banchoLobbyId ? `https://osu.ppy.sh/community/matches/${banchoLobbyId}` : null;
+    targetEmbed.setAuthor(authorString, osuLogoUrl, osuMultiUrl);
   }
 
   addBeatmapTitle(beatmapPlayed: Beatmap, targetEmbed: RichEmbed): void {

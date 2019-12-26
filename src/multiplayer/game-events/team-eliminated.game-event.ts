@@ -30,13 +30,17 @@ export class TeamEliminatedGameEvent extends GameEvent<{ teamId: number }> imple
     if (!teams.length) return false;
 
     const aliveTeamIdsForTarget = this.getAliveTeamIdsForTargetVirtualMatch(targetVirtualMatch, allVirtualMatches, game, teams);
-    const allEliminatedTeamIdsForTarget = _.difference(teams.map(team => team.id), aliveTeamIdsForTarget);
+    const allEliminatedTeamIdsForTarget = _.difference(
+      teams.map(team => team.id),
+      aliveTeamIdsForTarget
+    );
 
     if (!allEliminatedTeamIdsForTarget.length) {
       this.data = {
         eventMatch: targetVirtualMatch,
         timeOfEvent: VirtualMatchCreator.getEstimatedTimeOfOccurrenceOfVirtualMatch(targetVirtualMatch),
-        teamId: undefined
+        teamId: undefined,
+        game: game
       };
       return false;
     }
@@ -64,7 +68,8 @@ export class TeamEliminatedGameEvent extends GameEvent<{ teamId: number }> imple
       this.data = {
         eventMatch: targetVirtualMatch,
         timeOfEvent: VirtualMatchCreator.getEstimatedTimeOfOccurrenceOfVirtualMatch(targetVirtualMatch),
-        teamId: allEliminatedTeamIdsForTarget[0]
+        teamId: allEliminatedTeamIdsForTarget[0],
+        game: game
       };
       return true;
     }
@@ -81,7 +86,8 @@ export class TeamEliminatedGameEvent extends GameEvent<{ teamId: number }> imple
     this.data = {
       eventMatch: targetVirtualMatch,
       timeOfEvent: VirtualMatchCreator.getEstimatedTimeOfOccurrenceOfVirtualMatch(targetVirtualMatch),
-      teamId: eliminatedTeamId
+      teamId: eliminatedTeamId,
+      game: game
     };
 
     return true;

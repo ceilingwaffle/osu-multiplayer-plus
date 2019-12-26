@@ -57,7 +57,8 @@ export class TeamIsGameChampionGameEvent extends GameEvent<{ teamId: number }> i
     this.data = {
       eventMatch: targetVirtualMatch,
       timeOfEvent: VirtualMatchCreator.getEstimatedTimeOfOccurrenceOfVirtualMatch(targetVirtualMatch),
-      teamId: winnerTeamId
+      teamId: winnerTeamId,
+      game: game
     };
 
     return !!winnerTeamId;

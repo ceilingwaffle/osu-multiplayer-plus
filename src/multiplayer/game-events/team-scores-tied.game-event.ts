@@ -31,7 +31,8 @@ export class TeamScoresTiedGameEvent extends GameEvent<{ data: TiedTeamsDataMap 
     this.data = {
       eventMatch: targetVirtualMatch,
       timeOfEvent: VirtualMatchCreator.getEstimatedTimeOfOccurrenceOfVirtualMatch(targetVirtualMatch),
-      data: new Map<TeamID, TiedTeamsData>()
+      data: new Map<TeamID, TiedTeamsData>(),
+      game: game
     };
 
     for (const teamScore of teamScores) {

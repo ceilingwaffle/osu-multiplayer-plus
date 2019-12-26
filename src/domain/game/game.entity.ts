@@ -37,7 +37,7 @@ export class Game extends CreationTimestampedEntity {
   endedBy: User;
 
   // @ValidateIf(game => game.endedAt)
-  @Column({ name: "ended_at", nullable: true })
+  @Column({ name: "ended_at", type: "bigint", unsigned: true, nullable: true })
   endedAt: number;
 
   @ManyToOne(type => User)
@@ -45,30 +45,47 @@ export class Game extends CreationTimestampedEntity {
   startedBy: User;
 
   // @ValidateIf(game => game.startedAt)
-  @Column({ name: "started_at", nullable: true })
+  @Column({ name: "started_at", type: "bigint", unsigned: true, nullable: true })
   startedAt: number;
 
-  @OneToMany(type => GameLobby, gameLobby => gameLobby.game, { cascade: true })
+  @OneToMany(
+    type => GameLobby,
+    gameLobby => gameLobby.game,
+    { cascade: true }
+  )
   @JoinTable()
   gameLobbies: GameLobby[];
 
-  @ManyToOne(type => User, user => user.gamesCreated)
+  @ManyToOne(
+    type => User,
+    user => user.gamesCreated
+  )
   @JoinColumn() //{ name: "created_by_user_id" }
   createdBy: User;
 
   // Must be x-to-MANY.
   // Nullable because we need the game ID in order to create a relationship between the game and the UserGameRole, and in order
   // to get a game ID we need to first create the game, therefore the game must first be created momentarily without a UserGameRole.
-  @OneToMany(type => UserGameRole, userGameRole => userGameRole.game, { nullable: true })
+  @OneToMany(
+    type => UserGameRole,
+    userGameRole => userGameRole.game,
+    { nullable: true }
+  )
   userGameRoles: UserGameRole[];
 
-  @OneToMany(type => GameTeam, gameTeam => gameTeam.game)
+  @OneToMany(
+    type => GameTeam,
+    gameTeam => gameTeam.game
+  )
   gameTeams: GameTeam[];
 
   @ManyToOne(type => Realm)
   createdInRealm: Realm;
 
-  @OneToMany(type => GameMatchReported, gameMatchReported => gameMatchReported.match)
+  @OneToMany(
+    type => GameMatchReported,
+    gameMatchReported => gameMatchReported.match
+  )
   @JoinTable()
   gameMatchesReported: GameMatchReported[];
 }

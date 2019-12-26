@@ -258,7 +258,7 @@ describe("When removing a lobby", function() {
         assert.lengthOf(removedGameLobbies, 1, "The game removed should be the game targeted by the 2nd request.");
         assert.isNumber(removedGameLobbies[0].removedAt);
         assert.isAbove(removedGameLobbies[0].removedAt, 0);
-        expect(removedGameLobbies[0].removedAt).to.be.within(1560000000, Math.floor(Date.now() / 1000));
+        expect(removedGameLobbies[0].removedAt).to.be.within(1560000000000, Math.floor(Date.now()));
 
         return resolve();
       } catch (error) {
@@ -535,7 +535,7 @@ describe("When removing a lobby", function() {
           { relations: ["gameLobbies", "gameLobbies.game"] }
         );
         const gameLobbyAfterRemove1 = lobbyAfterRemove1.gameLobbies.find(gameLobby => gameLobby.game.id === lobbyDto1.gameId);
-        expect(gameLobbyAfterRemove1.removedAt).to.be.within(1560000000, Math.floor(Date.now() / 1000));
+        expect(gameLobbyAfterRemove1.removedAt).to.be.within(1560000000000, Math.floor(Date.now()));
 
         // re-add lobby 1 to game 1
         const lobbyAddResponse2 = await lobbyController.create({
