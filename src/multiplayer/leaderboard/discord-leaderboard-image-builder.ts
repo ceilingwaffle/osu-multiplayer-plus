@@ -8,7 +8,7 @@ import { LeaderboardLine } from "../components/leaderboard-line";
 import { Helpers } from "../../utils/helpers";
 import * as path from "path";
 
-type PositionChangeTypes = "☝🏼" | "👇🏾" | "✋🏽"; // ⬆🔼👆👆🏻   // ⬇👇🔽👇🏾 //✋🏽
+type PositionChangeTypes = "☝🏼" | "👇🏾" | ""; // ⬆🔼👆👆🏻   // ⬇👇🔽👇🏾 //✋🏽
 type LeaderboardLineCssClassName = "highest-scoring" | "lowest-scoring";
 
 interface ImgLeaderboard {
@@ -137,17 +137,17 @@ export class DiscordLeaderboardImageBuilder {
       return "lowest-scoring";
     }
 
-    // if (ll.eventIcon.eventType == "team_eliminated" ) {
-    //   return "lowest-scoring";
-    // }
+    if (ll.eventIcon.eventType == "team_eliminated") {
+      return "lowest-scoring";
+    }
   }
 
   // TODO: Move these methods - genPositionChange, genPosition, genTeamNumber into a Helper class to avoid DRY with DiscordLeaderboardMessageBuilder
   private static genPositionChange(ll: LeaderboardLine): PositionChangeTypes {
     if (!ll || !ll.position || !ll.position.change) {
-      return "✋🏽";
+      return "";
     } else if (ll.position.change === "same") {
-      return "✋🏽";
+      return "";
     } else if (ll.position.change === "gained") {
       return "☝🏼";
     } else if (ll.position.change === "lost") {
@@ -158,7 +158,7 @@ export class DiscordLeaderboardImageBuilder {
   }
 
   private static genLifeHearts(ll: LeaderboardLine) {
-    return `${"🤎".repeat(ll.lives.currentLives)}${"🤍".repeat(ll.lives.startingLives - ll.lives.currentLives)}`;
+    return `${"❤".repeat(ll.lives.currentLives)}${"🤍".repeat(ll.lives.startingLives - ll.lives.currentLives)}`; // 🤎
   }
 
   private static genCurrentPositionString(ll: LeaderboardLine, allLines: LeaderboardLine[]): string {
