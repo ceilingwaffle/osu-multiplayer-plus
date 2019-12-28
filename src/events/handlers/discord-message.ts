@@ -93,7 +93,7 @@ export class DiscordMessage {
   }
 
   addGameInfoAuthorField(game: Game, targetEmbed: RichEmbed): void {
-    let authorString = `BR Game ID ${game.id}`;
+    let authorString = `Battle Royale ${game.id}`;
     // TODO - add map duration
     // TODO - add map number
     // TODO - add estimated maps remaining (from maps played / total lives - 1)

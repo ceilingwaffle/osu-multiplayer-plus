@@ -100,11 +100,134 @@ const leaderboard_bm2_1: Leaderboard = {
         eventDescription: "" // TODO
       },
       lives: {
-        currentLives: context.requests.createGameRequest1.teamLives,
+        currentLives: 1,
         startingLives: context.requests.createGameRequest1.teamLives
       },
       teamScore: {
         teamScore: 100
+      }
+    }
+  ]
+};
+
+const leaderboard_bm1_1: Leaderboard = {
+  leaderboardEventTime: TestHelpers.getTimeOfApiResultsMapPlayed({
+    resultsContainingMap: context.osuApiResults.lobby1ApiResults1,
+    lobbyPlayedMapOrderNumber: 1
+  }),
+  beatmapPlayed: {
+    // mapString: null,
+    beatmapId: null,
+    beatmapSetId: null,
+    beatmapUrl: null,
+    diffName: null,
+    stars: null,
+    title: null,
+    artist: null,
+    backgroundThumbnailUrlLarge: null,
+    backgroundThumbnailUrlSmall: null
+  },
+  beatmapId: "BM1",
+  sameBeatmapNumber: 1,
+  leaderboardLines: [
+    {
+      team: {
+        teamName: null, // TODO
+        teamNumber: 1,
+        players: [] // TODO LeaderboardLinePlayer[]
+      },
+      alive: true,
+      position: {
+        currentPosition: 2,
+        previousPosition: 0,
+        change: "lost"
+      },
+      eventIcon: {
+        eventEmoji: "", // TODO
+        eventType: "team_scored_lowest",
+        eventDescription: "" // TODO
+      },
+      lives: {
+        currentLives: 1,
+        startingLives: context.requests.createGameRequest1.teamLives
+      },
+      teamScore: {
+        teamScore: 100
+      }
+    },
+    {
+      team: {
+        teamName: null, // TODO
+        teamNumber: 2,
+        players: [] // TODO LeaderboardLinePlayer[]
+      },
+      alive: true,
+      position: {
+        currentPosition: 0,
+        previousPosition: 1,
+        change: "gained"
+      },
+      eventIcon: {
+        eventEmoji: "", // TODO
+        eventType: undefined,
+        eventDescription: "" // TODO
+      },
+      lives: {
+        currentLives: 2,
+        startingLives: context.requests.createGameRequest1.teamLives
+      },
+      teamScore: {
+        teamScore: 200
+      }
+    },
+    {
+      team: {
+        teamName: null, // TODO
+        teamNumber: 3,
+        players: [] // TODO LeaderboardLinePlayer[]
+      },
+      alive: true,
+      position: {
+        currentPosition: 0,
+        previousPosition: 2,
+        change: "gained"
+      },
+      eventIcon: {
+        eventEmoji: "", // TODO
+        eventType: undefined,
+        eventDescription: "" // TODO
+      },
+      lives: {
+        currentLives: 2,
+        startingLives: context.requests.createGameRequest1.teamLives
+      },
+      teamScore: {
+        teamScore: 300
+      }
+    },
+    {
+      team: {
+        teamName: null, // TODO
+        teamNumber: 4,
+        players: [] // TODO LeaderboardLinePlayer[]
+      },
+      alive: true,
+      position: {
+        currentPosition: 2,
+        previousPosition: 3,
+        change: "gained"
+      },
+      eventIcon: {
+        eventEmoji: "", // TODO
+        eventType: "team_scored_highest",
+        eventDescription: "" // TODO
+      },
+      lives: {
+        currentLives: 1,
+        startingLives: context.requests.createGameRequest1.teamLives
+      },
+      teamScore: {
+        teamScore: 400
       }
     }
   ]
@@ -726,8 +849,8 @@ const leaderboard_bm5_3: Leaderboard = {
 };
 
 export const expectedLeaderboards = {
-  //   bm2_1: leaderboard_bm2_1,
-  //   bm1_1: leaderboard_bm1_1,
+  bm2_1: leaderboard_bm2_1,
+  bm1_1: leaderboard_bm1_1,
   bm4_1: leaderboard_bm4_1,
   bm3_2: leaderboard_bm3_2,
   bm5_1: leaderboard_bm5_1,

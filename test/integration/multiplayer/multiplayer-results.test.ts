@@ -173,18 +173,33 @@ describe("When processing multiplayer results", function() {
               game: games2[0]
             });
 
-            const leaderboardReportable = allReportables.filter(r => r.type === "leaderboard").slice(-1)[0];
-            const leaderboard: Leaderboard = leaderboardReportable.item as Leaderboard;
-            expect(leaderboard).to.not.be.undefined;
+            const leaderboardReportables = allReportables.filter(r => r.type === "leaderboard");
+            const leaderboard_bm2_1 = leaderboardReportables[0].item as Leaderboard;
+            const leaderboard_bm1_1 = leaderboardReportables[1].item as Leaderboard;
+            const leaderboard_bm4_1 = leaderboardReportables[2].item as Leaderboard;
+
             // TODO: assert: players, beatmap, event type
-            expect(leaderboard)
-              .excludingEvery(["players", "beatmapPlayed", "eventIcon", "latestVirtualMatchTime"])
+            expect(leaderboard_bm2_1)
+              .excludingEvery(["players", "beatmapPlayed", "eventIcon", "latestVirtualMatchTime", "leaderboardEventTime"])
+              .to.deep.equal(expectedLeaderboards.bm2_1);
+
+            expect(leaderboard_bm1_1)
+              .excludingEvery(["players", "beatmapPlayed", "eventIcon", "latestVirtualMatchTime", "leaderboardEventTime"])
+              .to.deep.equal(expectedLeaderboards.bm1_1);
+
+            expect(leaderboard_bm4_1)
+              .excludingEvery(["players", "beatmapPlayed", "eventIcon", "latestVirtualMatchTime", "leaderboardEventTime"])
               .to.deep.equal(expectedLeaderboards.bm4_1);
 
             // TODO: Assert leaderboardImageData
-            const leaderboardImageData = DiscordLeaderboardImageBuilder.buildImageDataObjectFromLeaderboard(leaderboard);
-            const pngBuffer = await DiscordLeaderboardImageBuilder.build(leaderboardImageData);
-            console.log(pngBuffer);
+            const leaderboard_bm2_1_ImageData = DiscordLeaderboardImageBuilder.buildImageDataObjectFromLeaderboard(leaderboard_bm2_1);
+            const leaderboard_bm2_1_ImageResult = await DiscordLeaderboardImageBuilder.build(leaderboard_bm2_1_ImageData);
+            const leaderboard_bm1_1_ImageData = DiscordLeaderboardImageBuilder.buildImageDataObjectFromLeaderboard(leaderboard_bm1_1);
+            const leaderboard_bm1_1_ImageResult = await DiscordLeaderboardImageBuilder.build(leaderboard_bm1_1_ImageData);
+            const leaderboard_bm4_1_ImageData = DiscordLeaderboardImageBuilder.buildImageDataObjectFromLeaderboard(leaderboard_bm4_1);
+            const leaderboard_bm4_1_ImageResult = await DiscordLeaderboardImageBuilder.build(leaderboard_bm4_1_ImageData);
+            
+            // console.log(pngBuffer);
 
             return resolve();
           } catch (error) {

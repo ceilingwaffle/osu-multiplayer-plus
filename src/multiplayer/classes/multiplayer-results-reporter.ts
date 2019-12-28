@@ -19,7 +19,7 @@ export class MultiplayerResultsReporter {
     const allReportables: ReportableContext<ReportableContextType>[] = MultiplayerResultsReporter.gatherReportableItemsForGame({
       virtualMatchReportDatas: args.virtualMatchReportDatas,
       game: args.game
-    });
+    }).sort((r1, r2) => r1.time - r2.time);
 
     const reported: ReportableContext<ReportableContextType>[] = MultiplayerResultsReporter.getAlreadyReportedItemsForGame({
       virtualMatchReportDatas: args.virtualMatchReportDatas,
@@ -29,7 +29,7 @@ export class MultiplayerResultsReporter {
     const toBeReported: ReportableContext<ReportableContextType>[] = _.differenceWith<
       ReportableContext<ReportableContextType>,
       ReportableContext<ReportableContextType>
-    >(allReportables, reported, _.isEqual);
+    >(allReportables, reported, _.isEqual)
 
     return { allReportables, toBeReported };
   }

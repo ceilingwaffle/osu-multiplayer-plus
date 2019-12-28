@@ -8,7 +8,7 @@ import { LeaderboardLine } from "../components/leaderboard-line";
 import { Helpers } from "../../utils/helpers";
 import * as path from "path";
 
-type PositionChangeTypes = "👆🏼" | "👇🏾" | "✋🏽"; // ⬆🔼👆👆🏻   // ⬇👇🔽👇🏾 //✋🏽
+type PositionChangeTypes = "☝🏼" | "👇🏾" | "✋🏽"; // ⬆🔼👆👆🏻   // ⬇👇🔽👇🏾 //✋🏽
 type LeaderboardLineCssClassName = "highest-scoring" | "lowest-scoring";
 
 interface ImgLeaderboard {
@@ -96,6 +96,8 @@ export class DiscordLeaderboardImageBuilder {
       beatmap: leaderboard.beatmapPlayed,
       lines: {
         alive: leaderboard.leaderboardLines
+          .sort((ll1, ll2) => ll1.team.teamNumber - ll2.team.teamNumber)
+          .sort((ll1, ll2) => ll1.position.currentPosition - ll2.position.currentPosition)
           .filter(ll => ll.lives.currentLives > 0)
           .map(ll => DiscordLeaderboardImageBuilder.genLeaderboardLineData(ll, leaderboard.leaderboardLines)),
         eliminated: leaderboard.leaderboardLines
@@ -142,11 +144,17 @@ export class DiscordLeaderboardImageBuilder {
 
   // TODO: Move these methods - genPositionChange, genPosition, genTeamNumber into a Helper class to avoid DRY with DiscordLeaderboardMessageBuilder
   private static genPositionChange(ll: LeaderboardLine): PositionChangeTypes {
-    return ll.position.currentPosition > ll.position.previousPosition
-      ? "👆🏼"
-      : ll.position.currentPosition == ll.position.previousPosition
-      ? "✋🏽"
-      : "👇🏾";
+    if (!ll || !ll.position || !ll.position.change) {
+      return "✋🏽";
+    } else if (ll.position.change === "same") {
+      return "✋🏽";
+    } else if (ll.position.change === "gained") {
+      return "☝🏼";
+    } else if (ll.position.change === "lost") {
+      return "👇🏾";
+    } else {
+      const _exhaustiveCheck: never = ll.position.change;
+    }
   }
 
   private static genLifeHearts(ll: LeaderboardLine) {

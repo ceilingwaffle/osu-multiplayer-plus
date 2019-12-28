@@ -465,7 +465,7 @@ export class LeaderboardBuilder {
       .slice(-1)[0];
     if (!prevEvent || !prevEvent.data || !prevEvent.data.data) {
       // since we don't know the previous position, the previous position and the change in position are both unknown and (therefore) undefined
-      return { currentPosition };
+      return { currentPosition }; // TODO - return undefined/null ?
     }
 
     const previousPosition = LeaderboardBuilder.getTeamRankForTargetEvent({

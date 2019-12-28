@@ -18,9 +18,9 @@ body {
   width: 392px;
   background-color: #292d3e;
 
-  font-size: 16px;
-  font-family: "Bebas Neue", cursive;
-  font-weight: 400;
+  font-size: 14px;
+  font-family: Helvetica, Arial, sans-serif, "Bebas Neue", cursive;
+  font-weight: 600;
   color: white;
 
   box-sizing: border-box;
@@ -47,7 +47,7 @@ body {
   grid-column-start: 1;
   grid-column-end: 7;
   margin-left: var(--item-margin);
-  font-size: 24px;
+  font-size: 22px;
 }
 .line {
   display: contents;
@@ -76,24 +76,21 @@ body {
 .line.lowest-scoring > .line-item {
   background-color: #bb5050;
 }
-/* .position-change {
-  
+.position-change {
+  width: 14px;
 }
+/* 
 .position-number {
-
 }
 .event-emoji {
-
 }
 .team-number {
-
 }
 .hearts {
-
 }
 .team-score {
-
-} */
+} 
+*/
 .line-item-sub-row {
   grid-column: 1 / 7;
 
@@ -101,8 +98,8 @@ body {
   grid-template-columns: inherit;
 }
 .team-player-scores {
-  font-size: 14px;
-  line-height: 14px;
+  font-size: 12px;
+  line-height: 12px;
   color: #ddd;
 
   grid-column: 1/ 7;
@@ -114,7 +111,7 @@ body {
 }
 .score-group {
   padding-right: 15px;
-  display: inline-block;
+  display: block;
 }
 .score-group > * {
   display: inline-block;
