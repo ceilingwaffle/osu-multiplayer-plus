@@ -83,6 +83,16 @@ export class TeamEliminatedGameEvent extends GameEvent<{ teamId: number }> imple
 
     const eliminatedTeamId = justEliminatedTeamIdsForTarget[0];
 
+    if (!eliminatedTeamId) {
+      this.data = {
+        eventMatch: targetVirtualMatch,
+        timeOfEvent: VirtualMatchCreator.getEstimatedTimeOfOccurrenceOfVirtualMatch(targetVirtualMatch),
+        teamId: undefined,
+        game: game
+      };
+      return false;
+    }
+
     this.data = {
       eventMatch: targetVirtualMatch,
       timeOfEvent: VirtualMatchCreator.getEstimatedTimeOfOccurrenceOfVirtualMatch(targetVirtualMatch),
