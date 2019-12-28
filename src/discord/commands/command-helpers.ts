@@ -32,9 +32,24 @@ export class CommandHelpers {
       // replace remaining newline characters with the separator surrounded by spaces
       argString = argString.replace("\n", ` ${separator} `);
     }
+
+    // handle if the player name is wrapped in double-quotes, and presumably containing some whitespace
+    const tempWhitespaceReplacement = "&nbsp;";
+    const reg = /(["'])(?:(?=(\\?))\2.)*?\1/g;
+    let match: RegExpExecArray;
+    while ((match = reg.exec(argString)) !== null) {
+      let modified = "";
+      modified = `${match[0].replace(/\s/g, tempWhitespaceReplacement)}`;
+      modified = modified.slice(1, modified.length - 1);
+      argString = argString.substring(0, match.index) + modified + argString.substring(match.index + match[0].length);
+    }
+
     // create an array of the items (including bars as items)
     // exclude any 0-length items (e.g. "")
-    return argString.split(" ").filter(x => x.length);
+    const dirty = argString.split(" ").filter(x => x.length);
+    // replace the temp whitespace char with a real space char
+    const cleaned = dirty.map(s => s.replace(RegExp(tempWhitespaceReplacement, "g"), " "));
+    return cleaned;
   }
 
   private static getRandomDancer(i: number): string {
