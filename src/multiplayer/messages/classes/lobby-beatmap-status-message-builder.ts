@@ -82,7 +82,7 @@ export class LobbyBeatmapStatusMessageBuilder {
     for (const vMatch of virtualMatchesPlayed) {
       if (!vMatch.lobbies.remaining.length) {
         const message: AllLobbiesCompletedBeatmapMessage = {
-          message: `All lobbies have completed beatmap ${vMatch.beatmapId}#${vMatch.sameBeatmapNumber}`,
+          message: `All lobbies completed beatmap ${vMatch.beatmapId}#${vMatch.sameBeatmapNumber}`,
           sameBeatmapNumber: vMatch.sameBeatmapNumber,
           beatmapId: vMatch.beatmapId,
           type: "all_lobbies_completed",
