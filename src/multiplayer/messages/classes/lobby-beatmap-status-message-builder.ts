@@ -139,15 +139,15 @@ export class LobbyBeatmapStatusMessageBuilder {
     return {
       startTime: fromMatchEntity.startTime,
       endTime: fromMatchEntity.endTime,
-      playMode: PlayMode.Standard,
-      scoringType: ScoringType.scoreV2,
-      teamType: TeamMode.HeadToHead,
-      forcedMods: 0,
+      playMode: PlayMode.Standard, // TODO - get playMode from match API
+      scoringType: ScoringType.scoreV2, // TODO - get scoringType from match API
+      teamType: TeamMode.HeadToHead, // TODO - get teamType from match API
+      forcedMods: 0, // TODO - get forcedMods from match API
       beatmap: {
         beatmapId: fromMatchEntity.beatmap?.beatmapId,
         beatmapUrl: fromMatchEntity.beatmap?.beatmapUrl,
         // mapString: "TODO:   MapString",
-        stars: 99,
+        stars: fromMatchEntity.beatmap?.stars,
         beatmapSetId: fromMatchEntity.beatmap?.beatmapSetId,
         title: fromMatchEntity.beatmap?.title,
         artist: fromMatchEntity.beatmap?.artist,
