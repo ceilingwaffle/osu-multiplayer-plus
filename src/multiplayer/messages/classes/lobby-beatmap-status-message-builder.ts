@@ -86,7 +86,7 @@ export class LobbyBeatmapStatusMessageBuilder {
           sameBeatmapNumber: vMatch.sameBeatmapNumber,
           beatmapId: vMatch.beatmapId,
           type: "all_lobbies_completed",
-          time: Date.now()
+          time: VirtualMatchCreator.getEstimatedTimeOfOccurrenceOfVirtualMatch(vMatch)
         };
         messages.push(message);
       }
