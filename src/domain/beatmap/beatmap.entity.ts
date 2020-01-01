@@ -1,10 +1,11 @@
-import { Entity, PrimaryGeneratedColumn, Column, OneToMany } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, Column, OneToMany, BaseEntity } from "typeorm";
 import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity";
 import { IsUrl, IsPositive } from "class-validator";
 import { Match } from "../match/match.entity";
 
 @Entity("beatmaps")
-export class Beatmap extends CreationTimestampedEntity {
+export class Beatmap extends BaseEntity {
+  // extends CreationTimestampedEntity
   @PrimaryGeneratedColumn()
   id: number;
 

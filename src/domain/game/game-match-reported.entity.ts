@@ -1,4 +1,4 @@
-import { Entity, ManyToOne, Column, PrimaryGeneratedColumn } from "typeorm";
+import { Entity, ManyToOne, Column, PrimaryGeneratedColumn, BaseEntity } from "typeorm";
 import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity";
 import { Game } from "./game.entity";
 import { Match } from "../match/match.entity";
@@ -17,14 +17,21 @@ import { ReportableContextType } from "../../multiplayer/reports/reportable-cont
  * @extends {CreationTimestampedEntity}
  */
 @Entity("games_matches_reported")
-export class GameMatchReported extends CreationTimestampedEntity {
+export class GameMatchReported extends BaseEntity {
+  // extends CreationTimestampedEntity
   @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(type => Game, game => game.gameMatchesReported)
+  @ManyToOne(
+    type => Game,
+    game => game.gameMatchesReported
+  )
   game: Game;
 
-  @ManyToOne(type => Match, match => match.gameMatchesReported)
+  @ManyToOne(
+    type => Match,
+    match => match.gameMatchesReported
+  )
   match: Match;
 
   @Column({ type: "simple-enum", enum: ReportableType })

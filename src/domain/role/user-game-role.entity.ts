@@ -1,4 +1,4 @@
-import { Entity, PrimaryColumn, ManyToOne, Column, PrimaryGeneratedColumn, OneToMany, ManyToMany } from "typeorm";
+import { Entity, PrimaryColumn, ManyToOne, Column, PrimaryGeneratedColumn, OneToMany, ManyToMany, BaseEntity } from "typeorm";
 import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity";
 import { User } from "../user/user.entity";
 import { Game } from "../game/game.entity";
@@ -13,11 +13,20 @@ import { Role } from "./role.type";
  * @extends {CreationTimestampedEntity}
  */
 @Entity("user_game_role")
-export class UserGameRole extends CreationTimestampedEntity {
-  @ManyToOne(type => User, user => user.userGameRoles, { primary: true })
+export class UserGameRole extends BaseEntity {
+  // extends CreationTimestampedEntity
+  @ManyToOne(
+    type => User,
+    user => user.userGameRoles,
+    { primary: true }
+  )
   user: User;
 
-  @ManyToOne(type => Game, game => game.userGameRoles, { primary: true })
+  @ManyToOne(
+    type => Game,
+    game => game.userGameRoles,
+    { primary: true }
+  )
   game: Game;
 
   @Column()

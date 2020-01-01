@@ -1,4 +1,4 @@
-import { Entity, ManyToOne, Column, OneToMany, JoinColumn, PrimaryGeneratedColumn, Generated } from "typeorm";
+import { Entity, ManyToOne, Column, OneToMany, JoinColumn, PrimaryGeneratedColumn, Generated, BaseEntity } from "typeorm";
 import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity";
 import { Game } from "../game/game.entity";
 import { Team } from "./team.entity";
@@ -15,7 +15,8 @@ import { GameDefaults } from "../game/game-defaults";
  * @extends {CreationTimestampedEntity}
  */
 @Entity("games_teams")
-export class GameTeam extends CreationTimestampedEntity {
+export class GameTeam extends BaseEntity {
+  // extends CreationTimestampedEntity
   @Generated()
   id: number;
 

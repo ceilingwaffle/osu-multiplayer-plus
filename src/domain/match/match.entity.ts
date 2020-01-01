@@ -1,4 +1,4 @@
-import { Entity, PrimaryGeneratedColumn, ManyToOne, OneToMany, Column, JoinColumn, Unique, JoinTable, OneToOne } from "typeorm";
+import { Entity, PrimaryGeneratedColumn, ManyToOne, OneToMany, Column, JoinColumn, Unique, JoinTable, OneToOne, BaseEntity } from "typeorm";
 import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity";
 import { Lobby } from "../lobby/lobby.entity";
 import { IsInt, IsPositive, IsNumberString, ValidateIf } from "class-validator";
@@ -8,7 +8,8 @@ import { MatchAborted } from "./match-aborted.entity";
 import { Beatmap } from "../beatmap/beatmap.entity";
 
 @Entity("matches")
-export class Match extends CreationTimestampedEntity {
+export class Match extends BaseEntity {
+  // extends CreationTimestampedEntity
   @PrimaryGeneratedColumn()
   id: number;
 
