@@ -6,8 +6,9 @@ import { TeamScoreCalculator } from "../classes/team-score-calculator";
 import { VirtualMatch } from "../virtual-match/virtual-match";
 import { constants } from "../../constants";
 import { VirtualMatchCreator } from "../virtual-match/virtual-match-creator";
+import { Team } from "../../domain/team/team.entity";
 
-export class TeamScoredHighestGameEvent extends GameEvent<{ teamId: number }> implements IGameEvent {
+export class TeamScoredHighestGameEvent extends GameEvent<{ team: Team }> implements IGameEvent {
   readonly type: GameEventType = "team_scored_highest";
 
   newify() {
@@ -23,7 +24,7 @@ export class TeamScoredHighestGameEvent extends GameEvent<{ teamId: number }> im
       return false;
     }
     this.data = {
-      teamId: winningTeamId,
+      team: teams.find(t => t.id === winningTeamId),
       eventMatch: targetVirtualMatch,
       // the team won at the time of the final lobby completing the map
       timeOfEvent: VirtualMatchCreator.getEstimatedTimeOfOccurrenceOfVirtualMatch(targetVirtualMatch),

@@ -6,8 +6,9 @@ import { VirtualMatch } from "../virtual-match/virtual-match";
 import { TeamScoreCalculator } from "../classes/team-score-calculator";
 import { TeamID } from "../components/types/team-id";
 import { VirtualMatchCreator } from "../virtual-match/virtual-match-creator";
+import { Team } from "../../domain/team/team.entity";
 
-type TiedTeamsData = { score: number; tiedWithTeamIds: TeamID[] };
+type TiedTeamsData = { score: number; tiedWithTeamIds: TeamID[]; tiedWithTeams: Team[] };
 export type TiedTeamsDataMap = Map<TeamID, TiedTeamsData>;
 
 export class TeamScoresTiedGameEvent extends GameEvent<{ data: TiedTeamsDataMap }> implements IGameEvent {
@@ -42,7 +43,8 @@ export class TeamScoresTiedGameEvent extends GameEvent<{ data: TiedTeamsDataMap 
         continue;
       }
       const tiedWithTeamIds = matchingTeamScores.map(ts => ts.teamId);
-      this.data.data.set(teamScore.teamId, { score: teamScore.score, tiedWithTeamIds });
+      const tiedWithTeams = teams.filter(t => tiedWithTeamIds.includes(t.id));
+      this.data.data.set(teamScore.teamId, { score: teamScore.score, tiedWithTeamIds, tiedWithTeams });
     }
 
     return !!this.data.data.size;

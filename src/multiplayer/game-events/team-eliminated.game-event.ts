@@ -5,8 +5,9 @@ import { VirtualMatch } from "../virtual-match/virtual-match";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
 import { VirtualMatchCreator } from "../virtual-match/virtual-match-creator";
 import { GameEventType } from "./types/game-event-types";
+import { Team } from "../../domain/team/team.entity";
 
-export class TeamEliminatedGameEvent extends GameEvent<{ teamId: number }> implements IGameEvent {
+export class TeamEliminatedGameEvent extends GameEvent<{ team: Team }> implements IGameEvent {
   type: GameEventType = "team_eliminated";
 
   newify() {
@@ -39,7 +40,7 @@ export class TeamEliminatedGameEvent extends GameEvent<{ teamId: number }> imple
       this.data = {
         eventMatch: targetVirtualMatch,
         timeOfEvent: VirtualMatchCreator.getEstimatedTimeOfOccurrenceOfVirtualMatch(targetVirtualMatch),
-        teamId: undefined,
+        team: undefined,
         game: game
       };
       return false;
@@ -68,7 +69,7 @@ export class TeamEliminatedGameEvent extends GameEvent<{ teamId: number }> imple
       this.data = {
         eventMatch: targetVirtualMatch,
         timeOfEvent: VirtualMatchCreator.getEstimatedTimeOfOccurrenceOfVirtualMatch(targetVirtualMatch),
-        teamId: allEliminatedTeamIdsForTarget[0],
+        team: teams.find(t => t.id === allEliminatedTeamIdsForTarget[0]),
         game: game
       };
       return true;
@@ -87,7 +88,7 @@ export class TeamEliminatedGameEvent extends GameEvent<{ teamId: number }> imple
       this.data = {
         eventMatch: targetVirtualMatch,
         timeOfEvent: VirtualMatchCreator.getEstimatedTimeOfOccurrenceOfVirtualMatch(targetVirtualMatch),
-        teamId: undefined,
+        team: undefined,
         game: game
       };
       return false;
@@ -96,7 +97,7 @@ export class TeamEliminatedGameEvent extends GameEvent<{ teamId: number }> imple
     this.data = {
       eventMatch: targetVirtualMatch,
       timeOfEvent: VirtualMatchCreator.getEstimatedTimeOfOccurrenceOfVirtualMatch(targetVirtualMatch),
-      teamId: eliminatedTeamId,
+      team: teams.find(t => t.id === eliminatedTeamId),
       game: game
     };
 

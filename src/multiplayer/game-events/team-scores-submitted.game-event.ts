@@ -6,8 +6,9 @@ import { VirtualMatch } from "../virtual-match/virtual-match";
 import { TeamScoreCalculator, CalculatedTeamScore } from "../classes/team-score-calculator";
 import { TeamID } from "../components/types/team-id";
 import { VirtualMatchCreator } from "../virtual-match/virtual-match-creator";
+import { Team } from "../../domain/team/team.entity";
 
-type VirtualMatchData = { submitted: boolean; score?: number };
+type VirtualMatchData = { submitted: boolean; score?: number; team: Team };
 export type TeamVirtualMatchDataMap = Map<TeamID, VirtualMatchData>;
 
 export class TeamScoresSubmittedGameEvent extends GameEvent<{ data: TeamVirtualMatchDataMap }> implements IGameEvent {
@@ -48,7 +49,8 @@ export class TeamScoresSubmittedGameEvent extends GameEvent<{ data: TeamVirtualM
       .forEach(teamScore => {
         this.data.data.set(teamScore.teamId, {
           submitted: true,
-          score: teamScore.score
+          score: teamScore.score,
+          team: teams.find(t => t.id === teamScore.teamId)
         });
       });
 
@@ -57,7 +59,8 @@ export class TeamScoresSubmittedGameEvent extends GameEvent<{ data: TeamVirtualM
       // if some team is missing a score, it means the team did not submit a score
       if (!teamSubmittedScore) {
         this.data.data.set(team.id, {
-          submitted: false
+          submitted: false,
+          team: teams.find(t => t.id === team.id)
         });
       }
     });

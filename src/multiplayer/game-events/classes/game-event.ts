@@ -9,7 +9,7 @@ import { TeamScoreCalculator } from "../../classes/team-score-calculator";
 import { VirtualMatchCreator } from "../../virtual-match/virtual-match-creator";
 import { Team } from "../../../domain/team/team.entity";
 
-type LosingTeamsMapData = { losingTeamId: number; tiedScore: boolean };
+type LosingTeamsMapData = { losingTeamId: number; tiedScore: boolean; team: Team };
 type VirtualMatchKeyString = string;
 type LosingTeamsMap = Map<VirtualMatchKeyString, LosingTeamsMapData>;
 
@@ -51,13 +51,14 @@ export abstract class GameEvent<DataType> {
           return vmTeamScoresAccumulator;
         }
         const lowestScoringTeamId = lowestScoringTeamIds[0];
+        const team: Team = teamsRemovingEliminated.find(t => t.id === lowestScoringTeamId);
         if (lowestScoringTeamIds.length === 1) {
           vmTeamScoresAccumulator.set(
             VirtualMatchCreator.createSameBeatmapKeyString({
               beatmapId: virtualMatch.beatmapId,
               sameBeatmapNumber: virtualMatch.sameBeatmapNumber
             }),
-            { losingTeamId: lowestScoringTeamId, tiedScore: false }
+            { losingTeamId: lowestScoringTeamId, tiedScore: false, team }
           );
         } else {
           // tied scores means no team loses a life
@@ -66,7 +67,7 @@ export abstract class GameEvent<DataType> {
               beatmapId: virtualMatch.beatmapId,
               sameBeatmapNumber: virtualMatch.sameBeatmapNumber
             }),
-            { losingTeamId: undefined, tiedScore: true }
+            { losingTeamId: undefined, tiedScore: true, team }
           );
           return vmTeamScoresAccumulator;
         }
@@ -89,7 +90,7 @@ export abstract class GameEvent<DataType> {
         return vmTeamScoresAccumulator;
       },
       // virtualMatchKey, value
-      new Map<string, { losingTeamId: number; tiedScore: boolean }>()
+      new Map<string, LosingTeamsMapData>()
     );
 
     // determine the losing team ID of the target virtual match

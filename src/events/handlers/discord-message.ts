@@ -23,6 +23,7 @@ import { Game } from "../../domain/game/game.entity";
 import { Log } from "../../utils/Log";
 import { debug } from "util";
 import { LobbyCompletedBeatmapMessage } from "../../multiplayer/messages/lobby-completed-beatmap-message";
+import { GameTeam } from "../../domain/team/game-team.entity";
 
 export class DiscordMessage {
   public embeds: RichEmbed[];
@@ -160,43 +161,55 @@ export class DiscordMessage {
       return _exhaustiveCheck;
     }
 
-    messageValue = `${icon} ${r.message} ${Helpers.getTimeAgoTextForTime(r.time)}`;
+    messageValue = `${icon} ${r.message} ${Helpers.getTimeAgoTextForTime(r.time)}.`;
     targetEmbed.addField("\u200b", messageValue);
   }
 
   private addGameEventPart(reportable: ReportableContext<ReportableContextType>, targetEmbed: RichEmbed): void {
     const gameEvent = reportable.item as IGameEvent;
+    const gameTeams = gameEvent.data.game.gameTeams;
+    const gameTeam: GameTeam = gameTeams.find(gameTeam => gameEvent.data.team && gameTeam.team.id === gameEvent.data.team.id);
+    const eventTeamNumber: string = gameTeam ? gameTeam.teamNumber.toString() : "unknown";
+
     let messageValue = "";
     let icon = "";
     // TODO - replace all this stuff below with getting emoji from GameEventTypeDataMapper
     if (gameEvent.type === "team_eliminated") {
-      const ge = gameEvent as TeamEliminatedGameEvent;
+      // const ge = gameEvent as TeamEliminatedGameEvent;
       icon = `💀`;
-      messageValue = messageValue.concat(`Team ${ge.data.teamId} was eliminated!`); // TODO: Team number with player names
+      messageValue = messageValue.concat(`Team ${eventTeamNumber} was eliminated!`); // TODO: Team number with player names
     } else if (gameEvent.type === "team_game_champion_declared") {
       icon = `🏆`;
-      const ge = gameEvent as TeamIsGameChampionGameEvent;
-      messageValue = `Game over! The winner is Team ${ge.data.teamId}!`;
+      // const ge = gameEvent as TeamIsGameChampionGameEvent;
+      messageValue = `Game over! The winner is Team ${eventTeamNumber}!`;
     } else if (gameEvent.type === "team_on_winning_streak") {
       // messageValue = messageValue.concat(`🌟`, ` `, `Team is on a winning streak!`); // TODO
       return;
     } else if (gameEvent.type === "team_scored_highest") {
       icon = `⭐`;
-      const ge = gameEvent as TeamScoredHighestGameEvent;
-      messageValue = `Team ${ge.data.teamId} won the match!`;
+      // const ge = gameEvent as TeamScoredHighestGameEvent;
+      messageValue = `Team ${eventTeamNumber} won the match!`;
     } else if (gameEvent.type === "team_scored_lowest") {
       icon = `💥`;
-      const ge = gameEvent as TeamScoredLowestGameEvent;
-      messageValue = `Team ${ge.data.teamId} lost a life!`;
+      // const ge = gameEvent as TeamScoredLowestGameEvent;
+      messageValue = `Team ${eventTeamNumber} lost a life!`;
     } else if (gameEvent.type === "team_scores_submitted") {
       // icon = ``;
       // const ge = gameEvent as TeamScoresSubmittedGameEvent;
       // messageValue = messageValue.concat(`  `, ` `, `Teams submitted scores.`); // TODO
       return;
     } else if (gameEvent.type === "team_scores_tied") {
-      // TODO - tied scores
       icon = `👔`;
-      const ge = gameEvent as TeamScoresTiedGameEvent;
+      // TODO - tied scores - idk if the code below works (e.g. undefined objects) - write a test before using this in production!!
+      // const ge = gameEvent as TeamScoresTiedGameEvent;
+      // const teamTied = Array.from(ge.data.data).map(a => {
+      //   const teamId = a[0];
+      //   const tiedTeamsData = a[1];
+      //   return {
+      //     teamNumber: gameTeams.find(gt => gt.team.id === teamId),
+      //     tiedWithTeamNumbers: tiedTeamsData.tiedWithTeamIds.map(teamId => gameTeams.find(gt => gt.team.id === teamId).teamNumber)
+      //   };
+      // });
       messageValue = `Some teams had tied scores.`;
     } else {
       const _exhaustiveCheck: never = gameEvent.type;

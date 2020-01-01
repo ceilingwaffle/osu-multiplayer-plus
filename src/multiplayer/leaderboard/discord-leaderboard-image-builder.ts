@@ -71,7 +71,8 @@ export class DiscordLeaderboardImageBuilder {
         stylesheet: fs.readFileSync(config.files.templates.partials.stylesheet, "utf8")
       });
 
-      Log.info(htmlString);
+      // Log.info(htmlString);
+      Log.info("Rendered htmlString.");
 
       // render image using puppeteer
       const browser = await puppeteer.launch();

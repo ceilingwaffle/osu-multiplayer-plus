@@ -322,7 +322,7 @@ export class LeaderboardBuilder {
     // --------------------------------------
 
     for (const event of prioritySortedEvents) {
-      if (event.data.teamId && event.data.teamId === targetTeam.id) {
+      if (event.data.team && event.data.team.id === targetTeam.id) {
         return GameEventTypeDataMapper.getGameEventIconDataForEvent(event);
       }
     }
@@ -678,7 +678,7 @@ export class LeaderboardBuilder {
    * @returns {boolean}
    */
   private static isTeamAlive(startingTeamLives: number, team: Team, events: TeamScoredLowestGameEvent[]): boolean {
-    const teamLosingEvents = events.filter(event => event.type === "team_scored_lowest" && event.data.teamId === team.id);
+    const teamLosingEvents = events.filter(event => event.type === "team_scored_lowest" && event.data.team.id === team.id);
     if (!teamLosingEvents.length) {
       // team is alive if no losing events occurred for this team
       return true;
@@ -765,7 +765,7 @@ export class LeaderboardBuilder {
    * @returns {void}
    */
   private static updateTeamLivesForEvent(event: TeamScoredLowestGameEvent, allTeamLivesMap: TeamLivesMap, startingTeamLives: number): void {
-    const teamId = event.data.teamId;
+    const teamId = event.data.team.id;
     let eventTeamLives = allTeamLivesMap.get(teamId);
     if (!eventTeamLives) throw new Error("Team targetted in event was not initialized in the team lives map.");
     const newLivesNumber = eventTeamLives.lives - 1 < 0 ? 0 : eventTeamLives.lives - 1;

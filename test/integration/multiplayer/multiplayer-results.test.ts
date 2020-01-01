@@ -530,7 +530,7 @@ describe("When processing multiplayer results", function() {
                   event.data.eventMatch.sameBeatmapNumber === leaderboard.sameBeatmapNumber
               );
             expect(eliminatedGameEventsInThisLeaderboardVirtualMatch).to.have.lengthOf(1);
-            const eliminatedTeamId = eliminatedGameEventsInThisLeaderboardVirtualMatch.map(event => event.data.teamId)[0];
+            const eliminatedTeamId = eliminatedGameEventsInThisLeaderboardVirtualMatch.map(event => event.data.team.id)[0];
             expect(eliminatedTeamId).to.equal(2); // this assumes the team number is the same as the team ID
 
             // only one team is alive, so there should be a game champion now

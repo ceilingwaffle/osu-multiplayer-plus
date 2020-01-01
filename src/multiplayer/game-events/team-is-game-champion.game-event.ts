@@ -11,8 +11,9 @@ import { Connection } from "typeorm";
 import { IDbClient } from "../../database/db-client";
 import { DiscordUserRepository } from "../../domain/user/discord-user.repository";
 import { Log } from "../../utils/Log";
+import { Team } from "../../domain/team/team.entity";
 
-export class TeamIsGameChampionGameEvent extends GameEvent<{ teamId: number }> implements IGameEvent {
+export class TeamIsGameChampionGameEvent extends GameEvent<{ team: Team }> implements IGameEvent {
   newify() {
     return new TeamIsGameChampionGameEvent();
   }
@@ -52,16 +53,16 @@ export class TeamIsGameChampionGameEvent extends GameEvent<{ teamId: number }> i
 
     const teamLives = this.getCurrentTeamLivesForVirtualMatches(game, teams, losingTeamsForVirtualMatches);
     const aliveTeamIds = Array.from(teamLives).filter(t => t[1].lives > 0).map(t => t[0]); //prettier-ignore
-    const winnerTeamId: number = aliveTeamIds.length === 1 ? aliveTeamIds[0] : undefined;
+    const winningTeamId: number = aliveTeamIds.length === 1 ? aliveTeamIds[0] : undefined;
 
     this.data = {
       eventMatch: targetVirtualMatch,
       timeOfEvent: VirtualMatchCreator.getEstimatedTimeOfOccurrenceOfVirtualMatch(targetVirtualMatch),
-      teamId: winnerTeamId,
+      team: teams.find(t => t.id === winningTeamId),
       game: game
     };
 
-    return !!winnerTeamId;
+    return !!winningTeamId;
   }
 
   async after(): Promise<void> {

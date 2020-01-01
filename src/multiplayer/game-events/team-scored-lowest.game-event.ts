@@ -13,16 +13,12 @@ import { IsValidBanchoMultiplayerIdConstraint } from "../../osu/validators/banch
 import { VirtualMatchCreator } from "../virtual-match/virtual-match-creator";
 import { Log } from "../../utils/Log";
 import { TeamID } from "../components/types/team-id";
+import { Team } from "../../domain/team/team.entity";
 
 /**
  * Team scored the lowest score in a virtual match
- *
- * @export
- * @class TeamScoredLowestGameEvent
- * @extends {GameEvent<{ teamId: TeamID }>}
- * @implements {GameEvent}
  */
-export class TeamScoredLowestGameEvent extends GameEvent<{ teamId: TeamID }> implements IGameEvent {
+export class TeamScoredLowestGameEvent extends GameEvent<{ team: Team }> implements IGameEvent {
   readonly type: GameEventType = "team_scored_lowest";
 
   newify() {
@@ -53,7 +49,7 @@ export class TeamScoredLowestGameEvent extends GameEvent<{ teamId: TeamID }> imp
 
     this.data = {
       // if teamId is undefined, it means there was no loser, probably because there was only one team remaining alive, or because teams tied
-      teamId: losingTeamId,
+      team: losingTeamId ? Array.from(losingTeamsForVirtualMatches).find(t => t[1].team.id === losingTeamId)[1].team : undefined,
       eventMatch: targetVirtualMatch,
       // the team lost at the time of the final lobby completing the map
       timeOfEvent: VirtualMatchCreator.getEstimatedTimeOfOccurrenceOfVirtualMatch(targetVirtualMatch),

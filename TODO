@@ -1,7 +1,7 @@
 // using TODO+ extension for vscode
 TODO: 
     Memory Issues:
-        ☐ Completely rework the nested data structures @created(19-12-28 22:05)
+        ✔ Completely rework the nested data structures @created(19-12-28 22:05) @done(20-01-01 15:01)
             - See: LobbyRepository.findMultiplayerEntitiesForLobby
             - Get one big data blog from a simple query - this should be enough to get all the data we need
             - Then use some searches to pick out the data needed
@@ -10,7 +10,7 @@ TODO:
             G2: 850 MB
             G3: 1600 MB
             pg -> parseBigInt -> emit
-    ☐ Fix OOM - FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory @created(19-12-28 19:33)
+    ✔ Fix OOM - FATAL ERROR: Ineffective mark-compacts near heap limit Allocation failed - JavaScript heap out of memory @created(19-12-28 19:33) @done(20-01-01 15:01)
     ☐ Fix "Failed to end game..." @created(19-11-16 14:25)
     ☐ Fix mp results not being delivered if we add a 2nd game with the same properties as the first (same lobby) @created(19-11-16 14:25)
     ☐ Add - Load game watcher data from database when we restart the app @created(19-11-16 14:25)
@@ -18,6 +18,7 @@ TODO:
         - Error: Chromium revision is not downloaded. Run "npm install" or "yarn install"
             > npm install puppeteer --unsafe-perm=true --allow-root
     Leaderboard:
+        ☐ Deliver an initial leaderboard after !startgame is used @created(20-01-01 15:02)
         ✔ Create message reportable if match was aborted @created(19-11-03 23:03) @done(19-11-12 18:19)
         ✔ Add TeamEliminated game event @created(19-11-02 23:30) @done(19-11-03 23:04)
         ✔ Fix bug - Two leaderboards are being incorrectly generated for each match for the Thaibuy vs Bubbleman match - 54567825 @created(19-11-02 00:42) @done(19-11-02 16:43)
