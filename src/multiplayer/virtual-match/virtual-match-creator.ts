@@ -57,11 +57,9 @@ export class VirtualMatchCreator {
    * @param {Game} game
    * @returns {VirtualMatch[]}
    */
-  static buildVirtualMatchesForGame(game: Game): VirtualMatch[] {
-    const matches: Match[] = _(game.gameLobbies)
-      .map(gameLobby => gameLobby.lobby)
-      .map(lobby => lobby.matches)
-      .flattenDeep()
+  static buildVirtualMatchesForGame(game: Game, matches: Match[]): VirtualMatch[] {
+    const matchesForVMs: Match[] = _(matches)
+      // .flattenDeep()
       .uniqBy(match => match.id)
       .cloneDeep()
       // A match that does not have a defined endTime is considered to have started but not yet ended (or it was aborted)
@@ -73,13 +71,17 @@ export class VirtualMatchCreator {
       .uniqBy(lobby => lobby.id)
       .cloneDeep();
 
-    return VirtualMatchCreator.buildVirtualMatchesGroupedByLobbyPlayedStatuses(matches, lobbies);
+    return VirtualMatchCreator.buildVirtualMatchesGroupedByLobbyPlayedStatuses(matchesForVMs, lobbies);
   }
 
   static buildVirtualMatchesGroupedByLobbyPlayedStatuses(matches: Match[], lobbies: Lobby[]): VirtualMatch[] {
     try {
       if (!matches || !matches.length) {
-        Log.methodFailure(this.buildVirtualMatchesGroupedByLobbyPlayedStatuses, this.name, "Matches array arg was undefined or empty.");
+        Log.methodFailure(
+          this.buildVirtualMatchesGroupedByLobbyPlayedStatuses,
+          this.name,
+          "Matches array arg was undefined or empty. This may be because all matches had a null endTime (e.g. if the match was aborted)."
+        );
         return new Array<VirtualMatch>();
       }
       if (!lobbies || !lobbies.length) {

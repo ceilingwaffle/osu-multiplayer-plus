@@ -14,7 +14,7 @@ import { DataPropertiesOnly } from "../../../src/utils/data-properties-only";
 import { PlayMode } from "../../../src/multiplayer/components/enums/play-mode";
 import { ScoringType } from "../../../src/multiplayer/components/enums/scoring-type";
 import { Mods } from "../../../src/multiplayer/components/enums/mods";
-import { Match as MatchEntity } from "../../../src/domain/match/match.entity";
+import { Match as MatchEntity, Match } from "../../../src/domain/match/match.entity";
 import { PlayerScore as PlayerScoreEntity } from "../../../src/domain/score/player-score.entity";
 import { OsuUser as OsuUserEntity } from "../../../src/domain/user/osu-user.entity";
 import { User as UserEntity } from "../../../src/domain/user/user.entity";
@@ -33,6 +33,7 @@ import { TeamController } from "../../../src/domain/team/team.controller";
 import { Game as GameEntity } from "../../../src/domain/game/game.entity";
 import { GameStatus } from "../../../src/domain/game/game-status";
 import { LeaderboardLine } from "../../../src/multiplayer/components/leaderboard-line";
+import { MatchService } from "../../../src/domain/match/match.service";
 
 chai.use(chaiExclude);
 
@@ -1259,10 +1260,13 @@ describe("When saving multiplayer results", function() {
             ]
           };
 
+          const matchService: MatchService = iocContainer.get<MatchService>(TYPES.MatchService);
+
           const processor1 = new MultiplayerResultsProcessor(lobby1ApiResults1);
           const games1: Game[] = await processor1.saveMultiplayerEntities();
           for (const game of games1) {
-            const r1 = processor1.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(game);
+            const matches: Match[] = await matchService.getMatchesOfGame(game.id);
+            const r1 = processor1.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(game, matches);
             const a = true;
           }
           const processor2 = new MultiplayerResultsProcessor(lobby2ApiResults1);

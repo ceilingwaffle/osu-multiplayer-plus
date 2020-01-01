@@ -4,8 +4,22 @@ import { MatchAborted } from "./match-aborted.entity";
 import { Lobby } from "../lobby/lobby.entity";
 import { Beatmap } from "../beatmap/beatmap.entity";
 import { ApiBeatmap } from "../../osu/types/api-beatmap";
+import { Connection } from "typeorm";
+import { MatchRepository } from "./match.repository";
+import { injectable, inject } from "inversify";
+import TYPES from "../../types";
+import { IDbClient } from "../../database/db-client";
+import { Log } from "../../utils/Log";
+import iocContainer from "../../inversify.config";
 
+@injectable()
 export class MatchService {
+  protected dbConn: Connection = this.dbClient.getConnection();
+
+  constructor(@inject(TYPES.IDbClient) protected dbClient: IDbClient) {
+    Log.info(`Initialized ${this.constructor.name}.`);
+  }
+
   static createMatchFromApiMatch(apiMatch: ApiMatch, lobby: Lobby): Match {
     const match = new Match();
 
@@ -30,6 +44,12 @@ export class MatchService {
       matchAborted.isAborted = true;
     }
     return matchAborted;
+  }
+
+  async getMatchesOfGame(gameId: number): Promise<Match[]> {
+    const dbClient: IDbClient = iocContainer.get<IDbClient>(TYPES.IDbClient);
+    const dbConn: Connection = dbClient.getConnection();
+    return await dbConn.manager.getCustomRepository(MatchRepository).getMatchesOfGame(gameId);
   }
 
   private static createBeatmapFromApiBeatmap(beatmapId: string, apiBeatmap: ApiBeatmap): Beatmap {

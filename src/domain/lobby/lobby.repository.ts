@@ -21,28 +21,31 @@ export class LobbyRepository extends Repository<Lobby> {
     // "gameLobbies.game.gameLobbies.lobby.matches.playerScores.scoredBy", 13
     // "gameLobbies.game.gameLobbies.lobby.matches.playerScores.scoredBy.user" 14
 
-    const lobby = await this.createQueryBuilder("lobby")
-      .leftJoinAndSelect("lobby.gameLobbies", "gameLobbies") // 1
-      .leftJoinAndSelect("gameLobbies.game", "game") // 2
+    const lobby = await this.createQueryBuilder("lobby") //                           lobby
+      .leftJoinAndSelect("lobby.gameLobbies", "gameLobbies") // 1                     lobby.gameLobbies
+      .leftJoinAndSelect("gameLobbies.game", "game") // 2                             lobby.gameLobbies.game
 
-      .leftJoinAndSelect("game.gameTeams", "gameTeams") // 3
-      .leftJoinAndSelect("gameTeams.team", "team") // 4
-      .leftJoinAndSelect("team.teamOsuUsers", "teamOsuUsers") // 5
-      .leftJoinAndSelect("teamOsuUsers.osuUser", "osuUser") // 6
+      .leftJoinAndSelect("game.gameTeams", "gameTeams") // 3                          lobby.gameLobbies.game.gameTeams
+      .leftJoinAndSelect("gameTeams.team", "team") // 4                               lobby.gameLobbies.game.gameTeams.team
+      .leftJoinAndSelect("team.teamOsuUsers", "teamOsuUsers") // 5                    lobby.gameLobbies.game.gameTeams.team.teamOsuUsers
+      .leftJoinAndSelect("teamOsuUsers.osuUser", "osuUser") // 6                      lobby.gameLobbies.game.gameTeams.team.teamOsuUsers.osuUser
 
-      .leftJoinAndSelect("game.gameLobbies", "gameLobbies_game") // 7
-      .leftJoinAndSelect("gameLobbies_game.lobby", "gameLobbies_lobby") // 8
-      .leftJoinAndSelect("gameLobbies_lobby.matches", "matches") // 9
-      .leftJoinAndSelect("matches.lobby", "matches_lobby") // 10
-      .leftJoinAndSelect("matches_lobby.matches", "matches_lobby_matches") // 11
-      .leftJoinAndSelect("matches.playerScores", "playerScores") // 12
-      .leftJoinAndSelect("playerScores.scoredBy", "scoredBy") // 13
-      .leftJoinAndSelect("scoredBy.user", "user") // 14
+      .leftJoinAndSelect("game.gameLobbies", "gameLobbies_game") // 7          ❌ lobby.gameLobbies.game.gameLobbies
+      .leftJoinAndSelect("gameLobbies_game.lobby", "gameLobbies_lobby") // 8   ❌ lobby.gameLobbies.game.gameLobbies.lobby
+      .leftJoinAndSelect("gameLobbies_lobby.matches", "matches") // 9          ❌ lobby.gameLobbies.game.gameLobbies.lobby.matches
+      // .leftJoinAndSelect("lobby.matches", "matches") //                           ➕ lobby.matches
 
-      .leftJoinAndSelect("game.gameMatchesReported", "gameMatchesReported")
-      .leftJoinAndSelect("matches.matchAbortion", "matchAbortion")
-      .leftJoinAndSelect("matches.beatmap", "beatmap")
-      .leftJoin("gameMatchesReported.match", "gameMatchesReported_match") // TODO: Does this still select matches if we have some reported match records in the database?
+      // .leftJoinAndSelect("matches.lobby", "matches_lobby") // 10               ❌ lobby.matches.lobby
+      // .leftJoinAndSelect("matches_lobby.matches", "matches_lobby_matches") //11❌ lobby.matches.lobby.matches
+      .leftJoinAndSelect("matches.playerScores", "playerScores") // 12                lobby.matches.playerScores
+      .leftJoinAndSelect("playerScores.scoredBy", "scoredBy") // 13                   lobby.matches.playerScores.scoredBy
+      .leftJoinAndSelect("scoredBy.user", "user") // 14                               lobby.matches.playerScores.scoredBy.user
+
+      .leftJoinAndSelect("game.gameMatchesReported", "gameMatchesReported") //        lobby.gameLobbies.game.gameMatchesReported
+      .leftJoinAndSelect("matches.matchAbortion", "matchAbortion") //                 lobby.matches.matchAbortion
+      .leftJoinAndSelect("matches.beatmap", "beatmap") //                             lobby.matches.beatmap
+      // TODO: Does this still select matches if we have some reported match records in the database?
+      .leftJoin("gameMatchesReported.match", "gameMatchesReported_match") //       ❔ lobby.matches.matchAbortion.match
 
       .where("lobby.id = :lobbyId", { lobbyId: lobbyId })
       .getOne();

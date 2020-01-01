@@ -6,6 +6,7 @@ export const TYPES = {
   UserController: Symbol.for("UserController"),
   LobbyService: Symbol.for("LobbyService"),
   LobbyController: Symbol.for("LobbyController"),
+  MatchService: Symbol.for("MatchService"),
   TeamController: Symbol.for("TeamController"),
   TeamService: Symbol.for("TeamService"),
   Permissions: Symbol.for("Permissions"),

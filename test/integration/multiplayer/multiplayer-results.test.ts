@@ -37,9 +37,13 @@ import { IEvent } from "../../../src/events/interfaces/event";
 import { MultiplayerResultsDeliverableEvent } from "../../../src/events/multiplayer-results-deliverable.event";
 import { DiscordMultiplayerResultsDeliverableEventHandler } from "../../../src/events/handlers/discord-multiplayer-results-deliverable.event-handler";
 import { DiscordLeaderboardImageBuilder } from "../../../src/multiplayer/leaderboard/discord-leaderboard-image-builder";
+import { MatchService } from "../../../src/domain/match/match.service";
+import { Match } from "../../../src/domain/match/match.entity";
 
 chai.use(chaiExclude);
 chai.use(spies);
+
+const matchService: MatchService = iocContainer.get<MatchService>(TYPES.MatchService);
 
 describe("When processing multiplayer results", function() {
   describe("for the spreadsheet example - https://docs.google.com/spreadsheets/d/13GDEfc9s_XgSruD__ht4fQTC8U4D00IQrhxlASg52eA/edit?usp=sharing", function() {
@@ -115,7 +119,8 @@ describe("When processing multiplayer results", function() {
             const processor1 = new MultiplayerResultsProcessor(context.osuApiResults.lobby1ApiResults1);
             const games1: Game[] = await processor1.saveMultiplayerEntities();
             expect(games1).to.have.lengthOf(1);
-            const r1: VirtualMatch[] = processor1.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games1[0]);
+            const matches: Match[] = await matchService.getMatchesOfGame(games1[0].id);
+            const r1: VirtualMatch[] = processor1.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games1[0], matches);
             expect(r1.find(r => r.beatmapId === "BM1" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(1);
             expect(r1.find(r => r.beatmapId === "BM2" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(1);
             expect(r1.find(r => r.beatmapId === "BM3" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(1);
@@ -125,11 +130,12 @@ describe("When processing multiplayer results", function() {
               .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
               .to.deep.equal(processedState.lobby1ApiResults1);
 
-            const processedData1: VirtualMatchReportData[] = await processor1.buildVirtualMatchReportGroupsForGame(games1[0]);
+            const processedData1: VirtualMatchReportData[] = await processor1.buildVirtualMatchReportGroupsForGame(games1[0], matches);
 
             const { allReportables, toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({
               virtualMatchReportDatas: processedData1,
-              game: games1[0]
+              game: games1[0],
+              matches
             });
 
             const leaderboardReportable = allReportables.filter(r => r.type === "leaderboard").slice(-1)[0];
@@ -154,7 +160,8 @@ describe("When processing multiplayer results", function() {
             const processor2 = new MultiplayerResultsProcessor(context.osuApiResults.lobby2ApiResults1);
             const games2: Game[] = await processor2.saveMultiplayerEntities();
             expect(games2).to.have.lengthOf(1);
-            const r2 = processor2.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games2[0]);
+            const matches: Match[] = await matchService.getMatchesOfGame(games2[0].id);
+            const r2: VirtualMatch[] = processor2.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games2[0], matches);
 
             expect(r2.find(r => r.beatmapId === "BM1" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
             expect(r2.find(r => r.beatmapId === "BM2" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
@@ -166,11 +173,12 @@ describe("When processing multiplayer results", function() {
               .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
               .to.deep.equal(processedState.lobby2ApiResults1);
 
-            const processedData2: VirtualMatchReportData[] = await processor2.buildVirtualMatchReportGroupsForGame(games2[0]);
+            const processedData2: VirtualMatchReportData[] = await processor2.buildVirtualMatchReportGroupsForGame(games2[0], matches);
 
             const { allReportables, toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({
               virtualMatchReportDatas: processedData2,
-              game: games2[0]
+              game: games2[0],
+              matches
             });
 
             const leaderboardReportables = allReportables.filter(r => r.type === "leaderboard");
@@ -198,7 +206,7 @@ describe("When processing multiplayer results", function() {
             const leaderboard_bm1_1_ImageResult = await DiscordLeaderboardImageBuilder.build(leaderboard_bm1_1_ImageData);
             const leaderboard_bm4_1_ImageData = DiscordLeaderboardImageBuilder.buildImageDataObjectFromLeaderboard(leaderboard_bm4_1);
             const leaderboard_bm4_1_ImageResult = await DiscordLeaderboardImageBuilder.build(leaderboard_bm4_1_ImageData);
-            
+
             // console.log(pngBuffer);
 
             return resolve();
@@ -217,7 +225,8 @@ describe("When processing multiplayer results", function() {
             const processor3 = new MultiplayerResultsProcessor(context.osuApiResults.lobby2ApiResults2);
             const games3: Game[] = await processor3.saveMultiplayerEntities();
             expect(games3).to.have.lengthOf(1);
-            const r3 = processor3.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games3[0]);
+            const matches: Match[] = await matchService.getMatchesOfGame(games3[0].id);
+            const r3: VirtualMatch[] = processor3.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games3[0], matches);
             expect(r3.find(r => r.beatmapId === "BM1" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
             expect(r3.find(r => r.beatmapId === "BM2" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
             expect(r3.find(r => r.beatmapId === "BM3" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
@@ -228,11 +237,12 @@ describe("When processing multiplayer results", function() {
               .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
               .to.deep.equal(processedState.lobby2ApiResults2);
 
-            const processedData3: VirtualMatchReportData[] = await processor3.buildVirtualMatchReportGroupsForGame(games3[0]);
+            const processedData3: VirtualMatchReportData[] = await processor3.buildVirtualMatchReportGroupsForGame(games3[0], matches);
 
             const { allReportables, toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({
               virtualMatchReportDatas: processedData3,
-              game: games3[0]
+              game: games3[0],
+              matches
             });
 
             const leaderboardReportable = allReportables.filter(r => r.type === "leaderboard").slice(-1)[0];
@@ -265,7 +275,8 @@ describe("When processing multiplayer results", function() {
             const processor4 = new MultiplayerResultsProcessor(context.osuApiResults.lobby1ApiResults2);
             const games4: Game[] = await processor4.saveMultiplayerEntities();
             expect(games4).to.have.lengthOf(1);
-            const r4 = processor4.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games4[0]);
+            const matches: Match[] = await matchService.getMatchesOfGame(games4[0].id);
+            const r4: VirtualMatch[] = processor4.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games4[0], matches);
             expect(r4.find(r => r.beatmapId === "BM1" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
             expect(r4.find(r => r.beatmapId === "BM2" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
             expect(r4.find(r => r.beatmapId === "BM3" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
@@ -276,11 +287,12 @@ describe("When processing multiplayer results", function() {
               .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
               .to.deep.equal(processedState.lobby1ApiResults2);
 
-            const processedData4: VirtualMatchReportData[] = await processor4.buildVirtualMatchReportGroupsForGame(games4[0]);
+            const processedData4: VirtualMatchReportData[] = await processor4.buildVirtualMatchReportGroupsForGame(games4[0], matches);
 
             const { allReportables, toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({
               virtualMatchReportDatas: processedData4,
-              game: games4[0]
+              game: games4[0],
+              matches
             });
 
             const leaderboardReportable = allReportables.filter(r => r.type === "leaderboard").slice(-1)[0];
@@ -315,7 +327,8 @@ describe("When processing multiplayer results", function() {
             const processor5 = new MultiplayerResultsProcessor(context.osuApiResults.lobby2ApiResults3);
             const games5: Game[] = await processor5.saveMultiplayerEntities();
             expect(games5).to.have.lengthOf(1);
-            const r5 = processor5.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games5[0]);
+            const matches: Match[] = await matchService.getMatchesOfGame(games5[0].id);
+            const r5: VirtualMatch[] = processor5.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games5[0], matches);
             expect(r5.find(r => r.beatmapId === "BM1" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
             expect(r5.find(r => r.beatmapId === "BM2" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
             expect(r5.find(r => r.beatmapId === "BM3" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
@@ -327,11 +340,12 @@ describe("When processing multiplayer results", function() {
               .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
               .to.deep.equal(processedState.lobby2ApiResults3);
 
-            const processedData5: VirtualMatchReportData[] = await processor5.buildVirtualMatchReportGroupsForGame(games5[0]);
+            const processedData5: VirtualMatchReportData[] = await processor5.buildVirtualMatchReportGroupsForGame(games5[0], matches);
 
             const { allReportables, toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({
               virtualMatchReportDatas: processedData5,
-              game: games5[0]
+              game: games5[0],
+              matches
             });
 
             // Since lobby2ApiResults3 only contains results for an incomplete virtual match (BM5#2), we should NOT have a leaderboard built for this VM
@@ -359,7 +373,8 @@ describe("When processing multiplayer results", function() {
             const processor6 = new MultiplayerResultsProcessor(context.osuApiResults.lobby1ApiResults3);
             const games6: Game[] = await processor6.saveMultiplayerEntities();
             expect(games6).to.have.lengthOf(1);
-            const r6 = processor6.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games6[0]);
+            const matches: Match[] = await matchService.getMatchesOfGame(games6[0].id);
+            const r6: VirtualMatch[] = processor6.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games6[0], matches);
             expect(r6.find(r => r.beatmapId === "BM1" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
             expect(r6.find(r => r.beatmapId === "BM2" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
             expect(r6.find(r => r.beatmapId === "BM3" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
@@ -371,11 +386,12 @@ describe("When processing multiplayer results", function() {
               .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
               .to.deep.equal(processedState.lobby1ApiResults3);
 
-            const processedData6: VirtualMatchReportData[] = await processor6.buildVirtualMatchReportGroupsForGame(games6[0]);
+            const processedData6: VirtualMatchReportData[] = await processor6.buildVirtualMatchReportGroupsForGame(games6[0], matches);
 
             const { allReportables, toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({
               virtualMatchReportDatas: processedData6,
-              game: games6[0]
+              game: games6[0],
+              matches
             });
 
             const leaderboardReportable = allReportables.filter(r => r.type === "leaderboard").slice(-1)[0];
@@ -411,24 +427,26 @@ describe("When processing multiplayer results", function() {
             const processor7 = new MultiplayerResultsProcessor(context.osuApiResults.lobby2ApiResults4);
             const games7: Game[] = await processor7.saveMultiplayerEntities();
             expect(games7).to.have.lengthOf(1);
-            const blg7 = processor7.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games7[0]);
-            expect(blg7.find(r => r.beatmapId === "BM1" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
-            expect(blg7.find(r => r.beatmapId === "BM2" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
-            expect(blg7.find(r => r.beatmapId === "BM3" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
-            expect(blg7.find(r => r.beatmapId === "BM3" && r.sameBeatmapNumber === 2).matches).to.have.lengthOf(2);
-            expect(blg7.find(r => r.beatmapId === "BM4" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
-            expect(blg7.find(r => r.beatmapId === "BM5" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
-            expect(blg7.find(r => r.beatmapId === "BM5" && r.sameBeatmapNumber === 2).matches).to.have.lengthOf(2);
-            expect(blg7.find(r => r.beatmapId === "BM5" && r.sameBeatmapNumber === 3).matches).to.have.lengthOf(1);
-            expect(blg7)
+            const matches: Match[] = await matchService.getMatchesOfGame(games7[0].id);
+            const r7: VirtualMatch[] = processor7.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games7[0], matches);
+            expect(r7.find(r => r.beatmapId === "BM1" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+            expect(r7.find(r => r.beatmapId === "BM2" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+            expect(r7.find(r => r.beatmapId === "BM3" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+            expect(r7.find(r => r.beatmapId === "BM3" && r.sameBeatmapNumber === 2).matches).to.have.lengthOf(2);
+            expect(r7.find(r => r.beatmapId === "BM4" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+            expect(r7.find(r => r.beatmapId === "BM5" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
+            expect(r7.find(r => r.beatmapId === "BM5" && r.sameBeatmapNumber === 2).matches).to.have.lengthOf(2);
+            expect(r7.find(r => r.beatmapId === "BM5" && r.sameBeatmapNumber === 3).matches).to.have.lengthOf(1);
+            expect(r7)
               .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
               .to.deep.equal(processedState.lobby2ApiResults4);
 
-            const processedData7: VirtualMatchReportData[] = await processor7.buildVirtualMatchReportGroupsForGame(games7[0]);
+            const processedData7: VirtualMatchReportData[] = await processor7.buildVirtualMatchReportGroupsForGame(games7[0], matches);
 
             const { allReportables, toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({
               virtualMatchReportDatas: processedData7,
-              game: games7[0]
+              game: games7[0],
+              matches
             });
 
             // Since lobby2ApiResults4 only contains results for an incomplete virtual match (BM5#3), we should NOT have a leaderboard built for this VM
@@ -467,7 +485,8 @@ describe("When processing multiplayer results", function() {
             const processor8 = new MultiplayerResultsProcessor(context.osuApiResults.lobby1ApiResults4);
             const games8: Game[] = await processor8.saveMultiplayerEntities();
             expect(games8).to.have.lengthOf(1);
-            const r8 = processor8.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games8[0]);
+            const matches: Match[] = await matchService.getMatchesOfGame(games8[0].id);
+            const r8: VirtualMatch[] = processor8.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(games8[0], matches);
             expect(r8.find(r => r.beatmapId === "BM1" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
             expect(r8.find(r => r.beatmapId === "BM2" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
             expect(r8.find(r => r.beatmapId === "BM3" && r.sameBeatmapNumber === 1).matches).to.have.lengthOf(2);
@@ -480,11 +499,12 @@ describe("When processing multiplayer results", function() {
               .excludingEvery(["matches", "id", "status", "gameLobbies", "createdAt", "updatedAt"])
               .to.deep.equal(processedState.lobby1ApiResults4);
 
-            const processedData8: VirtualMatchReportData[] = await processor8.buildVirtualMatchReportGroupsForGame(games8[0]);
+            const processedData8: VirtualMatchReportData[] = await processor8.buildVirtualMatchReportGroupsForGame(games8[0], matches);
 
             const { allReportables, toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({
               virtualMatchReportDatas: processedData8,
-              game: games8[0]
+              game: games8[0],
+              matches
             });
 
             const leaderboardReportable = allReportables.filter(r => r.type === "leaderboard").slice(-1)[0];

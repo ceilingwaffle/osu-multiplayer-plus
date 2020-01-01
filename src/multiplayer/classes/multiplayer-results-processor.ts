@@ -23,10 +23,12 @@ import { LobbyCompletedBeatmapMessage } from "../messages/lobby-completed-beatma
 import { AllLobbiesCompletedBeatmapMessage } from "../messages/all-lobbies-completed-beatmap-message";
 import { LeaderboardBuilder } from "../leaderboard/leaderboard-builder";
 import { BeatmapFetcher } from "../../osu/beatmap-fetcher";
+import { MatchService } from "../../domain/match/match.service";
 
 export class MultiplayerResultsProcessor {
   // TODO: Don't get these from the ioc container - should be able to inject somehow
   private gameEventRegistrarCollection: GameEventRegistrarCollection = iocContainer.get<GameEventRegistrarCollection>(TYPES.GameEventRegistrarCollection); //prettier-ignore
+  private matchService: MatchService = iocContainer.get<MatchService>(TYPES.MatchService);
 
   constructor(protected readonly input: ApiMultiplayer) {
     Log.info(`Initialized ${this.constructor.name}.`);
@@ -36,13 +38,13 @@ export class MultiplayerResultsProcessor {
     return await MultiplayerEntitySaver.saveMultiplayerEntities(this.input);
   }
 
-  buildBeatmapsGroupedByLobbyPlayedStatusesForGame(game: Game) {
-    return VirtualMatchCreator.buildVirtualMatchesForGame(game);
+  buildBeatmapsGroupedByLobbyPlayedStatusesForGame(game: Game, matches: Match[]) {
+    return VirtualMatchCreator.buildVirtualMatchesForGame(game, matches);
   }
 
-  async buildVirtualMatchReportGroupsForGame(game: Game): Promise<VirtualMatchReportData[]> {
+  async buildVirtualMatchReportGroupsForGame(game: Game, matches: Match[]): Promise<VirtualMatchReportData[]> {
     try {
-      const virtualMatches: VirtualMatch[] = this.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(game);
+      const virtualMatches: VirtualMatch[] = this.buildBeatmapsGroupedByLobbyPlayedStatusesForGame(game, matches);
       const virtualMatchReportGroups: VirtualMatchReportData[] = await this.buildVirtualMatchReportData({ game, virtualMatches });
 
       Log.methodSuccess(this.buildVirtualMatchReportGroupsForGame, this.constructor.name);
@@ -105,7 +107,9 @@ export class MultiplayerResultsProcessor {
   }
 
   async buildVirtualMatchReportData(args: { game: Game; virtualMatches: VirtualMatch[] }): Promise<VirtualMatchReportData[]> {
-    const virtualMatches = VirtualMatchCreator.buildVirtualMatchesForGame(args.game);
+    const matches: Match[] = await this.matchService.getMatchesOfGame(args.game.id);
+
+    const virtualMatches = VirtualMatchCreator.buildVirtualMatchesForGame(args.game, matches);
     // build events grouped by each virtual match
     const processedGameEvents = await this.buildAndProcessGameEventsForVirtualMatches({ game: args.game, virtualMatches });
     const gameEventVMGroups = this.buildVirtualMatchGroupsFromGameEvents({ processedGameEvents });

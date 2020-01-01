@@ -22,6 +22,7 @@ import { MultiplayerResultsListener } from "./multiplayer/classes/multiplayer-re
 import { IEventDispatcher } from "./events/interfaces/event-dispatcher";
 import { EventDispatcher } from "./events/classes/event-dispatcher";
 import { DiscordBot } from "./discord/discord-bot";
+import { MatchService } from "./domain/match/match.service";
 
 // const iocContainer = new Container();
 // autoProvide(iocContainer, entities);
@@ -50,6 +51,8 @@ export class IOCKernel extends Container {
     // lobby
     this.bind<LobbyController>(TYPES.LobbyController).to(LobbyController).inSingletonScope();
     this.bind<LobbyService>(TYPES.LobbyService).to(LobbyService).inSingletonScope();
+    // match
+    this.bind<MatchService>(TYPES.MatchService).to(MatchService).inSingletonScope();
     // team
     this.bind<TeamService>(TYPES.TeamService).to(TeamService).inSingletonScope();
     this.bind<TeamController>(TYPES.TeamController).to(TeamController).inSingletonScope();

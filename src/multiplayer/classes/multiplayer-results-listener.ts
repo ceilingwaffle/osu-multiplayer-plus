@@ -11,11 +11,16 @@ import { getCustomRepository } from "typeorm";
 import { MultiplayerResultsReporter } from "./multiplayer-results-reporter";
 import { ReportablesDeliverer } from "./reportables-deliverer";
 import { GameStatus } from "../../domain/game/game-status";
+import { MatchService } from "../../domain/match/match.service";
+import iocContainer from "../../inversify.config";
+import TYPES from "../../types";
+import { Match } from "../../domain/match/match.entity";
 
 @injectable()
 export class MultiplayerResultsListener {
   // private readonly gameRepository: GameRepository = getCustomRepository(GameRepository);
   public readonly eventEmitter: Emittery.Typed<OsuLobbyScannerEventDataMap> = new Emittery.Typed<OsuLobbyScannerEventDataMap>();
+  private matchService: MatchService = iocContainer.get<MatchService>(TYPES.MatchService);
 
   constructor() {
     Log.info(`Initialized ${this.constructor.name}.`);
@@ -48,8 +53,9 @@ export class MultiplayerResultsListener {
             continue;
           }
 
-          const virtualMatchReportDatas: VirtualMatchReportData[] = await processor.buildVirtualMatchReportGroupsForGame(game);
-          const { toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({ virtualMatchReportDatas, game });
+          const matches: Match[] = await this.matchService.getMatchesOfGame(game.id);
+          const virtualMatchReportDatas: VirtualMatchReportData[] = await processor.buildVirtualMatchReportGroupsForGame(game, matches);
+          const { toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({ virtualMatchReportDatas, game, matches });
           await ReportablesDeliverer.deliver({ reportables: toBeReported, gameMessageTargets: game.messageTargets });
         }
       }

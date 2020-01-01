@@ -15,8 +15,8 @@ import { GameDefaults } from "../game/game-defaults";
  * @extends {CreationTimestampedEntity}
  */
 @Entity("games_teams")
-export class GameTeam extends BaseEntity {
-  // extends CreationTimestampedEntity
+export class GameTeam extends CreationTimestampedEntity {
+  // extends BaseEntity
   @Generated()
   id: number;
 

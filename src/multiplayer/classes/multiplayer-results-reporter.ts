@@ -10,15 +10,18 @@ import { VirtualMatchKey } from "../virtual-match/virtual-match-key";
 import { sortByMatchOldestToLatest } from "../components/match";
 import { LobbyBeatmapStatusMessageBuilder } from "../messages/classes/lobby-beatmap-status-message-builder";
 import { GameLobby } from "../../domain/game/game-lobby.entity";
+import { Match } from "../../domain/match/match.entity";
 
 export class MultiplayerResultsReporter {
   static getItemsToBeReported(args: {
     virtualMatchReportDatas: VirtualMatchReportData[];
     game: Game;
+    matches: Match[];
   }): { allReportables: ReportableContext<ReportableContextType>[]; toBeReported: ReportableContext<ReportableContextType>[] } {
     const allReportables: ReportableContext<ReportableContextType>[] = MultiplayerResultsReporter.gatherReportableItemsForGame({
       virtualMatchReportDatas: args.virtualMatchReportDatas,
-      game: args.game
+      game: args.game,
+      matches: args.matches
     }).sort((r1, r2) => r1.time - r2.time);
 
     const reported: ReportableContext<ReportableContextType>[] = MultiplayerResultsReporter.getAlreadyReportedItemsForGame({
@@ -29,7 +32,7 @@ export class MultiplayerResultsReporter {
     const toBeReported: ReportableContext<ReportableContextType>[] = _.differenceWith<
       ReportableContext<ReportableContextType>,
       ReportableContext<ReportableContextType>
-    >(allReportables, reported, _.isEqual)
+    >(allReportables, reported, _.isEqual);
 
     return { allReportables, toBeReported };
   }
@@ -37,6 +40,7 @@ export class MultiplayerResultsReporter {
   private static gatherReportableItemsForGame(args: {
     virtualMatchReportDatas: VirtualMatchReportData[];
     game: Game;
+    matches: Match[];
   }): ReportableContext<ReportableContextType>[] {
     const reportables: ReportableContext<ReportableContextType>[] = [];
 
@@ -86,7 +90,10 @@ export class MultiplayerResultsReporter {
     // vmrData depends on having virtual matches. Virtual matches depend on having the same beatmap completed in all game lobbies.
     // We cannot form a VM until all lobbies have completed the same map.
     // However, an aborted match does not depend on the same map to be completed in all lobbies - it only depends on one lobby to have aborted a match.
-    const abortedMatchReportables = MultiplayerResultsReporter.generateAbortedMatchReportables({ gameLobbies: args.game.gameLobbies });
+    const abortedMatchReportables = MultiplayerResultsReporter.generateAbortedMatchReportables({
+      gameLobbies: args.game.gameLobbies,
+      allGameMatches: args.matches
+    });
     reportables.push(...abortedMatchReportables);
 
     const filteredReportables = MultiplayerResultsReporter.getReportablesOccurringBeforeAndIncludingFinalLeaderboard(reportables);
@@ -94,13 +101,15 @@ export class MultiplayerResultsReporter {
     return filteredReportables;
   }
 
-  private static generateAbortedMatchReportables(args: { gameLobbies: GameLobby[] }): ReportableContext<"message">[] {
+  private static generateAbortedMatchReportables(args: {
+    gameLobbies: GameLobby[];
+    allGameMatches: Match[];
+  }): ReportableContext<"message">[] {
     const reportables: ReportableContext<"message">[] = [];
 
     // gather all matches for all lobbies of the game
-    const matches = _(args.gameLobbies)
-      .map(gameLobby => gameLobby.lobby.matches)
-      .flatten()
+    const matches = _(args.allGameMatches)
+      // .flatten()
       .uniqBy(match => match.id)
       .sortBy(match => sortByMatchOldestToLatest(LobbyBeatmapStatusMessageBuilder.buildMatchComponent(match)))
       .value();
