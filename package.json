@@ -10,6 +10,7 @@
     "start": "run-script-os",
     "start:windows": "rmdir /S /Q dist & tsc & xcopy .\\src\\locales .\\dist\\locales\\ /E /C /Q /Y & ts-node src/index.ts",
     "start:macos": "rm -rf dist & tsc & cp -RfX src/locales/ dist/locales/ & ts-node src/index.ts",
+    "start:linux": "rm -rf dist & tsc & cp -ar src/locales/ dist/locales/ & ts-node src/index.ts",
     "start-js": "rmdir /S /Q dist & tsc & xcopy .\\src\\locales .\\dist\\locales\\ /E /C /Q /Y & node dist/index.js",
     "typeorm": "ts-node -r tsconfig-paths/register ./node_modules/typeorm/cli.js",
     "entity:create": "ts-node ./node_modules/typeorm/cli.js entity:create -n",
