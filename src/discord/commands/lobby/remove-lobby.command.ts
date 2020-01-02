@@ -17,7 +17,7 @@ export class RemoveLobbyCommand extends AppBaseCommand {
       memberName: "removelobby",
       description:
         "Removes an osu! multiplayer lobby from a game. This will not close the actual lobby; " +
-        "it will only tell the bot to stop scanning the lobby for future results",
+        "it will only tell the bot to stop scanning the lobby for match results.",
       examples: ["!obr removelobby 12345"],
       guildOnly: true,
       argsPromptLimit: 0,

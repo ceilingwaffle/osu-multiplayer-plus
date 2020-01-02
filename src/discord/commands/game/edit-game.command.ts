@@ -19,7 +19,7 @@ export class EditGameCommand extends Command {
       name: "editgame",
       group: "osu",
       memberName: "editgame",
-      description: "Edits the properties of a game.",
+      description: "Edits the properties of a game, like how many lives each team starts with.",
       details: "Use !obr targetgame <gameId> to set properties on that game, otherwise your most recently created game will be used.",
       examples: ["!obr editgame lives 5", "!obr editgame countfailed true", "!obr editgame countfailed false"],
       guildOnly: true,

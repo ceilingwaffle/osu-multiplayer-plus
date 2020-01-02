@@ -19,7 +19,7 @@ export class StartGameCommand extends AppBaseCommand {
       group: "osu",
       memberName: "startgame",
       description:
-        "Use this comamnd once your game has been setup and is now ready to start scanning multiplayer lobbies for match results.",
+        "Use this command once your game has been setup and is now ready to start scanning multiplayer lobbies for match results.",
       details:
         "You should first add players to teams and add lobbies to the game before starting the game (use !obr addteams and !obr addlobby). " +
         "Use !obr targetgame <gameId> to target a specific game, otherwise your most recently-created game will be targeted.",

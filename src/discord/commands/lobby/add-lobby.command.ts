@@ -15,7 +15,7 @@ export class AddLobbyCommand extends AppBaseCommand {
       name: "addlobby",
       group: "osu",
       memberName: "addlobby",
-      description: "Adds an osu! multiplayer lobby to a game from which scores from match-results will be calculated.",
+      description: "Adds an osu! multiplayer lobby to a game, to be automatically scanned for match results. You can add multiple lobbies.",
       examples: ["!obr addlobby 12345"],
       guildOnly: true,
       argsPromptLimit: 0,

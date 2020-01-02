@@ -15,7 +15,7 @@ export class TargetGameCommand extends Command {
       name: "targetgame",
       group: "osu",
       memberName: "targetgame",
-      description: "Sets a game ID as the target game of the user's future commands.",
+      description: "Sets a game ID to be the target of your commands.",
       examples: ["!obr targetgame 1"],
       guildOnly: true,
       argsPromptLimit: 0,

@@ -15,8 +15,7 @@ export class EndGameCommand extends AppBaseCommand {
       name: "endgame",
       group: "osu",
       memberName: "endgame",
-      description:
-        "Manually ends an osu! Battle Royale game. Games are normally ended automatically, but you can use this command to end one early.",
+      description: "Manually ends a game. Games are normally ended automatically, but you can use this command to end one early.",
       aliases: [],
       examples: ["!obr endgame 5"],
       guildOnly: true, // accept commands from channels only, e.g. ignore DM commands
