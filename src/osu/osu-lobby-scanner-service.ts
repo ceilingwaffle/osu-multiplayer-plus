@@ -247,7 +247,7 @@ export class OsuLobbyScannerService implements IOsuLobbyScanner {
       // TODO: Update Lobby status to UNKNOWN if connection/API issue
       Log.info(`Scanning mp ${multiplayerId}...`);
       const results = await this.osuApi.fetchMultiplayerResults(multiplayerId);
-      if (this.containsNewMatchesForAnyGame(results, watcher.activeGameIds)) {
+      if (this.containsNewMatchesForAnyGame(results, watcher.activeGameIds) === true) {
         results.targetGameIds = watcher.activeGameIds;
         watcher.latestResults = results;
         await this.mpResultsListener.eventEmitter.emit("newMultiplayerMatches", results);
@@ -338,16 +338,28 @@ export class OsuLobbyScannerService implements IOsuLobbyScanner {
       //   return true;
       // }
 
-      const latestKnownMatch = watcher.latestResults.matches.slice(-1)[0];
-      const checkingMatch = multi.matches.slice(-1)[0];
-      // TODO: More reliable way of determining the answer instead of just not comparing start times at all
-      // const latestST = latestKnownMatch.startTime.getTime();
-      const latestET = latestKnownMatch.endTime;
-      // const checkingST = checkingMatch.startTime.getTime();
-      const checkingET = checkingMatch.endTime;
+      const latest = watcher.latestResults.matches.slice(-1)[0];
+      const checking = multi.matches.slice(-1)[0];
+      const latestST = latest.startTime;
+      const latestET = latest.endTime;
+      const latestBMID = latest.beatmap?.beatmapId;
+      const checkingST = checking.startTime;
+      const checkingET = checking.endTime;
+      const checkingBMID = checking.beatmap?.beatmapId;
+
+      // TODO: Thoroughly test the answer value... This may not be 100% accurate for every new/old match result.
+      let answer: boolean;
+      if (!Object.is(latestBMID, checkingBMID) || !Object.is(latestST, checkingST) || !Object.is(latestET, checkingET)) {
+        // if the beatmap ID is different, it must be a new match
+        // if the start time is different, it must be a new match
+        // if the end time is different, it must be a new match
+        answer = true;
+      } else {
+        answer = false;
+      }
 
       // const answer = latestST !== checkingST && latestET !== checkingET;
-      const answer = latestET !== checkingET;
+      // const answer = ((!isNaN(latestET) && isNaN(checkingET)) || (isNaN(latestET) && !isNaN(checkingET))) && latestET != checkingET;
       Log.methodSuccess(this.containsNewMatchesForAnyGame, { mpid: multi.multiplayerId, newResults: answer });
       return answer;
     } catch (error) {
