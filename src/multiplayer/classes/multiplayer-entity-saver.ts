@@ -154,6 +154,25 @@ export class MultiplayerEntitySaver {
         }
       }
 
+      // save any new players created
+      const savedOsuUsers: OsuUser[] = [];
+      for (const p of players.filter(p => !p.createdAt)) {
+        // TODO - Optimize N+1
+        const savedOsuUser: OsuUser = await p.save();
+        savedOsuUsers.push(savedOsuUser);
+      }
+
+      // update lobby with saved player entities
+      savedOsuUsers.forEach(ou => {
+        lobby.matches.forEach(m => {
+          m.playerScores.forEach(ps => {
+            if (ps.scoredBy && ps.scoredBy.osuUserId == ou.osuUserId) {
+              ps.scoredBy = ou;
+            }
+          });
+        });
+      });
+
       // save/update (cascade) entities
       // TODO: ensure Lobby.GameLobbies isn't being erased - if it is, just add it to the relations when finding lobby
       const savedLobby = await lobby.save();
