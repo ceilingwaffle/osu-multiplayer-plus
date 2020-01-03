@@ -1,4 +1,4 @@
-import { Either, failurePromise } from "../../utils/Either";
+import { Either, failurePromise } from "../../utils/either";
 import { Failure } from "../../utils/failure";
 import { OsuUserFailure, banchoOsuUserIdIsInvalidFailure } from "../user/user.failure";
 import { GameFailure } from "../game/game.failure";

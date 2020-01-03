@@ -1,5 +1,5 @@
 import { User } from "./user.entity";
-import { Either, failurePromise, successPromise } from "../../utils/Either";
+import { Either, failurePromise, successPromise } from "../../utils/either";
 import { Failure } from "../../utils/failure";
 import { FindUserDto } from "./dto/find-user.dto";
 import { Log } from "../../utils/log";
@@ -206,7 +206,10 @@ export class UserService {
       const savedOsuUserIds: number[] = savedOsuUsers.map(osuUser => osuUser.id);
       //    select all from db
       // TODO: Test to see if we actually need union here. SQL might just ignore duplicate ids.
-      const allOsuUserIds = union(existingOsuUsers.map(u => u.id), savedOsuUserIds);
+      const allOsuUserIds = union(
+        existingOsuUsers.map(u => u.id),
+        savedOsuUserIds
+      );
       const reloadedOsuUsers: OsuUser[] = await this.dbConn.manager.getCustomRepository(OsuUserRepository).findByIds(allOsuUserIds, {
         relations: returnWithRelations
       });

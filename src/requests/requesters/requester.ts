@@ -2,7 +2,7 @@ import iocContainer from "../../inversify.config";
 import { TYPES } from "../../types";
 import { UserService } from "../../domain/user/user.service";
 import { User } from "../../domain/user/user.entity";
-import { Either } from "../../utils/Either";
+import { Either } from "../../utils/either";
 import { Failure } from "../../utils/failure";
 import { UserFailureTypes } from "../../domain/user/user.failure";
 import { RequestDto } from "../dto";

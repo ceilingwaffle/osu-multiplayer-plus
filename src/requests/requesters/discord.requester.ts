@@ -1,5 +1,5 @@
 import { Requester } from "./requester";
-import { Either } from "../../utils/Either";
+import { Either } from "../../utils/either";
 import { Failure } from "../../utils/failure";
 import { User } from "../../domain/user/user.entity";
 import { DiscordUserFailure, UserFailure } from "../../domain/user/user.failure";

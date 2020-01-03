@@ -2,7 +2,7 @@ import { TYPES } from "../../types";
 import { IOsuLobbyScanner, LobbyWatcherChanged } from "../../osu/interfaces/osu-lobby-scanner";
 import { LobbyRepository } from "./lobby.repository";
 import { getCustomRepository } from "typeorm";
-import { Either, success } from "../../utils/Either";
+import { Either, success } from "../../utils/either";
 import { Failure } from "../../utils/failure";
 import { AddLobbyDto } from "./dto/add-lobby.dto";
 import { Lobby } from "./lobby.entity";

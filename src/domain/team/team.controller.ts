@@ -15,7 +15,7 @@ import { Helpers } from "../../utils/helpers";
 import { tooManyUsersInAddTeamsRequestFailure, TeamFailure, samePlayerExistsInMultipleTeamsInAddTeamsRequestFailure } from "./team.failure";
 import { ApiOsuUser } from "../../osu/types/api-osu-user";
 import { Failure } from "../../utils/failure";
-import { Either, failurePromise, failure, success } from "../../utils/Either";
+import { Either, failurePromise, failure, success } from "../../utils/either";
 import { GameTeam } from "./game-team.entity";
 
 @injectable()

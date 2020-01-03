@@ -3,7 +3,7 @@ import { inject, injectable, interfaces } from "inversify";
 import { Connection } from "typeorm";
 import { Game } from "./game.entity";
 import { CreateGameDto } from "./dto/create-game.dto";
-import { Either, failurePromise, successPromise, success } from "../../utils/Either";
+import { Either, failurePromise, successPromise, success } from "../../utils/either";
 import { Failure } from "../../utils/failure";
 import {
   GameFailure,

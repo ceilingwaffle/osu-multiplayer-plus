@@ -2,7 +2,7 @@ import { AccessControl, Permission } from "role-acl";
 import { PermissionsFailure, userDoesNotHavePermissionsFailure } from "./permissions.failure";
 import { CommunicationClientType } from "../communication-types";
 import { Failure } from "../utils/failure";
-import { Either, success, failure } from "../utils/Either";
+import { Either, success, failure } from "../utils/either";
 import { User } from "../domain/user/user.entity";
 import { Log } from "../utils/log";
 import { injectable } from "inversify";
