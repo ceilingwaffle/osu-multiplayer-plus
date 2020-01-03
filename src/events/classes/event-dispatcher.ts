@@ -3,7 +3,7 @@ import { injectable } from "inversify";
 import { IEvent } from "../interfaces/event";
 import { EventHandler } from "./event-handler";
 import { IEventDispatcher } from "../interfaces/event-dispatcher";
-import { Constructor } from "../../utils/Constructor";
+import { Constructor } from "../../utils/constructor";
 
 @injectable()
 export class EventDispatcher implements IEventDispatcher {
