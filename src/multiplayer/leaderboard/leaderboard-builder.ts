@@ -327,11 +327,12 @@ export class LeaderboardBuilder {
       }
     }
 
-    Log.debug(
-      `No event icon could be determined for team ID ${targetTeam.id} for target VM ${VirtualMatchCreator.createSameBeatmapKeyString(
-        targetVM
-      )}`
-    );
+    // TODO - fix why some event icons are not being determined
+    // Log.debug(
+    //   `No event icon could be determined for team ID ${targetTeam.id} for target VM ${VirtualMatchCreator.createSameBeatmapKeyString(
+    //     targetVM
+    //   )}`
+    // );
     return null;
   }
 

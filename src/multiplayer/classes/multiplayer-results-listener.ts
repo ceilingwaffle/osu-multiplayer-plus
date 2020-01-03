@@ -38,31 +38,41 @@ export class MultiplayerResultsListener {
     try {
       const apiMultiplayerResults: AsyncIterableIterator<ApiMultiplayer> = this.eventEmitter.events("newMultiplayerMatches");
       for await (const apiMultiplayerResult of apiMultiplayerResults) {
-        Log.info("Event newMultiplayerMatches (buffer)", {
-          mpid: apiMultiplayerResult.multiplayerId,
-          matchesCount: apiMultiplayerResult.matches.length,
-          targetGameIds: apiMultiplayerResult.targetGameIds?.size ? Array.from(apiMultiplayerResult.targetGameIds) : []
-        });
-
-        const processor = new MultiplayerResultsProcessor(apiMultiplayerResult);
-        const multiplayerGames: Game[] = await processor.saveMultiplayerEntities();
-
-        for (const game of multiplayerGames) {
-          if (GameStatus.isEndedStatus(game.status)) {
-            Log.info(`Skipping handling of new MP results for game ${game.id} due to game having ended status.`);
-            continue;
-          }
-
-          const matches: Match[] = await this.matchService.getMatchesOfGame(game.id);
-          const virtualMatchReportDatas: VirtualMatchReportData[] = await processor.buildVirtualMatchReportGroupsForGame(game, matches);
-          const { toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({ virtualMatchReportDatas, game, matches });
-          await ReportablesDeliverer.deliver({ reportables: toBeReported, gameMessageTargets: game.messageTargets });
-        }
+        this.doTheMpProcessing(apiMultiplayerResult);
       }
 
       Log.methodSuccess(this.handleNewMultiplayerMatches, this.constructor.name);
     } catch (error) {
       Log.methodError(this.handleNewMultiplayerMatches, this.constructor.name, error);
+      throw error;
+    }
+  }
+
+  async doTheMpProcessing(apiMultiplayerResult: ApiMultiplayer): Promise<void> {
+    try {
+      Log.info("Event newMultiplayerMatches (buffer)", {
+        mpid: apiMultiplayerResult.multiplayerId,
+        matchesCount: apiMultiplayerResult.matches.length,
+        targetGameIds: apiMultiplayerResult.targetGameIds?.size ? Array.from(apiMultiplayerResult.targetGameIds) : []
+      });
+
+      const processor = new MultiplayerResultsProcessor(apiMultiplayerResult);
+      const multiplayerGames: Game[] = await processor.saveMultiplayerEntities();
+
+      for (const game of multiplayerGames) {
+        if (GameStatus.isEndedStatus(game.status)) {
+          Log.info(`Skipping handling of new MP results for game ${game.id} due to game having ended status.`);
+          continue;
+        }
+
+        const matches: Match[] = await this.matchService.getMatchesOfGame(game.id);
+        const virtualMatchReportDatas: VirtualMatchReportData[] = await processor.buildVirtualMatchReportGroupsForGame(game, matches);
+        const { toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({ virtualMatchReportDatas, game, matches });
+        await ReportablesDeliverer.deliver({ reportables: toBeReported, gameMessageTargets: game.messageTargets });
+      }
+      Log.methodSuccess(this.doTheMpProcessing, this.constructor.name);
+    } catch (error) {
+      Log.methodError(this.doTheMpProcessing, this.constructor.name, error);
       throw error;
     }
   }

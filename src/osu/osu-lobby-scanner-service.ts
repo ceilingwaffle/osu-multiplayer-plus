@@ -146,6 +146,7 @@ export class OsuLobbyScannerService implements IOsuLobbyScanner {
           const multiplayerResultsCopy = cloneDeep(watcher.latestResults);
           multiplayerResultsCopy.targetGameIds = new Set<number>([gameId]);
           await this.mpResultsListener.eventEmitter.emit("newMultiplayerMatches", multiplayerResultsCopy);
+          // await this.mpResultsListener.doTheMpProcessing(multiplayerResultsCopy);
         }
 
         affectedWatchers.push({
@@ -251,6 +252,7 @@ export class OsuLobbyScannerService implements IOsuLobbyScanner {
         results.targetGameIds = watcher.activeGameIds;
         watcher.latestResults = results;
         await this.mpResultsListener.eventEmitter.emit("newMultiplayerMatches", results);
+        // await this.mpResultsListener.doTheMpProcessing(results);
       }
     } catch (error) {
       Log.methodError(this.scan, this.constructor.name, error);
