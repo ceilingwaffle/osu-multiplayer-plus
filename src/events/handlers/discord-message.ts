@@ -62,7 +62,9 @@ export class DiscordMessage {
           if (!game) {
             Log.warn(`No game on GameEvent data. We'll check the next one...`);
           } else {
-            this.addGameInfoAuthorField(game, newEmbed);
+            // TODO - Get the true virtual match number - the below code is temporary - it may be inaccurate for multi-lobby games
+            const mapNumber = gameEvent.data.eventMatch.matches.length ? gameEvent.data.eventMatch.matches[0].mapNumber : 0;
+            this.addGameInfoAuthorField(game, newEmbed, mapNumber);
             break;
           }
         }
@@ -93,8 +95,11 @@ export class DiscordMessage {
     }
   }
 
-  addGameInfoAuthorField(game: Game, targetEmbed: RichEmbed): void {
+  addGameInfoAuthorField(game: Game, targetEmbed: RichEmbed, mapNumber: number): void {
     let authorString = `Battle Royale ${game.id}`;
+    if (mapNumber > 0) {
+      authorString = authorString.concat(` - Result #${mapNumber}`);
+    }
     // TODO - add map duration
     // TODO - add map number
     // TODO - add estimated maps remaining (from maps played / total lives - 1)
