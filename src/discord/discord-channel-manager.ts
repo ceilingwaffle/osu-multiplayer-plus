@@ -1,7 +1,7 @@
 import { Guild, TextChannel } from "discord.js";
 import { Failure } from "../utils/Failure";
 import { DiscordFailureTypes, notPermittedManageChannelsFailure, unexpectedChannelTypeFailure } from "./discord.failure";
-import { Response } from "../requests/Response";
+import { Response } from "../requests/response";
 import { FailureMessage } from "../utils/message";
 
 export class DiscordChannelManager {

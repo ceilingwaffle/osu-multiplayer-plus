@@ -1,7 +1,7 @@
 import { TYPES } from "../../types";
 import { UpdateUserDto } from "./dto/update-user.dto";
 import { RequestDto } from "../../requests/dto";
-import { Response } from "../../requests/Response";
+import { Response } from "../../requests/response";
 import { UpdateUserReport } from "./reports/update-user.report";
 import { UserService } from "./user.service";
 import { RequesterFactory } from "../../requests/requester-factory";

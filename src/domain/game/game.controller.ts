@@ -3,7 +3,7 @@ import { inject, injectable } from "inversify";
 import { GameService } from "./game.service";
 import { CreateGameDto } from "./dto/index";
 import { RequesterFactory } from "../../requests/requester-factory";
-import { Response } from "../../requests/Response";
+import { Response } from "../../requests/response";
 import { Game } from "./game.entity";
 import { Message, FailureMessage } from "../../utils/message";
 import { RequestDtoType } from "../../requests/dto/request.dto";

@@ -2,7 +2,7 @@ import iocContainer from "../../inversify.config";
 import { TYPES } from "../../types";
 import { AddLobbyDto } from "./dto/add-lobby.dto";
 import { RequestDtoType } from "../../requests/dto/request.dto";
-import { Response } from "../../requests/Response";
+import { Response } from "../../requests/response";
 import { Lobby } from "./lobby.entity";
 import { LobbyService } from "./lobby.service";
 import { Log } from "../../utils/Log";

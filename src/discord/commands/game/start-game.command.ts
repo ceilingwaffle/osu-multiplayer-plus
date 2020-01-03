@@ -5,7 +5,7 @@ import { GameController } from "../../../domain/game/game.controller";
 import { AppBaseCommand } from "../app-base-command";
 import { Message, RichEmbed } from "discord.js";
 import { DiscordRequestDto } from "../../../requests/dto";
-import { Response } from "../../../requests/Response";
+import { Response } from "../../../requests/response";
 import { StartGameReport } from "../../../domain/game/reports/start-game.report";
 import { ErrorDiscordMessageBuilder } from "../../message-builders/error.discord-message-builder";
 import { StartGameDiscordMessageBuilder } from "../../message-builders/game/start-game.discord-message-builder";

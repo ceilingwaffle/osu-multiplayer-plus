@@ -1,6 +1,6 @@
 import { AbstractDiscordMessageBuilder } from "./abstract.discord-message-builder";
 import { CommandMessage, CommandoClient, Command } from "discord.js-commando";
-import { Response } from "../../requests/Response";
+import { Response } from "../../requests/response";
 import { RichEmbed } from "discord.js";
 import { ValidationError } from "class-validator";
 

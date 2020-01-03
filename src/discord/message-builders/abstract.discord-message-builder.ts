@@ -1,4 +1,4 @@
-import { Response } from "../../requests/Response";
+import { Response } from "../../requests/response";
 import { CommandMessage, CommandoClient, Command } from "discord.js-commando";
 import { RichEmbed } from "discord.js";
 

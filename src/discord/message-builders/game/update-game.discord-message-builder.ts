@@ -1,7 +1,7 @@
 import { RichEmbed } from "discord.js";
 import { CommandMessage, Command } from "discord.js-commando";
 import { AbstractDiscordMessageBuilder } from "../abstract.discord-message-builder";
-import { Response } from "../../../requests/Response";
+import { Response } from "../../../requests/response";
 import { UpdateGameReport } from "../../../domain/game/reports/update-game.report";
 import { DiscordUserReportProperties } from "../../../domain/shared/reports/discord-user-report-properties";
 import { DiscordCommandExampleBuilder } from "../../discord-command-example-builder";

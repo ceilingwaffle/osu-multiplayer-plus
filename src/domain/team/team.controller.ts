@@ -2,7 +2,7 @@ import { TYPES } from "../../types";
 import { TeamService } from "./team.service";
 import { RequestDto } from "../../requests/dto";
 import { AddTeamsDto } from "./dto/add-team.dto";
-import { Response } from "../../requests/Response";
+import { Response } from "../../requests/response";
 import { AddTeamsReport, TeamInTeamReport } from "./reports/add-teams.report";
 import { Log } from "../../utils/Log";
 import { RequesterFactory } from "../../requests/requester-factory";
