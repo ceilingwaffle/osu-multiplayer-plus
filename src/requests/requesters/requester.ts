@@ -3,7 +3,7 @@ import { TYPES } from "../../types";
 import { UserService } from "../../domain/user/user.service";
 import { User } from "../../domain/user/user.entity";
 import { Either } from "../../utils/Either";
-import { Failure } from "../../utils/Failure";
+import { Failure } from "../../utils/failure";
 import { UserFailureTypes } from "../../domain/user/user.failure";
 import { RequestDto } from "../dto";
 

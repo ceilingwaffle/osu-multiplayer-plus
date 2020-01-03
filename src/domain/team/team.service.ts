@@ -1,5 +1,5 @@
 import { Either, failurePromise } from "../../utils/Either";
-import { Failure } from "../../utils/Failure";
+import { Failure } from "../../utils/failure";
 import { OsuUserFailure, banchoOsuUserIdIsInvalidFailure } from "../user/user.failure";
 import { GameFailure } from "../game/game.failure";
 import { TeamFailure, osuUsersAlreadyInTeamForThisGameFailure } from "./team.failure";

@@ -4,7 +4,7 @@ import { Connection } from "typeorm";
 import { Game } from "./game.entity";
 import { CreateGameDto } from "./dto/create-game.dto";
 import { Either, failurePromise, successPromise, success } from "../../utils/Either";
-import { Failure } from "../../utils/Failure";
+import { Failure } from "../../utils/failure";
 import {
   GameFailure,
   invalidGamePropertiesFailure,

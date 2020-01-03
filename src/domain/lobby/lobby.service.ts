@@ -3,7 +3,7 @@ import { IOsuLobbyScanner, LobbyWatcherChanged } from "../../osu/interfaces/osu-
 import { LobbyRepository } from "./lobby.repository";
 import { getCustomRepository } from "typeorm";
 import { Either, success } from "../../utils/Either";
-import { Failure } from "../../utils/Failure";
+import { Failure } from "../../utils/failure";
 import { AddLobbyDto } from "./dto/add-lobby.dto";
 import { Lobby } from "./lobby.entity";
 import { LobbyStatus } from "./lobby-status";

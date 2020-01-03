@@ -1,6 +1,6 @@
 import { Requester } from "./requester";
 import { Either } from "../../utils/Either";
-import { Failure } from "../../utils/Failure";
+import { Failure } from "../../utils/failure";
 import { User } from "../../domain/user/user.entity";
 import { DiscordUserFailure, UserFailure } from "../../domain/user/user.failure";
 import { RequestDto } from "../dto";

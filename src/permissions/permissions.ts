@@ -1,7 +1,7 @@
 import { AccessControl, Permission } from "role-acl";
 import { PermissionsFailure, userDoesNotHavePermissionsFailure } from "./permissions.failure";
 import { CommunicationClientType } from "../communication-types";
-import { Failure } from "../utils/Failure";
+import { Failure } from "../utils/failure";
 import { Either, success, failure } from "../utils/Either";
 import { User } from "../domain/user/user.entity";
 import { Log } from "../utils/log";

@@ -14,7 +14,7 @@ import { inject, injectable } from "inversify";
 import { Helpers } from "../../utils/helpers";
 import { tooManyUsersInAddTeamsRequestFailure, TeamFailure, samePlayerExistsInMultipleTeamsInAddTeamsRequestFailure } from "./team.failure";
 import { ApiOsuUser } from "../../osu/types/api-osu-user";
-import { Failure } from "../../utils/Failure";
+import { Failure } from "../../utils/failure";
 import { Either, failurePromise, failure, success } from "../../utils/Either";
 import { GameTeam } from "./game-team.entity";
 

@@ -1,4 +1,4 @@
-import { Failure } from "../../utils/Failure";
+import { Failure } from "../../utils/failure";
 import { ValidationError } from "class-validator";
 
 export enum UserFailure {

@@ -1,5 +1,5 @@
 import { Guild, TextChannel } from "discord.js";
-import { Failure } from "../utils/Failure";
+import { Failure } from "../utils/failure";
 import { DiscordFailureTypes, notPermittedManageChannelsFailure, unexpectedChannelTypeFailure } from "./discord.failure";
 import { Response } from "../requests/response";
 import { FailureMessage } from "../utils/message";
