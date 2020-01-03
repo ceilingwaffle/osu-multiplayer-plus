@@ -1,7 +1,7 @@
 import iocContainer from "../src/inversify.config";
 import { IDbClient } from "../src/database/db-client";
 import TYPES from "../src/types";
-import { Log } from "../src/utils/Log";
+import { Log } from "../src/utils/log";
 import CreateUsersSeeder from "../src/database/seeds/create-users.seeder";
 import { Seeder } from "../src/database/seeder";
 

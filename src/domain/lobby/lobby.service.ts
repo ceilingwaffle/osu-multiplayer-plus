@@ -21,7 +21,7 @@ import {
 } from "./lobby.failure";
 import { GameService } from "../game/game.service";
 import { inject, injectable } from "inversify";
-import { Log } from "../../utils/Log";
+import { Log } from "../../utils/log";
 import { failurePromise, successPromise } from "../../utils/either";
 import { UserService } from "../user/user.service";
 import { validate } from "class-validator";

@@ -1,6 +1,6 @@
 import { IOsuLobbyScanner, LobbyWatcherChanged } from "./interfaces/osu-lobby-scanner";
 import { IOsuApiFetcher } from "./interfaces/osu-api-fetcher";
-import { Log } from "../utils/Log";
+import { Log } from "../utils/log";
 import { ApiMultiplayer } from "./types/api-multiplayer";
 import { dynamic, SetIntervalAsyncTimer, clearIntervalAsync } from "set-interval-async";
 import { injectable, inject, decorate } from "inversify";

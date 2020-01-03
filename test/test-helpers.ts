@@ -1,7 +1,7 @@
 import { exec } from "child_process";
 import { BaseEntity, Connection } from "typeorm";
 import * as fs from "fs-extra";
-import { Log } from "../src/utils/Log";
+import { Log } from "../src/utils/log";
 import iocContainer from "../src/inversify.config";
 import { IDbClient } from "../src/database/db-client";
 import TYPES from "../src/types";

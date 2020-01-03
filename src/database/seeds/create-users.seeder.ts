@@ -5,7 +5,7 @@ require("dotenv").config({
 });
 import { User } from "../../domain/user/user.entity";
 import { DiscordUser } from "../../domain/user/discord-user.entity";
-import { Log } from "../../utils/Log";
+import { Log } from "../../utils/log";
 import { Seeder } from "../seeder";
 import { Connection } from "typeorm";
 

@@ -5,7 +5,7 @@ import { Response } from "../../requests/response";
 import { UpdateUserReport } from "./reports/update-user.report";
 import { UserService } from "./user.service";
 import { RequesterFactory } from "../../requests/requester-factory";
-import { Log } from "../../utils/Log";
+import { Log } from "../../utils/log";
 import { FailureMessage, Message } from "../../utils/message";
 import { UserResponseFactory } from "./user-response-factory";
 import { injectable, inject } from "inversify";

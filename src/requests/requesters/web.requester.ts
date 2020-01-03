@@ -1,6 +1,6 @@
 import { Requester } from "./requester";
 import { RequestDto } from "../dto";
-import { Log } from "../../utils/Log";
+import { Log } from "../../utils/log";
 import { UserService } from "../../domain/user/user.service";
 
 export class WebRequester extends Requester {

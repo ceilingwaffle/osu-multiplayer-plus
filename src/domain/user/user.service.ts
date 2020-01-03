@@ -2,7 +2,7 @@ import { User } from "./user.entity";
 import { Either, failurePromise, successPromise } from "../../utils/Either";
 import { Failure } from "../../utils/Failure";
 import { FindUserDto } from "./dto/find-user.dto";
-import { Log } from "../../utils/Log";
+import { Log } from "../../utils/log";
 import { validate } from "class-validator";
 import {
   DiscordUserFailure,

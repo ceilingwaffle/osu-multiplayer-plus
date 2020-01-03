@@ -3,7 +3,7 @@ import { CreateGameCommand } from "./commands/game/create-game.command";
 import { Helpers } from "../utils/helpers";
 import { Database } from "sqlite";
 import { EndGameCommand } from "./commands/game/end-game.command";
-import { Log } from "../utils/Log";
+import { Log } from "../utils/log";
 import { AddLobbyCommand } from "./commands/lobby/add-lobby.command";
 import { RemoveLobbyCommand } from "./commands/lobby/remove-lobby.command";
 import { EditGameCommand } from "./commands/game/edit-game.command";

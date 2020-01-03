@@ -1,5 +1,5 @@
 import { MultiplayerResultsDeliverableEvent } from "../multiplayer-results-deliverable.event";
-import { Log } from "../../utils/Log";
+import { Log } from "../../utils/log";
 import { EventHandler } from "../classes/event-handler";
 import iocContainer from "../../inversify.config";
 import { TYPES } from "../../types";

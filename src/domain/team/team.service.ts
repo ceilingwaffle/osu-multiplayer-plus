@@ -10,7 +10,7 @@ import TYPES from "../../types";
 import { UserService } from "../user/user.service";
 import { GameService } from "../game/game.service";
 import { Permissions } from "../../permissions/permissions";
-import { Log } from "../../utils/Log";
+import { Log } from "../../utils/log";
 import { ColorPicker } from "../../utils/color-picker";
 import { User } from "../user/user.entity";
 import { RequestDto } from "../../requests/dto/request.dto";

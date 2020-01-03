@@ -2,7 +2,7 @@ import { VirtualMatch } from "../virtual-match/virtual-match";
 import { Team } from "../../domain/team/team.entity";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
 import { constants } from "../../constants";
-import { Log } from "../../utils/Log";
+import { Log } from "../../utils/log";
 
 // TODO: Merge this with LeaderboardBuilder.TeamScoresMap
 export interface CalculatedTeamScore {

@@ -1,7 +1,7 @@
 import { Repository, EntityRepository, getRepository } from "typeorm";
 import { User } from "./user.entity";
 import { Game } from "../game/game.entity";
-import { Log } from "../../utils/Log";
+import { Log } from "../../utils/log";
 import { AppBaseRepository } from "../shared/app-base-repository";
 
 @EntityRepository(User)

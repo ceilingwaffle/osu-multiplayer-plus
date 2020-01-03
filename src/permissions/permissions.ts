@@ -4,7 +4,7 @@ import { CommunicationClientType } from "../communication-types";
 import { Failure } from "../utils/Failure";
 import { Either, success, failure } from "../utils/Either";
 import { User } from "../domain/user/user.entity";
-import { Log } from "../utils/Log";
+import { Log } from "../utils/log";
 import { injectable } from "inversify";
 
 @injectable()

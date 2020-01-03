@@ -9,7 +9,7 @@ import { VirtualMatchCreator } from "../../virtual-match/virtual-match-creator";
 import { PlayMode } from "../../components/enums/play-mode";
 import { ScoringType } from "../../components/enums/scoring-type";
 import { TeamMode } from "../../components/enums/team-mode";
-import { Log } from "../../../utils/Log";
+import { Log } from "../../../utils/log";
 import { LobbyCompletedBeatmapMessage } from "../lobby-completed-beatmap-message";
 import { AllLobbiesCompletedBeatmapMessage } from "../all-lobbies-completed-beatmap-message";
 

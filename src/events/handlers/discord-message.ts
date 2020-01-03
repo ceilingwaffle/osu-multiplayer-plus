@@ -20,7 +20,7 @@ import { VirtualMatchCreator } from "../../multiplayer/virtual-match/virtual-mat
 import { Beatmap } from "../../multiplayer/components/beatmap";
 import { GameEvent } from "../../multiplayer/game-events/classes/game-event";
 import { Game } from "../../domain/game/game.entity";
-import { Log } from "../../utils/Log";
+import { Log } from "../../utils/log";
 import { debug } from "util";
 import { LobbyCompletedBeatmapMessage } from "../../multiplayer/messages/lobby-completed-beatmap-message";
 import { GameTeam } from "../../domain/team/game-team.entity";

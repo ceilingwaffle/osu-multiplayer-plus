@@ -8,7 +8,7 @@ import { Lobby } from "../../domain/lobby/lobby.entity";
 import { LobbyRepository } from "../../domain/lobby/lobby.repository";
 import { OsuUser } from "../../domain/user/osu-user.entity";
 import { Match } from "../../domain/match/match.entity";
-import { Log } from "../../utils/Log";
+import { Log } from "../../utils/log";
 import { PlayerScore } from "../../domain/score/player-score.entity";
 import { OsuUserRepository } from "../../domain/user/osu-user.repository";
 import { GameStatus } from "../../domain/game/game-status";

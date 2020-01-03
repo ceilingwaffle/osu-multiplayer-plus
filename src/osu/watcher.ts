@@ -1,4 +1,4 @@
-import { Log } from "../utils/Log";
+import { Log } from "../utils/log";
 import { ApiMultiplayer } from "./types/api-multiplayer";
 import { SetIntervalAsyncTimer } from "set-interval-async";
 

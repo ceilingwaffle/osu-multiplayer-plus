@@ -8,7 +8,7 @@ import {
 } from "class-validator";
 import { IOsuApiFetcher } from "../interfaces/osu-api-fetcher";
 import { Lobby } from "../../domain/lobby/lobby.entity";
-import { Log } from "../../utils/Log";
+import { Log } from "../../utils/log";
 import TYPES from "../../types";
 
 @ValidatorConstraint({ async: true })

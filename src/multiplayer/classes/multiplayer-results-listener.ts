@@ -1,5 +1,5 @@
 import { OsuLobbyScannerEventDataMap } from "../../osu/interfaces/osu-lobby-scanner-events";
-import { Log } from "../../utils/Log";
+import { Log } from "../../utils/log";
 import { MultiplayerResultsProcessor } from "./multiplayer-results-processor";
 import { VirtualMatchReportData } from "../virtual-match/virtual-match-report-data";
 import Emittery = require("emittery");

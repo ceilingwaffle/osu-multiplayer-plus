@@ -6,7 +6,7 @@ import {
   MultiGame,
   Beatmap
 } from "nodesu";
-import { Log } from "../utils/Log";
+import { Log } from "../utils/log";
 import { ApiMultiplayer } from "./types/api-multiplayer";
 import { ApiMatch } from "./types/api-match";
 import { ApiPlayerScore } from "./types/api-player-score";

@@ -5,7 +5,7 @@ import { GameRepository } from "../../../domain/game/game.repository";
 import { GameStatus } from "../../../domain/game/game-status";
 import { IGameEvent } from "../interfaces/game-event-interface";
 import { TeamScoredHighestGameEvent } from "../team-scored-highest.game-event";
-import { Log } from "../../../utils/Log";
+import { Log } from "../../../utils/log";
 import { Connection } from "typeorm";
 import { IDbClient } from "../../../database/db-client";
 import { TeamScoredLowestGameEvent } from "../team-scored-lowest.game-event";

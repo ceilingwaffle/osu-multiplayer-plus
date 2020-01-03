@@ -7,7 +7,7 @@ import { Response } from "../../requests/response";
 import { Game } from "./game.entity";
 import { Message, FailureMessage } from "../../utils/message";
 import { RequestDtoType } from "../../requests/dto/request.dto";
-import { Log } from "../../utils/Log";
+import { Log } from "../../utils/log";
 import { UpdateGameReport } from "./reports/update-game.report";
 import { GameResponseFactory } from "./game-response-factory";
 import { GameStatus } from "./game-status";

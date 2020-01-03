@@ -1,7 +1,7 @@
 import iocContainer from "../../inversify.config";
 import { TYPES } from "../../types";
 import { ApiMultiplayer } from "../../osu/types/api-multiplayer";
-import { Log } from "../../utils/Log";
+import { Log } from "../../utils/log";
 import { Lobby } from "../../domain/lobby/lobby.entity";
 import { Match } from "../../domain/match/match.entity";
 import { GameEventRegistrarCollection } from "../game-events/classes/game-event-registrar-collection";

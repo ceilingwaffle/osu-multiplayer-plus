@@ -10,7 +10,7 @@ import TYPES from "../../types";
 import { Connection } from "typeorm";
 import { IDbClient } from "../../database/db-client";
 import { DiscordUserRepository } from "../../domain/user/discord-user.repository";
-import { Log } from "../../utils/Log";
+import { Log } from "../../utils/log";
 import { Team } from "../../domain/team/team.entity";
 
 export class TeamIsGameChampionGameEvent extends GameEvent<{ team: Team }> implements IGameEvent {

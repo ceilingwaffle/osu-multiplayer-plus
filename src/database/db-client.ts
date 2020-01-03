@@ -1,6 +1,6 @@
 import { Connection, createConnection } from "typeorm";
 import { injectable } from "inversify";
-import { Log } from "../utils/Log";
+import { Log } from "../utils/log";
 import { default as postgresConfig } from "../config/typeorm/ormconfig.postgres";
 import { UnhandledNodeEnvError } from "../errors/unhandled-node-env.error";
 

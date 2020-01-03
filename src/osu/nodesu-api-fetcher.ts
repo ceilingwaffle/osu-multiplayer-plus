@@ -1,6 +1,6 @@
 import Nodesu = require("nodesu");
 import { IOsuApiFetcher } from "./interfaces/osu-api-fetcher";
-import { Log } from "../utils/Log";
+import { Log } from "../utils/log";
 import { ApiMultiplayer } from "./types/api-multiplayer";
 import { NodesuApiTransformer } from "./nodesu-api-transformer";
 import Bottleneck from "bottleneck";

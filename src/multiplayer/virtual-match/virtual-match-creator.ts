@@ -2,7 +2,7 @@ import { VirtualMatch } from "./virtual-match";
 import { Match } from "../../domain/match/match.entity";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
 import { Lobby } from "../../domain/lobby/lobby.entity";
-import { Log } from "../../utils/Log";
+import { Log } from "../../utils/log";
 import { Game } from "../../domain/game/game.entity";
 import { VirtualMatchKey } from "./virtual-match-key";
 import { sortByMatchOldestToLatest } from "../components/match";

@@ -5,7 +5,7 @@ import { RequestDtoType } from "../../requests/dto/request.dto";
 import { Response } from "../../requests/response";
 import { Lobby } from "./lobby.entity";
 import { LobbyService } from "./lobby.service";
-import { Log } from "../../utils/Log";
+import { Log } from "../../utils/log";
 import { RequesterFactory } from "../../requests/requester-factory";
 import { User } from "../user/user.entity";
 import { FailureMessage, Message } from "../../utils/message";

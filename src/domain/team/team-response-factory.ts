@@ -1,7 +1,7 @@
 import { UserReportProperties } from "../shared/reports/user-report-properties.type";
 import { Team } from "./team.entity";
 import { AbstractResponseFactory } from "../shared/abstract-response-factory";
-import { Log } from "../../utils/Log";
+import { Log } from "../../utils/log";
 import { Requester } from "../../requests/requesters/requester";
 import { RequestDto } from "../../requests/dto";
 import { GameTeam } from "./game-team.entity";

@@ -11,7 +11,7 @@ import { sortByMatchOldestToLatest } from "../components/match";
 import { Match } from "../../domain/match/match.entity";
 import { IsValidBanchoMultiplayerIdConstraint } from "../../osu/validators/bancho-multiplayer-id.validator";
 import { VirtualMatchCreator } from "../virtual-match/virtual-match-creator";
-import { Log } from "../../utils/Log";
+import { Log } from "../../utils/log";
 import { TeamID } from "../components/types/team-id";
 import { Team } from "../../domain/team/team.entity";
 

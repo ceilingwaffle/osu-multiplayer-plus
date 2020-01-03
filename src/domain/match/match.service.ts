@@ -9,7 +9,7 @@ import { MatchRepository } from "./match.repository";
 import { injectable, inject } from "inversify";
 import TYPES from "../../types";
 import { IDbClient } from "../../database/db-client";
-import { Log } from "../../utils/Log";
+import { Log } from "../../utils/log";
 import iocContainer from "../../inversify.config";
 
 @injectable()

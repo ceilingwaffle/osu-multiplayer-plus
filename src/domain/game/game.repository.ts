@@ -1,6 +1,6 @@
 import { Repository, EntityRepository, SelectQueryBuilder } from "typeorm";
 import { Game } from "./game.entity";
-import { Log } from "../../utils/Log";
+import { Log } from "../../utils/log";
 import { Match } from "../match/match.entity";
 
 @EntityRepository(Game)

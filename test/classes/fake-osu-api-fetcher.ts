@@ -3,7 +3,7 @@ import { ApiMultiplayer } from "../../src/osu/types/api-multiplayer";
 import { OsuUserValidationResult } from "../../src/osu/types/osu-user-validation-result";
 import { TestHelpers } from "../test-helpers";
 import { injectable } from "inversify";
-import { Log } from "../../src/utils/Log";
+import { Log } from "../../src/utils/log";
 import { Helpers } from "../../src/utils/helpers";
 import { ApiOsuUser } from "../../src/osu/types/api-osu-user";
 import { ApiBeatmap } from "../../src/osu/types/api-beatmap";

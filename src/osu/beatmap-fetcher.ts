@@ -1,7 +1,7 @@
 import { inject } from "inversify";
 import TYPES from "../types";
 import { IOsuApiFetcher } from "./interfaces/osu-api-fetcher";
-import { Log } from "../utils/Log";
+import { Log } from "../utils/log";
 import iocContainer from "../inversify.config";
 import { Beatmap } from "../multiplayer/components/beatmap";
 

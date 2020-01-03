@@ -4,7 +4,7 @@ import { Failure } from "../../utils/Failure";
 import { User } from "../../domain/user/user.entity";
 import { DiscordUserFailure, UserFailure } from "../../domain/user/user.failure";
 import { RequestDto } from "../dto";
-import { Log } from "../../utils/Log";
+import { Log } from "../../utils/log";
 import { UserService } from "../../domain/user/user.service";
 
 export class DiscordRequester extends Requester {

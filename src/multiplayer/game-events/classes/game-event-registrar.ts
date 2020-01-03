@@ -1,5 +1,5 @@
 import { Game } from "../../../domain/game/game.entity";
-import { Log } from "../../../utils/Log";
+import { Log } from "../../../utils/log";
 import { IGameEvent } from "../interfaces/game-event-interface";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
 import { VirtualMatch } from "../../virtual-match/virtual-match";

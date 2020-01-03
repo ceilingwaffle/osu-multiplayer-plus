@@ -4,7 +4,7 @@ import { RequestDto } from "../../requests/dto";
 import { AddTeamsDto } from "./dto/add-team.dto";
 import { Response } from "../../requests/response";
 import { AddTeamsReport, TeamInTeamReport } from "./reports/add-teams.report";
-import { Log } from "../../utils/Log";
+import { Log } from "../../utils/log";
 import { RequesterFactory } from "../../requests/requester-factory";
 import { Message, FailureMessage } from "../../utils/message";
 import { Team } from "./team.entity";

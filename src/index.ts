@@ -1,5 +1,5 @@
 import "reflect-metadata";
-import { Log } from "./utils/Log";
+import { Log } from "./utils/log";
 import { bootstrap } from "./bootstrap";
 
 Log.info("App starting...");

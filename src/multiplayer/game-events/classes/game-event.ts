@@ -4,7 +4,7 @@ import { Match } from "../../../domain/match/match.entity";
 import { CustomGameEventDataProps } from "../types/custom-game-event-data-props";
 import { Game } from "../../../domain/game/game.entity";
 import { TeamID } from "../../components/types/team-id";
-import { Log } from "../../../utils/Log";
+import { Log } from "../../../utils/log";
 import { TeamScoreCalculator } from "../../classes/team-score-calculator";
 import { VirtualMatchCreator } from "../../virtual-match/virtual-match-creator";
 import { Team } from "../../../domain/team/team.entity";

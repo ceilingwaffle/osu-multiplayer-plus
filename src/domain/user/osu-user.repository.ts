@@ -1,6 +1,6 @@
 import { Repository, EntityRepository } from "typeorm";
 import { OsuUser } from "./osu-user.entity";
-import { Log } from "../../utils/Log";
+import { Log } from "../../utils/log";
 import { AppBaseRepository } from "../shared/app-base-repository";
 
 @EntityRepository(OsuUser)

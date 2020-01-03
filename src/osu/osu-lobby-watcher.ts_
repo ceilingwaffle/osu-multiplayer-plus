@@ -1,5 +1,5 @@
 import { IOsuApiFetcher } from "./interfaces/osu-api-fetcher";
-import { Log } from "../utils/Log";
+import { Log } from "../utils/log";
 // import { OsuMultiplayerService } from "./osu-multiplayer-service";
 import { Multiplayer } from "./types/multiplayer";
 import { SetIntervalAsyncTimer, dynamic, clearIntervalAsync } from "set-interval-async";

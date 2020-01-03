@@ -8,7 +8,7 @@ import { DiscordChannelManager } from "../../discord-channel-manager";
 import { DiscordRequestDto } from "../../../requests/dto";
 import { AppBaseCommand } from "../app-base-command";
 import { GameController } from "../../../domain/game/game.controller";
-import { Log } from "../../../utils/Log";
+import { Log } from "../../../utils/log";
 
 export class CreateGameCommand extends AppBaseCommand {
   private gameController = iocContainer.get<GameController>(TYPES.GameController);

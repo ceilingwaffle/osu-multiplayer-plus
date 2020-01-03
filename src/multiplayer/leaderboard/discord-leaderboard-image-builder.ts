@@ -3,7 +3,7 @@ import { Beatmap } from "../components/beatmap";
 import * as Mustache from "mustache"; // do not convert to default import !!
 import * as puppeteer from "puppeteer";
 import * as fs from "fs-extra";
-import { Log } from "../../utils/Log";
+import { Log } from "../../utils/log";
 import { LeaderboardLine } from "../components/leaderboard-line";
 import { Helpers } from "../../utils/helpers";
 import * as path from "path";

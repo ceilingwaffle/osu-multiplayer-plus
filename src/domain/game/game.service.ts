@@ -16,7 +16,7 @@ import {
 import { UserService } from "../user/user.service";
 import { UserFailure } from "../user/user.failure";
 import { validate, ValidationError } from "class-validator";
-import { Log } from "../../utils/Log";
+import { Log } from "../../utils/log";
 import { GameRepository } from "./game.repository";
 import { RequestDto } from "../../requests/dto";
 import { GameDefaults } from "./game-defaults";

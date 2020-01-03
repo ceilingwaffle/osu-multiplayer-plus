@@ -1,7 +1,7 @@
 import * as path from "path";
 import { ApiOsuUser } from "../osu/types/api-osu-user";
 import * as fs from "fs-extra";
-import { Log } from "../utils/Log";
+import { Log } from "../utils/log";
 import { UnhandledNodeEnvError } from "../errors/unhandled-node-env.error";
 import moment = require("moment");
 

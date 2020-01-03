@@ -3,7 +3,7 @@ import { TeamScoredLowestGameEvent } from "../game-events/team-scored-lowest.gam
 import { Leaderboard } from "../components/leaderboard";
 import { LeaderboardLine, LeaderboardLinePlayer, LeaderboardPositionals } from "../components/leaderboard-line";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
-import { Log } from "../../utils/Log";
+import { Log } from "../../utils/log";
 import { Team } from "../../domain/team/team.entity";
 import { VirtualMatch } from "../virtual-match/virtual-match";
 import { PlayerScore as PlayerScoreEntity } from "../../domain/score/player-score.entity";

@@ -1,7 +1,7 @@
 import { GameEventRegistrar } from "./game-event-registrar";
 import { injectable } from "inversify";
 import { IGameEvent } from "../interfaces/game-event-interface";
-import { Log } from "../../../utils/Log";
+import { Log } from "../../../utils/log";
 
 /**
  * Collection of GameEventRegistrars and GameEvents.

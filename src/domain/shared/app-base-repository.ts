@@ -1,5 +1,5 @@
 import { Repository, Entity, ObjectType } from "typeorm";
-import { Log } from "../../utils/Log";
+import { Log } from "../../utils/log";
 import { Helpers } from "../../utils/helpers";
 import cloneDeep = require("lodash/cloneDeep");
 
