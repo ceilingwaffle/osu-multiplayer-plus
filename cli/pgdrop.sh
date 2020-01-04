@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 # Drops and recreated the postgres database
 
 read -p "Are you sure? " -n 1 -r
