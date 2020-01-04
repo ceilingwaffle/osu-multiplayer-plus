@@ -8,7 +8,7 @@ import { LeaderboardLine } from "../components/leaderboard-line";
 import { Helpers } from "../../utils/helpers";
 import * as path from "path";
 
-type PositionChangeTypes = "☝🏼" | "👇🏾" | ""; // ⬆🔼👆👆🏻   // ⬇👇🔽👇🏾 //✋🏽
+type PositionChangeTypes = "⬆" | "🔽" | ""; // ⬆🔼👆👆🏻   // ⬇👇🔽👇🏾 //✋🏽
 type LeaderboardLineCssClassName = "highest-scoring" | "lowest-scoring";
 
 interface ImgLeaderboard {
@@ -150,9 +150,9 @@ export class DiscordLeaderboardImageBuilder {
     } else if (ll.position.change === "same") {
       return "";
     } else if (ll.position.change === "gained") {
-      return "☝🏼";
+      return "⬆"; // ⬆️
     } else if (ll.position.change === "lost") {
-      return "👇🏾";
+      return "🔽";
     } else {
       const _exhaustiveCheck: never = ll.position.change;
     }
