@@ -10,25 +10,17 @@ osu! Multiplayer Plus is a discord bot for adding special game-modes to normal o
 ## Usage
 
 1. [Invite the bot to your Discord server.](https://discordapp.com/api/oauth2/authorize?client_id=279825470974066688&permissions=388176&scope=bot)
-   <br>
 2. Create a new game: ``!obr creategame``
    (Note the game ID for later.)
-      <br>
 3. Add teams: ``!obr addteams player1 "player two" | p3 p4`` 
    (Separate teams with a vertical bar -> ``|``)   
-      <br>
 4. Create a new multiplayer lobby in osu!
-    <br>
 5. Add the lobby to the game: ``!obr addlobby <lobbyId>``
    (Obtain the lobby ID from the MP link at the top of the multiplayer chat.) 
    e.g. [https://osu.ppy.sh/community/matches/*51544180*](https://osu.ppy.sh/community/matches/51544180)) <- the lobby ID is 51544180.</span>
-   <br>
 6. Start the game: ``!obr startgame <gameId>``
-   <br>
 7. An updated leaderboard will be posted in Discord automatically after your lobby finishes each map.
-   <br>
 8. To stop receiving leaderboard updates, end the game: ``!obr endgame <gameId>``
-   <br>
 9. Use ``!obr help`` for a full list of all available commands and their usage.
 
 ## Built With
