@@ -159,7 +159,7 @@ export class DiscordLeaderboardImageBuilder {
   }
 
   private static genLifeHearts(ll: LeaderboardLine) {
-    return `${"❤".repeat(ll.lives.currentLives)}${"🤍".repeat(ll.lives.startingLives - ll.lives.currentLives)}`; // 🤎
+    return `${"❤".repeat(ll.lives.currentLives)}${"💔".repeat(ll.lives.startingLives - ll.lives.currentLives)}`; // 💔 🤎 🤍 ♡ // white heart does not work on ubuntu chrome
   }
 
   private static genCurrentPositionString(ll: LeaderboardLine, allLines: LeaderboardLine[]): string {
