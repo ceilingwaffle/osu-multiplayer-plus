@@ -3,9 +3,9 @@ import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity
 import { Game } from "./game.entity";
 import { Match } from "../match/match.entity";
 import { Realm } from "../realm/realm.entity";
-import { ReportableType } from "../../multiplayer/reports/reportable-type";
-import { ReportableContext } from "../../multiplayer/reports/reportable-context";
-import { ReportableContextType } from "../../multiplayer/reports/reportable-context-type";
+import { ReportableType } from "../../multiplayer/reporting/reportable-type";
+import { ReportableContext } from "../../multiplayer/reporting/reportable-context";
+import { ReportableContextType } from "../../multiplayer/reporting/reportable-context-type";
 
 /**
  * Entity used to denote which matches have been "reported" for a game. "Reported" meaning that a leaderboard and lobby-messages
@@ -28,11 +28,11 @@ export class GameMatchReported extends BaseEntity {
   )
   game: Game;
 
-  @ManyToOne(
-    type => Match,
-    match => match.gameMatchesReported
-  )
-  match: Match;
+  // @ManyToOne(
+  //   type => Match,
+  //   match => match.gameMatchesReported
+  // )
+  // match: Match;
 
   @Column({ type: "simple-enum", enum: ReportableType })
   reportedType: ReportableType;

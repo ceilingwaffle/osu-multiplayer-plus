@@ -10,8 +10,8 @@ import { EditGameCommand } from "./commands/game/edit-game.command";
 import { AddTeamsCommand } from "./commands/team/add-teams.command";
 import { TargetGameCommand } from "./commands/game/target-game.command";
 import { StartGameCommand } from "./commands/game/start-game.command";
-import { DiscordMessage } from "../events/handlers/discord-message";
-import { DeliveredMessageReport } from "../events/handlers/delivered-message-report";
+import { DiscordMessage } from "./discord-message";
+import { DeliveredMessageReport } from "../multiplayer/reporting/delivered-message-report";
 import { TextChannel, RichEmbed, Message } from "discord.js";
 import { injectable } from "inversify";
 const sqlite = require("sqlite");
@@ -97,11 +97,11 @@ export class DiscordBot {
           Log.methodSuccess(this.sendChannelMessage, this.constructor.name, `Sent Discord message to channel ID ${channelId}`, {
             reportablesCountSent: message.getReportables().length
           });
+          message.discordMessageSent = delivery;
           delivered.push(delivery);
         }
         return resolve({
           originalMessage: message,
-          discordMessagesSent: delivered,
           delivered: true
         });
       } catch (error) {

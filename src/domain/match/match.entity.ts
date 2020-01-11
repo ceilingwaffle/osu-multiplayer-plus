@@ -81,10 +81,10 @@ export class Match extends BaseEntity {
   )
   playerScores: PlayerScore[];
 
-  @OneToMany(
-    type => GameMatchReported,
-    gameMatchReported => gameMatchReported.match
-  )
-  @JoinTable()
-  gameMatchesReported: GameMatchReported[];
+  // @OneToMany(
+  //   type => GameMatchReported,
+  //   gameMatchReported => gameMatchReported.match
+  // )
+  // @JoinTable()
+  // gameMatchesReported: GameMatchReported[];
 }

@@ -19,8 +19,8 @@ import { context } from "./context/spreadsheet-context";
 import { processedState } from "./context/spreadsheet-processed-state";
 import { VirtualMatchReportData } from "../../../src/multiplayer/virtual-match/virtual-match-report-data";
 import { MultiplayerResultsReporter } from "../../../src/multiplayer/classes/multiplayer-results-reporter";
-import { ReportableContextType } from "../../../src/multiplayer/reports/reportable-context-type";
-import { ReportableContext } from "../../../src/multiplayer/reports/reportable-context";
+import { ReportableContextType } from "../../../src/multiplayer/reporting/reportable-context-type";
+import { ReportableContext } from "../../../src/multiplayer/reporting/reportable-context";
 import { ReportablesDeliverer } from "../../../src/multiplayer/classes/reportables-deliverer";
 import { LeaderboardBuilder } from "../../../src/multiplayer/leaderboard/leaderboard-builder";
 import { Leaderboard } from "../../../src/multiplayer/components/leaderboard";
@@ -39,6 +39,7 @@ import { DiscordMultiplayerResultsDeliverableEventHandler } from "../../../src/e
 import { DiscordLeaderboardImageBuilder } from "../../../src/multiplayer/leaderboard/discord-leaderboard-image-builder";
 import { MatchService } from "../../../src/domain/match/match.service";
 import { Match } from "../../../src/domain/match/match.entity";
+import _ = require("lodash"); // do not convert to default import -- it will break!!
 
 chai.use(chaiExclude);
 chai.use(spies);
@@ -546,6 +547,133 @@ describe("When processing multiplayer results", function() {
           } catch (error) {
             return reject(error);
           }
+        });
+      });
+
+      describe("should process matches 1 to 8 one at a time", function() {
+        it("lobby 1 map 1 (BM1#1) start", function() {
+          return new Promise(async (resolve, reject) => {
+            try {
+              // setup
+              const trimmedMpResults_L1_BM1_1_start = _(context.osuApiResults.lobby1ApiResults1).cloneDeep();
+              trimmedMpResults_L1_BM1_1_start.matches.splice(1);
+              trimmedMpResults_L1_BM1_1_start.matches[0].endTime = null;
+
+              // process
+              const processor = new MultiplayerResultsProcessor(trimmedMpResults_L1_BM1_1_start);
+              const games: Game[] = await processor.saveMultiplayerEntities();
+              expect(games).to.have.lengthOf(1);
+              const game = games[0];
+              const matches: Match[] = await matchService.getMatchesOfGame(game.id);
+              const processedData: VirtualMatchReportData[] = await processor.buildVirtualMatchReportGroupsForGame(game, matches);
+              const { allReportables, toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({
+                virtualMatchReportDatas: processedData,
+                game: game,
+                matches
+              });
+
+              // expect no reportables since no matches have completed yet
+              expect(allReportables).to.have.lengthOf(0);
+              expect(toBeReported).to.have.lengthOf(0);
+
+              return resolve();
+            } catch (error) {
+              return reject(error);
+            }
+          });
+        });
+
+        it("lobby 1 map 1 (BM1#1) complete", function() {
+          return new Promise(async (resolve, reject) => {
+            try {
+              // setup
+              const trimmedMpResults = _(context.osuApiResults.lobby1ApiResults1).cloneDeep();
+              trimmedMpResults.matches.splice(1);
+
+              // process
+              const processor = new MultiplayerResultsProcessor(trimmedMpResults);
+              const games: Game[] = await processor.saveMultiplayerEntities();
+              expect(games).to.have.lengthOf(1);
+              const game = games[0];
+              const matches: Match[] = await matchService.getMatchesOfGame(game.id);
+              const processedData: VirtualMatchReportData[] = await processor.buildVirtualMatchReportGroupsForGame(game, matches);
+              const { allReportables, toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({
+                virtualMatchReportDatas: processedData,
+                game: game,
+                matches
+              });
+
+              // expect reportables (no leaderboard yet because waiting on lobby 2 to complete BM1#1)
+              expect(
+                toBeReported.filter(r => r.subType === "lobby_awaiting" && r.beatmapId == "BM1" && r.sameBeatmapNumber == 1)
+              ).to.have.lengthOf(1);
+              expect(
+                toBeReported.filter(r => r.subType === "lobby_completed" && r.beatmapId == "BM1" && r.sameBeatmapNumber == 1)
+              ).to.have.lengthOf(1);
+              // expect(
+              //   toBeReported.filter(r => r.type === "leaderboard" && r.beatmapId == "BM1" && r.sameBeatmapNumber == 1)
+              // ).to.have.lengthOf(1);
+
+              return resolve();
+            } catch (error) {
+              return reject(error);
+            }
+          });
+        });
+
+        it("lobby 2 map 1 (BM2#1) start", function() {
+          return new Promise(async (resolve, reject) => {
+            try {
+              // setup database state to include previous lobby results
+              const trimmedMpResults_L1_BM1_1_start = _(context.osuApiResults.lobby1ApiResults1).cloneDeep();
+              trimmedMpResults_L1_BM1_1_start.matches.splice(1);
+              trimmedMpResults_L1_BM1_1_start.matches[0].endTime = null;
+              new MultiplayerResultsProcessor(trimmedMpResults_L1_BM1_1_start).saveMultiplayerEntities();
+
+              const trimmedMpResults_L1_BM1_1_end = _(context.osuApiResults.lobby1ApiResults1).cloneDeep();
+              trimmedMpResults_L1_BM1_1_end.matches.splice(1);
+              new MultiplayerResultsProcessor(trimmedMpResults_L1_BM1_1_end).saveMultiplayerEntities();
+
+              // setup
+              const trimmedMpResults_L2_BM2_1_start = _(context.osuApiResults.lobby2ApiResults1).cloneDeep();
+              trimmedMpResults_L2_BM2_1_start.matches.splice(1);
+              trimmedMpResults_L2_BM2_1_start.matches[0].endTime = null; // BM2#1
+
+              // process
+              const processor = new MultiplayerResultsProcessor(trimmedMpResults_L2_BM2_1_start);
+              const games: Game[] = await processor.saveMultiplayerEntities();
+              expect(games).to.have.lengthOf(1);
+              const game = games[0];
+              const matches: Match[] = await matchService.getMatchesOfGame(game.id);
+              const processedData: VirtualMatchReportData[] = await processor.buildVirtualMatchReportGroupsForGame(game, matches);
+              const { allReportables, toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({
+                virtualMatchReportDatas: processedData,
+                game: game,
+                matches
+              });
+
+              // expect reportables
+              // expect reportables from lobby 1 BM1#1 to have already been reported (therefore, not in toBeReported)
+              expect(
+                toBeReported.filter(r => r.subType === "lobby_awaiting" && r.beatmapId == "BM1" && r.sameBeatmapNumber == 1)
+              ).to.have.lengthOf(0);
+              expect(
+                toBeReported.filter(r => r.subType === "lobby_completed" && r.beatmapId == "BM1" && r.sameBeatmapNumber == 1)
+              ).to.have.lengthOf(0);
+
+              // expect no reportables from lobby #2 since no matches from lobby #2 have completed yet
+              expect(
+                toBeReported.filter(r => r.subType === "lobby_completed" && r.beatmapId == "BM2" && r.sameBeatmapNumber == 1)
+              ).to.have.lengthOf(0);
+              expect(
+                toBeReported.filter(r => r.type === "leaderboard" && r.beatmapId == "BM2" && r.sameBeatmapNumber == 1)
+              ).to.have.lengthOf(0);
+
+              return resolve();
+            } catch (error) {
+              return reject(error);
+            }
+          });
         });
       });
     });

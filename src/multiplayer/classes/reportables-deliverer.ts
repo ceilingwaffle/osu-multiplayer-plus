@@ -1,7 +1,7 @@
 import iocContainer from "../../inversify.config";
 import TYPES from "../../types";
-import { ReportableContextType } from "../reports/reportable-context-type";
-import { ReportableContext } from "../reports/reportable-context";
+import { ReportableContextType } from "../reporting/reportable-context-type";
+import { ReportableContext } from "../reporting/reportable-context";
 import { MultiplayerResultsDeliverableEvent } from "../../events/multiplayer-results-deliverable.event";
 import { IEventDispatcher } from "../../events/interfaces/event-dispatcher";
 import { GameMessageTarget } from "../../domain/game/game-message-target";

@@ -1,34 +1,34 @@
-import { RichEmbed, RichPresenceAssets, Attachment } from "discord.js";
-import { ReportableContext } from "../../multiplayer/reports/reportable-context";
-import { ReportableContextType } from "../../multiplayer/reports/reportable-context-type";
-import { LobbyBeatmapStatusMessage } from "../../multiplayer/messages/classes/lobby-beatmap-status-message";
-import { LobbyAwaitingBeatmapMessage } from "../../multiplayer/messages/lobby-awaiting-beatmap-message";
-import { Helpers } from "../../utils/helpers";
-import { IGameEvent } from "../../multiplayer/game-events/interfaces/game-event-interface";
-import { TeamEliminatedGameEvent } from "../../multiplayer/game-events/team-eliminated.game-event";
-import { TeamIsGameChampionGameEvent } from "../../multiplayer/game-events/team-is-game-champion.game-event";
-import { TeamScoredHighestGameEvent } from "../../multiplayer/game-events/team-scored-highest.game-event";
-import { TeamScoredLowestGameEvent } from "../../multiplayer/game-events/team-scored-lowest.game-event";
-import { TeamScoresSubmittedGameEvent } from "../../multiplayer/game-events/team-scores-submitted.game-event";
-import { TeamScoresTiedGameEvent } from "../../multiplayer/game-events/team-scores-tied.game-event";
-import { Leaderboard } from "../../multiplayer/components/leaderboard";
-import { MessageType } from "../../multiplayer/messages/types/message-type";
-import { DiscordLeaderboardMessageBuilder } from "../../multiplayer/leaderboard/discord-leaderboard-message-builder";
-import { DiscordLeaderboardImageBuilder } from "../../multiplayer/leaderboard/discord-leaderboard-image-builder";
+import { RichEmbed, RichPresenceAssets, Attachment, Message } from "discord.js";
+import { ReportableContext } from "../multiplayer/reporting/reportable-context";
+import { ReportableContextType } from "../multiplayer/reporting/reportable-context-type";
+import { LobbyBeatmapStatusMessage } from "../multiplayer/messages/classes/lobby-beatmap-status-message";
+import { LobbyAwaitingBeatmapMessage } from "../multiplayer/messages/lobby-awaiting-beatmap-message";
+import { Helpers } from "../utils/helpers";
+import { IGameEvent } from "../multiplayer/game-events/interfaces/game-event-interface";
+import { TeamEliminatedGameEvent } from "../multiplayer/game-events/team-eliminated.game-event";
+import { TeamIsGameChampionGameEvent } from "../multiplayer/game-events/team-is-game-champion.game-event";
+import { TeamScoredHighestGameEvent } from "../multiplayer/game-events/team-scored-highest.game-event";
+import { TeamScoredLowestGameEvent } from "../multiplayer/game-events/team-scored-lowest.game-event";
+import { TeamScoresSubmittedGameEvent } from "../multiplayer/game-events/team-scores-submitted.game-event";
+import { TeamScoresTiedGameEvent } from "../multiplayer/game-events/team-scores-tied.game-event";
+import { Leaderboard } from "../multiplayer/components/leaderboard";
+import { MessageType } from "../multiplayer/messages/types/message-type";
+import { DiscordLeaderboardMessageBuilder } from "../multiplayer/leaderboard/discord-leaderboard-message-builder";
+import { DiscordLeaderboardImageBuilder } from "../multiplayer/leaderboard/discord-leaderboard-image-builder";
 import _ = require("lodash"); // do not convert to default import -- it will break!!
-import { VirtualMatchCreator } from "../../multiplayer/virtual-match/virtual-match-creator";
-import { Beatmap } from "../../multiplayer/components/beatmap";
-import { GameEvent } from "../../multiplayer/game-events/classes/game-event";
-import { Game } from "../../domain/game/game.entity";
-import { Log } from "../../utils/log";
+import { VirtualMatchCreator } from "../multiplayer/virtual-match/virtual-match-creator";
+import { Beatmap } from "../multiplayer/components/beatmap";
+import { GameEvent } from "../multiplayer/game-events/classes/game-event";
+import { Game } from "../domain/game/game.entity";
+import { Log } from "../utils/log";
 import { debug } from "util";
-import { LobbyCompletedBeatmapMessage } from "../../multiplayer/messages/lobby-completed-beatmap-message";
-import { GameTeam } from "../../domain/team/game-team.entity";
+import { LobbyCompletedBeatmapMessage } from "../multiplayer/messages/lobby-completed-beatmap-message";
+import { GameTeam } from "../domain/team/game-team.entity";
+import { ReportableMessage } from "../multiplayer/reporting/reportable-message";
 
-export class DiscordMessage {
+export class DiscordMessage extends ReportableMessage {
   public embeds: RichEmbed[];
-
-  constructor(private reportables: ReportableContext<ReportableContextType>[]) {}
+  public discordMessageSent?: Message;
 
   async pushEmbedsFromReportables(): Promise<void> {
     this.embeds = [];
@@ -125,10 +125,6 @@ export class DiscordMessage {
     targetEmbed.setTitle(mapString);
     targetEmbed.setURL(beatmapPlayed.beatmapUrl);
     targetEmbed.setThumbnail(beatmapPlayed.backgroundThumbnailUrlLarge);
-  }
-
-  getReportables(): ReportableContext<ReportableContextType>[] {
-    return this.reportables;
   }
 
   getRichEmbeds(): RichEmbed[] {

@@ -84,7 +84,7 @@ export class Game extends CreationTimestampedEntity {
 
   @OneToMany(
     type => GameMatchReported,
-    gameMatchReported => gameMatchReported.match
+    gameMatchReported => gameMatchReported.game
   )
   @JoinTable()
   gameMatchesReported: GameMatchReported[];
