@@ -1,5 +1,43 @@
 // using TODO+ extension for vscode
 TODO: 
+    BUGS FROM 2020/01/04 Grand BR:
+        Setup: 
+            !obr addteams Arbusion Loveleft | SHIROHAMYMOMMY VIVACE | Yaong "Monk Gyatso" | heyronii raikouhou | jordanlr7 suffix | Chal Aus | Astellis "Milo Milkshake" | pewdekz viraelia
+
+            https://osu.ppy.sh/community/matches/57483295
+
+            !obr addlobby 57483295
+        TODO:
+            ☐ Create a test for the osu scanner @created(20-01-05 01:18)
+                ☐ Ensure results are not being generated for the entire match history @created(20-01-05 01:20)
+                ☐ Feed the scanner API results one at a time @created(20-01-05 01:18)
+                {
+                    results1: {
+                        match1: {
+                            endTime: null
+                        }
+                        
+                    },
+                    results2: {
+                        match1: {
+                            endTime: 12345678
+                        },
+                        match2: {
+                            endTime: null
+                        }
+                    }
+                }
+        Bugs:
+            ☐ Duplicate leaderboard gets posted as soon as the 2nd match starts, and when each match begins @created(20-01-04 21:26)
+                Can lazily fix this by just checking if the same VM results were already delivered
+                ☐ And it's reposting the results from every match @created(20-01-04 21:28)
+        Improvement ideas:
+            ☐ Post a message when a match begins @created(20-01-04 21:42)
+                maybe? -> prevMatch.endTime != null && latestMatch.endTime == null && !prevMatch.aborted
+            ☐ Sort leaderboard by current match scores, not by total scored @created(20-01-04 22:02)
+                ☐ Show the rank-ordered leaderboard when the game ends @created(20-01-04 22:05)
+            ☐ Increase API limit to improve speed of results being shown @created(20-01-04 22:24)
+            ✘ Include mods with map string @created(20-01-04 22:15) @cancelled(20-01-04 22:54)
     Memory Issues:
         ✔ Completely rework the nested data structures @created(19-12-28 22:05) @done(20-01-01 15:01)
             - See: LobbyRepository.findMultiplayerEntitiesForLobby
@@ -279,7 +317,7 @@ TODO:
             ☐ As you level up, you unlock more modes, e.g. like winner deciding who gets host.
             ☐ [1:18] Dionysaw: You unlock maps that you can play in lobbies
         Mini-Games:
-            ☐ Voting for the winner
+            ☐ Voting for the winner (betting)
             ☐ Guess the roll
             ☐ osu! trivia quiz
         Game Modes:
