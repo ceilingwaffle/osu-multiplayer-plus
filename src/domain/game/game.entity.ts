@@ -9,7 +9,7 @@ import { GameLobby } from "./game-lobby.entity";
 import { GameTeam } from "../team/game-team.entity";
 import { Realm } from "../realm/realm.entity";
 import { Match } from "../match/match.entity";
-import { GameMatchReported } from "./game-match-reported.entity";
+import { DeliveredReportable } from "../reportable/delivered-reportable.entity";
 
 @Entity("games")
 export class Game extends CreationTimestampedEntity {
@@ -83,9 +83,9 @@ export class Game extends CreationTimestampedEntity {
   createdInRealm: Realm;
 
   @OneToMany(
-    type => GameMatchReported,
-    gameMatchReported => gameMatchReported.game
+    type => DeliveredReportable,
+    deliveredReportable => deliveredReportable.game
   )
   @JoinTable()
-  gameMatchesReported: GameMatchReported[];
+  deliveredReportables: DeliveredReportable[];
 }

@@ -594,7 +594,9 @@ export class LeaderboardBuilder {
             // The lower (better) average rank gets bumped up.
             return a.rankAverage.virtualMatchAverageRank - b.rankAverage.virtualMatchAverageRank;
           }
-          if (b.scoreTotal.score !== a.scoreTotal.score) {
+          if (!b.scoreTotal || !a.scoreTotal) {
+            return 0;
+          } else if (b.scoreTotal.score !== a.scoreTotal.score) {
             // The higher (better) total score gets bumped up.
             return b.scoreTotal.score - a.scoreTotal.score;
           }

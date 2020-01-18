@@ -41,11 +41,9 @@ export class LobbyRepository extends Repository<Lobby> {
       .leftJoinAndSelect("playerScores.scoredBy", "scoredBy") // 13                   lobby.matches.playerScores.scoredBy
       .leftJoinAndSelect("scoredBy.user", "user") // 14                               lobby.matches.playerScores.scoredBy.user
 
-      .leftJoinAndSelect("game.gameMatchesReported", "gameMatchesReported") //        lobby.gameLobbies.game.gameMatchesReported
+      .leftJoinAndSelect("game.deliveredReportables", "deliveredReportables") //        lobby.gameLobbies.game.deliveredReportables
       .leftJoinAndSelect("matches.matchAbortion", "matchAbortion") //                 lobby.matches.matchAbortion
       .leftJoinAndSelect("matches.beatmap", "beatmap") //                             lobby.matches.beatmap
-      // TODO: Does this still select matches if we have some reported match records in the database?
-      .leftJoin("gameMatchesReported.match", "gameMatchesReported_match") //       ❔ lobby.matches.matchAbortion.match
 
       .where("lobby.id = :lobbyId", { lobbyId: lobbyId })
       .getOne();

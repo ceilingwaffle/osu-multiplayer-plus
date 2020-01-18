@@ -9,7 +9,7 @@ import { DeliveredMessageReport } from "../../multiplayer/reporting/delivered-me
 import { ReportableContext } from "../../multiplayer/reporting/reportable-context";
 import { ReportableContextType } from "../../multiplayer/reporting/reportable-context-type";
 import { GameMessageTarget } from "../../domain/game/game-message-target";
-import { GameMatchReported } from "../../domain/game/game-match-reported.entity";
+import { DeliveredReportable } from "../../domain/reportable/delivered-reportable.entity";
 import { ReportableMessage } from "../../multiplayer/reporting/reportable-message";
 
 export class DiscordMultiplayerResultsDeliverableEventHandler extends EventHandler<MultiplayerResultsDeliverableEvent> {
@@ -18,23 +18,41 @@ export class DiscordMultiplayerResultsDeliverableEventHandler extends EventHandl
   }
 
   async handle(event: MultiplayerResultsDeliverableEvent): Promise<boolean> {
+    let deliveredMessageReports: DeliveredMessageReport<ReportableMessage>[] = [];
+
     try {
-      const deliveredMessageReports = await DiscordMultiplayerResultsDeliverableEventHandler.deliverReportables(
+      deliveredMessageReports = await DiscordMultiplayerResultsDeliverableEventHandler.deliverReportables(
         event.reportables,
         event.gameMessageTargets
       );
-
-      for (const report of deliveredMessageReports) {
-        // TODO - Optimize N+1
-        // TODO - save GameMatchReported entity
-        const gmr = new GameMatchReported();
-        // TODO - ID:  mapNumber + game + lobby ??
-        // gmr.match = report.originalMessage.getReportables()[0].item;
-      }
     } catch (error) {
       Log.methodError(this.handle, this.constructor.name, error);
       return false;
     }
+
+    // const totalDelivered = deliveredMessageReports.filter(dmr => dmr.delivered).length;
+    // let savedDeliveredReportables = 0;
+
+    // try {
+    //   for (const report of deliveredMessageReports) {
+    //     if (report.delivered) {
+    //       for (const reported of report.originalMessage.getReportables()) {
+    //         // TODO - Optimize N+1
+    //         const gmr = new DeliveredReportable();
+    //         gmr.reportedContext = reported;
+    //         gmr.game = event.game;
+    //         // gmr.reportedToRealms = [...reported.destinations] // TODO
+    //         // save entity to DB
+    //         await gmr.save();
+    //         savedDeliveredReportables++;
+    //       }
+    //     }
+    //   }
+    //   Log.info("Delivered reportables:", { totalDelivered: totalDelivered, savedDeliveredReportables: savedDeliveredReportables });
+    // } catch (error) {
+    //   Log.methodError(this.handle, this.constructor.name, error);
+    //   throw error;
+    // }
   }
 
   private static async deliverReportables(
@@ -60,7 +78,7 @@ export class DiscordMultiplayerResultsDeliverableEventHandler extends EventHandl
     Log.methodSuccess(
       DiscordMultiplayerResultsDeliverableEventHandler.deliverReportables,
       DiscordMultiplayerResultsDeliverableEventHandler.name,
-      { failedMessageDeliveries: deliveredMessageReports.filter(r => r.delivered).length }
+      { failedMessageDeliveries: deliveredMessageReports.filter(r => !r.delivered).length }
     );
 
     return deliveredMessageReports;

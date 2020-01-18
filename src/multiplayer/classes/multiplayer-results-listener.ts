@@ -15,6 +15,10 @@ import { MatchService } from "../../domain/match/match.service";
 import iocContainer from "../../inversify.config";
 import TYPES from "../../types";
 import { Match } from "../../domain/match/match.entity";
+import { Leaderboard } from "../components/leaderboard";
+import { VirtualMatchCreator } from "../virtual-match/virtual-match-creator";
+import { ReportableContext } from "../reporting/reportable-context";
+import { ReportableContextType } from "../reporting/reportable-context-type";
 
 @injectable()
 export class MultiplayerResultsListener {
@@ -65,10 +69,29 @@ export class MultiplayerResultsListener {
           continue;
         }
 
-        const matches: Match[] = await this.matchService.getMatchesOfGame(game.id);
+        const matches: Match[] = (await this.matchService.getMatchesOfGame(game.id))
+          .filter(m => m.endTime)
+          .sort((a, b) => a.endTime - b.endTime);
         const virtualMatchReportDatas: VirtualMatchReportData[] = await processor.buildVirtualMatchReportGroupsForGame(game, matches);
-        const { toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({ virtualMatchReportDatas, game, matches });
-        await ReportablesDeliverer.deliver({ reportables: toBeReported, gameMessageTargets: game.messageTargets });
+        const { allReportables, toBeReported } = MultiplayerResultsReporter.getItemsToBeReported({
+          virtualMatchReportDatas,
+          game,
+          matches
+        });
+
+        let reallyToBeReported: ReportableContext<ReportableContextType>[] = toBeReported;
+        //temp fix to stop multiple results being delivered: only deliver the last beatmap result
+        // reallyToBeReported = [];
+        const latestMatch = matches.slice(-1)[0];
+        if (latestMatch) {
+          const latestMatchVmKey = VirtualMatchCreator.createSameBeatmapKeyObjectForMatch(latestMatch, matches);
+          reallyToBeReported = toBeReported.filter(
+            r => r.beatmapId == latestMatchVmKey.beatmapId && r.sameBeatmapNumber == latestMatchVmKey.sameBeatmapNumber
+          );
+        }
+
+        Log.info(`Reportables: `, { allReportables: allReportables.length, reallyToBeReported: reallyToBeReported.length });
+        await ReportablesDeliverer.deliver({ reportables: reallyToBeReported, gameMessageTargets: game.messageTargets, game });
       }
       Log.methodSuccess(this.doTheMpProcessing, this.constructor.name);
     } catch (error) {

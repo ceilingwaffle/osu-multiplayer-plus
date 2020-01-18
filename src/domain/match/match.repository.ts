@@ -17,7 +17,7 @@ export class MatchRepository extends Repository<Match> {
       .leftJoinAndSelect("match.matchAbortion", "matchAbortion")
 
       .leftJoinAndSelect("gameLobbies.game", "game")
-      .leftJoinAndSelect("game.gameMatchesReported", "gameMatchesReported")
+      .leftJoinAndSelect("game.deliveredReportables", "deliveredReportables")
 
       .where("game.id = :gameId", { gameId: gameId })
       .getMany();

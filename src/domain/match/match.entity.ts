@@ -3,7 +3,6 @@ import { CreationTimestampedEntity } from "../shared/creation-timestamped-entity
 import { Lobby } from "../lobby/lobby.entity";
 import { IsInt, IsPositive, IsNumberString, ValidateIf } from "class-validator";
 import { PlayerScore } from "../score/player-score.entity";
-import { GameMatchReported } from "../game/game-match-reported.entity";
 import { MatchAborted } from "./match-aborted.entity";
 import { Beatmap } from "../beatmap/beatmap.entity";
 
@@ -80,11 +79,4 @@ export class Match extends BaseEntity {
     { cascade: ["insert", "update"] }
   )
   playerScores: PlayerScore[];
-
-  // @OneToMany(
-  //   type => GameMatchReported,
-  //   gameMatchReported => gameMatchReported.match
-  // )
-  // @JoinTable()
-  // gameMatchesReported: GameMatchReported[];
 }

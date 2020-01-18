@@ -158,8 +158,15 @@ export class MultiplayerEntitySaver {
       const savedOsuUsers: OsuUser[] = [];
       for (const p of players.filter(p => !p.createdAt)) {
         // TODO - Optimize N+1
-        const savedOsuUser: OsuUser = await p.save();
-        savedOsuUsers.push(savedOsuUser);
+
+        // check if user exists first before saving (TODO: improve hacky solution :/)
+        const existingOsuUser = await OsuUser.findOne({ osuUserId: p.osuUserId });
+        if (existingOsuUser) {
+          savedOsuUsers.push(existingOsuUser);
+        } else {
+          const savedOsuUser: OsuUser = await p.save();
+          savedOsuUsers.push(savedOsuUser);
+        }
       }
 
       // update lobby with saved player entities

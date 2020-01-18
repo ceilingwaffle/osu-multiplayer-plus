@@ -29,9 +29,9 @@ export class GameRepository extends Repository<Game> {
 
   // async getReportedMatchesForGame(gameId: number): Promise<Match[]> {
   //   try {
-  //     const game = await this.findOne({ id: gameId }, { relations: ["gameMatchesReported", "gameMatchesReported.match"] });
-  //     if (!game || !game.gameMatchesReported || !game.gameMatchesReported.length) return null;
-  //     const matches: Match[] = game.gameMatchesReported.filter(gmr => gmr.match).map(gmr => gmr.match);
+  //     const game = await this.findOne({ id: gameId }, { relations: ["deliveredReportables", "deliveredReportables.match"] });
+  //     if (!game || !game.deliveredReportables || !game.deliveredReportables.length) return null;
+  //     const matches: Match[] = game.deliveredReportables.filter(gmr => gmr.match).map(gmr => gmr.match);
   //     Log.methodSuccess(this.getReportedMatchesForGame, this.constructor.name);
   //     return matches;
   //   } catch (error) {

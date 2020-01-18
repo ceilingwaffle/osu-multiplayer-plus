@@ -198,45 +198,59 @@ export class MultiplayerResultsReporter {
     virtualMatchReportDatas: VirtualMatchReportData[];
     game: Game;
   }): ReportableContext<ReportableContextType>[] {
+    return args.game.deliveredReportables.map(dr => dr.reportedContext);
+
     const reported: ReportableContext<ReportableContextType>[] = [];
 
-    args.game.gameMatchesReported.forEach(gmr => {
-      const reportedContext = gmr.reportedContext;
+    // args.game.deliveredReportables.forEach(dr => {
+    //   const reportedContext = dr.reportedContext;
 
-      args.virtualMatchReportDatas.forEach(vmrData => {
-        if (reportedContext.type === "game_event") {
-          if (
-            vmrData.events &&
-            vmrData.events.find(
-              e =>
-                e.type === reportedContext.subType &&
-                e.data.eventMatch.beatmapId === reportedContext.beatmapId &&
-                e.data.eventMatch.sameBeatmapNumber === reportedContext.sameBeatmapNumber
-            )
-          ) {
-            reported.push(reportedContext);
-          }
-        } else if (reportedContext.type === "message") {
-          const msgs = vmrData.messages.get(reportedContext.subType as MessageType);
-          if (
-            msgs &&
-            msgs.find(
-              m =>
-                m.type === reportedContext.subType &&
-                m.beatmapId === reportedContext.beatmapId &&
-                m.sameBeatmapNumber === reportedContext.sameBeatmapNumber
-            )
-          ) {
-            reported.push(reportedContext);
-          }
-        } else if (reportedContext.type === "leaderboard") {
-          // get the virtual match key of the latest-reported virtual match from the already-reported reportables
-          throw new Error("TODO: Implement method of MultiplayerResultsReporter.");
-        } else {
-          const _exhaustiveCheck: never = reportedContext.type;
-        }
-      });
-    });
+    //   args.virtualMatchReportDatas.forEach(vmrData => {
+    //     if (reportedContext.type === "game_event") {
+    //       if (
+    //         vmrData.events &&
+    //         vmrData.events.find(
+    //           e =>
+    //             e.type === reportedContext.subType &&
+    //             e.data.eventMatch.beatmapId === reportedContext.beatmapId &&
+    //             e.data.eventMatch.sameBeatmapNumber === reportedContext.sameBeatmapNumber
+    //         )
+    //       ) {
+    //         reported.push(reportedContext);
+    //       }
+    //     } else if (reportedContext.type === "message") {
+    //       const msgs = vmrData.messages.get(reportedContext.subType as MessageType);
+    //       if (
+    //         msgs &&
+    //         msgs.find(
+    //           m =>
+    //             m.type === reportedContext.subType &&
+    //             m.beatmapId === reportedContext.beatmapId &&
+    //             m.sameBeatmapNumber === reportedContext.sameBeatmapNumber
+    //         )
+    //       ) {
+    //         reported.push(reportedContext);
+    //       }
+    //     } else if (reportedContext.type === "leaderboard") {
+    //       if (vmrData.leaderboard) {
+    //         const reportedLeaderboard = reportedContext.item as Leaderboard;
+    //         if (
+    //           reportedLeaderboard.leaderboardLines &&
+    //           reportedLeaderboard.leaderboardLines.length &&
+    //           vmrData.leaderboard.leaderboardLines &&
+    //           vmrData.leaderboard.leaderboardLines.length
+    //         ) {
+    //           // compare equivalency of leaderboard lines
+    //           if (_.isEqual(reportedLeaderboard.leaderboardLines, vmrData.leaderboard.leaderboardLines)) {
+    //             reported.push(reportedContext);
+    //           }
+    //         }
+    //       }
+    //     } else {
+    //       const _exhaustiveCheck: never = reportedContext.type;
+    //     }
+    //   });
+    // });
 
     return reported;
   }
