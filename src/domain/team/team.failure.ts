@@ -5,7 +5,9 @@ export enum TeamFailure {
   InvalidTeamSize,
   OsuUsersAlreadyInTeamForThisGame,
   TooManyUsersInAddTeamsRequest,
-  SamePlayerExistsInMultipleTeamsInAddTeamsRequest
+  SamePlayerExistsInMultipleTeamsInAddTeamsRequest,
+  InvalidTeamNumbersInRemoveTeamsRequest,
+  TeamNumbersDoNotExistInGame
 }
 
 export const invalidTeamSizeFailure = (validationErrors: ValidationError[], reason?: string): Failure<TeamFailure.InvalidTeamSize> => ({
@@ -53,5 +55,29 @@ export const samePlayerExistsInMultipleTeamsInAddTeamsRequestFailure = ({
     const grammaticalNumberOfTheseUsers = problemItems.length === 1 ? "this player" : "these players";
     return `Players can only be added to one team per game. \
             You tried adding ${grammaticalNumberOfTheseUsers} to multiple teams: ${problemItems.join(", ")}`;
+  })()
+});
+
+export const invalidTeamNumbersInRemoveTeamsRequestFailure = ({
+  teamNumbers
+}: {
+  teamNumbers: number[];
+}): Failure<TeamFailure.InvalidTeamNumbersInRemoveTeamsRequest> => ({
+  type: TeamFailure.InvalidTeamNumbersInRemoveTeamsRequest,
+  reason: (() => {
+    return "Team numbers must be positive whole numbers.";
+  })()
+});
+
+export const teamNumbersDoNotExistInGame = ({
+  teamNumbers,
+  gameId
+}: {
+  teamNumbers: number[];
+  gameId: number;
+}): Failure<TeamFailure.TeamNumbersDoNotExistInGame> => ({
+  type: TeamFailure.TeamNumbersDoNotExistInGame,
+  reason: (() => {
+    return `Team numbers ${teamNumbers.join(", ")} do not exist in game ${gameId}.`;
   })()
 });

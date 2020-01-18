@@ -566,4 +566,31 @@ export class GameService {
       throw error;
     }
   }
+
+  async loadGameForTeamRequest(gameId: number): Promise<Game> {
+    const game: Game = await this.dbConn.manager.getCustomRepository(GameRepository).findOne(
+      { id: gameId },
+      {
+        relations: [
+          "gameTeams",
+          "gameTeams.game",
+          "gameTeams.addedBy",
+          "gameTeams.addedBy.discordUser",
+          "gameTeams.addedBy.webUser",
+          "gameTeams.team",
+          "gameTeams.team.teamOsuUsers",
+          "gameTeams.team.teamOsuUsers.osuUser"
+          // "gameTeams.team.createdBy",
+          // "gameTeams.team.createdBy.discordUser",
+          // "gameTeams.team.createdBy.webUser",
+          // "gameTeams.team.gameTeams",
+          // "gameTeams.team.gameTeams.game",
+          // "gameTeams.team.gameTeams.addedBy",
+          // "gameTeams.team.gameTeams.addedBy.discordUser",
+          // "gameTeams.team.gameTeams.addedBy.webUser"
+        ]
+      }
+    );
+    return game;
+  }
 }

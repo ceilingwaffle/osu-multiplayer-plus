@@ -31,5 +31,7 @@
   "discordChannelCreateFailed": "discord channel create failed",
 
   "teamCreateSuccess": "team added successfully",
-  "teamCreateFailed": "team add failed"
+  "teamCreateFailed": "team add failed",
+  "teamRemoveSuccess": "team removed successfully",
+  "teamRemoveFailed": "team remove failed"
 }

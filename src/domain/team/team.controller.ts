@@ -12,11 +12,19 @@ import { TeamResponseFactory } from "./team-response-factory";
 import { RequestDtoType } from "../../requests/dto/request.dto";
 import { inject, injectable } from "inversify";
 import { Helpers } from "../../utils/helpers";
-import { tooManyUsersInAddTeamsRequestFailure, TeamFailure, samePlayerExistsInMultipleTeamsInAddTeamsRequestFailure } from "./team.failure";
+import {
+  tooManyUsersInAddTeamsRequestFailure,
+  TeamFailure,
+  samePlayerExistsInMultipleTeamsInAddTeamsRequestFailure,
+  invalidTeamNumbersInRemoveTeamsRequestFailure
+} from "./team.failure";
 import { ApiOsuUser } from "../../osu/types/api-osu-user";
 import { Failure } from "../../utils/failure";
 import { Either, failurePromise, failure, success } from "../../utils/either";
 import { GameTeam } from "./game-team.entity";
+import { RemoveTeamsDto } from "./dto/remove-team.dto";
+import { RemoveTeamsReport } from "./reports/remove-teams.report";
+import { constants } from "../../constants";
 
 @injectable()
 export class TeamController {
@@ -103,6 +111,56 @@ export class TeamController {
     }
   }
 
+  async remove(teamsData: { teamDto: RemoveTeamsDto; requestDto: RequestDto }): Promise<Response<RemoveTeamsReport>> {
+    try {
+      // validate request
+      const validationOutcome = this.isValidRemoveTeamsRequest(teamsData);
+      if (validationOutcome.failed()) {
+        return {
+          success: false,
+          message: FailureMessage.get("teamRemoveFailed"),
+          errors: {
+            messages: [validationOutcome.value.reason]
+          }
+        };
+      }
+
+      // get/create the user adding the team
+      const requester = this.requesterFactory.create(teamsData.requestDto as RequestDtoType);
+      const requestingUserResult = await requester.getOrCreateUser();
+      if (requestingUserResult.failed()) {
+        if (requestingUserResult.value.error) throw requestingUserResult.value.error;
+        Log.methodFailure(this.remove, this.constructor.name, requestingUserResult.value.reason);
+        return {
+          success: false,
+          message: FailureMessage.get("teamRemoveFailed"),
+          errors: {
+            messages: [requestingUserResult.value.reason],
+            validation: requestingUserResult.value.validationErrors
+          }
+        };
+      }
+      const requestingUser = requestingUserResult.value;
+
+      const removeTeamsResult = await this.teamService.processRemovingTeams({
+        removeTeamNumbers: teamsData.teamDto,
+        requestingUser: requestingUser,
+        requestDto: teamsData.requestDto
+      });
+
+      throw new Error("TODO: Implement method of TeamController.");
+    } catch (error) {
+      Log.methodError(this.create, this.constructor.name, error);
+      return {
+        success: false,
+        message: FailureMessage.get("teamRemoveFailed"),
+        errors: {
+          messages: [error]
+        }
+      };
+    }
+  }
+
   private generateTeamsInTeamReportFromTeamEntities(teamEntities: GameTeam[]) {
     const teamsInReport: TeamInTeamReport[] = [];
     for (const gameTeam of teamEntities) {
@@ -130,6 +188,22 @@ export class TeamController {
     });
     if (!isValidNoDuplicatePlayersInTeams) {
       return failure(samePlayerExistsInMultipleTeamsInAddTeamsRequestFailure({ problemItems }));
+    }
+    return success(null);
+  }
+
+  private isValidRemoveTeamsRequest(teamsData: { teamDto: RemoveTeamsDto; requestDto: RequestDto }): Either<Failure<TeamFailure>, null> {
+    if (!teamsData.teamDto.teamNumbers || !teamsData.teamDto.teamNumbers.length) {
+      return failure(invalidTeamNumbersInRemoveTeamsRequestFailure({ teamNumbers: [] }));
+    }
+    const invalidTeamNumbers: number[] = [];
+    for (const teamNumber of teamsData.teamDto.teamNumbers) {
+      if (teamNumber < constants.MIN_ENTITY_ID_NUMBER || !Number.isInteger(teamNumber)) {
+        invalidTeamNumbers.push(teamNumber);
+      }
+    }
+    if (invalidTeamNumbers.length) {
+      return failure(invalidTeamNumbersInRemoveTeamsRequestFailure({ teamNumbers: invalidTeamNumbers }));
     }
     return success(null);
   }

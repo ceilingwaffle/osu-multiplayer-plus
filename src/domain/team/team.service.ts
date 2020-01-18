@@ -2,7 +2,7 @@ import { Either, failurePromise } from "../../utils/either";
 import { Failure } from "../../utils/failure";
 import { OsuUserFailure, banchoOsuUserIdIsInvalidFailure } from "../user/user.failure";
 import { GameFailure } from "../game/game.failure";
-import { TeamFailure, osuUsersAlreadyInTeamForThisGameFailure } from "./team.failure";
+import { TeamFailure, osuUsersAlreadyInTeamForThisGameFailure, teamNumbersDoNotExistInGame } from "./team.failure";
 import { Team } from "./team.entity";
 import { PermissionsFailure } from "../../permissions/permissions.failure";
 import { injectable, inject } from "inversify";
@@ -79,29 +79,7 @@ export class TeamService {
         return failurePromise(targetGameResult.value);
       }
       // reload the game with the required relationships
-      const game: Game = await this.dbConn.manager.getCustomRepository(GameRepository).findOne(
-        { id: targetGameResult.value.id },
-        {
-          relations: [
-            "gameTeams",
-            "gameTeams.game",
-            "gameTeams.addedBy",
-            "gameTeams.addedBy.discordUser",
-            "gameTeams.addedBy.webUser",
-            "gameTeams.team",
-            "gameTeams.team.teamOsuUsers",
-            "gameTeams.team.teamOsuUsers.osuUser"
-            // "gameTeams.team.createdBy",
-            // "gameTeams.team.createdBy.discordUser",
-            // "gameTeams.team.createdBy.webUser",
-            // "gameTeams.team.gameTeams",
-            // "gameTeams.team.gameTeams.game",
-            // "gameTeams.team.gameTeams.addedBy",
-            // "gameTeams.team.gameTeams.addedBy.discordUser",
-            // "gameTeams.team.gameTeams.addedBy.webUser"
-          ]
-        }
-      );
+      const game = await this.gameService.loadGameForTeamRequest(targetGameResult.value.id);
       game.gameTeams = game.gameTeams.filter(gt => gt.team);
 
       // ensure the requesting-user has permission to add a team to the target game
@@ -166,47 +144,80 @@ export class TeamService {
         await gt.save();
       }
       const savedGame = await this.dbConn.manager.getCustomRepository(GameRepository).save(game);
-      const reloadedGame = await this.dbConn.manager.getCustomRepository(GameRepository).findOne(
-        { id: savedGame.id },
-        {
-          relations: [
-            "gameTeams",
-            "gameTeams.addedBy",
-            "gameTeams.addedBy.discordUser",
-            "gameTeams.addedBy.webUser",
-            "gameTeams.game",
-            "gameTeams.team",
-            "gameTeams.team.teamOsuUsers",
-            "gameTeams.team.teamOsuUsers.osuUser"
-            // "gameTeams.team.createdBy",
-            // "gameTeams.team.createdBy.discordUser",
-            // "gameTeams.team.createdBy.webUser",
-            // "gameTeams.team.gameTeams",
-            // "gameTeams.team.gameTeams.game",
-            // "gameTeams.team.gameTeams.addedBy",
-            // "gameTeams.team.gameTeams.addedBy.discordUser",
-            // "gameTeams.team.gameTeams.addedBy.webUser"
-          ]
-        }
-      );
-
+      const reloadedGame = await this.gameService.loadGameForTeamRequest(savedGame.id);
       const finalTeamsAdded: GameTeam[] = reloadedGame.gameTeams.filter(
         ggt =>
           createdGameTeams.map(cgt => cgt.team.id).includes(ggt.team.id) && createdGameTeams.map(cgt => cgt.game.id).includes(ggt.game.id)
       );
 
-      // const finalTeamsAdded: Team[] = reloadedGame.gameTeams
-      //   .map(gt => gt.team)
-      //   .filter(t => teamsToBeAdded.map(ttba => ttba.id).includes(t.id));
-
-      // const finalTeamsAdded: GameTeam[] = reloadedGame.gameTeams.filter(gt =>
-      //   teamsToBeAdded.map(t => t.gameTeams.map(tgt => tgt.id).includes(gt.id))
-      // );
-
       Log.methodSuccess(this.processAddingNewTeams, this.constructor.name);
       return successPromise(finalTeamsAdded);
     } catch (error) {
       Log.methodError(this.processAddingNewTeams, this.constructor.name, error);
+      throw error;
+    }
+  }
+
+  async processRemovingTeams({
+    removeTeamNumbers,
+    requestingUser,
+    requestDto
+  }: {
+    removeTeamNumbers: number[];
+    requestingUser: User;
+    requestDto: RequestDto;
+  }): Promise<Either<Failure<TeamFailure | GameFailure | PermissionsFailure>, GameTeam[]>> {
+    try {
+      // find the user's most recent game created, or !targetgame
+      const targetGameResult = await this.gameService.getRequestingUserTargetGame({
+        userId: requestingUser.id
+      });
+      if (targetGameResult.failed()) {
+        Log.methodFailure(this.processRemovingTeams, this.constructor.name);
+        return failurePromise(targetGameResult.value);
+      }
+      // reload the game with the required relationships
+      const targetGame = await this.gameService.loadGameForTeamRequest(targetGameResult.value.id);
+
+      // ensure the requesting-user has permission to remove a team from the target game
+      const userRole = await this.gameService.getUserRoleForGame(requestingUser.id, targetGame.id);
+      const userPermittedResult = await this.permissions.checkUserPermission({
+        user: requestingUser,
+        userRole: userRole,
+        action: "removeteam",
+        resource: "game",
+        entityId: targetGame.id,
+        requesterClientType: requestDto.commType
+      });
+      if (userPermittedResult.failed()) {
+        Log.methodFailure(
+          this.processRemovingTeams,
+          this.constructor.name,
+          `User ${requestingUser.id} does not have permission to remove a team from game ${targetGame.id}.`
+        );
+        return failurePromise(userPermittedResult.value);
+      }
+
+      // validate the team numbers exist for teams in the game
+      const gameTeams = targetGame.gameTeams.filter(gt => gt.teamNumber);
+      const nonExistentTeamNumbers = removeTeamNumbers.filter(tn => !gameTeams.find(gt => gt.teamNumber == tn));
+      if (gameTeams.length != removeTeamNumbers.length) {
+        Log.methodFailure(this.processRemovingTeams, this.constructor.name, "Team number validation failed.");
+        return failurePromise(teamNumbersDoNotExistInGame({ teamNumbers: nonExistentTeamNumbers, gameId: targetGame.id }));
+      }
+      // remove the teams
+      const gameTeamIdsToBeRemoved = targetGame.gameTeams.filter(gt => gt.teamNumber).map(gt => gt.id);
+      const removedGameTeams: GameTeam[] = await this.removeGameTeamsFromGame({ gameTeamIdsToBeRemoved, targetGame });
+
+      // shuffle the team-numbers below up to remove any team-number gaps
+      const rearrangedGameTeams: GameTeam[] = await this.removeTeamNumberGapsFromGameTeams({ gameTeams: removedGameTeams });
+
+      // return the updated list of team numbers and their player names
+      return rearrangedGameTeams;
+
+      throw new Error("TODO: Implement method of TeamService.");
+    } catch (error) {
+      Log.methodError(this.processRemovingTeams, this.constructor.name, error);
       throw error;
     }
   }

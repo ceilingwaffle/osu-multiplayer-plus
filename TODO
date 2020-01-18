@@ -28,9 +28,14 @@ TODO:
                     }
                 }
         Bugs:
-            ☐ Duplicate leaderboard gets posted as soon as the 2nd match starts, and when each match begins @created(20-01-04 21:26)
+            ✔ Duplicate leaderboard gets posted as soon as the 2nd match starts @created(20-01-04 21:26) @done(20-01-19 00:45)
                 Can lazily fix this by just checking if the same VM results were already delivered
-                ☐ And it's reposting the results from every match @created(20-01-04 21:28)
+                ✔ And it's reposting the results from every match @created(20-01-04 21:28) @done(20-01-19 00:45)
+            ☐ Duplicate leaderboard gets posted when each match begins @created(20-01-04 21:26)
+            ☐ fix heart icon
+            ☐ scuffed team numbers (adding teams after game starts breaks team numbers)
+            ☐ don't show teams on leaderboards with a score of 0
+            ☐ add !removeteam command @started(20-01-19 00:45)
         Improvement ideas:
             ☐ Post a message when a match begins @created(20-01-04 21:42)
                 maybe? -> prevMatch.endTime != null && latestMatch.endTime == null && !prevMatch.aborted
