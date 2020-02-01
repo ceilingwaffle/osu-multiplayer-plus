@@ -44,24 +44,24 @@ export class RemoveTeamCommand extends AppBaseCommand {
         originChannelId: message.channel.id
       };
 
-      const createTeamResponse = await this.teamController.remove({
+      const removeTeamResponse = await this.teamController.remove({
         teamDto: {
-          teamNumber: message.argString
+          teamNumbers: [parseInt(message.argString)]
         },
         requestDto: requestDto
       });
 
       throw new Error("TODO: Implement method of RemoveTeamCommand.");
 
-      let toBeSent: RichEmbed;
-      if (!createTeamResponse || !createTeamResponse.success) {
-        // game was not created
-        toBeSent = new ErrorDiscordMessageBuilder().from(createTeamResponse, this).buildDiscordMessage(message);
-        return await message.embed(toBeSent);
-      }
+      // let toBeSent: RichEmbed;
+      // if (!removeTeamResponse || !removeTeamResponse.success) {
+      //   // game was not created
+      //   toBeSent = new ErrorDiscordMessageBuilder().from(removeTeamResponse, this).buildDiscordMessage(message);
+      //   return await message.embed(toBeSent);
+      // }
 
-      toBeSent = new AddTeamDiscordMessageBuilder().from(createTeamResponse, this).buildDiscordMessage(message);
-      return await message.embed(toBeSent);
+      // toBeSent = new AddTeamDiscordMessageBuilder().from(removeTeamResponse, this).buildDiscordMessage(message);
+      // return await message.embed(toBeSent);
     } catch (error) {
       throw error;
     } finally {
