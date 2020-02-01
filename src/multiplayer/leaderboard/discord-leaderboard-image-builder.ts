@@ -99,6 +99,7 @@ export class DiscordLeaderboardImageBuilder {
         alive: leaderboard.leaderboardLines
           .sort((ll1, ll2) => ll1.team.teamNumber - ll2.team.teamNumber)
           .sort((ll1, ll2) => ll1.position.currentPosition - ll2.position.currentPosition)
+          .sort((ll1, ll2) => ll2.teamScore.teamScore - ll1.teamScore.teamScore)
           .filter(ll => ll.lives.currentLives > 0)
           .map(ll => DiscordLeaderboardImageBuilder.genLeaderboardLineData(ll, leaderboard.leaderboardLines)),
         eliminated: leaderboard.leaderboardLines

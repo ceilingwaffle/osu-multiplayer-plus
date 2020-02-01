@@ -39,7 +39,7 @@ TODO:
         Improvement ideas:
             ☐ Post a message when a match begins @created(20-01-04 21:42)
                 maybe? -> prevMatch.endTime != null && latestMatch.endTime == null && !prevMatch.aborted
-            ☐ Sort leaderboard by current match scores, not by total scored @created(20-01-04 22:02)
+            ✔ Sort leaderboard by current match scores, not by total scored @created(20-01-04 22:02) @done(20-02-01 16:14)
                 ☐ Show the rank-ordered leaderboard when the game ends @created(20-01-04 22:05)
             ☐ Increase API limit to improve speed of results being shown @created(20-01-04 22:24)
             ✘ Include mods with map string @created(20-01-04 22:15) @cancelled(20-01-04 22:54)
