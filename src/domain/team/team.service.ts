@@ -207,13 +207,14 @@ export class TeamService {
       }
       // remove the teams
       const gameTeamIdsToBeRemoved = targetGame.gameTeams.filter(gt => gt.teamNumber).map(gt => gt.id);
-      const removedGameTeams: GameTeam[] = await this.removeGameTeamsFromGame({ gameTeamIdsToBeRemoved, targetGame });
+      // TODO - complete these below
+      // const removedGameTeams: GameTeam[] = await this.removeGameTeamsFromGame({ gameTeamIdsToBeRemoved, targetGame });
 
       // shuffle the team-numbers below up to remove any team-number gaps
-      const rearrangedGameTeams: GameTeam[] = await this.removeTeamNumberGapsFromGameTeams({ gameTeams: removedGameTeams });
+      // const rearrangedGameTeams: GameTeam[] = await this.removeTeamNumberGapsFromGameTeams({ gameTeams: removedGameTeams });
 
       // return the updated list of team numbers and their player names
-      return rearrangedGameTeams;
+      // return rearrangedGameTeams;
 
       throw new Error("TODO: Implement method of TeamService.");
     } catch (error) {

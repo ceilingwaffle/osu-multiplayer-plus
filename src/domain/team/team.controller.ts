@@ -143,7 +143,7 @@ export class TeamController {
       const requestingUser = requestingUserResult.value;
 
       const removeTeamsResult = await this.teamService.processRemovingTeams({
-        removeTeamNumbers: teamsData.teamDto,
+        removeTeamNumbers: teamsData.teamDto.teamNumbers,
         requestingUser: requestingUser,
         requestDto: teamsData.requestDto
       });
