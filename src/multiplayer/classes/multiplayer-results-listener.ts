@@ -81,6 +81,7 @@ export class MultiplayerResultsListener {
 
         let reallyToBeReported: ReportableContext<ReportableContextType>[] = toBeReported;
         //temp fix to stop multiple results being delivered: only deliver the last beatmap result
+        //    - will not include matches if the game has concluded (i.e. when only one team has >0 lives remaining)
         // reallyToBeReported = [];
         const latestMatch = matches.slice(-1)[0];
         if (latestMatch) {

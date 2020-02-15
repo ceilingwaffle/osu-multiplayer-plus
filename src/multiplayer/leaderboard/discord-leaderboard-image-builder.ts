@@ -101,18 +101,27 @@ export class DiscordLeaderboardImageBuilder {
           .sort((ll1, ll2) => ll1.position.currentPosition - ll2.position.currentPosition)
           .sort((ll1, ll2) => ll2.teamScore.teamScore - ll1.teamScore.teamScore)
           .filter(ll => ll.lives.currentLives > 0)
-          .map(ll => DiscordLeaderboardImageBuilder.genLeaderboardLineData(ll, leaderboard.leaderboardLines)),
+          .map((ll, llIndex) => {
+            const position = llIndex + 1;
+            return DiscordLeaderboardImageBuilder.genLeaderboardLineData(ll, leaderboard.leaderboardLines, position);
+          }),
         eliminated: leaderboard.leaderboardLines
           .filter(ll => ll.lives.currentLives < 1)
-          .map(ll => DiscordLeaderboardImageBuilder.genLeaderboardLineData(ll, leaderboard.leaderboardLines))
+          .map((ll, llIndex) => {
+            const aliveCount = leaderboard.leaderboardLines.filter(ll => ll.lives.currentLives > 0).length;
+            const position = llIndex + aliveCount + 1;
+            return DiscordLeaderboardImageBuilder.genLeaderboardLineData(ll, leaderboard.leaderboardLines, position);
+          })
       }
     };
   }
 
-  private static genLeaderboardLineData(ll: LeaderboardLine, allLines: LeaderboardLine[]): ImgLeaderboardLine {
+  private static genLeaderboardLineData(ll: LeaderboardLine, allLines: LeaderboardLine[], positionOverride: number): ImgLeaderboardLine {
+    const digits = allLines.length.toString().length;
+
     return {
       positionChange: DiscordLeaderboardImageBuilder.genPositionChange(ll),
-      positionNumber: `${DiscordLeaderboardImageBuilder.genCurrentPositionString(ll, allLines)}.`,
+      positionNumber: `${positionOverride.toString().padStart(digits, "0")}.`, //`${DiscordLeaderboardImageBuilder.genCurrentPositionString(ll, allLines)}.`,
       teamNumberString: `Team ${DiscordLeaderboardImageBuilder.genTeamNumber(ll, allLines)}`,
       eventEmoji: ll.eventIcon?.eventEmoji,
       lifeHearts: DiscordLeaderboardImageBuilder.genLifeHearts(ll),
@@ -160,7 +169,7 @@ export class DiscordLeaderboardImageBuilder {
   }
 
   private static genLifeHearts(ll: LeaderboardLine) {
-    return `${"❤".repeat(ll.lives.currentLives)}${"🤎".repeat(ll.lives.startingLives - ll.lives.currentLives)}`; // 💔 🤎 🤍 ♡ // white heart does not work on ubuntu chrome
+    return `${"❤".repeat(ll.lives.currentLives)}${"💔".repeat(ll.lives.startingLives - ll.lives.currentLives)}`; // 💔 🤎 🤍 ♡ // white heart does not work on ubuntu chrome
   }
 
   private static genCurrentPositionString(ll: LeaderboardLine, allLines: LeaderboardLine[]): string {
