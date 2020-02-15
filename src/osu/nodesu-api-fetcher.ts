@@ -28,7 +28,7 @@ export class NodesuApiFetcher implements IOsuApiFetcher {
     // Use minTime 1000ms (1 req per second) until we obtain elevated permissions.
     //
     // The more lobbies we add to the scanner, the higher the delay between retrieving results. See notes for maxConcurrent.
-    minTime: 1000,
+    minTime: 100,
     // While we're osu API ratelimited to 60 req per 60s, maxConcurrent is equivalent to the maximum number of seconds between API
     // requests per job. e.g. if we are scanning 15 lobbies, each lobby will be scanned about once per 15 seconds (keep in mind,
     // there may be other API requests happening, like isValidBanchoMultiplayerId, meaning the lobby scan delay may be higher).
