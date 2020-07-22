@@ -36,6 +36,7 @@ TODO:
             ☐ scuffed team numbers (adding teams after game starts breaks team numbers)
             ☐ don't show teams on leaderboards with a score of 0
             ☐ add !removeteam command @started(20-01-19 00:45)
+            ☐ URGENT: Fix if a team does not submit any scores, they win the match (and possibly if submits but scores 0)  @created(20-02-15 14:43)
         Improvement ideas:
             ☐ Post a message when a match begins @created(20-01-04 21:42)
                 maybe? -> prevMatch.endTime != null && latestMatch.endTime == null && !prevMatch.aborted
@@ -460,7 +461,7 @@ TODO:
                     If the game ended, it is restored to active.
                     If this command is fired multiple times, it keeps undoing the result preceeding the previous undone one.
                     ☐ mapName @created(19-09-02 13:49)
-                        Clever search to target the result of a specific map.
+                        ☐ Clever search to target the result of a specific map. @created(20-03-23 23:10)
                     ☐ Some minimum distance time @created(19-09-02 13:50)
                         So if a result comes in immediately before they use the command, it doesn't undo that immediate recent result - it should target the result prior to that one instead. 
                 ☐ `!obr redoresult <mapId?/mapName?>` @created(19-09-02 13:43)
