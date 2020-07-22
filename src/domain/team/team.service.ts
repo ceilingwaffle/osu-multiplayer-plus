@@ -2,7 +2,7 @@ import { Either, failurePromise } from "../../utils/either";
 import { Failure } from "../../utils/failure";
 import { OsuUserFailure, banchoOsuUserIdIsInvalidFailure } from "../user/user.failure";
 import { GameFailure } from "../game/game.failure";
-import { TeamFailure, osuUsersAlreadyInTeamForThisGameFailure, teamNumbersDoNotExistInGame } from "./team.failure";
+import { TeamFailure, osuUsersAlreadyInTeamForThisGameFailure, teamNumbersDoNotExistInGame, osuUsersBeingAddedMultipleTimesFailure } from "./team.failure";
 import { Team } from "./team.entity";
 import { PermissionsFailure } from "../../permissions/permissions.failure";
 import { injectable, inject } from "inversify";
@@ -126,6 +126,13 @@ export class TeamService {
       if (osuUsersInGame.length) {
         const osuUsernames = osuUsersInGame.map(osuUser => osuUser.osuUsername);
         return failurePromise(osuUsersAlreadyInTeamForThisGameFailure({ osuUsernames, gameId: game.id }));
+      }
+
+      // ensure the same user has not been added to multiple teams or the same team more than once
+      const multipleUserIds = _(teamsOfApiOsuUsers).flatMap(team => team.map(user => user.userId)).value().filter((item,index,arr) => arr.indexOf(item) !== index);
+      if (multipleUserIds.length) {
+        const osuUsernames = _(teamsOfApiOsuUsers).flatMap(team => team.filter(user => multipleUserIds.includes(user.userId)).map(user => user.username)).uniq().value();
+        return failurePromise(osuUsersBeingAddedMultipleTimesFailure({ osuUsernames }));
       }
 
       // get/create the osu users

@@ -7,7 +7,8 @@ export enum TeamFailure {
   TooManyUsersInAddTeamsRequest,
   SamePlayerExistsInMultipleTeamsInAddTeamsRequest,
   InvalidTeamNumbersInRemoveTeamsRequest,
-  TeamNumbersDoNotExistInGame
+  TeamNumbersDoNotExistInGame,
+  OsuUsersBeingAddedMultipleTimes
 }
 
 export const invalidTeamSizeFailure = (validationErrors: ValidationError[], reason?: string): Failure<TeamFailure.InvalidTeamSize> => ({
@@ -29,6 +30,21 @@ export const osuUsersAlreadyInTeamForThisGameFailure = ({
       return `osu! user ${osuUsernames[0]} has already been added to a team in game ${gameId}.`;
     } else {
       return `osu! users ${osuUsernames.join(", ")} have already been added to a team in game ${gameId}.`;
+    }
+  })()
+});
+
+export const osuUsersBeingAddedMultipleTimesFailure = ({
+  osuUsernames
+}: {
+  osuUsernames: string[];
+}): Failure<TeamFailure.OsuUsersBeingAddedMultipleTimes> => ({
+  type: TeamFailure.OsuUsersBeingAddedMultipleTimes,
+  reason: (() => {
+    if (osuUsernames.length === 1) {
+      return `osu! user ${osuUsernames[0]} is trying to be added to multiple teams! Check if one of the usernames is an old username of the user.`;
+    } else {
+      return `osu! users ${osuUsernames.join(", ")} are trying to be added to multiple teams! Check if one of the usernames is an old username of the users.`;
     }
   })()
 });
