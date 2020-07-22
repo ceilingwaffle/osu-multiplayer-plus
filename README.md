@@ -7,6 +7,9 @@ osu! Multiplayer Plus is a discord bot for adding special game-modes to normal o
 - Best of (planned)
 - Tournaments (planned)
 
+## Disclaimer
+This bot is not affiliated or associated with the official osu! in any way, and was just made by some guy in a waffle costume stuck to a rather ordinary ceiling.
+
 ## Usage
 
 1. [Invite the bot to your Discord server.](https://discordapp.com/api/oauth2/authorize?client_id=279825470974066688&permissions=388176&scope=bot)
