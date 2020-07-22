@@ -70,7 +70,7 @@
     "role-acl": "^3.3.7",
     "set-interval-async": "^1.0.30",
     "sqlite": "^3.0.3",
-    "sqlite3": "^4.1.1",
+    "sqlite3": "^4.2.0",
     "tasktimer": "^3.0.0",
     "ts-cleaner": "^1.0.5",
     "typeorm": "^0.2.22"
