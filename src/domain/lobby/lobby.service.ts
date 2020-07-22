@@ -179,7 +179,7 @@ export class LobbyService {
       //      scanner.watch()) and the scanner will update the lobby status some ~300ms later after the scanner for that lobby starts/fails.
 
       // creates a lobby watcher if one does not already exist (watcher not started until !startgame command is used)
-      this.osuLobbyScanner.tryCreateWatcher({ gameId: lobbyGame.id, multiplayerId: lobbyData.banchoMultiplayerId });
+      await this.osuLobbyScanner.tryCreateWatcher({ gameId: lobbyGame.id, multiplayerId: lobbyData.banchoMultiplayerId });
       if (GameStatus.isStartedStatus(lobbyGame.status)) {
         // start the watcher if the game is started
         await this.osuLobbyScanner.tryActivateWatchers({ gameId: lobbyGame.id });
