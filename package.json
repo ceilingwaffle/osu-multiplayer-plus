@@ -46,7 +46,7 @@
     "bancho.js": "^0.9.7",
     "bottleneck": "^2.19.5",
     "chai-spies": "^1.0.0",
-    "class-transformer": "^0.2.3",
+    "class-transformer": "^0.3.1",
     "class-validator": "^0.9.1",
     "commander": "^2.20.3",
     "discord.js": "^11.6.4",
