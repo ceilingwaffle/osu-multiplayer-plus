@@ -28,7 +28,7 @@
     "@types/node": "^8.10.61",
     "chai": "^4.2.0",
     "chai-exclude": "^2.0.2",
-    "mocha": "^6.2.3",
+    "mocha": "^10.2.0",
     "mocha-parallel-tests": "^2.3.0",
     "nyc": "^14.1.1",
     "run-script-os": "^1.1.1",
